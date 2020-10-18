@@ -124,7 +124,7 @@ namespace MongoDB.Client.Bson.Reader
             var unreaded = _input.Remaining + sizeof(int);
             while (unreaded - _input.Remaining < docLength - 1)
             {
-                TryParseElement(root, out var element);
+                if ( !TryParseElement(root, out var element) ) { return false; }
                 root.Elements.Add(element);
             }
             TryGetByte(out var endDocumentMarker);
@@ -220,7 +220,7 @@ namespace MongoDB.Client.Bson.Reader
             var unreaded = _input.Remaining + sizeof(int);
             while(unreaded - _input.Remaining  < docLength - 1)
             {
-                TryParseElement(document, out var element);
+                if ( !TryParseElement(document, out var element)) { return false; }
                 document.Elements.Add(element);
             }
             TryGetByte(out var endDocumentMarker);
