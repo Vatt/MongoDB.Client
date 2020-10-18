@@ -14,7 +14,7 @@ namespace MongoDB.Client.Bson.Document
         UUID = 4,
         MD5 = 5,
         EncryptedBSONValue = 6,
-        UserDefined = 80,
+        UserDefined = 0x80,
     }
     public readonly struct BsonBinaryData
     {

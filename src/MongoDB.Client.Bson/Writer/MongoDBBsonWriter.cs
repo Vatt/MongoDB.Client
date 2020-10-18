@@ -320,10 +320,14 @@ namespace MongoDB.Client.Bson.Writer
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe void WriteDouble(double value)
+        public void WriteDouble(double value)
         {
-            long longValue = *(long*)&value;
-            WriteInt64(longValue);
+            unsafe
+            {
+                long longValue = *(long*)&value;
+                WriteInt64(longValue);
+            }
+          
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -333,7 +337,7 @@ namespace MongoDB.Client.Bson.Writer
             WriteBytes(span);
             WriteByte((byte)'\x00');
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteString(string value)
         {
             //var len = Encoding.UTF8.GetByteCount(value);
@@ -342,11 +346,25 @@ namespace MongoDB.Client.Bson.Writer
             WriteBytes(span);
             WriteByte((byte)'\x00');
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteObjectId(BsonObjectId value)
         {
             WriteInt32(value.Part1);
             WriteInt32(value.Part2);
             WriteInt32(value.Part3);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void WriteUTCDateTime(DateTimeOffset datetime)
+        {
+            WriteInt64(datetime.ToUnixTimeMilliseconds());
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void WriteBoolean(bool value)
+        {
+            WriteByte(value ? 1 : 0);
         }
         public void WriteElement(BsonElement element)
         {

@@ -41,6 +41,11 @@ namespace MongoDB.Test
             var reader = new MongoDBBsonReader(file);
 
             reader.TryParseDocument(null, out var document);
+            reader.TryParseDocument(null, out var document1);
+            reader.TryParseDocument(null, out var document2);
+            reader.TryParseDocument(null, out var document3);
+            reader.TryParseDocument(null, out var document4);
+            reader.TryParseDocument(null, out var document5);
 
         }
     }
