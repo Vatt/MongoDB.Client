@@ -6,42 +6,8 @@ using System.Runtime.Intrinsics.X86;
 
 namespace MongoDB.Client.Bson.Document
 {
-    public enum BsonBinaryDataType : byte
-    {
-        Generic = 0,
-        BinaryOld = 2,
-        UUIDOld = 3,
-        UUID = 4,
-        MD5 = 5,
-        EncryptedBSONValue = 6,
-        UserDefined = 80,
-    }
-    public readonly struct BsonBinaryData
-    {
-        public BsonBinaryDataType Type { get; }
-        public object Value { get; }
-        private BsonBinaryData(BsonBinaryDataType type, object value)
-        {
-            Type = type;
-            Value = value;
-        }
-        public static BsonBinaryData Create(Guid guid)
-        {
-            return new BsonBinaryData(BsonBinaryDataType.UUID, guid);
-        }
-    }
-    public readonly struct BsonObjectId
-    {
-        public readonly int Part1 { get; }
-        public readonly int Part2 { get; }
-        public readonly int Part3 { get; }
-        public BsonObjectId(int p1, int p2, int p3)
-        {
-            Part1 = p1;
-            Part2 = p2;
-            Part3 = p3;
-        }
-    }
+
+
     public readonly struct BsonElement
     {
         public readonly BsonDocument Parent { get; }
@@ -112,6 +78,10 @@ namespace MongoDB.Client.Bson.Document
         public static BsonElement Create(BsonDocument parent, string name)
         {
             return new BsonElement(parent, BsonElementType.Null, name, null);
+        }
+        public static BsonElement CreateArray(BsonDocument parent, string name, BsonDocument root)
+        {
+            return new BsonElement(parent, BsonElementType.Array, name, root);
         }
     }
 }

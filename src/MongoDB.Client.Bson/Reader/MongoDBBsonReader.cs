@@ -116,10 +116,24 @@ namespace MongoDB.Client.Bson.Reader
             value = boolean == 1 ? true:false;
             return true;
         }
-        public bool TryGetArray(out byte[] value)
+        public bool TryGetArray(out BsonDocument value)
         {
             value = default;
-            return false;
+            var root = new BsonDocument();
+            if (!TryGetInt32(out var docLength)) { return false; }
+            var unreaded = _input.Remaining + sizeof(int);
+            while (unreaded - _input.Remaining < docLength - 1)
+            {
+                TryParseElement(root, out var element);
+                root.Elements.Add(element);
+            }
+            TryGetByte(out var endDocumentMarker);
+            if (endDocumentMarker != '\x00')
+            {
+                throw new ArgumentException($"{nameof(MongoDBBsonReader)}.{nameof(TryParseDocument)} End document marker missmatch");
+            }
+            value = root;
+            return true;
         }
         public bool TryParseElement(BsonDocument parent, out BsonElement element)
         {
@@ -144,6 +158,12 @@ namespace MongoDB.Client.Bson.Reader
                     {
                         if (!TryParseDocument(parent, out var docValue)) { return false; }
                         element = BsonElement.Create(parent, name, docValue);
+                        return true;
+                    }
+                case 4:
+                    {
+                        if(!TryGetArray(out var arrayDoc)) { return false; }
+                        element = BsonElement.CreateArray(parent, name, arrayDoc);
                         return true;
                     }
                 case 5:

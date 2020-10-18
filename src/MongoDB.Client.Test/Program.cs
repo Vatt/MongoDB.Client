@@ -40,12 +40,7 @@ namespace MongoDB.Test
             ReadOnlyMemory<byte> file = File.ReadAllBytes("../../../ReaderTestCollection.bson");
             var reader = new MongoDBBsonReader(file);
 
-            List<BsonDocument> docs = new List<BsonDocument>();
-            for (int i = 0; i < 45716; i++)
-            {
-                reader.TryParseDocument(null, out var adddoc);
-                docs.Add(adddoc);
-            }
+            reader.TryParseDocument(null, out var document);
 
         }
     }
