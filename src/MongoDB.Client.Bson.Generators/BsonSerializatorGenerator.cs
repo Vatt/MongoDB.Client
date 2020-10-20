@@ -22,7 +22,7 @@ namespace MongoDB.Client.Bson.Generators
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver)) { return; }
             //Debugger.Launch();
             CollectMapData(context, receiver.Candidates);
-            foreach(var item in meta)
+            foreach (var item in meta)
             {
                 var builder = GeneratePrologue(item);
                 GenerateWriterMethod(builder);
@@ -40,7 +40,7 @@ namespace MongoDB.Client.Bson.Generators
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
 using System;
-namespace MongoDB.Client.Test.Generated
+namespace MongoDB.Client.Test
 {{      
         public class {info.ClassName}GeneratedSerializator : IBsonSerializable 
         {{
@@ -54,11 +54,11 @@ namespace MongoDB.Client.Test.Generated
                         {{
                                 GlobalSerialization.Serializators[Type.GetType(""MongoDB.Client.Test.Generated.{info.ClassName}GeneratedSerializator"")] = new {info.ClassName}GeneratedSerializator();
                         }} */
-                        return builder;
-                    }
-                    private void GenerateReaderMethod(ClassMapInfo info, StringBuilder builder)
-                    {
-                        builder.Append($@"
+            return builder;
+        }
+        private void GenerateReaderMethod(ClassMapInfo info, StringBuilder builder)
+        {
+            builder.Append($@"
             bool IBsonSerializable.TryParse(ref MongoDBBsonReader reader, out object message)
             {{
                 message = default;
@@ -71,15 +71,15 @@ namespace MongoDB.Client.Test.Generated
                     if (!reader.TryGetCStringAsSpan(out var name)) {{ return false; }}
                     switch (type)
                     {{
-                        {GenerateClassFieldMapFieldAssignIfHave(1,  info)}
-                        {GenerateClassFieldMapFieldAssignIfHave(2,  info)}
-                        {GenerateClassFieldMapFieldAssignIfHave(3,  info)}
+                        {GenerateClassFieldMapFieldAssignIfHave(1, info)}
+                        {GenerateClassFieldMapFieldAssignIfHave(2, info)}
+                        {GenerateClassFieldMapFieldAssignIfHave(3, info)}
                         {/*GenerateClassFieldMapFieldAssignIfHave(4, info)*/
-            String.Empty}
+String.Empty}
             {GenerateClassFieldMapFieldAssignIfHave(54, info)}
-            {GenerateClassFieldMapFieldAssignIfHave(7,  info)}
-            {GenerateClassFieldMapFieldAssignIfHave(8,  info)}
-            {GenerateClassFieldMapFieldAssignIfHave(9,  info)}
+            {GenerateClassFieldMapFieldAssignIfHave(7, info)}
+            {GenerateClassFieldMapFieldAssignIfHave(8, info)}
+            {GenerateClassFieldMapFieldAssignIfHave(9, info)}
             {GenerateClassFieldMapFieldAssignIfHave(10, info)}
             {GenerateClassFieldMapFieldAssignIfHave(16, info)}
             {GenerateClassFieldMapFieldAssignIfHave(18, info)}
@@ -90,6 +90,12 @@ namespace MongoDB.Client.Test.Generated
             }}      
         }}
     }}
+    if ( !reader.TryGetByte(out var endMarker)){{ return false; }}
+            if (endMarker != '\x00')
+            {{
+                throw new ArgumentException($""{info.ClassName}GeneratedSerializator.TryParse End document marker missmatch"");
+            }}
+
     message = result;
     return true;
 }}");
@@ -164,10 +170,7 @@ namespace MongoDB.Client.Test.Generated
             }
             builder.Append($@"
                             {{
-                               if ( !GlobalSerialization.Serializators.TryGetValue({classinfo.ClassName}{info.TypeAlias}TypeDocument{info.Id}, out var serializator))
-                               {{
-                                    throw new Exception(""{classinfo.ClassName}.{info.ClassField} not a IBsonSerialize"");
-                               }}
+                               IBsonSerializable serializator = new {info.Type}GeneratedSerializator();
                                if ( !serializator.TryParse(ref reader, out var value)){{ return false;}}
                                result.{info.ClassField} = value as {info.Type};
                             }}
