@@ -11,6 +11,7 @@ namespace MongoDB.Client.Bson.Reader
 
         public long BytesConsumed => _input.Consumed;
         public readonly ReadOnlySpan<byte> UnreadSpan => _input.UnreadSpan;
+        public readonly long Remaining => _input.Remaining;
         public MongoDBBsonReader(ReadOnlyMemory<byte> memory)
         {
             var ros = new ReadOnlySequence<byte>(memory);
@@ -44,6 +45,15 @@ namespace MongoDB.Client.Bson.Reader
                 return false;
             }
             value = Encoding.UTF8.GetString(data);
+            return true;
+        }
+        public bool TryGetCStringAsSpan(out ReadOnlySpan<byte> value)
+        {
+            value = default;
+            if (!_input.TryReadTo(out value, (byte)'\x00'))
+            {
+                return false;
+            }
             return true;
         }
         public bool TryGetDouble(out double value)
@@ -101,6 +111,20 @@ namespace MongoDB.Client.Bson.Reader
                     }
             }
 
+        }
+        public bool TryGetBinaryDataGuid(out Guid value)
+        {
+            value = default;
+            if (!TryGetInt32(out var len)) { return false; }
+            if (!TryGetByte(out var subtype)) { return false; }
+            if (UnreadSpan.Length < len) { return false; }
+            if(subtype != 4)
+            {
+                throw new ArgumentException($"{nameof(MongoDBBsonReader)}.{nameof(TryGetBinaryDataGuid)}  with subtype {subtype}");
+            }
+            value = new Guid(UnreadSpan.Slice(0, len));
+            _input.Advance(len);
+            return true;
         }
         public bool TryGetUTCDatetime(out DateTimeOffset value)
         {

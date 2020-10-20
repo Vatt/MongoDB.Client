@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MongoDB.Client.Test", "src\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "System.Net.Connections", "src\System.Net.Connections\src\System.Net.Connections.csproj", "{49FC04B9-FB1D-47F9-9E50-9BC3E33D6FE9}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MongoDB.Client.Bson.Generators", "src\MongoDB.Client.Bson.Generators\MongoDB.Client.Bson.Generators.csproj", "{C0F47096-9017-42C7-9621-852782B0F123}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,18 @@ Global
 		{49FC04B9-FB1D-47F9-9E50-9BC3E33D6FE9}.Release|x64.Build.0 = Release|Any CPU
 		{49FC04B9-FB1D-47F9-9E50-9BC3E33D6FE9}.Release|x86.ActiveCfg = Release|Any CPU
 		{49FC04B9-FB1D-47F9-9E50-9BC3E33D6FE9}.Release|x86.Build.0 = Release|Any CPU
+		{C0F47096-9017-42C7-9621-852782B0F123}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0F47096-9017-42C7-9621-852782B0F123}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0F47096-9017-42C7-9621-852782B0F123}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C0F47096-9017-42C7-9621-852782B0F123}.Debug|x64.Build.0 = Debug|Any CPU
+		{C0F47096-9017-42C7-9621-852782B0F123}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C0F47096-9017-42C7-9621-852782B0F123}.Debug|x86.Build.0 = Debug|Any CPU
+		{C0F47096-9017-42C7-9621-852782B0F123}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0F47096-9017-42C7-9621-852782B0F123}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0F47096-9017-42C7-9621-852782B0F123}.Release|x64.ActiveCfg = Release|Any CPU
+		{C0F47096-9017-42C7-9621-852782B0F123}.Release|x64.Build.0 = Release|Any CPU
+		{C0F47096-9017-42C7-9621-852782B0F123}.Release|x86.ActiveCfg = Release|Any CPU
+		{C0F47096-9017-42C7-9621-852782B0F123}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
