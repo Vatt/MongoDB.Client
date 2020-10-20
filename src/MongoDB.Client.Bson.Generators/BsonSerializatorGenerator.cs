@@ -41,7 +41,7 @@ using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
 using System;
 namespace MongoDB.Client.Test.Generated
-{{
+{{      
         public class {info.ClassName}GeneratedSerializator : IBsonSerializable 
         {{
             {GenerateStaticReadOnlyBsonFieldsSpans(info)}
@@ -50,28 +50,32 @@ namespace MongoDB.Client.Test.Generated
             public {info.ClassName}GeneratedSerializator(){{}}
 
 ");
-
-            return builder;
-        }
-        private void GenerateReaderMethod(ClassMapInfo info, StringBuilder builder)
-        {
-            builder.Append($@"
-bool IBsonSerializable.TryParse(MongoDBBsonReader reader, out object message)
-{{
-    message = default;
-    var result = new {info.ClassName}();
-    if (!reader.TryGetInt32(out var docLength)) {{ return false; }}
-    var unreaded = reader.Remaining + sizeof(int);
-    while (unreaded - reader.Remaining < docLength - 1)
-    {{
-        if (!reader.TryGetByte(out var type)) {{ return false; }}
-        if (!reader.TryGetCStringAsSpan(out var name)) {{ return false; }}
-        switch (type)
-        {{
-            {GenerateClassFieldMapFieldAssignIfHave(1,  info)}
-            {GenerateClassFieldMapFieldAssignIfHave(2,  info)}
-            {GenerateClassFieldMapFieldAssignIfHave(3,  info)}
-            {GenerateClassFieldMapFieldAssignIfHave(4,  info)}
+            /*            static {info.ClassName}GeneratedSerializator()
+                        {{
+                                GlobalSerialization.Serializators[Type.GetType(""MongoDB.Client.Test.Generated.{info.ClassName}GeneratedSerializator"")] = new {info.ClassName}GeneratedSerializator();
+                        }} */
+                        return builder;
+                    }
+                    private void GenerateReaderMethod(ClassMapInfo info, StringBuilder builder)
+                    {
+                        builder.Append($@"
+            bool IBsonSerializable.TryParse(ref MongoDBBsonReader reader, out object message)
+            {{
+                message = default;
+                var result = new {info.ClassName}();
+                if (!reader.TryGetInt32(out var docLength)) {{ return false; }}
+                var unreaded = reader.Remaining + sizeof(int);
+                while (unreaded - reader.Remaining < docLength - 1)
+                {{
+                    if (!reader.TryGetByte(out var type)) {{ return false; }}
+                    if (!reader.TryGetCStringAsSpan(out var name)) {{ return false; }}
+                    switch (type)
+                    {{
+                        {GenerateClassFieldMapFieldAssignIfHave(1,  info)}
+                        {GenerateClassFieldMapFieldAssignIfHave(2,  info)}
+                        {GenerateClassFieldMapFieldAssignIfHave(3,  info)}
+                        {/*GenerateClassFieldMapFieldAssignIfHave(4, info)*/
+            String.Empty}
             {GenerateClassFieldMapFieldAssignIfHave(54, info)}
             {GenerateClassFieldMapFieldAssignIfHave(7,  info)}
             {GenerateClassFieldMapFieldAssignIfHave(8,  info)}
@@ -92,20 +96,29 @@ bool IBsonSerializable.TryParse(MongoDBBsonReader reader, out object message)
         }             
         private string GenerateClassFieldMapFieldAssignIfHave(int type, ClassMapInfo info)
         {
+            int TYPE = 0;
+            if (type == 54) { TYPE = 5; } else { TYPE = type; }
             StringBuilder builder = new StringBuilder();
+            
             if ( !info.MapedFields.Any( (info)=>info.TypeId == type) )
             {
                 return String.Empty;
             }
             builder.Append($@"
-                case {type}:{{
+                case {TYPE}:{{
                         {GenerateCaseReaderReadFromType(type)}
 ");
             foreach(var fieldInfo in info.MapedFields)
             {
+                if (fieldInfo.TypeId != type) { continue; }
                 if (fieldInfo.TypeId == 10)
                 {
-                    builder.Append($@"message.{fieldInfo.ClassField} = null;" );
+                    builder.Append($@"result.{fieldInfo.ClassField} = null;" );
+                    continue;
+                }
+                if (fieldInfo.TypeId == 3)
+                {
+                    builder.Append(GenerateReadOtherDocument(type, info, fieldInfo));
                     continue;
                 }
                 if (fieldInfo.TypeId == type)
@@ -135,6 +148,33 @@ bool IBsonSerializable.TryParse(MongoDBBsonReader reader, out object message)
             builder.Append("\t\t\t\t\tbreak;\n\t\t\t\t}");
             return builder.ToString();
         }
+        private string GenerateReadOtherDocument(int type,ClassMapInfo classinfo, MapFieldInfo info)
+        {
+            
+            StringBuilder builder = new StringBuilder();
+            if (info.BsonFieldAlias == null)
+            {
+                builder.Append($@"
+                            if ( name.SequenceEqual({classinfo.ClassName}{info.BsonField}) )");
+            }
+            else
+            {
+                builder.Append($@"
+                            if ( name.SequenceEqual({classinfo.ClassName}{info.BsonFieldAlias}))");
+            }
+            builder.Append($@"
+                            {{
+                               if ( !GlobalSerialization.Serializators.TryGetValue({classinfo.ClassName}{info.TypeAlias}TypeDocument{info.Id}, out var serializator))
+                               {{
+                                    throw new Exception(""{classinfo.ClassName}.{info.ClassField} not a IBsonSerialize"");
+                               }}
+                               if ( !serializator.TryParse(ref reader, out var value)){{ return false;}}
+                               result.{info.ClassField} = value as {info.Type};
+                            }}
+
+            ");
+            return builder.ToString();
+        }
         private string GenerateCaseReaderReadFromType(int type)
         {
             switch (type)
@@ -150,7 +190,8 @@ bool IBsonSerializable.TryParse(MongoDBBsonReader reader, out object message)
                     }
                 case 3:
                     {
-                        return "if (!reader.TryParseDocument(parent, out var value)) { return false; }";
+                        //return "if (!reader.TryParseDocument(parent, out var value)) { return false; }";
+                        return String.Empty;
 
                     }
                 case 4:
@@ -184,11 +225,11 @@ bool IBsonSerializable.TryParse(MongoDBBsonReader reader, out object message)
                     }
                 case 16:
                     {
-                        return "if (!TryGetInt32(out var value)) { return false; }";
+                        return "if (!reader.TryGetInt32(out var value)) { return false; }";
                     }
                 case 18:
                     {
-                        return "if (!TryGetInt64(out var value)) { return false; }";
+                        return "if (!reader.TryGetInt64(out var value)) { return false; }";
                     }
                 default:
                     {
@@ -299,6 +340,7 @@ bool IBsonSerializable.TryParse(MongoDBBsonReader reader, out object message)
                 case "System.DateTimeOffset":
                     {
                         info.TypeId = 9;
+                        info.Type = "System.DateTimeOffset";
                         break;
                     }
                 case "object":
@@ -331,7 +373,7 @@ bool IBsonSerializable.TryParse(MongoDBBsonReader reader, out object message)
                             
                         }
                         info.isDocument = true;
-                        info.TypeId = 4;
+                        info.TypeId = 3;
                         info.Type = symbol.ToString();
                         info.TypeAlias = info.Type.Replace('.', '_');
                         return;

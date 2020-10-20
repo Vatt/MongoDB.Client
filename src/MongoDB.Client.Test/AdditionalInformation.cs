@@ -7,19 +7,19 @@ using System.Threading.Tasks;
 
 namespace MongoDB.Client.Test
 {
-    //[BsonSerializable]
-    //class Information
-    //{
-    //    [BsonElementField(ElementName = "_id")]
-    //    public Guid TypeId;
-    //}
+    [BsonSerializable]
+    class Information
+    {
+        [BsonElementField(ElementName = "_id")]
+        public Guid TypeId;
+    }
 
-    //[BsonSerializable]
-    //class AdditionalInformation
-    //{
-    //    [BsonElementField]
-    //    public Guid TypeId;
-    //    [BsonElementField]
-    //    public List<Information> Informations;
-    //}
+    [BsonSerializable]
+    class AdditionalInformation
+    {
+        [BsonElementField]
+        public Guid TypeId;
+        [BsonElementField]
+        public List<Information> Informations;
+    }
 }

@@ -9,20 +9,20 @@ using System.Threading.Tasks;
 
 namespace MongoDB.Client.Test
 {
-    //[BsonSerializable]
-    //class DateObject
-    //{
-    //    [BsonElementField]
-    //    public DateTimeOffset DateTime;
+    [BsonSerializable]
+    class DateObject
+    {
+        [BsonElementField]
+        public DateTimeOffset DateTime;
 
-    //    [BsonElementField]
-    //    public long Ticks;
+        [BsonElementField]
+        public long Ticks;
 
-    //    [BsonElementField]
-    //    public int Offset;
+        [BsonElementField]
+        public int Offset;
 
-    //}
+    }
 
 }
-          
+
 

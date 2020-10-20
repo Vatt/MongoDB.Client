@@ -37,11 +37,12 @@ namespace MongoDB.Test
         }
         static unsafe void Test()
         {
-            //ReadOnlyMemory<byte> file = File.ReadAllBytes("../../../ReaderTestCollection.bson");
-            ReadOnlyMemory<byte> file = File.ReadAllBytes("../../../Meteoritelandings.bson");
+            ReadOnlyMemory<byte> file = File.ReadAllBytes("../../../ReaderTestCollection.bson");
+            //ReadOnlyMemory<byte> file = File.ReadAllBytes("../../../Meteoritelandings.bson");
             var reader = new MongoDBBsonReader(file);
-            IBsonSerializable serializator = new MongoDB.Client.Test.Generated.NasaMeteoriteLandingGeneratedSerializator();
-            serializator.TryParse(reader, out var doc);
+            //IBsonSerializable serializator = new MongoDB.Client.Test.Generated.NasaMeteoriteLandingGeneratedSerializator();
+            IBsonSerializable serializator = new MongoDB.Client.Test.Generated.DocumentObjectGeneratedSerializator();
+            serializator.TryParse(ref reader, out var doc);
             //reader.TryParseDocument(null, out var document);
             //reader.TryParseDocument(null, out var document1);
             //reader.TryParseDocument(null, out var document2);

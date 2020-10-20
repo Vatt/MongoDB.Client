@@ -9,8 +9,8 @@ namespace MongoDB.Client.Bson.Serialization
 {
     public interface IBsonSerializable
     {
-        bool TryParse(MongoDBBsonReader reader,  out object message);
-
+        bool TryParse(ref MongoDBBsonReader reader,  out object message);
+        
         void Write(object message);
     }
 }

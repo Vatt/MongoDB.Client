@@ -11,29 +11,29 @@ using System.Threading.Tasks;
 namespace MongoDB.Client.Test
 {
 
-    //[BsonSerializable]
-    //class DocumentObject
-    //{
-    //    [BsonElementField(ElementName = "_id")]
-    //    public Guid Id;
+    [BsonSerializable]
+    class DocumentObject
+    {
+        [BsonElementField(ElementName = "_id")]
+        public Guid Id;
 
-    //    [BsonElementField]
-    //    public Guid TypeId;
+        [BsonElementField]
+        public Guid TypeId;
 
-    //    [BsonElementField]
-    //    public DateObject LastModifiedDate;
+        [BsonElementField]
+        public DateObject LastModifiedDate;
 
-    //    [BsonElementField]
-    //    public DateObject CreatedDate;
+        [BsonElementField]
+        public DateObject CreatedDate;
 
-    //    [BsonElementField]
-    //    public object MetaInformation;
+        [BsonElementField]
+        public object MetaInformation;
 
-    //    [BsonElementField]
-    //    public bool Deleted;
+        [BsonElementField]
+        public bool Deleted;
 
-    //    [BsonElementField]
-    //    public List<AdditionalInformation> AdditionalInformation;
-    //}
+        [BsonElementField]
+        public List<AdditionalInformation> AdditionalInformation;
+    }
 
 }
