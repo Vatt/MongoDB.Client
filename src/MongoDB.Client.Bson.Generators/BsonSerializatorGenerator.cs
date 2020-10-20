@@ -17,11 +17,37 @@ namespace MongoDB.Client.Bson.Generators
     public class BsonSerializatorGenerator : ISourceGenerator
     {
         private List<ClassMapInfo> meta = new List<ClassMapInfo>();
+        public string GenerateGlobalHelperStaticClass()
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.Append($@"
+using MongoDB.Client.Bson.Reader;
+using MongoDB.Client.Bson.Serialization;
+using System;
+namespace MongoDB.Client.Test{{
+    public static class GlobalSerializationHelperGenerated{{
+        {GenerateFields()}
+    }}
+    
+}}
+            ");
+            return builder.ToString();
+            string GenerateFields()
+            {
+                var builder = new StringBuilder();
+                foreach(var info in meta)
+                {
+                    builder.Append($"\n\t\tpublic static readonly  IBsonSerializable {info.ClassName}GeneratedSerializatorField = new {info.ClassName}GeneratedSerializator();");
+                }
+                return builder.ToString();
+            }
+        }
         public void Execute(GeneratorExecutionContext context)
         {
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver)) { return; }
             //Debugger.Launch();
             CollectMapData(context, receiver.Candidates);
+            context.AddSource($"GlobalSerializationHelperGenerated.cs", SourceText.From(GenerateGlobalHelperStaticClass(), Encoding.UTF8));
             foreach (var item in meta)
             {
                 var builder = GeneratePrologue(item);
@@ -30,7 +56,7 @@ namespace MongoDB.Client.Bson.Generators
                 builder.Append("}}");
                 context.AddSource($"{item.ClassName}GeneratedSerializator.cs", SourceText.From(builder.ToString(), Encoding.UTF8));
             }
-
+            
             //Debugger.Launch();
 
         }
@@ -50,11 +76,7 @@ namespace MongoDB.Client.Test
             public {info.ClassName}GeneratedSerializator(){{}}
 
 ");
-            /*            static {info.ClassName}GeneratedSerializator()
-                        {{
-                                GlobalSerialization.Serializators[Type.GetType(""MongoDB.Client.Test.Generated.{info.ClassName}GeneratedSerializator"")] = new {info.ClassName}GeneratedSerializator();
-                        }} */
-            return builder;
+             return builder;
         }
         private void GenerateReaderMethod(ClassMapInfo info, StringBuilder builder)
         {
@@ -154,7 +176,13 @@ String.Empty}
             builder.Append("\t\t\t\t\tbreak;\n\t\t\t\t}");
             return builder.ToString();
         }
-        private string GenerateReadOtherDocument(int type,ClassMapInfo classinfo, MapFieldInfo info)
+        private string GenerateReadArray(ClassMapInfo classinfo, MapFieldInfo info)
+        {
+            StringBuilder builder = new StringBuilder();
+
+            return builder.ToString();
+        }
+        private string GenerateReadOtherDocument(int type, ClassMapInfo classinfo, MapFieldInfo info)
         {
             
             StringBuilder builder = new StringBuilder();
@@ -170,8 +198,7 @@ String.Empty}
             }
             builder.Append($@"
                             {{
-                               IBsonSerializable serializator = new {info.Type}GeneratedSerializator();
-                               if ( !serializator.TryParse(ref reader, out var value)){{ return false;}}
+                               if ( !GlobalSerializationHelperGenerated.{info.ShortType}GeneratedSerializatorField.TryParse(ref reader, out var value)){{ return false;}}
                                result.{info.ClassField} = value as {info.Type};
                             }}
 
@@ -371,6 +398,8 @@ String.Empty}
                                 throw new ArgumentException($"{nameof(BsonSerializatorGenerator)}.{nameof(MatchClassTypeId)} in array type generics count > 1");
                             }
                             info.GenericType =  symbol.TypeArguments[0].ToString();
+                            info.GenericShortType =  symbol.TypeArguments[0].Name;
+
                             info.GenericTypeAlias = info.GenericType.Replace('.', '_');
                             return;
                             
@@ -378,6 +407,7 @@ String.Empty}
                         info.isDocument = true;
                         info.TypeId = 3;
                         info.Type = symbol.ToString();
+                        info.ShortType = symbol.Name;
                         info.TypeAlias = info.Type.Replace('.', '_');
                         return;
                        // throw new ArgumentException($"{nameof(BsonSerializatorGenerator)}.{nameof(MatchClassTypeId)} with type {symbol.ToString()}");

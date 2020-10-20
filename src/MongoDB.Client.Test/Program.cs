@@ -37,6 +37,7 @@ namespace MongoDB.Test
         }
         static unsafe void Test()
         {
+            
             ReadOnlyMemory<byte> file = File.ReadAllBytes("../../../ReaderTestCollection.bson");
             //ReadOnlyMemory<byte> file = File.ReadAllBytes("../../../Meteoritelandings.bson");
             var reader = new MongoDBBsonReader(file);

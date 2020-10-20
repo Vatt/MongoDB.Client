@@ -14,16 +14,20 @@ namespace MongoDB.Client.Bson.Generators
         public string ClassField { get; set; }
         public int TypeId { get; set; }
         public string Type { get; set; }
+        public string ShortType { get; set; }
         public string TypeAlias { get; set; }
         public string GenericType { get; set; }
+        public string GenericShortType { get; set; }
         public string GenericTypeAlias { get; set; }
         public bool isDocument { get; set; }
         public MapFieldInfo()
         {
             BsonFieldAlias = null;
             GenericType = null;
+            GenericShortType = null;
             GenericTypeAlias = null;
             Type = null;
+            ShortType = null;
             isDocument = false;
             Id = _id++;
         }

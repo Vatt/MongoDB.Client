@@ -159,6 +159,15 @@ namespace MongoDB.Client.Bson.Reader
             value = root;
             return true;
         }
+        public bool TryGetDateAsDocument(out DateTimeOffset date)
+        {
+            date = default;
+            if(!TryGetUTCDatetime(out date)) { return false; }
+            if(!TryGetInt64(out var ticks)) { return false; }
+            if(!TryGetInt32(out var offset)) { return false; }
+            //date.AddTicks(ticks);           
+            return true;
+        }
         public bool TryParseElement(BsonDocument parent, out BsonElement element)
         {
             element = default;
