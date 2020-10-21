@@ -1,6 +1,7 @@
 ﻿using MongoDB.Client.Bson.Document;
 using System;
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace MongoDB.Client.Bson.Reader
@@ -37,7 +38,7 @@ namespace MongoDB.Client.Bson.Reader
         {
             return _input.TryReadLittleEndian(out value);
         }
-        public bool TryGetCString(out string value)
+        public bool TryGetCString([NotNullWhen(true)] out string? value)
         {
             value = default;
             if (!_input.TryReadTo(out ReadOnlySpan<byte> data, (byte)'\x00'))
@@ -64,7 +65,7 @@ namespace MongoDB.Client.Bson.Reader
             return true;
             
         }
-        public bool TryGetString(out string value)
+        public bool TryGetString([NotNullWhen(true)] out string? value)
         {
             value = default;
             if(!TryGetInt32(out var length)){ return false; }
@@ -159,7 +160,7 @@ namespace MongoDB.Client.Bson.Reader
             value = boolean == 1 ? true:false;
             return true;
         }
-        public bool TryGetArray(out BsonDocument value)
+        public bool TryGetArray([NotNullWhen(true)] out BsonDocument? value)
         {
             value = default;
             var root = new BsonDocument();
