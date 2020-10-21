@@ -1,10 +1,6 @@
 ﻿using AMQP.Client.RabbitMQ.Protocol.Core;
 using System;
 using System.Buffers;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MongoDB.Client.Protocol
 {
@@ -12,6 +8,12 @@ namespace MongoDB.Client.Protocol
     {
         public bool TryParseMessage(in ReadOnlySequence<byte> input, ref SequencePosition consumed, ref SequencePosition examined, out MessageHeader message)
         {
+            // The header consists of
+            //
+            // [4 bytes]  [4 bytes  ]  [4 bytes   ]  [4 bytes]
+            // [size   ]  [requestId]  [responseTo]  [opcode ]
+
+
             message = default;
             if (input.Length < sizeof(int) * 4)
             {
@@ -23,6 +25,8 @@ namespace MongoDB.Client.Protocol
             reader.TryReadLittleEndian(out int responseTo);
             reader.TryReadLittleEndian(out int opcode);
             message = new MessageHeader(messageLength, requestId, responseTo, opcode);
+            consumed = reader.Position;
+            examined = reader.Position;
             return true;
         }
     }
