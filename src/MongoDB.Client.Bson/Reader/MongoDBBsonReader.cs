@@ -1,6 +1,7 @@
 ﻿using MongoDB.Client.Bson.Document;
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
@@ -177,6 +178,25 @@ namespace MongoDB.Client.Bson.Reader
                 throw new ArgumentException($"{nameof(MongoDBBsonReader)}.{nameof(TryParseDocument)} End document marker missmatch");
             }
             value = root;
+            return true;
+        }
+        public bool TryGetArrayAsDocumentList([NotNullWhen(true)] out List<BsonDocument>? value)
+        {
+            value = new List<BsonDocument>();
+            if (!TryGetInt32(out var docLength)) { return false; }
+            var unreaded = _input.Remaining + sizeof(int);
+            while (unreaded - _input.Remaining < docLength - 1)
+            {
+                if (!TryGetByte(out var type)) { return false; }
+                if (!TryGetCString(out var name)) { return false; }
+                if (!TryParseDocument(null, out var element)) { return false; }
+                value.Add(element);
+            }
+            TryGetByte(out var endDocumentMarker);
+            if (endDocumentMarker != '\x00')
+            {
+                throw new ArgumentException($"{nameof(MongoDBBsonReader)}.{nameof(TryParseDocument)} End document marker missmatch");
+            }            
             return true;
         }
         public bool TryGetDatetimeFromDocument(out DateTimeOffset date)

@@ -10,7 +10,7 @@ namespace MongoDB.Client.Bson.Generators
 {
     class SyntaxReceiver : ISyntaxReceiver
     {
-        public List<ClassDeclarationSyntax> Candidates { get; } = new List<ClassDeclarationSyntax>();
+        public List<TypeDeclarationSyntax> Candidates { get; } = new List<TypeDeclarationSyntax>();
  
         public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
         {
@@ -33,7 +33,27 @@ namespace MongoDB.Client.Bson.Generators
                     }
          
                 }
-                
+
+            }
+            else if (syntaxNode is StructDeclarationSyntax structDeclarationSyntax)
+            {
+                if (structDeclarationSyntax.AttributeLists == null)
+                {
+                    return;
+                }
+                foreach (var attrList in structDeclarationSyntax.AttributeLists)
+                {
+                    foreach (var attr in attrList.Attributes)
+                    {
+                        if (((IdentifierNameSyntax)attr.Name).Identifier.Text.Equals("BsonSerializable"))
+                        {
+                            Candidates.Add(structDeclarationSyntax);
+
+                        }
+                    }
+
+                }
+
             }
         }
     }

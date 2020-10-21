@@ -11,8 +11,8 @@ namespace MongoDB.Client.Test
     [BsonSerializable]
     struct ErrorData
     {
-        
-        public string ErrorMessage { get; set; }
+
+        public string ErrorMessage;
     }
     [BsonSerializable]
     class Information

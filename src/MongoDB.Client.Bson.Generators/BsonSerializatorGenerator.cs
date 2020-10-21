@@ -62,6 +62,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Writer;
 using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Bson.Document;
 using System;
 using System.Collections.Generic;
 using {info.StringNamespace};
@@ -171,11 +172,22 @@ namespace MongoDB.Client.Bson.Serialization.Generated
 
                         break;
                     }
-                case "3": //документ
+                case "BsonDocument": 
                     {
-                        //return "if (!reader.TryParseDocument(parent, out var value)) { return false; }";
-                        return String.Empty;
-
+                        if (declinfo.IsProperty)
+                        {
+                            builder.Append($@"
+                        if (!reader.TryParseDocument(null, out var value)) {{ return false; }}                        
+                        result.{declinfo.DeclSymbol.Name} = value;
+                        ");
+                        }
+                        else
+                        {
+                            builder.Append($@"
+                        if (!reader.TryParseDocument(null, out result.{declinfo.DeclSymbol.Name})) {{ return false; }}                            
+                        ");
+                        }
+                        break;
                     }
                 case "4": //Массив
                     {
@@ -347,18 +359,46 @@ namespace MongoDB.Client.Bson.Serialization.Generated
                     }
                 default:
                     {
-                        if(declinfo.IsGenericList)
+                        if(declinfo.IsGenericList && !declinfo.GenericType.Name.Equals("BsonDocument"))
                         {
                             builder.Append(GenerateReadArray(info, declinfo));
-                            
+                            break;
                         }
-                        return builder.ToString();
-                        //return string.Empty;
-                        //throw new ArgumentException($"{nameof(BsonSerializatorGenerator)}.{nameof(GenerateReadsAndAssign)} with type name {declinfo.DeclType.Name}");
+                        if(declinfo.IsGenericList && declinfo.GenericType.Name.Equals("BsonDocument"))
+                        {
+                            builder.Append(GenerateReadArrayToBsonDocumentList(info, declinfo));
+                            break;
+                        }
+                        if (declinfo.IsClassOrStruct)
+                        {
+                            builder.Append(GenerateReadOtherDocument(info, declinfo));
+                            break;
+                        }
+
+                        throw new ArgumentException($"{nameof(BsonSerializatorGenerator)}.{nameof(GenerateReadsAndAssign)} with type name {declinfo.DeclType.Name}");
                     }
 
 
             }
+            return builder.ToString();
+        }
+        private string GenerateReadArrayToBsonDocumentList(ClassDecl classdecl, MemberDeclarationInfo memberdecl)
+        {
+            StringBuilder builder = new StringBuilder();
+            if (memberdecl.IsProperty)
+            {
+                builder.Append($@"                    
+                     if ( !reader.TryGetArrayAsDocumentList(out var docList)){{ return false;}}            
+                     result.{memberdecl.DeclSymbol.Name} = docList;
+            ");
+            }
+            else
+            {
+                builder.Append($@"                    
+                     if ( !reader.TryGetArrayAsDocumentList(out result.{memberdecl.DeclSymbol.Name})){{ return false;}}            
+            ");
+            }
+
             return builder.ToString();
         }
         private string GenerateReadArray(ClassDecl classdecl, MemberDeclarationInfo memberdecl)
@@ -382,37 +422,24 @@ namespace MongoDB.Client.Bson.Serialization.Generated
         ");
             return builder.ToString();
         }
-        //private string GenerateReadOtherDocument(int type, ClassInfo classinfo, FieldInfo info)
-        //{
+        private string GenerateReadOtherDocument(ClassDecl classdecl, MemberDeclarationInfo memberdecl)
+        {
 
-        //    StringBuilder builder = new StringBuilder();
-        //    if (info.BsonFieldAlias == null)
-        //    {
-        //        builder.Append($@"
-        //                    if ( name.SequenceEqual({classinfo.ClassName}{info.BsonField}) )");
-        //    }
-        //    else
-        //    {
-        //        builder.Append($@"
-        //                    if ( name.SequenceEqual({classinfo.ClassName}{info.BsonFieldAlias}))");
-        //    }
-        //    builder.Append($@"
-        //                    {{
-        //                       if ( !GlobalSerializationHelperGenerated.{info.ShortType}GeneratedSerializatorStaticField.TryParse(ref reader, out var value)){{ return false;}}
-        //                       result.{info.ClassField} = value as {info.Type};
-        //                    }}
+            StringBuilder builder = new StringBuilder();
+            builder.Append($@"
+                     if ( !GlobalSerializationHelperGenerated.{memberdecl.DeclType.Name}GeneratedSerializatorStaticField.TryParse(ref reader, out var value)){{ return false;}}
+                     result.{memberdecl.DeclSymbol.Name} = ({memberdecl.DeclType.Name})value;
+            ");
+            return builder.ToString();
+        }
 
-        //    ");
-        //    return builder.ToString();
-        //}
-       
         public void Initialize(GeneratorInitializationContext context)
         {
 
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
         }
 
-        private void CollectMapData(GeneratorExecutionContext context, List<ClassDeclarationSyntax> candidates)
+        private void CollectMapData(GeneratorExecutionContext context, List<TypeDeclarationSyntax> candidates)
         {
 
             INamedTypeSymbol attrName = context.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonElementField");
