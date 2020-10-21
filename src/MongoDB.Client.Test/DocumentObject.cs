@@ -15,25 +15,19 @@ namespace MongoDB.Client.Test
     class DocumentObject
     {
         [BsonElementField(ElementName = "_id")]
-        public Guid Id;
+        public Guid Id { get; set; }
 
-        [BsonElementField]
-        public Guid TypeId;
+        public Guid TypeId { get; set; }
 
-        [BsonElementField]
-        public DateObject LastModifiedDate;
 
-        [BsonElementField]
-        public DateObject CreatedDate;
+        public DateTimeOffset LastModifiedDate { get; set; }
 
-        [BsonElementField]
-        public object MetaInformation;
+        public DateTimeOffset CreatedDate { get; set; }
 
-        [BsonElementField]
-        public bool Deleted;
+        public bool Deleted { get; set; }
 
-        [BsonElementField]
-        public List<AdditionalInformation> AdditionalInformation;
+        public string MetaInformation;
+        public List<AdditionalInformation> AdditionalInformation { get; set; }
     }
 
 }

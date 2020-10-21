@@ -1,4 +1,5 @@
-﻿using MongoDB.Client.Bson.Serialization.Attributes;
+﻿using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,97 +9,98 @@ using System.Threading.Tasks;
 namespace MongoDB.Client.Test
 {
     [BsonSerializable]
-    class ErrorData
+    struct ErrorData
     {
-        [BsonElementField]
-        public string ErrorMessage;
+        
+        public string ErrorMessage { get; set; }
     }
     [BsonSerializable]
     class Information
     {
-        [BsonElementField]
-        public String Id;
+        public string Id;
+        public string MessageType { get; set; }
 
-        [BsonElementField]
-        public string MessageType;
 
-        [BsonElementField]
-        public string Path;
+        public string Path { get; set; }
 
-        [BsonElementField]
-        public string Filename;
 
-        [BsonElementField]
-        public string ServicePhase;
+        public string FileName { get; set; }
+        public string Data { get; set; }
 
-        [BsonElementField]
-        public long   ServicePhaseDuration;
-        
-        [BsonElementField]
-        public string LocationInformationId;
+        public DateTimeOffset DateTime;
 
-        [BsonElementField]
-        public string DataInformationId;
+        public string DataTypeId;
 
-        [BsonElementField]
-        public string StorageKey;
+        public string InputData;
 
-        [BsonElementField]
-        public long FileLength;
+        public Guid InputDataAccountingIdentifier;
 
-        [BsonElementField]
-        public object BinaryDeleted;
 
-        [BsonElementField]
-        public string InputDataAccountingIdentifier;
+        public Guid OutputDataAccountingIdentifier;
 
-        [BsonElementField]
+
         public string OutputData;
-
-        [BsonElementField]
-        public string OutputDataAccountingIdentifier;
-
-        [BsonElementField]
         public string Direction;
-
-        [BsonElementField]
         public string Source;
 
-        [BsonElementField]
-        public long Value1;
 
-        [BsonElementField]
-        public long Value2;
+        public string Filename { get; set; }
 
-        [BsonElementField]
-        public long Value3;
 
-        [BsonElementField]
-        public long Value4;
+        public string ServicePhase { get; set; }
 
-        [BsonElementField]
-        public string ChannelId;
-        
-        [BsonElementField]
-        public object TranscriberResultsStorageKey;
 
-        [BsonElementField]
-        public object PreprocessedResultsStorageKey;
+        public long   ServicePhaseDuration { get; set; }
 
-        [BsonElementField]
-        public object BookmarksStorageKey;
+        public long Duration;
+        public string LocationInformationId { get; set; }
 
-        [BsonElementField]
-        public bool InTranscribing;
 
-        [BsonElementField]
-        public object InTranscribingDate;
+        public string DataInformationId { get; set; }
 
-        [BsonElementField]
-        public object Result;
 
-        [BsonElementField]
-        public object ErrorData;
+        public string StorageKey { get; set; }
+
+
+        public long FileLength { get; set; }
+
+
+        public bool BinaryDeleted { get; set; }
+
+        public long Value1 { get; set; }
+
+
+        public long Value2 { get; set; }
+
+
+        public long Value3 { get; set; }
+
+
+        public long Value4 { get; set; }
+
+
+        public string ChannelId { get; set; }
+
+
+        public string TranscriberResultsStorageKey { get; set; }
+
+
+        public Guid PreprocessedResultsStorageKey { get; set; }
+
+
+        public Guid BookmarksStorageKey { get; set; }
+
+
+        public bool InTranscribing { get; set; }
+
+
+        public DateTimeOffset InTranscribingDate { get; set; }
+
+        public Guid InTranscribingOpGuid { get; set; }
+        public string Result { get; set; }
+
+
+        public ErrorData ErrorData { get; set; }
 
 
     }
@@ -106,11 +108,13 @@ namespace MongoDB.Client.Test
     [BsonSerializable]
     class AdditionalInformation
     {
-        [BsonElementField]
-        public Guid TypeId;   
+        
+        public Guid TypeId { get; set; }
+
         [BsonElementField(ElementName = "_id")]
-        public Guid Id;
-        [BsonElementField]
-        public List<Information> Informations;
+        public Guid Id { get; set; }
+
+        public List<Information> Informations { get; set; }
+        //public List<BsonDocument>? Informations;
     }
 }

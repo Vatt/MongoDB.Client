@@ -21,7 +21,6 @@ namespace MongoDB.Client.Bson.Generators
                 {
                     return;
                 }
-                var info = new ClassMapInfo();
                 foreach(var attrList in classDeclarationSyntax.AttributeLists)
                 {
                     foreach(var attr in attrList.Attributes)
