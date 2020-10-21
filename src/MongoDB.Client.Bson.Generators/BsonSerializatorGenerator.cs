@@ -1,15 +1,10 @@
 ﻿using Microsoft.CodeAnalysis;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
-using System.Security.Cryptography.X509Certificates;
-using System.Runtime.Serialization;
 using System;
-using System.Linq.Expressions;
-using System.Linq;
 
 namespace MongoDB.Client.Bson.Generators
 {
@@ -52,7 +47,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
                 var builder = Generate(item);
                 context.AddSource($"{item.ClassSymbol.Name}GeneratedSerializator.cs", SourceText.From(builder.ToString(), Encoding.UTF8));
             }
-
+   
             //Debugger.Launch();
 
         }

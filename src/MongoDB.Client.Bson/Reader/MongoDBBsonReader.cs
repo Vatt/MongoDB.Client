@@ -14,15 +14,22 @@ namespace MongoDB.Client.Bson.Reader
         public long BytesConsumed => _input.Consumed;
         public readonly ReadOnlySpan<byte> UnreadSpan => _input.UnreadSpan;
         public readonly long Remaining => _input.Remaining;
-        public MongoDBBsonReader(ReadOnlyMemory<byte> memory)
+        public MongoDBBsonReader(in ReadOnlyMemory<byte> memory)
         {
             var ros = new ReadOnlySequence<byte>(memory);
             _input = new SequenceReader<byte>(ros);
         }
-        public MongoDBBsonReader(ReadOnlySequence<byte> sequence)
+
+        public MongoDBBsonReader(in ReadOnlySequence<byte> sequence)
         {
             _input = new SequenceReader<byte>(sequence);
         }
+
+        public MongoDBBsonReader(in SequenceReader<byte> reader)
+        {
+            _input = reader;
+        }
+
         public bool TryGetByte(out byte value)
         {
             return _input.TryRead(out value);
@@ -298,7 +305,9 @@ namespace MongoDB.Client.Bson.Reader
                     }
             }
         }
-        public bool TryParseDocument(BsonDocument parent, out BsonDocument document)
+
+
+        public bool TryParseDocument(BsonDocument? parent, out BsonDocument document)
         {
             document = new BsonDocument();
             if(!TryGetInt32(out var docLength)) { return false; }
@@ -313,7 +322,19 @@ namespace MongoDB.Client.Bson.Reader
             {
                 throw new ArgumentException($"{nameof(MongoDBBsonReader)}.{nameof(TryParseDocument)} End document marker missmatch");
             }
+
             return true;
+        }
+
+        public bool TryParseDocument(ref SequencePosition consumed, ref SequencePosition examined, out BsonDocument document)
+        {
+            if (TryParseDocument(null, out document))
+            {
+                consumed = _input.Position;
+                examined = _input.Position;
+                return true;
+            }
+            return false;
         }
     }
 }
