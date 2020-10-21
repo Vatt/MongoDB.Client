@@ -12,6 +12,9 @@ namespace MongoDB.Client.Bson.Reader
         private SequenceReader<byte> _input;
 
         public long BytesConsumed => _input.Consumed;
+
+        public SequencePosition Position => _input.Position;
+
         public readonly ReadOnlySpan<byte> UnreadSpan => _input.UnreadSpan;
         public readonly long Remaining => _input.Remaining;
         public MongoDBBsonReader(in ReadOnlyMemory<byte> memory)

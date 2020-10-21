@@ -13,6 +13,7 @@ namespace MongoDB.Test
     {
         static async Task Main(string[] args)
         {
+            Test();
             var client = new MongoClient();
             var connectionInfo = await client.ConnectAsync(default);
 
@@ -30,7 +31,7 @@ namespace MongoDB.Test
             {
                 BsonElement.Create(root, "driver", driverDoc)
             }); 
-            Test();
+            
         }
         static void Test()
         {
