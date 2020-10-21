@@ -24,6 +24,7 @@ namespace MongoDB.Client.Bson.Generators
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
 using System;
+using System.Collections.Generic;
 namespace MongoDB.Client.Test{{
     public static class GlobalSerializationHelperGenerated{{
         {GenerateFields()}
@@ -37,7 +38,7 @@ namespace MongoDB.Client.Test{{
                 var builder = new StringBuilder();
                 foreach(var info in meta)
                 {
-                    builder.Append($"\n\t\tpublic static readonly  IBsonSerializable {info.ClassName}GeneratedSerializatorField = new {info.ClassName}GeneratedSerializator();");
+                    builder.Append($"\n\t\tpublic static readonly  IBsonSerializable {info.ClassName}GeneratedSerializatorStaticField = new {info.ClassName}GeneratedSerializator();");
                 }
                 return builder.ToString();
             }
@@ -66,6 +67,7 @@ namespace MongoDB.Client.Test{{
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
 using System;
+using System.Collections.Generic;
 namespace MongoDB.Client.Test
 {{      
         public class {info.ClassName}GeneratedSerializator : IBsonSerializable 
@@ -96,15 +98,14 @@ namespace MongoDB.Client.Test
                         {GenerateClassFieldMapFieldAssignIfHave(1, info)}
                         {GenerateClassFieldMapFieldAssignIfHave(2, info)}
                         {GenerateClassFieldMapFieldAssignIfHave(3, info)}
-                        {/*GenerateClassFieldMapFieldAssignIfHave(4, info)*/
-String.Empty}
-            {GenerateClassFieldMapFieldAssignIfHave(54, info)}
-            {GenerateClassFieldMapFieldAssignIfHave(7, info)}
-            {GenerateClassFieldMapFieldAssignIfHave(8, info)}
-            {GenerateClassFieldMapFieldAssignIfHave(9, info)}
-            {GenerateClassFieldMapFieldAssignIfHave(10, info)}
-            {GenerateClassFieldMapFieldAssignIfHave(16, info)}
-            {GenerateClassFieldMapFieldAssignIfHave(18, info)}
+                        {GenerateClassFieldMapFieldAssignIfHave(4, info)}
+                        {GenerateClassFieldMapFieldAssignIfHave(54, info)}
+                        {GenerateClassFieldMapFieldAssignIfHave(7, info)}
+                        {GenerateClassFieldMapFieldAssignIfHave(8, info)}
+                        {GenerateClassFieldMapFieldAssignIfHave(9, info)}
+                        {GenerateClassFieldMapFieldAssignIfHave(10, info)}
+                        {GenerateClassFieldMapFieldAssignIfHave(16, info)}
+                        {GenerateClassFieldMapFieldAssignIfHave(18, info)}
 
             default:
             {{
@@ -149,6 +150,11 @@ String.Empty}
                     builder.Append(GenerateReadOtherDocument(type, info, fieldInfo));
                     continue;
                 }
+                if (fieldInfo.TypeId == 4)
+                {
+                    builder.Append(GenerateReadArray( info, fieldInfo));
+                    continue;
+                }
                 if (fieldInfo.TypeId == type)
                 {
                     if (fieldInfo.BsonFieldAlias == null)
@@ -157,6 +163,7 @@ String.Empty}
                         if ( name.SequenceEqual({info.ClassName}{fieldInfo.BsonField}) )
                         {{
                             result.{fieldInfo.ClassField} = value;
+                            break;
                         }}
 ");
                     }
@@ -166,6 +173,7 @@ String.Empty}
                         if ( name.SequenceEqual({info.ClassName}{fieldInfo.BsonFieldAlias}) )
                         {{
                             result.{fieldInfo.ClassField} = value;
+                            break;
                         }}
 ");
                     }
@@ -179,7 +187,22 @@ String.Empty}
         private string GenerateReadArray(ClassMapInfo classinfo, MapFieldInfo info)
         {
             StringBuilder builder = new StringBuilder();
-
+            builder.Append($@"
+                    result.{info.ClassField} = new List<{info.GenericType}>();
+                    if (!reader.TryGetInt32(out var arrayDocLength)) {{ return false; }}
+                    var arrayUnreaded = reader.Remaining + sizeof(int);
+                    while (arrayUnreaded - reader.Remaining < arrayDocLength - 1)
+                    {{
+                        if ( !reader.TryGetCStringAsSpan(out var index)) {{ return false; }}
+                        if ( !GlobalSerializationHelperGenerated.{info.GenericShortType}GeneratedSerializatorStaticField.TryParse(ref reader, out var arrayElement)){{ return false;}}
+                        result.{info.ClassField}.Add(arrayElement as {info.GenericType});
+                    }}
+                    if ( !reader.TryGetByte(out var arrayEndMarker)){{ return false; }}
+                    if (arrayEndMarker != '\x00')
+                    {{
+                        throw new ArgumentException($""{classinfo.ClassName}GeneratedSerializator.TryParse End document marker missmatch"");
+                    }}             
+");
             return builder.ToString();
         }
         private string GenerateReadOtherDocument(int type, ClassMapInfo classinfo, MapFieldInfo info)
@@ -198,7 +221,7 @@ String.Empty}
             }
             builder.Append($@"
                             {{
-                               if ( !GlobalSerializationHelperGenerated.{info.ShortType}GeneratedSerializatorField.TryParse(ref reader, out var value)){{ return false;}}
+                               if ( !GlobalSerializationHelperGenerated.{info.ShortType}GeneratedSerializatorStaticField.TryParse(ref reader, out var value)){{ return false;}}
                                result.{info.ClassField} = value as {info.Type};
                             }}
 
@@ -226,8 +249,8 @@ String.Empty}
                     }
                 case 4:
                     {
-                        return "if (!reader.TryGetArray(out var value)) { return false; }";
-
+                        //return "if (!reader.TryGetArray(out var value)) { return false; }";
+                        return String.Empty;
                     }
                 case 54:
                     {
@@ -399,7 +422,8 @@ String.Empty}
                             }
                             info.GenericType =  symbol.TypeArguments[0].ToString();
                             info.GenericShortType =  symbol.TypeArguments[0].Name;
-
+                            info.Type = symbol.ToString();
+                            info.ShortType = symbol.Name;
                             info.GenericTypeAlias = info.GenericType.Replace('.', '_');
                             return;
                             

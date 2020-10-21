@@ -77,6 +77,18 @@ namespace MongoDB.Client.Bson.Reader
             value = Encoding.UTF8.GetString(data);
             return true;
         }
+        public bool TryGetStringAsSpan(out ReadOnlySpan<byte> value)
+        {
+            value = default;
+            if (!TryGetInt32(out var length)) { return false; }
+            if (_input.UnreadSpan.Length < length)
+            {
+                return false;
+            }
+            value = _input.UnreadSpan.Slice(0, length - 1);
+            _input.Advance(length);
+            return true;
+        }
         public bool TryGetObjectId(out BsonObjectId value)
         {
             value = default;
