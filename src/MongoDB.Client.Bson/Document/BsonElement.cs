@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
@@ -6,8 +7,7 @@ using System.Runtime.Intrinsics.X86;
 
 namespace MongoDB.Client.Bson.Document
 {
-
-
+    [DebuggerDisplay("{Value}", Name = "{Name}")]
     public readonly struct BsonElement
     {
         public readonly BsonDocument Parent { get; }
