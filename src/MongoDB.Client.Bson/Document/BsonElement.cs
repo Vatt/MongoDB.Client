@@ -83,5 +83,10 @@ namespace MongoDB.Client.Bson.Document
         {
             return new BsonElement(parent, BsonElementType.Array, name, root);
         }
+
+        public override string ToString()
+        {
+            return Name + ": " + (Value is not null ? Value.ToString() : "null");
+        }
     }
 }

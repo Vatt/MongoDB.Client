@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Net;
-using System.Runtime.Intrinsics;
 using System.Threading.Tasks;
-using MongoDB.Client.Network;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client;
 
 namespace MongoDB.Test
 {
@@ -16,8 +13,9 @@ namespace MongoDB.Test
     {
         static async Task Main(string[] args)
         {
+            var client = new MongoClient();
+            var connectionInfo = await client.ConnectAsync(default);
 
-            
             //var factory = new NetworkConnectionFactory();
             //var connection = await factory.ConnectAsync(new DnsEndPoint("centos0.mshome.net", 27017));
             //var seq = await connection.Pipe.Input.ReadAsync();
@@ -33,7 +31,6 @@ namespace MongoDB.Test
                 BsonElement.Create(root, "driver", driverDoc)
             }); 
             Test();
-
         }
         static void Test()
         {

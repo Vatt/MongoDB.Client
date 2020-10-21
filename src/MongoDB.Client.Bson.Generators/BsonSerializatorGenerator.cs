@@ -10,6 +10,7 @@ using System.Runtime.Serialization;
 using System;
 using System.Linq.Expressions;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace MongoDB.Client.Bson.Generators
 {
@@ -57,7 +58,7 @@ namespace MongoDB.Client.Test{{
                 builder.Append("}}");
                 context.AddSource($"{item.ClassName}GeneratedSerializator.cs", SourceText.From(builder.ToString(), Encoding.UTF8));
             }
-            
+   
             //Debugger.Launch();
 
         }

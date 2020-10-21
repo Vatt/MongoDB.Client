@@ -259,7 +259,7 @@ namespace MongoDB.Client.Bson.Reader
                     }
             }
         }
-        public bool TryParseDocument(BsonDocument parent, out BsonDocument document)
+        public bool TryParseDocument(BsonDocument? parent, out BsonDocument document)
         {
             document = new BsonDocument();
             if(!TryGetInt32(out var docLength)) { return false; }

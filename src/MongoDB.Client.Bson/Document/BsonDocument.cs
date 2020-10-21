@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+using MongoDB.Client.Bson.Utils;
 
 namespace MongoDB.Client.Bson.Document
 {
+    [DebuggerTypeProxy(typeof(CollectionDebugView<>))]
     public class BsonDocument
     {
 
@@ -15,8 +13,13 @@ namespace MongoDB.Client.Bson.Document
        
         public BsonDocument()
         {
-            Elements = new List<BsonElement>();            
+            Elements = new List<BsonElement>();
         }
-        
+
+
+        public override string ToString()
+        {
+            return string.Join(';', Elements.Select(e => e.ToString()));
+        }
     }
 }
