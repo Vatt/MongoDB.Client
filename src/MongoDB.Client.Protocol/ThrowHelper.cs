@@ -79,5 +79,13 @@ namespace MongoDB.Client.Protocol
         {
             throw new ObjectDisposedException(name);
         }
+
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
+        public static void CancelledException()
+        {
+            throw new OperationCanceledException();
+        }
     }
 }

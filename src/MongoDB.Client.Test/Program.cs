@@ -40,7 +40,8 @@ namespace MongoDB.Test
             var reader = new MongoDBBsonReader(file);
             //IBsonSerializable serializator = new MongoDB.Client.Test.Generated.NasaMeteoriteLandingGeneratedSerializator();
             IBsonSerializable serializator = new MongoDB.Client.Bson.Serialization.Generated.DocumentObjectGeneratedSerializator();
-            serializator.TryParse(ref reader, out var doc);
+            var dummy = new SequencePosition();
+            serializator.TryParse(ref reader, ref dummy, ref dummy, out var doc);
             //reader.TryParseDocument(null, out var document);
             //reader.TryParseDocument(null, out var document1);
             //reader.TryParseDocument(null, out var document2);

@@ -31,7 +31,7 @@ namespace AMQP.Client.RabbitMQ.Protocol.Core
         }
 
 
-        public ValueTask<ProtocolReadResult<TReadMessage>> ReadAsync<TReadMessage>(IMessageReader<TReadMessage> reader, CancellationToken cancellationToken = default)
+        public ValueTask<ProtocolReadResult<TReadMessage>> ReadAsync<TReadMessage>(IMessageReader<TReadMessage> reader, CancellationToken cancellationToken = default) 
         {
             if (_disposed)
             {

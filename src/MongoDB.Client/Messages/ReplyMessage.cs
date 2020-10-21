@@ -1,0 +1,14 @@
+﻿using MongoDB.Client.Protocol.Readers;
+
+namespace MongoDB.Client.Messages
+{
+    class ReplyMessage : MongoMessage
+    {
+        public ReplyMessageHeader ReplyHeader { get; }
+
+        public ReplyMessage(in MessageHeader header, in ReplyMessageHeader replyHeader) : base(header)
+        {
+            ReplyHeader = replyHeader;
+        }
+    }
+}

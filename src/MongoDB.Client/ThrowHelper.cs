@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
+using MongoDB.Client.Protocol.Readers;
 
 namespace MongoDB.Client
 {
@@ -78,6 +79,14 @@ namespace MongoDB.Client
         public static void ObjectDisposedException(string name)
         {
             throw new ObjectDisposedException(name);
+        }
+
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
+        public static void OpcodeNotSupportedException(Opcode opcode)
+        {
+            throw new NotSupportedException($"Opcode '{opcode}' not supported");
         }
     }
 }

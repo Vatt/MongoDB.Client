@@ -1,6 +1,6 @@
-namespace MongoDB.Client
+namespace MongoDB.Client.Protocol.Readers
 {
-    internal enum Opcode
+    public enum Opcode
     {
         Reply = 1,
         Message = 1000,

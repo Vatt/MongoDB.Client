@@ -36,9 +36,9 @@ namespace MongoDB.Client
             }
         }
 
-        public ValueTask<T> SendAsync<T>(ReadOnlySpan<byte> message, CancellationToken cancellationToken)
-        {
-            return _channel.SendAsync<T>(message, cancellationToken);
-        }
+        //public ValueTask<T> SendAsync<T>(ReadOnlySpan<byte> message, CancellationToken cancellationToken)
+        //{
+        //    return _channel.SendAsync<T>(message, cancellationToken);
+        //}
     }
 }

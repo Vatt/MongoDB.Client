@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
+using MongoDB.Client.Protocol;
 
 namespace AMQP.Client.RabbitMQ.Protocol.Core
 {
@@ -12,22 +13,28 @@ namespace AMQP.Client.RabbitMQ.Protocol.Core
         private readonly PipeWriter _writer;
         private readonly SemaphoreSlim _semaphore;
         private bool _disposed;
+
+
         public ProtocolWriter(Stream stream) :
             this(PipeWriter.Create(stream))
         {
 
         }
 
+
         public ProtocolWriter(PipeWriter writer)
             : this(writer, new SemaphoreSlim(1))
         {
         }
+
 
         public ProtocolWriter(PipeWriter writer, SemaphoreSlim semaphore)
         {
             _writer = writer;
             _semaphore = semaphore;
         }
+
+
         public async ValueTask WriteAsync<TWriteMessage>(IMessageWriter<TWriteMessage> writer, TWriteMessage protocolMessage, CancellationToken cancellationToken = default)
         {
             await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -45,7 +52,7 @@ namespace AMQP.Client.RabbitMQ.Protocol.Core
 
                 if (result.IsCanceled)
                 {
-                    throw new OperationCanceledException();
+                    ThrowHelper.CancelledException();
                 }
 
                 if (result.IsCompleted)
@@ -58,6 +65,8 @@ namespace AMQP.Client.RabbitMQ.Protocol.Core
                 _semaphore.Release();
             }
         }
+
+
         public async ValueTask WriteAsync3<T0, T1, T2>(
             IMessageWriter<T0> writer0, T0 msg0,
             IMessageWriter<T1> writer1, T1 msg1,
@@ -94,6 +103,8 @@ namespace AMQP.Client.RabbitMQ.Protocol.Core
                 _semaphore.Release();
             }
         }
+
+
         public async ValueTask WriteAsync2<T0, T1>(
             IMessageWriter<T0> writer0, T0 msg0,
             IMessageWriter<T1> writer1, T1 msg1,
@@ -128,6 +139,8 @@ namespace AMQP.Client.RabbitMQ.Protocol.Core
                 _semaphore.Release();
             }
         }
+
+
         public async ValueTask WriteManyAsync<TWriteMessage>(IMessageWriter<TWriteMessage> writer, IEnumerable<TWriteMessage> protocolMessages, CancellationToken cancellationToken = default)
         {
             await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -161,6 +174,7 @@ namespace AMQP.Client.RabbitMQ.Protocol.Core
                 _semaphore.Release();
             }
         }
+
 
         public async ValueTask DisposeAsync()
         {

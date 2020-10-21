@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MongoDB.Client.Bson\MongoDB.Client.Bson.csproj" />
+    <ProjectReference Include="..\MongoDB.Client.Protocol\MongoDB.Client.Protocol.csproj" />
     <ProjectReference Include="..\System.Net.Connections\src\System.Net.Connections.csproj" />
   </ItemGroup>
 

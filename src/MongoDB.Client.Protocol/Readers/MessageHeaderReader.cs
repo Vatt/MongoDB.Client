@@ -2,7 +2,7 @@
 using System;
 using System.Buffers;
 
-namespace MongoDB.Client.Protocol
+namespace MongoDB.Client.Protocol.Readers
 {
     public class MessageHeaderReader : IMessageReader<MessageHeader>
     {
@@ -13,10 +13,9 @@ namespace MongoDB.Client.Protocol
             // [4 bytes]  [4 bytes  ]  [4 bytes   ]  [4 bytes]
             // [size   ]  [requestId]  [responseTo]  [opcode ]
 
-
-            message = default;
             if (input.Length < sizeof(int) * 4)
             {
+                message = default;
                 return false;
             }
             var reader = new SequenceReader<byte>(input);
