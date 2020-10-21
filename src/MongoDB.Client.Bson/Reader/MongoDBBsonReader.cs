@@ -329,12 +329,10 @@ namespace MongoDB.Client.Bson.Reader
             return true;
         }
 
-        public bool TryParseDocument(ref SequencePosition consumed, ref SequencePosition examined, out BsonDocument document)
+        public bool TryParseDocument(out BsonDocument document)
         {
             if (TryParseDocument(null, out document))
             {
-                consumed = _input.Position;
-                examined = _input.Position;
                 return true;
             }
             return false;
