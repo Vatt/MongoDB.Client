@@ -138,6 +138,13 @@ namespace MongoDB.Client.Bson.Reader
             _input.Advance(len);
             return true;
         }
+        public bool TryGetGuidFromString(out Guid value)
+        {
+            value = default;
+            if(TryGetString(out var data))
+            value = new Guid(data);
+            return true;
+        }
         public bool TryGetUTCDatetime(out DateTimeOffset value)
         {
             value = default;
@@ -171,13 +178,25 @@ namespace MongoDB.Client.Bson.Reader
             value = root;
             return true;
         }
-        public bool TryGetDateAsDocument(out DateTimeOffset date)
+        public bool TryGetDatetimeFromDocument(out DateTimeOffset date)
         {
             date = default;
-            if(!TryGetUTCDatetime(out date)) { return false; }
-            if(!TryGetInt64(out var ticks)) { return false; }
-            if(!TryGetInt32(out var offset)) { return false; }
-            //date.AddTicks(ticks);           
+            if (!TryGetInt32(out var docLength)) { return false; }
+            if (!TryGetByte(out var typeDate)) { return false; }
+            if (!TryGetCString(out var nameDate)) { return false; }
+            if (!TryGetInt64(out var longDate)) { return false; }
+            if (!TryGetByte(out var typeTicks)) { return false; }
+            if (!TryGetCString(out var nameTicks)) { return false; }
+            if (!TryGetInt64(out var ticks)) { return false; }
+            if (!TryGetByte(out var typeOffset)) { return false; }
+            if (!TryGetCString(out var nameOffset)) { return false; }
+            if (!TryGetInt32(out var offset)) { return false; }
+            if (!TryGetByte(out var endDocumentMarker)){ return false; }
+            if (endDocumentMarker != '\x00')
+            {
+                throw new ArgumentException($"{nameof(MongoDBBsonReader)}.{nameof(TryGetDatetimeFromDocument)} End document marker missmatch");
+            }
+            date = DateTimeOffset.FromUnixTimeMilliseconds(longDate);           
             return true;
         }
         public bool TryParseElement(BsonDocument parent, out BsonElement element)
@@ -268,7 +287,7 @@ namespace MongoDB.Client.Bson.Reader
                 if ( !TryParseElement(document, out var element)) { return false; }
                 document.Elements.Add(element);
             }
-            TryGetByte(out var endDocumentMarker);
+            if (!TryGetByte(out var endDocumentMarker)) { return false; }
             if (endDocumentMarker != '\x00')
             {
                 throw new ArgumentException($"{nameof(MongoDBBsonReader)}.{nameof(TryParseDocument)} End document marker missmatch");

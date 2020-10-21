@@ -16,7 +16,7 @@ namespace MongoDB.Client.Bson.Generators
     [Generator]
     public class BsonSerializatorGenerator : ISourceGenerator
     {
-        private List<ClassMapInfo> meta = new List<ClassMapInfo>();
+        private List<ClassDecl> meta = new List<ClassDecl>();
         public string GenerateGlobalHelperStaticClass()
         {
             StringBuilder builder = new StringBuilder();
@@ -25,20 +25,18 @@ using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
 using System;
 using System.Collections.Generic;
-namespace MongoDB.Client.Test{{
+namespace MongoDB.Client.Bson.Serialization.Generated{{
     public static class GlobalSerializationHelperGenerated{{
         {GenerateFields()}
     }}
-    
-}}
-            ");
+}}");
             return builder.ToString();
             string GenerateFields()
             {
                 var builder = new StringBuilder();
-                foreach(var info in meta)
+                foreach (var info in meta)
                 {
-                    builder.Append($"\n\t\tpublic static readonly  IBsonSerializable {info.ClassName}GeneratedSerializatorStaticField = new {info.ClassName}GeneratedSerializator();");
+                    builder.Append($"\n\t\tpublic static readonly  IBsonSerializable {info.ClassSymbol.Name}GeneratedSerializatorStaticField = new {info.ClassSymbol.Name}GeneratedSerializator();");
                 }
                 return builder.ToString();
             }
@@ -51,418 +49,435 @@ namespace MongoDB.Client.Test{{
             context.AddSource($"GlobalSerializationHelperGenerated.cs", SourceText.From(GenerateGlobalHelperStaticClass(), Encoding.UTF8));
             foreach (var item in meta)
             {
-                var builder = GeneratePrologue(item);
-                GenerateWriterMethod(builder);
-                GenerateReaderMethod(item, builder);
-                builder.Append("}}");
-                context.AddSource($"{item.ClassName}GeneratedSerializator.cs", SourceText.From(builder.ToString(), Encoding.UTF8));
+                var builder = Generate(item);
+                context.AddSource($"{item.ClassSymbol.Name}GeneratedSerializator.cs", SourceText.From(builder.ToString(), Encoding.UTF8));
             }
-            
+
             //Debugger.Launch();
 
         }
-        private StringBuilder GeneratePrologue(ClassMapInfo info)
+        private StringBuilder Generate(ClassDecl info)
         {
             var builder = new StringBuilder($@"          
 using MongoDB.Client.Bson.Reader;
+using MongoDB.Client.Bson.Writer;
 using MongoDB.Client.Bson.Serialization;
 using System;
 using System.Collections.Generic;
-namespace MongoDB.Client.Test
+using {info.StringNamespace};
+namespace MongoDB.Client.Bson.Serialization.Generated
 {{      
-        public class {info.ClassName}GeneratedSerializator : IBsonSerializable 
+        public class {info.ClassSymbol.Name}GeneratedSerializator : IBsonSerializable 
         {{
             {GenerateStaticReadOnlyBsonFieldsSpans(info)}
-            {GenerateStaticReadOnlyGenericListTypes(info)}
-            {GenerateStaticReadOnlyDocumentTypes(info)}
-            public {info.ClassName}GeneratedSerializator(){{}}
-
-");
-             return builder;
+            public {info.ClassSymbol.Name}GeneratedSerializator(){{}}
+            void IBsonSerializable.Write(object message){{ throw new NotImplementedException(); }}
+            {GenerateReaderMethod(info)}
+         }}
+        
+}}");
+            return builder;
         }
-        private void GenerateReaderMethod(ClassMapInfo info, StringBuilder builder)
+        private string GenerateReaderMethod(ClassDecl info)
         {
+            StringBuilder builder = new StringBuilder();
             builder.Append($@"
             bool IBsonSerializable.TryParse(ref MongoDBBsonReader reader, out object message)
             {{
                 message = default;
-                var result = new {info.ClassName}();
+                var result = new {info.ClassSymbol.Name}();
                 if (!reader.TryGetInt32(out var docLength)) {{ return false; }}
                 var unreaded = reader.Remaining + sizeof(int);
                 while (unreaded - reader.Remaining < docLength - 1)
                 {{
-                    if (!reader.TryGetByte(out var type)) {{ return false; }}
-                    if (!reader.TryGetCStringAsSpan(out var name)) {{ return false; }}
-                    switch (type)
-                    {{
-                        {GenerateClassFieldMapFieldAssignIfHave(1, info)}
-                        {GenerateClassFieldMapFieldAssignIfHave(2, info)}
-                        {GenerateClassFieldMapFieldAssignIfHave(3, info)}
-                        {GenerateClassFieldMapFieldAssignIfHave(4, info)}
-                        {GenerateClassFieldMapFieldAssignIfHave(54, info)}
-                        {GenerateClassFieldMapFieldAssignIfHave(7, info)}
-                        {GenerateClassFieldMapFieldAssignIfHave(8, info)}
-                        {GenerateClassFieldMapFieldAssignIfHave(9, info)}
-                        {GenerateClassFieldMapFieldAssignIfHave(10, info)}
-                        {GenerateClassFieldMapFieldAssignIfHave(16, info)}
-                        {GenerateClassFieldMapFieldAssignIfHave(18, info)}
+                    if (!reader.TryGetByte(out var bsonType)) {{ return false; }}
+                    if (!reader.TryGetCStringAsSpan(out var bsonName)) {{ return false; }}                                               
+                    {GenerateReads(info)}
 
-            default:
-            {{
-                throw new ArgumentException(""{info.ClassName}.TryParse  with type {{type}}"");
-            }}      
-        }}
-    }}
-    if ( !reader.TryGetByte(out var endMarker)){{ return false; }}
-            if (endMarker != '\x00')
-            {{
-                throw new ArgumentException($""{info.ClassName}GeneratedSerializator.TryParse End document marker missmatch"");
+                    throw new ArgumentException($""{info.ClassSymbol.Name}.TryParse  with bson type number {{bsonType}}"");      
+                }}
+                if ( !reader.TryGetByte(out var endMarker)){{ return false; }}
+                if (endMarker != '\x00')
+                {{
+                    throw new ArgumentException(""{info.ClassSymbol.Name}GeneratedSerializator.TryParse End document marker missmatch"");
+                }}
+
+                message = result;
+                return true;
             }}
 
-    message = result;
-    return true;
-}}");
-        }             
-        private string GenerateClassFieldMapFieldAssignIfHave(int type, ClassMapInfo info)
-        {
-            int TYPE = 0;
-            if (type == 54) { TYPE = 5; } else { TYPE = type; }
-            StringBuilder builder = new StringBuilder();
-            
-            if ( !info.MapedFields.Any( (info)=>info.TypeId == type) )
-            {
-                return String.Empty;
-            }
-            builder.Append($@"
-                case {TYPE}:{{
-                        {GenerateCaseReaderReadFromType(type)}
-");
-            foreach(var fieldInfo in info.MapedFields)
-            {
-                if (fieldInfo.TypeId != type) { continue; }
-                if (fieldInfo.TypeId == 10)
-                {
-                    builder.Append($@"result.{fieldInfo.ClassField} = null;" );
-                    continue;
-                }
-                if (fieldInfo.TypeId == 3)
-                {
-                    builder.Append(GenerateReadOtherDocument(type, info, fieldInfo));
-                    continue;
-                }
-                if (fieldInfo.TypeId == 4)
-                {
-                    builder.Append(GenerateReadArray( info, fieldInfo));
-                    continue;
-                }
-                if (fieldInfo.TypeId == type)
-                {
-                    if (fieldInfo.BsonFieldAlias == null)
-                    {
-                        builder.Append($@"
-                        if ( name.SequenceEqual({info.ClassName}{fieldInfo.BsonField}) )
-                        {{
-                            result.{fieldInfo.ClassField} = value;
-                            break;
-                        }}
-");
-                    }
-                    else
-                    {
-                            builder.Append($@"
-                        if ( name.SequenceEqual({info.ClassName}{fieldInfo.BsonFieldAlias}) )
-                        {{
-                            result.{fieldInfo.ClassField} = value;
-                            break;
-                        }}
-");
-                    }
-
-                }
-
-            }
-            builder.Append("\t\t\t\t\tbreak;\n\t\t\t\t}");
+        ");
             return builder.ToString();
         }
-        private string GenerateReadArray(ClassMapInfo classinfo, MapFieldInfo info)
+        private string GenerateReads(ClassDecl info)
         {
-            StringBuilder builder = new StringBuilder();
-            builder.Append($@"
-                    result.{info.ClassField} = new List<{info.GenericType}>();
-                    if (!reader.TryGetInt32(out var arrayDocLength)) {{ return false; }}
-                    var arrayUnreaded = reader.Remaining + sizeof(int);
-                    while (arrayUnreaded - reader.Remaining < arrayDocLength - 1)
+            StringBuilder buidler = new StringBuilder();
+            foreach(var declinfo in info.MemberDeclarations)
+            {
+                buidler.Append($@"
+                    if (bsonName.SequenceEqual( {info.ClassSymbol.Name}{declinfo.StringFieldNameAlias}))
                     {{
-                        if ( !reader.TryGetCStringAsSpan(out var index)) {{ return false; }}
-                        if ( !GlobalSerializationHelperGenerated.{info.GenericShortType}GeneratedSerializatorStaticField.TryParse(ref reader, out var arrayElement)){{ return false;}}
-                        result.{info.ClassField}.Add(arrayElement as {info.GenericType});
+                        if( bsonType == 10 )
+                        {{
+                            result.{declinfo.DeclSymbol.Name} = default;
+                            continue;
+                        }}
+                        {GenerateReadsAndAssign(info, declinfo)}
+                        continue;
                     }}
-                    if ( !reader.TryGetByte(out var arrayEndMarker)){{ return false; }}
-                    if (arrayEndMarker != '\x00')
-                    {{
-                        throw new ArgumentException($""{classinfo.ClassName}GeneratedSerializator.TryParse End document marker missmatch"");
-                    }}             
-");
-            return builder.ToString();
+                ");
+            }
+            return buidler.ToString();
         }
-        private string GenerateReadOtherDocument(int type, ClassMapInfo classinfo, MapFieldInfo info)
+
+        private string GenerateReadsAndAssign(ClassDecl info, MemberDeclarationInfo declinfo)
         {
-            
             StringBuilder builder = new StringBuilder();
-            if (info.BsonFieldAlias == null)
+            switch (declinfo.DeclType.Name)
             {
-                builder.Append($@"
-                            if ( name.SequenceEqual({classinfo.ClassName}{info.BsonField}) )");
-            }
-            else
-            {
-                builder.Append($@"
-                            if ( name.SequenceEqual({classinfo.ClassName}{info.BsonFieldAlias}))");
-            }
-            builder.Append($@"
-                            {{
-                               if ( !GlobalSerializationHelperGenerated.{info.ShortType}GeneratedSerializatorStaticField.TryParse(ref reader, out var value)){{ return false;}}
-                               result.{info.ClassField} = value as {info.Type};
-                            }}
-
-            ");
-            return builder.ToString();
-        }
-        private string GenerateCaseReaderReadFromType(int type)
-        {
-            switch (type)
-            {
-                case 1:
+                case "Double":
                     {
-                        return "if (!reader.TryGetDouble(out var value)) { return false; }";
+                        if (declinfo.IsProperty)
+                        {
+                        builder.Append($@"
+                        if (!reader.TryGetDouble(out var value)) {{ return false; }}                           
+                        result.{declinfo.DeclSymbol.Name} = value
+                        ");
+                        }
+                        else
+                        {
+                        builder.Append($@"
+                        if (!reader.TryGetDouble(out var result.{declinfo.DeclSymbol.Name})) {{ return false; }}                           
+                        ");
+                        }
+                        
+                        break;
                     }
-                case 2:
+                case "String":
                     {
-                        return "if (!reader.TryGetString(out var value)) { return false; }";
+                        if (declinfo.IsProperty)
+                        {
+                            builder.Append($@"
+                        if (!reader.TryGetString(out var value)) {{ return false; }}                            
+                        result.{declinfo.DeclSymbol.Name} = value;
+                        ");
+                        }
+                        else
+                        {
+                            builder.Append($@"
+                        if (!reader.TryGetString(out result.{declinfo.DeclSymbol.Name})) {{ return false; }}                            
+                        ");
+                        }
 
+                        break;
                     }
-                case 3:
+                case "3": //документ
                     {
                         //return "if (!reader.TryParseDocument(parent, out var value)) { return false; }";
                         return String.Empty;
 
                     }
-                case 4:
+                case "4": //Массив
                     {
-                        //return "if (!reader.TryGetArray(out var value)) { return false; }";
+                        //return "if (!reader.TryParseDocument(parent, out var value)) { return false; }";
                         return String.Empty;
+
                     }
-                case 54:
+                    
+                case "Guid":
                     {
-                        return "if (!reader.TryGetBinaryDataGuid(out var value)) { return false; }";
+                        if(declinfo.IsProperty)
+                        {
+                            builder.Append($@"
+                        if( bsonType == 5 )
+                        {{
+                            if (!reader.TryGetBinaryDataGuid(out var value)) {{ return false; }}
+                            result.{declinfo.DeclSymbol.Name} = value;
+                            continue;
+                        }}
+                        if( bsonType == 2 )
+                        {{
+                            if (!reader.TryGetGuidFromString(out var value)) {{ return false; }}
+                            result.{declinfo.DeclSymbol.Name} = value;
+                            continue;
+                        }}
+                        throw new ArgumentException(""{declinfo.DeclSymbol.Name} unsupported Guid type"");
+                        ");
+                        }
+                        else
+                        {
+                            builder.Append($@"
+                        if( bsonType == 5 )
+                        {{
+                            if (!reader.TryGetBinaryDataGuid(out result.{declinfo.DeclSymbol.Name})) {{ return false; }}
+                            continue;
+                        }}
+                        if( bsonType == 2 )
+                        {{
+                            if (!reader.TryGetGuidFromString(out result.{declinfo.DeclSymbol.Name})) {{ return false; }}
+                            continue;
+                        }}
+                        throw new ArgumentException(""{declinfo.DeclSymbol.Name} unsupported Guid type"");
+                        ");
+                        }
+
+                        break;
                     }
-                case 7:
+                case "BsonObjectId":
                     {
-                        return "if (!reader.TryGetObjectId(out var value)) { return false; }";
+                        if(declinfo.IsProperty)
+                        {
+                            builder.Append($@"
+                        if (!reader.TryGetObjectId(out var value)) {{ return false; }}                      
+                        result.{declinfo.DeclSymbol.Name} = value;
+                        ");
+                        }
+                        else
+                        {
+                            builder.Append($@"
+                        if (!reader.TryGetObjectId(out result.{declinfo.DeclSymbol.Name})) {{ return false; }}                      
+                        ");
+                        }
+
+                        break;
                     }
-                case 8:
+                case "Boolean":
                     {
-                        return "if (!reader.TryGetBoolean(out var value)) { return false; }";
+                        if (declinfo.IsProperty)
+                        {
+                            builder.Append($@"
+                        if (!reader.TryGetBoolean(out var value)) {{ return false; }}                            
+                        result.{declinfo.DeclSymbol.Name} = value;
+                        ");
+                        }
+                        else
+                        {
+                            builder.Append($@"
+                        if (!reader.TryGetBoolean(out result.{declinfo.DeclSymbol.Name})) {{ return false; }}                            
+                        ");
+                        }
+
+                        break;
                     }
-                case 9:
+                case "DateTimeOffset":
                     {
-                        return "if (!reader.TryGetUTCDatetime(out var value)) { return false; }";
+                        if (declinfo.IsProperty)
+                        {
+                            builder.Append($@"
+                        if( bsonType == 3 )
+                        {{
+                            if (!reader.TryGetDatetimeFromDocument(out var value)) {{ return false; }}
+                            result.{declinfo.DeclSymbol.Name} = value;
+                            continue;
+                        }}
+                        if( bsonType == 9 )
+                        {{
+                            if (!reader.TryGetUTCDatetime(out var value)) {{ return false; }}
+                            result.{declinfo.DeclSymbol.Name} = value;
+                            continue;
+                        }}
+                        if( bsonType == 18 )
+                        {{
+                            if (!reader.TryGetUTCDatetime(out var value)) {{ return false; }}
+                            result.{declinfo.DeclSymbol.Name} = value;
+                            continue;
+                        }}
+                        throw new ArgumentException(""{declinfo.DeclSymbol.Name} unsupported DateTimeOffset type"");
+                        ");
+                        }
+                        else
+                        {
+                            builder.Append($@"
+                        if( bsonType == 3 )
+                        {{
+                            if (!reader.TryGetDatetimeFromDocument(out result.{declinfo.DeclSymbol.Name})) {{ return false; }}
+                            continue;
+                        }}
+                        if( bsonType == 9 )
+                        {{
+                            if (!reader.TryGetUTCDatetime(out result.{declinfo.DeclSymbol.Name})) {{ return false; }}
+                            continue;
+                        }}
+                        if( bsonType == 18 )
+                        {{
+                            if (!reader.TryGetUTCDatetime(out result.{declinfo.DeclSymbol.Name})) {{ return false; }}
+                            continue;
+                        }}
+                        throw new ArgumentException(""{declinfo.DeclSymbol.Name} unsupported DateTimeOffset type"");
+                        ");
+                        }
+
+                        break;
                     }
-                case 10:
+                case "Int32":
                     {
-                        //TODO:FIX IT
-                        //element = BsonElement.Create(parent, name);
-                        //return true;
-                        //throw new ArgumentException($"{nameof(BsonSerializatorGenerator)}.{nameof(GenerateCaseReaderReadFromType)}  with type {type}");
-                        return "";
+                        if (declinfo.IsProperty)
+                        {
+                            builder.Append($@"
+                        if (!reader.TryGetInt32(out var value)) {{ return false; }}    
+                        result.{declinfo.DeclSymbol.Name} = value;
+                        ");
+                        }
+                        else
+                        {
+                            builder.Append($@"
+                        if (!reader.TryGetInt32(out result.{declinfo.DeclSymbol.Name})) {{ return false; }}                            
+                        ");
+                        }
+
+                        break;
                     }
-                case 16:
+                case "Int64":
                     {
-                        return "if (!reader.TryGetInt32(out var value)) { return false; }";
-                    }
-                case 18:
-                    {
-                        return "if (!reader.TryGetInt64(out var value)) { return false; }";
+                        if (declinfo.IsProperty)
+                        {
+                            builder.Append($@"
+                        if (!reader.TryGetInt64(out var value)) {{ return false; }}                            
+                        result.{declinfo.DeclSymbol.Name} = value;
+                        ");
+                        }
+                        else
+                        {
+                            builder.Append($@"
+                        if (!reader.TryGetInt64(out result.{declinfo.DeclSymbol.Name})) {{ return false; }}                            
+                        ");
+                        }
+
+                        break;
                     }
                 default:
                     {
-                        throw new ArgumentException($"{nameof(BsonSerializatorGenerator)}.{nameof(GenerateCaseReaderReadFromType)}  with type {type}");
+                        if(declinfo.IsGenericList)
+                        {
+                            builder.Append(GenerateReadArray(info, declinfo));
+                            
+                        }
+                        return builder.ToString();
+                        //return string.Empty;
+                        //throw new ArgumentException($"{nameof(BsonSerializatorGenerator)}.{nameof(GenerateReadsAndAssign)} with type name {declinfo.DeclType.Name}");
                     }
-            }
-        }
 
-        public void GenerateWriterMethod(StringBuilder builder)
-        {
-            builder.Append("\n void IBsonSerializable.Write(object message)\n{ \nthrow new NotImplementedException(); \n}\n");
+
+            }
+            return builder.ToString();
         }
+        private string GenerateReadArray(ClassDecl classdecl, MemberDeclarationInfo memberdecl)
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.Append($@"
+                    result.{memberdecl.DeclSymbol.Name} = new List<{memberdecl.GenericType.Name}>();
+                    if (!reader.TryGetInt32(out var arrayDocLength)) {{ return false; }}
+                    var arrayUnreaded = reader.Remaining + sizeof(int);
+                    while (arrayUnreaded - reader.Remaining < arrayDocLength - 1)
+                    {{
+                        if ( !reader.TryGetCStringAsSpan(out var index)) {{ return false; }}
+                        if ( !GlobalSerializationHelperGenerated.{memberdecl.GenericType.Name}GeneratedSerializatorStaticField.TryParse(ref reader, out var arrayElement)){{ return false;}}
+                        result.{memberdecl.DeclSymbol.Name}.Add(arrayElement as {memberdecl.GenericType.Name});
+                    }}
+                    if ( !reader.TryGetByte(out var arrayEndMarker)){{ return false; }}
+                    if (arrayEndMarker != '\x00')
+                    {{
+                        throw new ArgumentException($""{classdecl.ClassSymbol.Name}GeneratedSerializator.TryParse End document marker missmatch"");
+                    }}             
+        ");
+            return builder.ToString();
+        }
+        //private string GenerateReadOtherDocument(int type, ClassInfo classinfo, FieldInfo info)
+        //{
+
+        //    StringBuilder builder = new StringBuilder();
+        //    if (info.BsonFieldAlias == null)
+        //    {
+        //        builder.Append($@"
+        //                    if ( name.SequenceEqual({classinfo.ClassName}{info.BsonField}) )");
+        //    }
+        //    else
+        //    {
+        //        builder.Append($@"
+        //                    if ( name.SequenceEqual({classinfo.ClassName}{info.BsonFieldAlias}))");
+        //    }
+        //    builder.Append($@"
+        //                    {{
+        //                       if ( !GlobalSerializationHelperGenerated.{info.ShortType}GeneratedSerializatorStaticField.TryParse(ref reader, out var value)){{ return false;}}
+        //                       result.{info.ClassField} = value as {info.Type};
+        //                    }}
+
+        //    ");
+        //    return builder.ToString();
+        //}
+       
         public void Initialize(GeneratorInitializationContext context)
         {
-            
+
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
         }
 
         private void CollectMapData(GeneratorExecutionContext context, List<ClassDeclarationSyntax> candidates)
         {
-            
+
             INamedTypeSymbol attrName = context.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonElementField");
-            foreach(var candidate in candidates)
+            foreach (var candidate in candidates)
             {
-                var info = new ClassMapInfo();
-                info.ClassName = candidate.Identifier.Text;
+                             
+                SemanticModel classModel = context.Compilation.GetSemanticModel(candidate.SyntaxTree);
+                var symbol = classModel.GetDeclaredSymbol(candidate);
+                var info = new ClassDecl(symbol);
                 foreach (var member in candidate.Members)
                 {
-                    
-                    if (member is FieldDeclarationSyntax fieldDecl && fieldDecl.AttributeLists.Count > 0)
+
+                    if (member is FieldDeclarationSyntax fieldDecl)
                     {
-                        SemanticModel model = context.Compilation.GetSemanticModel(fieldDecl.SyntaxTree);
-                        
+                        SemanticModel memberModel = context.Compilation.GetSemanticModel(fieldDecl.SyntaxTree);
+
                         foreach (var variable in fieldDecl.Declaration.Variables)
                         {
-                            
-                            IFieldSymbol fieldSymbol = model.GetDeclaredSymbol(variable) as IFieldSymbol;
-                            foreach (var attr in fieldSymbol.GetAttributes())
-                            {
-                                
-                                if (attr.AttributeClass.Equals(attrName, SymbolEqualityComparer.Default))
-                                {                                    
-                                    var mapFieldInfo = new MapFieldInfo();
-                                    mapFieldInfo.ClassField = variable.Identifier.ValueText;
-                                    if (attr.NamedArguments.Length > 0)
-                                    {
-                                        foreach(var namedAttrArg in attr.NamedArguments)
-                                        {
-                                            if (namedAttrArg.Key.Equals("ElementName"))
-                                            {
-                                                mapFieldInfo.BsonField = (string)namedAttrArg.Value.Value;
-                                                if (mapFieldInfo.BsonField.Contains(' ') || mapFieldInfo.BsonField.Contains('(') || mapFieldInfo.BsonField.Contains(')'))
-                                                {
-                                                    mapFieldInfo.BsonFieldAlias = mapFieldInfo.BsonField;
-                                                    mapFieldInfo.BsonFieldAlias = mapFieldInfo.BsonFieldAlias.Replace(' ', '_');
-                                                    mapFieldInfo.BsonFieldAlias = mapFieldInfo.BsonFieldAlias.Replace('(', '_');
-                                                    mapFieldInfo.BsonFieldAlias = mapFieldInfo.BsonFieldAlias.Replace(')', '_');
-                                                }
-                                            }
-                                        }
-                                        
 
-                                    }
-                                    else
-                                    {
-                                        mapFieldInfo.BsonField = mapFieldInfo.ClassField;
-                                    }        
-                                    MatchClassTypeId(fieldSymbol.Type as INamedTypeSymbol, mapFieldInfo);                                    
-                                    info.MapedFields.Add(mapFieldInfo);                                    
-                                }                                
-                            }
-                            
-                        }                        
-                    }                    
+                            IFieldSymbol fieldSymbol = memberModel.GetDeclaredSymbol(variable) as IFieldSymbol;
+                            if ( fieldSymbol.DeclaredAccessibility == Accessibility.Public)
+                            {
+                                info.MemberDeclarations.Add(new MemberDeclarationInfo(fieldSymbol));
+                            }                                       
+                        }
+                    }
+                    if(member is PropertyDeclarationSyntax propDecl)
+                    {
+                        SemanticModel memberModel = context.Compilation.GetSemanticModel(propDecl.SyntaxTree);
+
+                        ISymbol propertySymbol = memberModel.GetDeclaredSymbol(propDecl);
+                        if (propertySymbol.DeclaredAccessibility == Accessibility.Public)
+                        {
+                            info.MemberDeclarations.Add(new MemberDeclarationInfo(propertySymbol));
+                        }
+                    }
                 }
                 meta.Add(info);
             }
         }
-        private void MatchClassTypeId(INamedTypeSymbol symbol, MapFieldInfo info)
-        {
-            switch (symbol.ToString())
-            {
-                case "double": 
-                    { 
-                        info.TypeId = 1; 
-                        break; 
-                    }
-                case "string": 
-                    { 
-                        info.TypeId = 2; 
-                        break; 
-                    }                       
-                case "System.Guid":
-                    {
-                        info.TypeId = 54; 
-                        break;
-                    }
-                case "MongoDB.Client.Bson.Document.BsonObjectId":
-                    {
-                        info.TypeId = 7;
-                        break; 
-                    }
-                case "bool":
-                    {
-                        info.TypeId = 8;
-                        break;
-                    }
-                case "System.DateTimeOffset":
-                    {
-                        info.TypeId = 9;
-                        info.Type = "System.DateTimeOffset";
-                        break;
-                    }
-                case "object":
-                    {
-                        info.TypeId = 10; //BSON null
-                        break;
-                    }
-                case "int":
-                    {
-                        info.TypeId = 16;
-                        break;
-                    }
-                case "long":
-                    {
-                        info.TypeId = 18;
-                        break;
-                    }
-                default:
-                    {
-                        if (isList(symbol.ToString())) 
-                        {
-                            info.TypeId = 4;
-                            if (symbol.TypeArguments.Length > 1)
-                            {
-                                throw new ArgumentException($"{nameof(BsonSerializatorGenerator)}.{nameof(MatchClassTypeId)} in array type generics count > 1");
-                            }
-                            info.GenericType =  symbol.TypeArguments[0].ToString();
-                            info.GenericShortType =  symbol.TypeArguments[0].Name;
-                            info.Type = symbol.ToString();
-                            info.ShortType = symbol.Name;
-                            info.GenericTypeAlias = info.GenericType.Replace('.', '_');
-                            return;
-                            
-                        }
-                        info.isDocument = true;
-                        info.TypeId = 3;
-                        info.Type = symbol.ToString();
-                        info.ShortType = symbol.Name;
-                        info.TypeAlias = info.Type.Replace('.', '_');
-                        return;
-                       // throw new ArgumentException($"{nameof(BsonSerializatorGenerator)}.{nameof(MatchClassTypeId)} with type {symbol.ToString()}");
-                    }                
-            }            
-            bool isList(string stringSymbol)
-            {
-                return stringSymbol.Contains("System.Collections.Generic.List") || stringSymbol.Contains("System.Collections.Generic.IList");
-            }
-
-        }
-        private string GenerateStaticReadOnlyBsonFieldsSpans(ClassMapInfo info)
+        private string GenerateStaticReadOnlyBsonFieldsSpans(ClassDecl info)
         {
             StringBuilder builder = new StringBuilder();
-            foreach(var fieldInfo in info.MapedFields)
+            foreach (var fieldinfo in info.MemberDeclarations)
             {
-                var len = Encoding.UTF8.GetByteCount(fieldInfo.BsonField);
-                var bytes = Encoding.UTF8.GetBytes(fieldInfo.BsonField);
-                if (fieldInfo.BsonFieldAlias != null)
+                int len = 0;
+                byte[] bytes;
+                var haveNamedElement = fieldinfo.TryGetElementNameFromBsonAttribute(out var bsonField);
+                if (!haveNamedElement)
                 {
-                    builder.Append($"\n\t    private static ReadOnlySpan<byte> {info.ClassName}{fieldInfo.BsonFieldAlias} => new byte[{len}] {{");
+                    len = Encoding.UTF8.GetByteCount(fieldinfo.DeclSymbol.Name);
+                    bytes = Encoding.UTF8.GetBytes(fieldinfo.DeclSymbol.Name);
                 }
-                else 
+                else
                 {
-                    builder.Append($"\n\t    private static ReadOnlySpan<byte> {info.ClassName}{fieldInfo.BsonField} => new byte[{len}] {{");
+                    len = Encoding.UTF8.GetByteCount(bsonField);
+                    bytes = Encoding.UTF8.GetBytes(bsonField);
                 }
-                
-                
-                for (var ind = 0; ind < len; ind++ )
+
+                builder.Append($"\n\t\t    private static ReadOnlySpan<byte> {info.ClassSymbol.Name}{fieldinfo.StringFieldNameAlias} => new byte[{len}] {{");
+
+
+                for (var ind = 0; ind < len; ind++)
                 {
-                    if (ind == len -1 )
+                    if (ind == len - 1)
                     {
                         builder.Append($"{bytes[ind]}");
                     }
@@ -470,38 +485,12 @@ namespace MongoDB.Client.Test
                     {
                         builder.Append($"{bytes[ind]}, ");
                     }
-                    
+
                 }
                 builder.Append("};");
             }
             return builder.ToString();
         }
-        private string GenerateStaticReadOnlyGenericListTypes(ClassMapInfo info)
-        {
-            StringBuilder builder = new StringBuilder();
-            foreach (var fieldInfo in info.MapedFields)
-            {
-                if(fieldInfo.GenericType != null)
-                {
-                    builder.Append($@"
-            private static readonly Type {info.ClassName}{fieldInfo.GenericTypeAlias}GenericArgument = Type.GetType(""{fieldInfo.GenericType}"");");
-                }
-            }
-            return builder.ToString();
-        }
-        private string GenerateStaticReadOnlyDocumentTypes(ClassMapInfo info)
-        {
-            StringBuilder builder = new StringBuilder();
-            foreach (var fieldInfo in info.MapedFields)
-            {
-                if (fieldInfo.Type != null)
-                {
-                    builder.Append($@"
-            private static readonly Type {info.ClassName}{fieldInfo.TypeAlias}TypeDocument{fieldInfo.Id} = Type.GetType(""{fieldInfo.Type}"");");
-                }
-            }
-            return builder.ToString();
-        }
     }
-    
+
 }

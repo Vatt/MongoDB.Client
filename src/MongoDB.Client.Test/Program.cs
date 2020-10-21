@@ -42,7 +42,7 @@ namespace MongoDB.Test
             //ReadOnlyMemory<byte> file = File.ReadAllBytes("../../../Meteoritelandings.bson");
             var reader = new MongoDBBsonReader(file);
             //IBsonSerializable serializator = new MongoDB.Client.Test.Generated.NasaMeteoriteLandingGeneratedSerializator();
-            IBsonSerializable serializator = new MongoDB.Client.Test.DocumentObjectGeneratedSerializator();
+            IBsonSerializable serializator = new MongoDB.Client.Bson.Serialization.Generated.DocumentObjectGeneratedSerializator();
             serializator.TryParse(ref reader, out var doc);
             //reader.TryParseDocument(null, out var document);
             //reader.TryParseDocument(null, out var document1);
