@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ namespace MongoDB.Test
         static async Task Main(string[] args)
         {
             //Test();
-            var client = new MongoClient();
+            var client = new MongoClient(new DnsEndPoint("centos0.mshome.net", 27017));
             var connectionInfo = await client.ConnectAsync(default);
 
             //var factory = new NetworkConnectionFactory();
@@ -40,9 +41,9 @@ namespace MongoDB.Test
             //ReadOnlyMemory<byte> file = File.ReadAllBytes("../../../Meteoritelandings.bson");
             var reader = new MongoDBBsonReader(file);
             //IBsonSerializable serializator = new MongoDB.Client.Test.Generated.NasaMeteoriteLandingGeneratedSerializator();
-            IBsonSerializable serializator = new MongoDB.Client.Bson.Serialization.Generated.DocumentObjectGeneratedSerializator();
+            //IBsonSerializable serializator = new MongoDB.Client.Bson.Serialization.Generated.MongoDBConnectionInfoGeneratedSerializator();
 
-            serializator.TryParse(ref reader, out var doc);
+            //serializator.TryParse(ref reader, out var doc);
             //reader.TryParseDocument(null, out var document);
             //reader.TryParseDocument(null, out var document1);
             //reader.TryParseDocument(null, out var document2);

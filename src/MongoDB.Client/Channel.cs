@@ -34,7 +34,8 @@ namespace MongoDB.Client
 
         private static readonly Dictionary<Type, IBsonSerializable> _serializerMap = new Dictionary<Type, IBsonSerializable>
         {
-            [typeof(BsonDocument)] = new BsonDocumentSerializer()
+            [typeof(BsonDocument)] = new BsonDocumentSerializer(),
+            [typeof(MongoDBConnectionInfo)] = new MongoDB.Client.Bson.Serialization.Generated.MongoDBConnectionInfoGeneratedSerializator()
         };
 
         public Channel(EndPoint endpoint)
@@ -43,7 +44,7 @@ namespace MongoDB.Client
             _connectionFactory = new NetworkConnectionFactory();
         }
 
-        public async Task<BsonDocument> SendHelloAsync(CancellationToken cancellationToken)
+        public async Task<MongoDBConnectionInfo> SendHelloAsync(CancellationToken cancellationToken)
         {
             _connection = await _connectionFactory.ConnectAsync(_endpoint, null, cancellationToken).ConfigureAwait(false);
             if (_connection is null)
@@ -54,7 +55,7 @@ namespace MongoDB.Client
             _reader = new ProtocolReader(_connection.Pipe.Input);
             _writer = new ProtocolWriter(_connection.Pipe.Output);
             _readingTask = StartReadAsync();
-            return await SendAsync<BsonDocument>(Hello, cancellationToken);
+            return await SendAsync<MongoDBConnectionInfo>(Hello, cancellationToken);
         }
 
         private async Task StartReadAsync()

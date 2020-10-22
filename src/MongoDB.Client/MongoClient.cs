@@ -9,7 +9,7 @@ namespace MongoDB.Client
     public class MongoClient
     {
         private readonly EndPoint _endPoint;
-        private BsonDocument? _configMessage;
+        private MongoDBConnectionInfo _configMessage;
         private readonly Channel _channel;
 
         public MongoClient(EndPoint? endPoint = null)
@@ -19,17 +19,17 @@ namespace MongoDB.Client
             _channel = new Channel(_endPoint);
         }
 
-        public ValueTask<BsonDocument> ConnectAsync(CancellationToken cancellationToken)
+        public ValueTask<MongoDBConnectionInfo> ConnectAsync(CancellationToken cancellationToken)
         {
             if (_configMessage is not null)
             {
-                return new ValueTask<BsonDocument>(_configMessage);
+                return new ValueTask<MongoDBConnectionInfo>(_configMessage);
 
             }
 
             return Slow(cancellationToken);
 
-            async ValueTask<BsonDocument> Slow(CancellationToken cancellationToken)
+            async ValueTask<MongoDBConnectionInfo> Slow(CancellationToken cancellationToken)
             {
                 _configMessage = await _channel.SendHelloAsync(cancellationToken);
                 return _configMessage;

@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
 using System;
+using System.Diagnostics;
 
 namespace MongoDB.Client.Bson.Generators
 {
@@ -40,6 +41,10 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
         {
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver)) { return; }
             //Debugger.Launch();
+            if (receiver.Candidates.Count == 0)
+            {
+                return;
+            }
             CollectMapData(context, receiver.Candidates);
             context.AddSource($"GlobalSerializationHelperGenerated.cs", SourceText.From(GenerateGlobalHelperStaticClass(), Encoding.UTF8));
             foreach (var item in meta)
@@ -137,7 +142,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated
                         {
                         builder.Append($@"
                         if (!reader.TryGetDouble(out var value)) {{ return false; }}                           
-                        result.{declinfo.DeclSymbol.Name} = value
+                        result.{declinfo.DeclSymbol.Name} = value;
                         ");
                         }
                         else
