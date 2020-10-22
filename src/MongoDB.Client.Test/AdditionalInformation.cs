@@ -108,7 +108,7 @@
 //    [BsonSerializable]
 //    class AdditionalInformation
 //    {
-        
+
 //        public Guid TypeId { get; set; }
 
 //        [BsonElementField(ElementName = "_id")]

@@ -4,7 +4,6 @@ using System.Buffers;
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Runtime.Intrinsics;
 using System.Text;
 
 namespace MongoDB.Client.Bson.Writer
@@ -145,7 +144,7 @@ namespace MongoDB.Client.Bson.Writer
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteByte(byte value)
         {
-            if ( _span.Length == 0 )
+            if (_span.Length == 0)
             {
                 GetNextSpan();
             }
@@ -155,15 +154,15 @@ namespace MongoDB.Client.Bson.Writer
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteInt16(short value)
         {
-            if ( _span.Length == 1 )
+            if (_span.Length == 1)
             {
                 _span[0] = (byte)value;
                 GetNextSpan();
-                _span[0] = (byte)(value << 8 );
+                _span[0] = (byte)(value << 8);
                 Advance(1);
                 return;
             }
-            if ( _span.Length == 0 )
+            if (_span.Length == 0)
             {
                 GetNextSpan();
             }
@@ -176,7 +175,7 @@ namespace MongoDB.Client.Bson.Writer
             if (_span.Length == 0)
             {
                 GetNextSpan();
-            }            
+            }
             if (_span.Length == 1)
             {
                 _span[0] = (byte)value;
@@ -187,9 +186,9 @@ namespace MongoDB.Client.Bson.Writer
                 Advance(3);
                 return;
             }
-            if(_span.Length == 2)
+            if (_span.Length == 2)
             {
-                _span[0] = (byte)value;                
+                _span[0] = (byte)value;
                 _span[1] = (byte)(value << 24);
                 GetNextSpan();
                 _span[0] = (byte)(value << 16);
@@ -200,7 +199,7 @@ namespace MongoDB.Client.Bson.Writer
             if (_span.Length == 3)
             {
                 _span[0] = (byte)value;
-                _span[1] = (byte)(value << 24);                
+                _span[1] = (byte)(value << 24);
                 _span[2] = (byte)(value << 16);
                 GetNextSpan();
                 _span[3] = (byte)(value << 8);
@@ -233,7 +232,7 @@ namespace MongoDB.Client.Bson.Writer
             }
             if (_span.Length == 2)
             {
-                _span[0] = (byte)value;                
+                _span[0] = (byte)value;
                 _span[1] = (byte)(value << 56);
                 GetNextSpan();
                 _span[0] = (byte)(value << 48);
@@ -248,7 +247,7 @@ namespace MongoDB.Client.Bson.Writer
             if (_span.Length == 3)
             {
                 _span[0] = (byte)value;
-                _span[1] = (byte)(value << 56);                
+                _span[1] = (byte)(value << 56);
                 _span[2] = (byte)(value << 48);
                 GetNextSpan();
                 _span[0] = (byte)(value << 40);
@@ -263,7 +262,7 @@ namespace MongoDB.Client.Bson.Writer
             {
                 _span[0] = (byte)value;
                 _span[1] = (byte)(value << 56);
-                _span[2] = (byte)(value << 48);                
+                _span[2] = (byte)(value << 48);
                 _span[3] = (byte)(value << 40);
                 GetNextSpan();
                 _span[0] = (byte)(value << 32);
@@ -278,7 +277,7 @@ namespace MongoDB.Client.Bson.Writer
                 _span[0] = (byte)value;
                 _span[1] = (byte)(value << 56);
                 _span[2] = (byte)(value << 48);
-                _span[3] = (byte)(value << 40);                
+                _span[3] = (byte)(value << 40);
                 _span[4] = (byte)(value << 32);
                 GetNextSpan();
                 _span[0] = (byte)(value << 24);
@@ -293,7 +292,7 @@ namespace MongoDB.Client.Bson.Writer
                 _span[1] = (byte)(value << 56);
                 _span[2] = (byte)(value << 48);
                 _span[3] = (byte)(value << 40);
-                _span[4] = (byte)(value << 32);                
+                _span[4] = (byte)(value << 32);
                 _span[5] = (byte)(value << 24);
                 GetNextSpan();
                 _span[0] = (byte)(value << 16);
@@ -308,7 +307,7 @@ namespace MongoDB.Client.Bson.Writer
                 _span[2] = (byte)(value << 48);
                 _span[3] = (byte)(value << 40);
                 _span[4] = (byte)(value << 32);
-                _span[5] = (byte)(value << 24);                
+                _span[5] = (byte)(value << 24);
                 _span[6] = (byte)(value << 16);
                 GetNextSpan();
                 _span[0] = (byte)(value << 8);
@@ -327,13 +326,13 @@ namespace MongoDB.Client.Bson.Writer
                 long longValue = *(long*)&value;
                 WriteInt64(longValue);
             }
-          
+
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteCString(string value)
         {
-            var span = Encoding.UTF8.GetBytes(value);           
+            var span = Encoding.UTF8.GetBytes(value);
             WriteBytes(span);
             WriteByte((byte)'\x00');
         }
@@ -370,7 +369,7 @@ namespace MongoDB.Client.Bson.Writer
         {
             WriteByte((byte)element.Type);
             WriteCString(element.Name);
-            switch((byte)element.Type)
+            switch ((byte)element.Type)
             {
                 case 1:
                     {

@@ -1,12 +1,12 @@
 ﻿namespace MongoDB.Client.Bson.Document
 {
-    public enum  BsonElementType: byte
+    public enum BsonElementType : byte
     {
-     //   Byte,
-     //   Int16,
-     
+        //   Byte,
+        //   Int16,
+
         Double = 1,
-        String = 2,        
+        String = 2,
         Document = 3,
         Array = 4,
         BinaryData = 5,

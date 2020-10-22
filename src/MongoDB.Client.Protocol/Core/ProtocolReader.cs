@@ -4,9 +4,8 @@ using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
-using MongoDB.Client.Protocol;
 
-namespace AMQP.Client.RabbitMQ.Protocol.Core
+namespace MongoDB.Client.Protocol.Core
 {
     public class ProtocolReader : IAsyncDisposable
     {
@@ -31,7 +30,7 @@ namespace AMQP.Client.RabbitMQ.Protocol.Core
         }
 
 
-        public ValueTask<ProtocolReadResult<TReadMessage>> ReadAsync<TReadMessage>(IMessageReader<TReadMessage> reader, CancellationToken cancellationToken = default) 
+        public ValueTask<ProtocolReadResult<TReadMessage>> ReadAsync<TReadMessage>(IMessageReader<TReadMessage> reader, CancellationToken cancellationToken = default)
         {
             if (_disposed)
             {

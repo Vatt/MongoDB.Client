@@ -3,7 +3,6 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.IO.Pipelines;
 using System.Net.Sockets;
 using System.Runtime.ExceptionServices;
 using System.Threading;

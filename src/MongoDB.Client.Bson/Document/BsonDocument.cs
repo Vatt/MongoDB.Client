@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using MongoDB.Client.Bson.Utils;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using MongoDB.Client.Bson.Utils;
 
 namespace MongoDB.Client.Bson.Document
 {
@@ -10,7 +10,7 @@ namespace MongoDB.Client.Bson.Document
     {
 
         public readonly List<BsonElement> Elements;
-       
+
         public BsonDocument()
         {
             Elements = new List<BsonElement>();

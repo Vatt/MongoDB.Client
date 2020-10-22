@@ -5,7 +5,7 @@ using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AMQP.Client.RabbitMQ.Protocol.Core
+namespace MongoDB.Client.Protocol.Core
 {
     public class MessagePipeReader : PipeReader
     {

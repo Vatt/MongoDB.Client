@@ -7,7 +7,7 @@ namespace MongoDB.Client.Bson.Serialization.Attributes
     {
         public BsonSerializable()
         {
-            
+
         }
     }
 }

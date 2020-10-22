@@ -1,4 +1,4 @@
-namespace MongoDB.Client.Protocol.Readers
+namespace MongoDB.Client.Protocol.Common
 {
     public enum Opcode
     {

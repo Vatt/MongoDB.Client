@@ -2,8 +2,9 @@
 using System.Buffers;
 using System.Diagnostics;
 
-namespace AMQP.Client.RabbitMQ.Protocol.Core
+namespace MongoDB.Client.Protocol.Core
 {
+
     internal class ConsumableArrayBufferWriter : IBufferWriter<byte>, IDisposable
     {
         private byte[] _buffer;

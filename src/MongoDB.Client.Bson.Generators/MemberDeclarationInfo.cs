@@ -1,11 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 //using MongoDB.Client.Bson.Serialization.Attributes;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
 
 namespace MongoDB.Client.Bson.Generators
 {
@@ -26,11 +20,11 @@ namespace MongoDB.Client.Bson.Generators
             {
                 DeclType = fieldSym.Type as INamedTypeSymbol;
             }
-            if(DeclSymbol is IPropertySymbol propSym)
+            if (DeclSymbol is IPropertySymbol propSym)
             {
                 DeclType = propSym.Type as INamedTypeSymbol;
             }
-                
+
 
             if (TryGetElementNameFromBsonAttribute(out string attrName))
             {
@@ -74,9 +68,9 @@ namespace MongoDB.Client.Bson.Generators
         public bool TryGetElementNameFromBsonAttribute(out string name)
         {
             name = default;
-            if ( !TryGetBsonAttribute(out var attrData))
-            { 
-                return false; 
+            if (!TryGetBsonAttribute(out var attrData))
+            {
+                return false;
             }
             name = attrData.NamedArguments[0].Value.Value.ToString(); //TODO: FIX IT
             return true;

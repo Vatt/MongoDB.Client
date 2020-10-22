@@ -4,9 +4,8 @@ using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
-using MongoDB.Client.Protocol;
 
-namespace AMQP.Client.RabbitMQ.Protocol.Core
+namespace MongoDB.Client.Protocol.Core
 {
     public class ProtocolWriter : IAsyncDisposable
     {

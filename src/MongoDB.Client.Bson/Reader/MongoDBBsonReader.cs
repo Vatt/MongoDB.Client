@@ -71,15 +71,15 @@ namespace MongoDB.Client.Bson.Reader
         public bool TryGetDouble(out double value)
         {
             value = default;
-            if(!TryGetInt64(out var temp)) { return false; }
-            value =  BitConverter.Int64BitsToDouble(temp);
+            if (!TryGetInt64(out var temp)) { return false; }
+            value = BitConverter.Int64BitsToDouble(temp);
             return true;
-            
+
         }
         public bool TryGetString([NotNullWhen(true)] out string? value)
         {
             value = default;
-            if(!TryGetInt32(out var length)){ return false; }
+            if (!TryGetInt32(out var length)) { return false; }
             if (_input.UnreadSpan.Length < length)
             {
                 return false;
@@ -118,8 +118,8 @@ namespace MongoDB.Client.Bson.Reader
         public bool TryGetBinaryData(out BsonBinaryData value)
         {
             value = default;
-            if(!TryGetInt32(out var len)) { return false; }
-            if(!TryGetByte(out var subtype)) { return false; }
+            if (!TryGetInt32(out var len)) { return false; }
+            if (!TryGetByte(out var subtype)) { return false; }
             if (UnreadSpan.Length < len) { return false; }
             switch (subtype)
             {
@@ -142,7 +142,7 @@ namespace MongoDB.Client.Bson.Reader
             if (!TryGetInt32(out var len)) { return false; }
             if (!TryGetByte(out var subtype)) { return false; }
             if (UnreadSpan.Length < len) { return false; }
-            if(subtype != 4)
+            if (subtype != 4)
             {
                 throw new ArgumentException($"{nameof(MongoDBBsonReader)}.{nameof(TryGetBinaryDataGuid)}  with subtype {subtype}");
             }
@@ -153,22 +153,22 @@ namespace MongoDB.Client.Bson.Reader
         public bool TryGetGuidFromString(out Guid value)
         {
             value = default;
-            if(TryGetString(out var data))
-            value = new Guid(data);
+            if (TryGetString(out var data))
+                value = new Guid(data);
             return true;
         }
         public bool TryGetUTCDatetime(out DateTimeOffset value)
         {
             value = default;
-            if(!TryGetInt64(out var data)) { return false; }
+            if (!TryGetInt64(out var data)) { return false; }
             value = DateTimeOffset.FromUnixTimeMilliseconds(data);
             return true;
         }
         public bool TryGetBoolean(out bool value)
         {
             value = default;
-            if(!TryGetByte(out var boolean)) { return false; }
-            value = boolean == 1 ? true:false;
+            if (!TryGetByte(out var boolean)) { return false; }
+            value = boolean == 1 ? true : false;
             return true;
         }
         public bool TryGetArray([NotNullWhen(true)] out BsonDocument? value)
@@ -179,7 +179,7 @@ namespace MongoDB.Client.Bson.Reader
             var unreaded = _input.Remaining + sizeof(int);
             while (unreaded - _input.Remaining < docLength - 1)
             {
-                if ( !TryParseElement(root, out var element) ) { return false; }
+                if (!TryParseElement(root, out var element)) { return false; }
                 root.Elements.Add(element);
             }
             TryGetByte(out var endDocumentMarker);
@@ -206,7 +206,7 @@ namespace MongoDB.Client.Bson.Reader
             if (endDocumentMarker != '\x00')
             {
                 throw new ArgumentException($"{nameof(MongoDBBsonReader)}.{nameof(TryParseDocument)} End document marker missmatch");
-            }            
+            }
             return true;
         }
         public bool TryGetDatetimeFromDocument(out DateTimeOffset date)
@@ -222,30 +222,30 @@ namespace MongoDB.Client.Bson.Reader
             if (!TryGetByte(out var typeOffset)) { return false; }
             if (!TryGetCString(out var nameOffset)) { return false; }
             if (!TryGetInt32(out var offset)) { return false; }
-            if (!TryGetByte(out var endDocumentMarker)){ return false; }
+            if (!TryGetByte(out var endDocumentMarker)) { return false; }
             if (endDocumentMarker != '\x00')
             {
                 throw new ArgumentException($"{nameof(MongoDBBsonReader)}.{nameof(TryGetDatetimeFromDocument)} End document marker missmatch");
             }
-            date = DateTimeOffset.FromUnixTimeMilliseconds(longDate);           
+            date = DateTimeOffset.FromUnixTimeMilliseconds(longDate);
             return true;
         }
         public bool TryParseElement(BsonDocument parent, out BsonElement element)
         {
             element = default;
-            if(!TryGetByte(out var type)) { return false; }
-            if(!TryGetCString(out var name)) { return false; }
+            if (!TryGetByte(out var type)) { return false; }
+            if (!TryGetCString(out var name)) { return false; }
             switch (type)
             {
                 case 1:
                     {
-                        if(!TryGetDouble(out var doubleVal)) { return false; }
+                        if (!TryGetDouble(out var doubleVal)) { return false; }
                         element = BsonElement.Create(parent, name, doubleVal);
                         return true;
                     }
                 case 2:
                     {
-                        if(!TryGetString(out var stringValue)) { return false; }
+                        if (!TryGetString(out var stringValue)) { return false; }
                         element = BsonElement.Create(parent, name, stringValue);
                         return true;
                     }
@@ -257,7 +257,7 @@ namespace MongoDB.Client.Bson.Reader
                     }
                 case 4:
                     {
-                        if(!TryGetArray(out var arrayDoc)) { return false; }
+                        if (!TryGetArray(out var arrayDoc)) { return false; }
                         element = BsonElement.CreateArray(parent, name, arrayDoc);
                         return true;
                     }
@@ -313,11 +313,11 @@ namespace MongoDB.Client.Bson.Reader
         public bool TryParseDocument(BsonDocument? parent, out BsonDocument document)
         {
             document = new BsonDocument();
-            if(!TryGetInt32(out var docLength)) { return false; }
+            if (!TryGetInt32(out var docLength)) { return false; }
             var unreaded = _input.Remaining + sizeof(int);
-            while(unreaded - _input.Remaining  < docLength - 1)
+            while (unreaded - _input.Remaining < docLength - 1)
             {
-                if ( !TryParseElement(document, out var element)) { return false; }
+                if (!TryParseElement(document, out var element)) { return false; }
                 document.Elements.Add(element);
             }
             if (!TryGetByte(out var endDocumentMarker)) { return false; }

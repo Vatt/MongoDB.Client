@@ -1,4 +1,4 @@
-﻿namespace AMQP.Client.RabbitMQ.Protocol.Core
+﻿namespace MongoDB.Client.Protocol.Core
 {
     public readonly struct ProtocolReadResult<TMessage>
     {

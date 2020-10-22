@@ -8,7 +8,7 @@ namespace MongoDB.Client.Bson.Serialization.Attributes
         public string? ElementName { get; set; }
         public BsonElementField()
         {
-            
+
         }
     }
 }

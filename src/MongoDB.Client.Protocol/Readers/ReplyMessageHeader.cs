@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MongoDB.Client.Protocol.Readers
 {
@@ -10,7 +6,7 @@ namespace MongoDB.Client.Protocol.Readers
     {
         public ReplyMessageHeader(int responseFlags, long cursorId, int startingFrom, int numberReturned)
         {
-            _responseFlags = (ResponseFlags) responseFlags;
+            _responseFlags = (ResponseFlags)responseFlags;
             CursorId = cursorId;
             StartingFrom = startingFrom;
             NumberReturned = numberReturned;

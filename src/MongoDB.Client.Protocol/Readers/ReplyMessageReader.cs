@@ -1,6 +1,7 @@
-﻿using System;
+﻿using MongoDB.Client.Protocol.Core;
+using System;
 using System.Buffers;
-using AMQP.Client.RabbitMQ.Protocol.Core;
+
 
 namespace MongoDB.Client.Protocol.Readers
 {

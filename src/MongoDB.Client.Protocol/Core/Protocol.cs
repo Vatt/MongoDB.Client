@@ -3,7 +3,7 @@ using System.IO.Pipelines;
 using System.Net.Connections;
 using System.Threading;
 
-namespace AMQP.Client.RabbitMQ.Protocol.Core
+namespace MongoDB.Client.Protocol.Core
 {
     public static class Protocol
     {

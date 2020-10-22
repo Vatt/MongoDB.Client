@@ -1,8 +1,8 @@
-﻿using System;
+﻿using MongoDB.Client.Protocol.Common;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
-using MongoDB.Client.Protocol.Readers;
 
 namespace MongoDB.Client
 {

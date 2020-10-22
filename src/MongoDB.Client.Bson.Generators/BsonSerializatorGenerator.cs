@@ -1,11 +1,11 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Text;
 using Microsoft.CodeAnalysis.Text;
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
+using System.Text;
+
 
 namespace MongoDB.Client.Bson.Generators
 {
@@ -40,7 +40,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
         public void Execute(GeneratorExecutionContext context)
         {
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver)) { return; }
-            //Debugger.Launch();
+            //System.Diagnostics.Debugger.Launch();
             if (receiver.Candidates.Count == 0)
             {
                 return;
@@ -52,7 +52,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
                 var builder = Generate(item);
                 context.AddSource($"{item.ClassSymbol.Name}GeneratedSerializator.cs", SourceText.From(builder.ToString(), Encoding.UTF8));
             }
-   
+
             //Debugger.Launch();
 
         }
@@ -113,7 +113,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated
         private string GenerateReads(ClassDecl info)
         {
             StringBuilder buidler = new StringBuilder();
-            foreach(var declinfo in info.MemberDeclarations)
+            foreach (var declinfo in info.MemberDeclarations)
             {
                 buidler.Append($@"
                     if (bsonName.SequenceEqual( {info.ClassSymbol.Name}{declinfo.StringFieldNameAlias}))
@@ -140,18 +140,18 @@ namespace MongoDB.Client.Bson.Serialization.Generated
                     {
                         if (declinfo.IsProperty)
                         {
-                        builder.Append($@"
+                            builder.Append($@"
                         if (!reader.TryGetDouble(out var value)) {{ return false; }}                           
                         result.{declinfo.DeclSymbol.Name} = value;
                         ");
                         }
                         else
                         {
-                        builder.Append($@"
+                            builder.Append($@"
                         if (!reader.TryGetDouble(out var result.{declinfo.DeclSymbol.Name})) {{ return false; }}                           
                         ");
                         }
-                        
+
                         break;
                     }
                 case "String":
@@ -172,7 +172,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated
 
                         break;
                     }
-                case "BsonDocument": 
+                case "BsonDocument":
                     {
                         if (declinfo.IsProperty)
                         {
@@ -195,10 +195,10 @@ namespace MongoDB.Client.Bson.Serialization.Generated
                         return String.Empty;
 
                     }
-                    
+
                 case "Guid":
                     {
-                        if(declinfo.IsProperty)
+                        if (declinfo.IsProperty)
                         {
                             builder.Append($@"
                         if( bsonType == 5 )
@@ -237,7 +237,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated
                     }
                 case "BsonObjectId":
                     {
-                        if(declinfo.IsProperty)
+                        if (declinfo.IsProperty)
                         {
                             builder.Append($@"
                         if (!reader.TryGetObjectId(out var value)) {{ return false; }}                      
@@ -359,12 +359,12 @@ namespace MongoDB.Client.Bson.Serialization.Generated
                     }
                 default:
                     {
-                        if(declinfo.IsGenericList && !declinfo.GenericType.Name.Equals("BsonDocument"))
+                        if (declinfo.IsGenericList && !declinfo.GenericType.Name.Equals("BsonDocument"))
                         {
                             builder.Append(GenerateReadArray(info, declinfo));
                             break;
                         }
-                        if(declinfo.IsGenericList && declinfo.GenericType.Name.Equals("BsonDocument"))
+                        if (declinfo.IsGenericList && declinfo.GenericType.Name.Equals("BsonDocument"))
                         {
                             builder.Append(GenerateReadArrayToBsonDocumentList(info, declinfo));
                             break;
@@ -445,7 +445,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated
             INamedTypeSymbol attrName = context.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonElementField");
             foreach (var candidate in candidates)
             {
-                             
+
                 SemanticModel classModel = context.Compilation.GetSemanticModel(candidate.SyntaxTree);
                 var symbol = classModel.GetDeclaredSymbol(candidate);
                 var info = new ClassDecl(symbol);
@@ -460,13 +460,13 @@ namespace MongoDB.Client.Bson.Serialization.Generated
                         {
 
                             IFieldSymbol fieldSymbol = memberModel.GetDeclaredSymbol(variable) as IFieldSymbol;
-                            if ( fieldSymbol.DeclaredAccessibility == Accessibility.Public)
+                            if (fieldSymbol.DeclaredAccessibility == Accessibility.Public)
                             {
                                 info.MemberDeclarations.Add(new MemberDeclarationInfo(fieldSymbol));
-                            }                                       
+                            }
                         }
                     }
-                    if(member is PropertyDeclarationSyntax propDecl)
+                    if (member is PropertyDeclarationSyntax propDecl)
                     {
                         SemanticModel memberModel = context.Compilation.GetSemanticModel(propDecl.SyntaxTree);
 

@@ -1,5 +1,5 @@
-﻿using System;
-using MongoDB.Client.Bson.Reader;
+﻿using MongoDB.Client.Bson.Reader;
+using System;
 
 namespace MongoDB.Client.Bson.Serialization
 {

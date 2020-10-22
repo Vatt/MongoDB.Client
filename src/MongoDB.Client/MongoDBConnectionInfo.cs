@@ -1,10 +1,6 @@
 ﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MongoDB.Client
 {
@@ -17,6 +13,7 @@ namespace MongoDB.Client
         [BsonElementField(ElementName = "counter")]
         public long Counter { get; set; }
     }
+
     [BsonSerializable]
     public class MongoDBConnectionInfo
     {
@@ -25,7 +22,7 @@ namespace MongoDB.Client
 
         [BsonElementField(ElementName = "topologyVersion")]
         public TopologyVersion Topology { get; set; }
-        
+
         [BsonElementField(ElementName = "maxBsonObjectSize")]
         public int MaxBsonObjectSize { get; set; }
 
