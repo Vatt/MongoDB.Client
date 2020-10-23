@@ -9,7 +9,7 @@ namespace MongoDB.Client
     public class MongoClient
     {
         private readonly EndPoint _endPoint;
-        private MongoDBConnectionInfo? _configMessage;
+        private BsonDocument? _configMessage;
         private BsonDocument? _hell;
         private readonly Channel _channel;
 
@@ -22,28 +22,27 @@ namespace MongoDB.Client
             _channel = new Channel(_endPoint);
         }
 
-        public ValueTask<MongoDBConnectionInfo> ConnectAsync(CancellationToken cancellationToken)
+        public ValueTask<BsonDocument> ConnectAsync(CancellationToken cancellationToken)
         {
             if (_configMessage is not null)
             {
-                return new ValueTask<MongoDBConnectionInfo>(_configMessage);
-
+                return new ValueTask<BsonDocument>(_configMessage);
             }
 
             return Slow(cancellationToken);
 
-            async ValueTask<MongoDBConnectionInfo> Slow(CancellationToken cancellationToken)
+            async ValueTask<BsonDocument> Slow(CancellationToken cancellationToken)
             {
                 await _channel.ConnectAsync(cancellationToken).ConfigureAwait(false);
-                _configMessage = await _channel.SendAsync<MongoDBConnectionInfo>(Config, cancellationToken);
+                _configMessage = await _channel.SendAsync<BsonDocument>(Config, cancellationToken);
                 _hell = await _channel.SendAsync<BsonDocument>(Hell, cancellationToken);
                 return _configMessage;
             }
         }
 
-        //public ValueTask<T> SendAsync<T>(ReadOnlySpan<byte> message, CancellationToken cancellationToken)
-        //{
-        //    return _channel.SendAsync<T>(message, cancellationToken);
-        //}
+        public ValueTask<TResp> SendAsync<TResp>(ReadOnlyMemory<byte> message, CancellationToken cancellationToken)
+        {
+            return _channel.SendAsync<TResp>(message, cancellationToken);
+        }
     }
 }

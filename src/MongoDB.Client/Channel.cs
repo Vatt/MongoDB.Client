@@ -6,6 +6,7 @@ using MongoDB.Client.Protocol.Common;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
 using MongoDB.Client.Protocol.Writers;
+using MongoDB.Client.Readers;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -24,6 +25,7 @@ namespace MongoDB.Client
         private ProtocolWriter? _writer;
         private static readonly MessageHeaderReader messageHeaderReader = new MessageHeaderReader();
         private static readonly ReplyMessageReader replyMessageReader = new ReplyMessageReader();
+        private static readonly MsgMessageReader msgMessageReader = new MsgMessageReader();
 
         private static readonly ReadOnlyMemoryWriter memoryWriter = new ReadOnlyMemoryWriter();
 
@@ -31,12 +33,6 @@ namespace MongoDB.Client
         private TaskCompletionSource<MongoMessage> completionSource = new TaskCompletionSource<MongoMessage>();
         private CancellationTokenSource _shutdownToken = new CancellationTokenSource();
         private Task? _readingTask;
-
-        private static readonly Dictionary<Type, IBsonSerializable> _serializerMap = new Dictionary<Type, IBsonSerializable>
-        {
-            [typeof(BsonDocument)] = new BsonDocumentSerializer(),
-            [typeof(MongoDBConnectionInfo)] = new MongoDB.Client.Bson.Serialization.Generated.MongoDBConnectionInfoGeneratedSerializator()
-        };
 
         public Channel(EndPoint endpoint)
         {
@@ -49,7 +45,7 @@ namespace MongoDB.Client
             _connection = await _connectionFactory.ConnectAsync(_endpoint, null, cancellationToken).ConfigureAwait(false);
             if (_connection is null)
             {
-                ThrowHelper.ConnectionException(_endpoint);
+                ThrowHelper.ConnectionException<bool>(_endpoint);
             }
 
             _reader = new ProtocolReader(_connection.Pipe.Input);
@@ -62,7 +58,7 @@ namespace MongoDB.Client
         {
             if (_reader is null)
             {
-                ThrowHelper.ConnectionException(_endpoint);
+                ThrowHelper.ConnectionException<bool>(_endpoint);
             }
             MongoMessage message;
             while (_shutdownToken.IsCancellationRequested == false)
@@ -77,6 +73,12 @@ namespace MongoDB.Client
                         message = new ReplyMessage(headerResult.Message, replyResult.Message);
                         completionSource.TrySetResult(message);
                         break;
+                    case Opcode.OpMsg:
+                        var msgResult = await _reader.ReadAsync(msgMessageReader, _shutdownToken.Token).ConfigureAwait(false);
+                        _reader.Advance();
+                        message = new MsgMessage(headerResult.Message, msgResult.Message);
+                        completionSource.TrySetResult(message);
+                        break;
                     case Opcode.Message:
                     case Opcode.Update:
                     case Opcode.Insert:
@@ -85,9 +87,8 @@ namespace MongoDB.Client
                     case Opcode.Delete:
                     case Opcode.KillCursors:
                     case Opcode.Compressed:
-                    case Opcode.OpMsg:
                     default:
-                        ThrowHelper.OpcodeNotSupportedException(headerResult.Message.Opcode); //TODO: need to read pipe to end
+                        ThrowHelper.OpcodeNotSupportedException<bool>(headerResult.Message.Opcode); //TODO: need to read pipe to end
                         break;
                 }
             }
@@ -107,11 +108,9 @@ namespace MongoDB.Client
                     return await ParseAsync<TResp>(response).ConfigureAwait(false);
                 }
 
-                ThrowHelper.ConnectionException(_endpoint);
-                return default;
+                return ThrowHelper.ConnectionException<TResp>(_endpoint);
             }
-            ThrowHelper.ObjectDisposedException(nameof(Channel));
-            return default;
+            return ThrowHelper.ObjectDisposedException<TResp>(nameof(Channel));
 
 
             // Temp implementation
@@ -120,19 +119,27 @@ namespace MongoDB.Client
                 switch (message)
                 {
                     case ReplyMessage replyMessage:
-                        if (_serializerMap.TryGetValue(typeof(T), out var serializer))
+                        if (SerializersMap.TryGetSerializer<T>( out var replySerializer))
                         {
-                            var bodyReader = new BodyReader(serializer);
+                            var bodyReader = new ReplyBodyReader<T>(replySerializer);
                             var bodyResult = await _reader!.ReadAsync(bodyReader, _shutdownToken.Token).ConfigureAwait(false);
                             _reader.Advance();
-                            return (T)bodyResult.Message;
+                            return bodyResult.Message;
                         }
 
-                        ThrowHelper.UnsupportedTypeException(typeof(T));
-                        return default;
+                        return ThrowHelper.UnsupportedTypeException<T>(typeof(T));
+                    //case MsgMessage msgMessage:
+                    //    if (_serializerMap.TryGetValue(typeof(T), out serializer))
+                    //    {
+                    //        var bodyReader = new BodyReader(replySerializer);
+                    //        var bodyResult = await _reader!.ReadAsync(bodyReader, _shutdownToken.Token).ConfigureAwait(false);
+                    //        _reader.Advance();
+                    //        return (T)bodyResult.Message;
+                    //    }
+
+                    //    return ThrowHelper.UnsupportedTypeException<T>(typeof(T));
                     default:
-                        ThrowHelper.UnsupportedTypeException(typeof(T));
-                        return default;
+                        return ThrowHelper.UnsupportedTypeException<T>(typeof(T));
                 }
             }
         }
