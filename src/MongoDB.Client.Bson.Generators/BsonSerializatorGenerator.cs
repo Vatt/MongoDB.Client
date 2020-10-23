@@ -1,21 +1,23 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-
 namespace MongoDB.Client.Bson.Generators
 {
+    //object - отдельная ветка генератора 
     [Generator]
-    public class BsonSerializatorGenerator : ISourceGenerator
+    partial class BsonSerializatorGenerator : ISourceGenerator
     {
         private List<ClassDecl> meta = new List<ClassDecl>();
+        GeneratorExecutionContext _context;
         public string GenerateGlobalHelperStaticClass()
         {
-            StringBuilder builder = new StringBuilder();
+             StringBuilder builder = new StringBuilder();
             builder.Append($@"
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
@@ -45,8 +47,10 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
             {
                 return;
             }
+            _context = context;
             CollectMapData(context, receiver.Candidates);
             context.AddSource($"GlobalSerializationHelperGenerated.cs", SourceText.From(GenerateGlobalHelperStaticClass(), Encoding.UTF8));
+            AddCandidatesToOperationsMap();
             foreach (var item in meta)
             {
                 var builder = Generate(item);
@@ -79,360 +83,21 @@ namespace MongoDB.Client.Bson.Serialization.Generated
 }}");
             return builder;
         }
-        private string GenerateReaderMethod(ClassDecl info)
+
+        public void AddCandidatesToOperationsMap()
         {
-            StringBuilder builder = new StringBuilder();
-            builder.Append($@"
-            bool IBsonSerializable.TryParse(ref MongoDBBsonReader reader, out object message)
-            {{
-                message = default;
-                var result = new {info.ClassSymbol.Name}();
-                if (!reader.TryGetInt32(out var docLength)) {{ return false; }}
-                var unreaded = reader.Remaining + sizeof(int);
-                while (unreaded - reader.Remaining < docLength - 1)
-                {{
-                    if (!reader.TryGetByte(out var bsonType)) {{ return false; }}
-                    if (!reader.TryGetCStringAsSpan(out var bsonName)) {{ return false; }}                                               
-                    {GenerateReads(info)}
-
-                    throw new ArgumentException($""{info.ClassSymbol.Name}.TryParse  with bson type number {{bsonType}}"");      
-                }}
-                if ( !reader.TryGetByte(out var endMarker)){{ return false; }}
-                if (endMarker != '\x00')
-                {{
-                    throw new ArgumentException(""{info.ClassSymbol.Name}GeneratedSerializator.TryParse End document marker missmatch"");
-                }}
-
-                message = result;
-                return true;
-            }}
-
-        ");
-            return builder.ToString();
-        }
-        private string GenerateReads(ClassDecl info)
-        {
-            StringBuilder buidler = new StringBuilder();
-            foreach (var declinfo in info.MemberDeclarations)
+            foreach(var decl in meta)
             {
-                buidler.Append($@"
-                    if (bsonName.SequenceEqual( {info.ClassSymbol.Name}{declinfo.StringFieldNameAlias}))
-                    {{
-                        if( bsonType == 10 )
-                        {{
-                            result.{declinfo.DeclSymbol.Name} = default;
-                            continue;
-                        }}
-                        {GenerateReadsAndAssign(info, declinfo)}
-                        continue;
-                    }}
-                ");
+                if(!BsonGeneratorReadOperations.GeneratedSerializatorsOperations.ContainsKey(decl.ClassSymbol.Name))                    
+                {
+                    BsonGeneratorReadOperations.GeneratedSerializatorsOperations.Add(
+                    decl.ClassSymbol.Name,
+                    @$"if ( !GlobalSerializationHelperGenerated.{decl.ClassSymbol.Name}GeneratedSerializatorStaticField.TryParse(ref reader, out {{0}})){{{{ return false;}}}}"
+                    );
+                }
+                
             }
-            return buidler.ToString();
         }
-
-        private string GenerateReadsAndAssign(ClassDecl info, MemberDeclarationInfo declinfo)
-        {
-            StringBuilder builder = new StringBuilder();
-            switch (declinfo.DeclType.Name)
-            {
-                case "Double":
-                    {
-                        if (declinfo.IsProperty)
-                        {
-                            builder.Append($@"
-                        if (!reader.TryGetDouble(out var value)) {{ return false; }}                           
-                        result.{declinfo.DeclSymbol.Name} = value;
-                        ");
-                        }
-                        else
-                        {
-                            builder.Append($@"
-                        if (!reader.TryGetDouble(out var result.{declinfo.DeclSymbol.Name})) {{ return false; }}                           
-                        ");
-                        }
-
-                        break;
-                    }
-                case "String":
-                    {
-                        if (declinfo.IsProperty)
-                        {
-                            builder.Append($@"
-                        if (!reader.TryGetString(out var value)) {{ return false; }}                            
-                        result.{declinfo.DeclSymbol.Name} = value;
-                        ");
-                        }
-                        else
-                        {
-                            builder.Append($@"
-                        if (!reader.TryGetString(out result.{declinfo.DeclSymbol.Name})) {{ return false; }}                            
-                        ");
-                        }
-
-                        break;
-                    }
-                case "BsonDocument":
-                    {
-                        if (declinfo.IsProperty)
-                        {
-                            builder.Append($@"
-                        if (!reader.TryParseDocument(null, out var value)) {{ return false; }}                        
-                        result.{declinfo.DeclSymbol.Name} = value;
-                        ");
-                        }
-                        else
-                        {
-                            builder.Append($@"
-                        if (!reader.TryParseDocument(null, out result.{declinfo.DeclSymbol.Name})) {{ return false; }}                            
-                        ");
-                        }
-                        break;
-                    }
-                case "4": //Массив
-                    {
-                        //return "if (!reader.TryParseDocument(parent, out var value)) { return false; }";
-                        return String.Empty;
-
-                    }
-
-                case "Guid":
-                    {
-                        if (declinfo.IsProperty)
-                        {
-                            builder.Append($@"
-                        if( bsonType == 5 )
-                        {{
-                            if (!reader.TryGetBinaryDataGuid(out var value)) {{ return false; }}
-                            result.{declinfo.DeclSymbol.Name} = value;
-                            continue;
-                        }}
-                        if( bsonType == 2 )
-                        {{
-                            if (!reader.TryGetGuidFromString(out var value)) {{ return false; }}
-                            result.{declinfo.DeclSymbol.Name} = value;
-                            continue;
-                        }}
-                        throw new ArgumentException(""{declinfo.DeclSymbol.Name} unsupported Guid type"");
-                        ");
-                        }
-                        else
-                        {
-                            builder.Append($@"
-                        if( bsonType == 5 )
-                        {{
-                            if (!reader.TryGetBinaryDataGuid(out result.{declinfo.DeclSymbol.Name})) {{ return false; }}
-                            continue;
-                        }}
-                        if( bsonType == 2 )
-                        {{
-                            if (!reader.TryGetGuidFromString(out result.{declinfo.DeclSymbol.Name})) {{ return false; }}
-                            continue;
-                        }}
-                        throw new ArgumentException(""{declinfo.DeclSymbol.Name} unsupported Guid type"");
-                        ");
-                        }
-
-                        break;
-                    }
-                case "BsonObjectId":
-                    {
-                        if (declinfo.IsProperty)
-                        {
-                            builder.Append($@"
-                        if (!reader.TryGetObjectId(out var value)) {{ return false; }}                      
-                        result.{declinfo.DeclSymbol.Name} = value;
-                        ");
-                        }
-                        else
-                        {
-                            builder.Append($@"
-                        if (!reader.TryGetObjectId(out result.{declinfo.DeclSymbol.Name})) {{ return false; }}                      
-                        ");
-                        }
-
-                        break;
-                    }
-                case "Boolean":
-                    {
-                        if (declinfo.IsProperty)
-                        {
-                            builder.Append($@"
-                        if (!reader.TryGetBoolean(out var value)) {{ return false; }}                            
-                        result.{declinfo.DeclSymbol.Name} = value;
-                        ");
-                        }
-                        else
-                        {
-                            builder.Append($@"
-                        if (!reader.TryGetBoolean(out result.{declinfo.DeclSymbol.Name})) {{ return false; }}                            
-                        ");
-                        }
-
-                        break;
-                    }
-                case "DateTimeOffset":
-                    {
-                        if (declinfo.IsProperty)
-                        {
-                            builder.Append($@"
-                        if( bsonType == 3 )
-                        {{
-                            if (!reader.TryGetDatetimeFromDocument(out var value)) {{ return false; }}
-                            result.{declinfo.DeclSymbol.Name} = value;
-                            continue;
-                        }}
-                        if( bsonType == 9 )
-                        {{
-                            if (!reader.TryGetUTCDatetime(out var value)) {{ return false; }}
-                            result.{declinfo.DeclSymbol.Name} = value;
-                            continue;
-                        }}
-                        if( bsonType == 18 )
-                        {{
-                            if (!reader.TryGetUTCDatetime(out var value)) {{ return false; }}
-                            result.{declinfo.DeclSymbol.Name} = value;
-                            continue;
-                        }}
-                        throw new ArgumentException(""{declinfo.DeclSymbol.Name} unsupported DateTimeOffset type"");
-                        ");
-                        }
-                        else
-                        {
-                            builder.Append($@"
-                        if( bsonType == 3 )
-                        {{
-                            if (!reader.TryGetDatetimeFromDocument(out result.{declinfo.DeclSymbol.Name})) {{ return false; }}
-                            continue;
-                        }}
-                        if( bsonType == 9 )
-                        {{
-                            if (!reader.TryGetUTCDatetime(out result.{declinfo.DeclSymbol.Name})) {{ return false; }}
-                            continue;
-                        }}
-                        if( bsonType == 18 )
-                        {{
-                            if (!reader.TryGetUTCDatetime(out result.{declinfo.DeclSymbol.Name})) {{ return false; }}
-                            continue;
-                        }}
-                        throw new ArgumentException(""{declinfo.DeclSymbol.Name} unsupported DateTimeOffset type"");
-                        ");
-                        }
-
-                        break;
-                    }
-                case "Int32":
-                    {
-                        if (declinfo.IsProperty)
-                        {
-                            builder.Append($@"
-                        if (!reader.TryGetInt32(out var value)) {{ return false; }}    
-                        result.{declinfo.DeclSymbol.Name} = value;
-                        ");
-                        }
-                        else
-                        {
-                            builder.Append($@"
-                        if (!reader.TryGetInt32(out result.{declinfo.DeclSymbol.Name})) {{ return false; }}                            
-                        ");
-                        }
-
-                        break;
-                    }
-                case "Int64":
-                    {
-                        if (declinfo.IsProperty)
-                        {
-                            builder.Append($@"
-                        if (!reader.TryGetInt64(out var value)) {{ return false; }}                            
-                        result.{declinfo.DeclSymbol.Name} = value;
-                        ");
-                        }
-                        else
-                        {
-                            builder.Append($@"
-                        if (!reader.TryGetInt64(out result.{declinfo.DeclSymbol.Name})) {{ return false; }}                            
-                        ");
-                        }
-
-                        break;
-                    }
-                default:
-                    {
-                        if (declinfo.IsGenericList && !declinfo.GenericType.Name.Equals("BsonDocument"))
-                        {
-                            builder.Append(GenerateReadArray(info, declinfo));
-                            break;
-                        }
-                        if (declinfo.IsGenericList && declinfo.GenericType.Name.Equals("BsonDocument"))
-                        {
-                            builder.Append(GenerateReadArrayToBsonDocumentList(info, declinfo));
-                            break;
-                        }
-                        if (declinfo.IsClassOrStruct)
-                        {
-                            builder.Append(GenerateReadOtherDocument(info, declinfo));
-                            break;
-                        }
-
-                        throw new ArgumentException($"{nameof(BsonSerializatorGenerator)}.{nameof(GenerateReadsAndAssign)} with type name {declinfo.DeclType.Name}");
-                    }
-
-
-            }
-            return builder.ToString();
-        }
-        private string GenerateReadArrayToBsonDocumentList(ClassDecl classdecl, MemberDeclarationInfo memberdecl)
-        {
-            StringBuilder builder = new StringBuilder();
-            if (memberdecl.IsProperty)
-            {
-                builder.Append($@"                    
-                     if ( !reader.TryGetArrayAsDocumentList(out var docList)){{ return false;}}            
-                     result.{memberdecl.DeclSymbol.Name} = docList;
-            ");
-            }
-            else
-            {
-                builder.Append($@"                    
-                     if ( !reader.TryGetArrayAsDocumentList(out result.{memberdecl.DeclSymbol.Name})){{ return false;}}            
-            ");
-            }
-
-            return builder.ToString();
-        }
-        private string GenerateReadArray(ClassDecl classdecl, MemberDeclarationInfo memberdecl)
-        {
-            StringBuilder builder = new StringBuilder();
-            builder.Append($@"
-                    result.{memberdecl.DeclSymbol.Name} = new List<{memberdecl.GenericType.Name}>();
-                    if (!reader.TryGetInt32(out var arrayDocLength)) {{ return false; }}
-                    var arrayUnreaded = reader.Remaining + sizeof(int);
-                    while (arrayUnreaded - reader.Remaining < arrayDocLength - 1)
-                    {{
-                        if ( !reader.TryGetCStringAsSpan(out var index)) {{ return false; }}
-                        if ( !GlobalSerializationHelperGenerated.{memberdecl.GenericType.Name}GeneratedSerializatorStaticField.TryParse(ref reader, out var arrayElement)){{ return false;}}
-                        result.{memberdecl.DeclSymbol.Name}.Add(arrayElement as {memberdecl.GenericType.Name});
-                    }}
-                    if ( !reader.TryGetByte(out var arrayEndMarker)){{ return false; }}
-                    if (arrayEndMarker != '\x00')
-                    {{
-                        throw new ArgumentException($""{classdecl.ClassSymbol.Name}GeneratedSerializator.TryParse End document marker missmatch"");
-                    }}             
-        ");
-            return builder.ToString();
-        }
-        private string GenerateReadOtherDocument(ClassDecl classdecl, MemberDeclarationInfo memberdecl)
-        {
-
-            StringBuilder builder = new StringBuilder();
-            builder.Append($@"
-                     if ( !GlobalSerializationHelperGenerated.{memberdecl.DeclType.Name}GeneratedSerializatorStaticField.TryParse(ref reader, out var value)){{ return false;}}
-                     result.{memberdecl.DeclSymbol.Name} = ({memberdecl.DeclType.Name})value;
-            ");
-            return builder.ToString();
-        }
-
         public void Initialize(GeneratorInitializationContext context)
         {
 
