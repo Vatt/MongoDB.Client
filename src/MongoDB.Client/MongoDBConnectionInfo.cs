@@ -1,6 +1,7 @@
 ﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using System;
+using System.Collections.Generic;
 
 namespace MongoDB.Client
 {
@@ -18,7 +19,7 @@ namespace MongoDB.Client
     public class MongoDBConnectionInfo
     {
         [BsonElementField(ElementName = "ismaster")]
-        public bool IsMaster { get; set; }
+        public bool IsMaster;
 
         [BsonElementField(ElementName = "topologyVersion")]
         public TopologyVersion Topology { get; set; }
@@ -33,7 +34,7 @@ namespace MongoDB.Client
         public int MaxWriteBatchSize { get; set; }
 
         [BsonElementField(ElementName = "localTime")]
-        public DateTimeOffset LocalTime { get; set; }
+        public DateTimeOffset? LocalTime { get; set; }
 
         [BsonElementField(ElementName = "logicalSessionTimeoutMinutes")]
         public int LogicalSessionTimeoutMinutes { get; set; }
