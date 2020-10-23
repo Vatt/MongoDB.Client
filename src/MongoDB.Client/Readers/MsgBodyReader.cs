@@ -1,18 +1,23 @@
 ﻿using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 
-namespace MongoDB.Client
+namespace MongoDB.Client.Readers
 {
-    public class BodyReader : IMessageReader<object>
+    internal class MsgBodyReader : IMessageReader<object>
     {
         private readonly IBsonSerializable _serializer;
+        private readonly MsgMessage message;
+        private readonly List<object> objects = new List<object>();
 
-        public BodyReader(IBsonSerializable serializer)
+        public MsgBodyReader(IBsonSerializable serializer, MsgMessage message)
         {
             _serializer = serializer;
+            this.message = message;
         }
 
         public bool TryParseMessage(in ReadOnlySequence<byte> input, ref SequencePosition consumed, ref SequencePosition examined, out object message)

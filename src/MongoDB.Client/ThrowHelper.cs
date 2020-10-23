@@ -10,42 +10,21 @@ namespace MongoDB.Client
     {
         [MethodImpl(MethodImplOptions.NoInlining)]
         [DoesNotReturn]
-        public static void InvalidProtocolHeader()
-        {
-            throw new InvalidDataException("Invalid AMQP protocol header from server");
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        [DoesNotReturn]
-        public static void PacketNotRecognized(int transportHigh, int transportLow, int serverMajor, int serverMinor)
-        {
-            throw new InvalidDataException("Invalid protocol version");
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        [DoesNotReturn]
-        public static void InvalidFrameEndMarker(int endMarker)
-        {
-            throw new InvalidDataException("Bad frame end marker: " + endMarker);
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        [DoesNotReturn]
-        public static void ConnectionTerminated()
+        public static T ConnectionTerminated<T>()
         {
             throw new InvalidDataException("Connection terminated while reading a message.");
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         [DoesNotReturn]
-        public static void MissedAdvance()
+        public static T MissedAdvance<T>()
         {
             throw new InvalidOperationException("Advance must be called before calling ReadAsync");
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         [DoesNotReturn]
-        public static void WrongOpcodeException()
+        public static T WrongOpcodeException<T>()
         {
             throw new FormatException("Reply message opcode is not OP_REPLY.");
         }
@@ -53,7 +32,7 @@ namespace MongoDB.Client
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         [DoesNotReturn]
-        public static void ReadInProgressException()
+        public static T ReadInProgressException<T>()
         {
             throw new InvalidOperationException("Response read in progress");
         }
@@ -61,14 +40,14 @@ namespace MongoDB.Client
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         [DoesNotReturn]
-        public static void ConnectionException(System.Net.EndPoint endpoint)
+        public static T ConnectionException<T>(System.Net.EndPoint endpoint)
         {
             throw new Exception("Cant connect to endpoint: " + endpoint.ToString()); // TODO: custom excention
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         [DoesNotReturn]
-        public static void UnsupportedTypeException(Type type)
+        public static T UnsupportedTypeException<T>(Type type)
         {
             throw new Exception("Unsupported type: " + type.ToString()); // TODO: custom excention
         }
@@ -76,7 +55,7 @@ namespace MongoDB.Client
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         [DoesNotReturn]
-        public static void ObjectDisposedException(string name)
+        public static T ObjectDisposedException<T>(string name)
         {
             throw new ObjectDisposedException(name);
         }
@@ -84,7 +63,7 @@ namespace MongoDB.Client
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         [DoesNotReturn]
-        public static void OpcodeNotSupportedException(Opcode opcode)
+        public static T OpcodeNotSupportedException<T>(Opcode opcode)
         {
             throw new NotSupportedException($"Opcode '{opcode}' not supported");
         }

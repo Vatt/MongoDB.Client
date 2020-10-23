@@ -55,35 +55,32 @@ namespace MongoDB.Client
                     case Opcode.Compressed:
                     case Opcode.OpMsg:
                     default:
-                        ThrowHelper.OpcodeNotSupportedException(header.Opcode); //TODO: need to read pipe to end
+                        ThrowHelper.OpcodeNotSupportedException<bool>(header.Opcode); //TODO: need to read pipe to end
                         break;
                 }
             }
         }
-        public async Task<MongoDBConnectionInfo?> SayHelloAsync(CancellationToken cancellationToken = default)
-        {
+        //public async Task<MongoDBConnectionInfo?> SayHelloAsync(CancellationToken cancellationToken = default)
+        //{
+        //    var protocol = _connection.CreateWriter();
+        //    if (_shutdownToken.IsCancellationRequested == false)
+        //    {
+        //        if (protocol is not null)
+        //        {
+        //            _completionSource = new TaskCompletionSource<MongoMessage>();
 
-            var protocol = _connection.CreateWriter();
-            if (_shutdownToken.IsCancellationRequested == false)
-            {
-                if (protocol is not null)
-                {
-                    _completionSource = new TaskCompletionSource<MongoMessage>();
+        //            await protocol.WriteAsync(ProtocolWriters.ReadOnlyMemoryWriter, Hello, cancellationToken).ConfigureAwait(false);
 
-                    await protocol.WriteAsync(ProtocolWriters.ReadOnlyMemoryWriter, Hello, cancellationToken).ConfigureAwait(false);
+        //            var response = await _completionSource.Task.ConfigureAwait(false);
+        //            var bodyReader = new BodyReader(MongoDB.Client.Bson.Serialization.Generated.GlobalSerializationHelperGenerated.MongoDBConnectionInfoGeneratedSerializatorStaticField);
+        //            return await ReadAsyncInternal(bodyReader, _shutdownToken.Token) as MongoDBConnectionInfo;
+        //        }
 
-                    var response = await _completionSource.Task.ConfigureAwait(false);
-                    var bodyReader = new BodyReader(MongoDB.Client.Bson.Serialization.Generated.GlobalSerializationHelperGenerated.MongoDBConnectionInfoGeneratedSerializatorStaticField);
-                    return await ReadAsyncInternal(bodyReader, _shutdownToken.Token) as MongoDBConnectionInfo;
-                }
+        //        return ThrowHelper.ConnectionException<MongoDBConnectionInfo>(_connection.RemoteEndPoint!);
+        //    }
+        //    return ThrowHelper.ObjectDisposedException<MongoDBConnectionInfo>(nameof(Channel));
 
-                ThrowHelper.ConnectionException(_connection.RemoteEndPoint!);
-                return default;
-            }
-            ThrowHelper.ObjectDisposedException(nameof(Channel));
-            return default;
-
-        }
+        //}
 
         public async ValueTask DisposeAsync()
         {
