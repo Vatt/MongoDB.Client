@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,6 +44,11 @@ namespace MongoDB.Client
         public ValueTask<TResp> SendAsync<TResp>(ReadOnlyMemory<byte> message, CancellationToken cancellationToken)
         {
             return _channel.SendAsync<TResp>(message, cancellationToken);
+        }
+
+        public ValueTask<List<TResp>> GetListAsync<TResp>(ReadOnlyMemory<byte> message, CancellationToken cancellationToken)
+        {
+            return _channel.GetListAsync<TResp>(message, cancellationToken);
         }
     }
 }

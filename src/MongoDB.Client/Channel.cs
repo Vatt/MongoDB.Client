@@ -116,30 +116,66 @@ namespace MongoDB.Client
             // Temp implementation
             async ValueTask<T> ParseAsync<T>(MongoMessage message)
             {
+                var reader = _reader!;
                 switch (message)
                 {
                     case ReplyMessage replyMessage:
-                        if (SerializersMap.TryGetSerializer<T>( out var replySerializer))
+                        if (SerializersMap.TryGetSerializer<T>(out var replySerializer))
                         {
                             var bodyReader = new ReplyBodyReader<T>(replySerializer);
-                            var bodyResult = await _reader!.ReadAsync(bodyReader, _shutdownToken.Token).ConfigureAwait(false);
-                            _reader.Advance();
+                            var bodyResult = await reader.ReadAsync(bodyReader, _shutdownToken.Token).ConfigureAwait(false);
+                            reader.Advance();
                             return bodyResult.Message;
                         }
 
                         return ThrowHelper.UnsupportedTypeException<T>(typeof(T));
-                    //case MsgMessage msgMessage:
-                    //    if (_serializerMap.TryGetValue(typeof(T), out serializer))
-                    //    {
-                    //        var bodyReader = new BodyReader(replySerializer);
-                    //        var bodyResult = await _reader!.ReadAsync(bodyReader, _shutdownToken.Token).ConfigureAwait(false);
-                    //        _reader.Advance();
-                    //        return (T)bodyResult.Message;
-                    //    }
-
-                    //    return ThrowHelper.UnsupportedTypeException<T>(typeof(T));
                     default:
                         return ThrowHelper.UnsupportedTypeException<T>(typeof(T));
+                }
+            }
+        }
+
+        public async ValueTask<List<TResp>> GetListAsync<TResp>(ReadOnlyMemory<byte> message, CancellationToken cancellationToken)
+        {
+            if (_shutdownToken.IsCancellationRequested == false)
+            {
+                if (_writer is not null)
+                {
+                    completionSource = new TaskCompletionSource<MongoMessage>();
+
+                    await _writer.WriteAsync(memoryWriter, message, cancellationToken).ConfigureAwait(false);
+
+                    var response = await completionSource.Task.ConfigureAwait(false);
+                    return await ParseAsync<TResp>(response).ConfigureAwait(false);
+                }
+
+                return ThrowHelper.ConnectionException<List<TResp>>(_endpoint);
+            }
+            return ThrowHelper.ObjectDisposedException<List<TResp>>(nameof(Channel));
+
+
+            // Temp implementation
+            async ValueTask<List<T>> ParseAsync<T>(MongoMessage message)
+            {
+                var reader = _reader!;
+                switch (message)
+                {
+                    case MsgMessage msgMessage:
+                        if (SerializersMap.TryGetSerializer<T>(out var msgSerializer))
+                        {
+                            var bodyReader = new MsgBodyReader<T>(msgSerializer, msgMessage);
+                            while (bodyReader.Complete == false)
+                            {
+                                _ = await reader.ReadAsync(bodyReader, _shutdownToken.Token).ConfigureAwait(false);
+                            }
+
+                            reader.Advance();
+                            return bodyReader.objects;
+                        }
+
+                        return ThrowHelper.UnsupportedTypeException<List<T>>(typeof(T));
+                    default:
+                        return ThrowHelper.UnsupportedTypeException<List<T>>(typeof(T));
                 }
             }
         }
