@@ -4,7 +4,6 @@ using MongoDB.Client.Bson.Reader;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace MongoDB.Test
@@ -14,12 +13,18 @@ namespace MongoDB.Test
         static async Task Main(string[] args)
         {
             //Test();
-            //var client = new MongoClient(new DnsEndPoint("centos0.mshome.net", 27017));
-            //var connectionInfo = await client.ConnectAsync(default);
-            var factory = new MongoDBSessionFactory(new DnsEndPoint("centos0.mshome.net", 27017));
-            var session = await factory.ConnectAsync();
-            var connectionInfo = await session!.SayHelloAsync();
-            await session.DisposeAsync();
+            var client = new MongoClient();
+            var connectionInfo = await client.ConnectAsync(default);
+
+
+
+
+
+
+            //var factory = new MongoDBSessionFactory(new DnsEndPoint("centos0.mshome.net", 27017));
+            //var session = await factory.ConnectAsync();
+            //var connectionInfo = await session!.SayHelloAsync();
+            //await session.DisposeAsync();
             //var factory = new NetworkConnectionFactory();
             //var connection = await factory.ConnectAsync(new DnsEndPoint("centos0.mshome.net", 27017));
             //var seq = await connection.Pipe.Input.ReadAsync();
