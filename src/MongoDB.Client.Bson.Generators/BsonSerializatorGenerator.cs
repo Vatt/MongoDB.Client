@@ -1,9 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
-using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -17,7 +15,7 @@ namespace MongoDB.Client.Bson.Generators
         GeneratorExecutionContext _context;
         public string GenerateGlobalHelperStaticClass()
         {
-             StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder();
             builder.Append($@"
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
@@ -34,7 +32,8 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
                 var builder = new StringBuilder();
                 foreach (var info in meta)
                 {
-                    builder.Append($"\n\t\tpublic static readonly  IBsonSerializable {info.ClassSymbol.Name}GeneratedSerializatorStaticField = new {info.ClassSymbol.Name}GeneratedSerializator();");
+                    //builder.Append($"\n\t\tpublic static readonly  {info.ClassSymbol.Name}GeneratedSerializer {info.ClassSymbol.Name}GeneratedSerializerStaticField = new {info.ClassSymbol.Name}GeneratedSerializer();");
+                    builder.Append($"\n\t\tpublic static readonly  IGenericBsonSerializer<{info.ClassSymbol.Name}>  {info.ClassSymbol.Name}GeneratedSerializerStaticField = new {info.ClassSymbol.Name}GeneratedSerializer();");
                 }
                 return builder.ToString();
             }
@@ -72,11 +71,11 @@ using System.Collections.Generic;
 using {info.StringNamespace};
 namespace MongoDB.Client.Bson.Serialization.Generated
 {{      
-        public class {info.ClassSymbol.Name}GeneratedSerializator : IBsonSerializable 
+        public class {info.ClassSymbol.Name}GeneratedSerializer : IGenericBsonSerializer<{info.ClassSymbol.Name}> 
         {{
             {GenerateStaticReadOnlyBsonFieldsSpans(info)}
-            public {info.ClassSymbol.Name}GeneratedSerializator(){{}}
-            void IBsonSerializable.Write(object message){{ throw new NotImplementedException(); }}
+            public {info.ClassSymbol.Name}GeneratedSerializer(){{}}
+            void IBsonSerializer.Write(object message){{ throw new NotImplementedException(); }}
             {GenerateReaderMethod(info)}
          }}
         
@@ -86,16 +85,16 @@ namespace MongoDB.Client.Bson.Serialization.Generated
 
         public void AddCandidatesToOperationsMap()
         {
-            foreach(var decl in meta)
+            foreach (var decl in meta)
             {
-                if(!BsonGeneratorReadOperations.GeneratedSerializatorsOperations.ContainsKey(decl.ClassSymbol.Name))                    
+                if (!BsonGeneratorReadOperations.GeneratedSerializatorsOperations.ContainsKey(decl.ClassSymbol.Name))
                 {
                     BsonGeneratorReadOperations.GeneratedSerializatorsOperations.Add(
                     decl.ClassSymbol.Name,
-                    @$"if ( !GlobalSerializationHelperGenerated.{decl.ClassSymbol.Name}GeneratedSerializatorStaticField.TryParse(ref reader, out {{0}})){{{{ return false;}}}}"
+                    @$"if ( !GlobalSerializationHelperGenerated.{decl.ClassSymbol.Name}GeneratedSerializerStaticField.TryParse(ref reader, out {{0}})){{{{ return false;}}}}"
                     );
                 }
-                
+
             }
         }
         public void Initialize(GeneratorInitializationContext context)

@@ -1,7 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using System;
-using System.Collections.Generic;
-using System.Reflection;
 using System.Text;
 
 namespace MongoDB.Client.Bson.Generators
@@ -12,7 +10,7 @@ namespace MongoDB.Client.Bson.Generators
         {
             StringBuilder builder = new StringBuilder();
             builder.Append($@"
-            bool IBsonSerializable.TryParse(ref MongoDBBsonReader reader, out object message)
+            bool IGenericBsonSerializer<{info.ClassSymbol.Name}>.TryParse(ref MongoDBBsonReader reader, out {info.ClassSymbol.Name} message)
             {{
                 message = default;
                 var result = new {info.ClassSymbol.Name}();
@@ -153,7 +151,7 @@ namespace MongoDB.Client.Bson.Generators
             return builder.ToString();
         }
 
-        private string GeneratehHardReadOpAndAssign(MemberDeclarationInfo declinfo,  ITypeSymbol sym, string typeArg, string varArg, string assignOp)
+        private string GeneratehHardReadOpAndAssign(MemberDeclarationInfo declinfo, ITypeSymbol sym, string typeArg, string varArg, string assignOp)
         {
             var builder = new StringBuilder();
             foreach (var bsonType in BsonGeneratorReadOperations.SupportedHardOperationsBsonTypesMap[sym.Name])
@@ -207,7 +205,7 @@ namespace MongoDB.Client.Bson.Generators
                     if ( !reader.TryGetByte(out var arrayEndMarker)){{ return false; }}
                     if (arrayEndMarker != '\x00')
                     {{
-                        throw new ArgumentException($""{classdecl.ClassSymbol.Name}GeneratedSerializator.TryParse End document marker missmatch"");
+                        throw new ArgumentException($""{classdecl.ClassSymbol.Name}GeneratedSerializer.TryParse End document marker missmatch"");
                     }}             
         ");
             return builder.ToString();
@@ -224,7 +222,7 @@ namespace MongoDB.Client.Bson.Generators
             }
             if (BsonGeneratorReadOperations.TryGetSimpleType(type, out string readOp))
             {
-                builder.Append(GenerateSimpleReadOpAndAssign(memberdecl, readOp, typeArg, varArg, assignOp));        
+                builder.Append(GenerateSimpleReadOpAndAssign(memberdecl, readOp, typeArg, varArg, assignOp));
             }
 
             if (BsonGeneratorReadOperations.TryGetGeneratedType(type, out readOp))
@@ -232,7 +230,7 @@ namespace MongoDB.Client.Bson.Generators
                 builder.Append(GenerateGeneratedReadOpAndAssign(memberdecl, type, readOp, typeArg, varArg, assignGenericOp));
             }
             if (BsonGeneratorReadOperations.IsHardType(type))
-            {    
+            {
                 builder.Append(GeneratehHardReadOpAndAssign(memberdecl, type, typeArg, varArg, assignOp));
             }
             return builder.ToString();
@@ -283,7 +281,7 @@ namespace MongoDB.Client.Bson.Generators
 
             StringBuilder builder = new StringBuilder();
             builder.Append($@"
-                     if ( !GlobalSerializationHelperGenerated.{memberdecl.DeclType.Name}GeneratedSerializatorStaticField.TryParse(ref reader, out var value)){{ return false;}}
+                     if ( !GlobalSerializationHelperGenerated.{memberdecl.DeclType.Name}GeneratedSerializerStaticField.TryParse(ref reader, out var value)){{ return false;}}
                      result.{memberdecl.DeclSymbol.Name} = ({memberdecl.DeclType.Name})value;
             ");
             return builder.ToString();

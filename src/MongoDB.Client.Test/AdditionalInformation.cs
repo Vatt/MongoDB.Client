@@ -50,7 +50,7 @@
 //        public string ServicePhase { get; set; }
 
 
-//        public long   ServicePhaseDuration { get; set; }
+//        public long ServicePhaseDuration { get; set; }
 
 //        public long Duration;
 //        public string LocationInformationId { get; set; }

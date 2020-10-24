@@ -1,11 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace MongoDB.Client.Bson.Generators
 {
-    #nullable enable
+#nullable enable
     static class BsonGeneratorErrorHelper
     {
         private static readonly string UnsuportedTypeErrorCode = "MONGOGEN01";

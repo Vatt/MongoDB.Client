@@ -4,6 +4,7 @@ using MongoDB.Client.Bson.Reader;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace MongoDB.Test
@@ -16,22 +17,18 @@ namespace MongoDB.Test
         static async Task Main(string[] args)
         {
             //Test();
-            var client = new MongoClient();
-            var connectionInfo = await client.ConnectAsync(default);
+            //var client = new MongoClient(new DnsEndPoint("centos0.mshome.net", 27017));
+            //var connectionInfo = await client.ConnectAsync(default);
             //var result1 = await client.SendAsync<BsonDocument>(Req1, default);
             //var result2 = await client.SendAsync<BsonDocument>(Req2, default);
 
 
             Console.WriteLine();
 
-
-            //var factory = new MongoDBSessionFactory(new DnsEndPoint("centos0.mshome.net", 27017));
-            //var session = await factory.ConnectAsync();
-            //var connectionInfo = await session!.SayHelloAsync();
-            //await session.DisposeAsync();
-            //var factory = new NetworkConnectionFactory();
-            //var connection = await factory.ConnectAsync(new DnsEndPoint("centos0.mshome.net", 27017));
-            //var seq = await connection.Pipe.Input.ReadAsync();
+            var factory = new MongoDBSessionFactory(new DnsEndPoint("centos0.mshome.net", 27017));
+            var session = await factory.ConnectAsync();
+            var connectionInfo = await session!.SayHelloAsync();
+            await session.DisposeAsync();
             var root = new BsonDocument();
             var driverDoc = new BsonDocument();
 
@@ -52,7 +49,7 @@ namespace MongoDB.Test
             //ReadOnlyMemory<byte> file = File.ReadAllBytes("../../../Meteoritelandings.bson");
             var reader = new MongoDBBsonReader(file);
             //IBsonSerializable serializator = new MongoDB.Client.Test.Generated.NasaMeteoriteLandingGeneratedSerializator();
-            //IBsonSerializable serializator = new MongoDB.Client.Bson.Serialization.Generated.MongoDBConnectionInfoGeneratedSerializator();
+            //IBsonSerializable serializator = new MongoDB.Client.Bson.Serialization.Generated.DocumentObjectGeneratedSerializator();
 
             //serializator.TryParse(ref reader, out var doc);
             //reader.TryParseDocument(null, out var document);

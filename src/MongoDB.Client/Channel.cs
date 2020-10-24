@@ -1,5 +1,4 @@
 ﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Network;
 using MongoDB.Client.Protocol.Common;
@@ -52,7 +51,7 @@ namespace MongoDB.Client
             _writer = new ProtocolWriter(_connection.Pipe.Output);
             _readingTask = StartReadAsync();
         }
-        
+
 
         private async Task StartReadAsync()
         {
@@ -119,7 +118,7 @@ namespace MongoDB.Client
                 switch (message)
                 {
                     case ReplyMessage replyMessage:
-                        if (SerializersMap.TryGetSerializer<T>( out var replySerializer))
+                        if (SerializersMap.TryGetSerializer<T>(out var replySerializer))
                         {
                             var bodyReader = new ReplyBodyReader<T>(replySerializer);
                             var bodyResult = await _reader!.ReadAsync(bodyReader, _shutdownToken.Token).ConfigureAwait(false);

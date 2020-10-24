@@ -19,7 +19,7 @@ namespace MongoDB.Client.Readers
         public bool TryParseMessage(in ReadOnlySequence<byte> input, ref SequencePosition consumed, ref SequencePosition examined, [MaybeNullWhen(false)] out T message)
         {
             var bsonReader = new MongoDBBsonReader(input);
-            if (_serializer.GenericTryParse(ref bsonReader, out message))
+            if (_serializer.TryParse(ref bsonReader, out message))
             {
                 consumed = bsonReader.Position;
                 examined = bsonReader.Position;

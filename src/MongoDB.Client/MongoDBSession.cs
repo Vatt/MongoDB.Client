@@ -2,6 +2,7 @@
 using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Common;
 using MongoDB.Client.Protocol.Core;
+using MongoDB.Client.Readers;
 using System;
 using System.IO.Pipelines;
 using System.Net.Connections;
@@ -60,27 +61,28 @@ namespace MongoDB.Client
                 }
             }
         }
-        //public async Task<MongoDBConnectionInfo?> SayHelloAsync(CancellationToken cancellationToken = default)
-        //{
-        //    var protocol = _connection.CreateWriter();
-        //    if (_shutdownToken.IsCancellationRequested == false)
-        //    {
-        //        if (protocol is not null)
-        //        {
-        //            _completionSource = new TaskCompletionSource<MongoMessage>();
+        public async Task<MongoDBConnectionInfo?> SayHelloAsync(CancellationToken cancellationToken = default)
+        {
+            var protocol = _connection.CreateWriter();
+            if (_shutdownToken.IsCancellationRequested == false)
+            {
+                if (protocol is not null)
+                {
+                    _completionSource = new TaskCompletionSource<MongoMessage>();
 
-        //            await protocol.WriteAsync(ProtocolWriters.ReadOnlyMemoryWriter, Hello, cancellationToken).ConfigureAwait(false);
+                    await protocol.WriteAsync(ProtocolWriters.ReadOnlyMemoryWriter, Hello, cancellationToken).ConfigureAwait(false);
 
-        //            var response = await _completionSource.Task.ConfigureAwait(false);
-        //            var bodyReader = new BodyReader(MongoDB.Client.Bson.Serialization.Generated.GlobalSerializationHelperGenerated.MongoDBConnectionInfoGeneratedSerializatorStaticField);
-        //            return await ReadAsyncInternal(bodyReader, _shutdownToken.Token) as MongoDBConnectionInfo;
-        //        }
+                    var response = await _completionSource.Task.ConfigureAwait(false);
+                    SerializersMap.TryGetSerializer<MongoDBConnectionInfo>(out var serializer);
+                    var bodyReader = new ReplyBodyReader<MongoDBConnectionInfo>(serializer);
+                    return await ReadAsyncInternal(bodyReader, _shutdownToken.Token) as MongoDBConnectionInfo;
+                }
 
-        //        return ThrowHelper.ConnectionException<MongoDBConnectionInfo>(_connection.RemoteEndPoint!);
-        //    }
-        //    return ThrowHelper.ObjectDisposedException<MongoDBConnectionInfo>(nameof(Channel));
+                return ThrowHelper.ConnectionException<MongoDBConnectionInfo>(_connection.RemoteEndPoint!);
+            }
+            return ThrowHelper.ObjectDisposedException<MongoDBConnectionInfo>(nameof(Channel));
 
-        //}
+        }
 
         public async ValueTask DisposeAsync()
         {

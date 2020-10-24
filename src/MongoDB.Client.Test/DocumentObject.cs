@@ -19,11 +19,11 @@
 //        public Guid TypeId { get; set; }
 
 
-//        //public DateTimeOffset LastModifiedDate { get; set; }
-//        public BsonDocument LastModifiedDate { get; set; }
+//        public DateTimeOffset LastModifiedDate { get; set; }
+//        //public BsonDocument LastModifiedDate { get; set; }
 
-//        //public DateTimeOffset CreatedDate { get; set; }
-//        public BsonDocument CreatedDate { get; set; }
+//        public DateTimeOffset CreatedDate { get; set; }
+//        //public BsonDocument CreatedDate { get; set; }
 
 //        public bool Deleted { get; set; }
 
