@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace MongoDB.Client.Bson.Generators
@@ -24,6 +25,7 @@ using System.Collections.Generic;
 namespace MongoDB.Client.Bson.Serialization.Generated{{
     public static class GlobalSerializationHelperGenerated{{
         {GenerateFields()}
+        {GenerateGetSeriazlizersMethod()}
     }}
 }}");
             return builder.ToString();
@@ -35,6 +37,29 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
                     //builder.Append($"\n\t\tpublic static readonly  {info.ClassSymbol.Name}GeneratedSerializer {info.ClassSymbol.Name}GeneratedSerializerStaticField = new {info.ClassSymbol.Name}GeneratedSerializer();");
                     builder.Append($"\n\t\tpublic static readonly  IGenericBsonSerializer<{info.ClassSymbol.Name}>  {info.ClassSymbol.Name}GeneratedSerializerStaticField = new {info.ClassSymbol.Name}GeneratedSerializer();");
                 }
+                return builder.ToString();
+            }
+            string GenerateGetSeriazlizersMethod()
+            {
+                StringBuilder builder = new StringBuilder();
+                builder.Append($@"
+                public static KeyValuePair<Type, IBsonSerializer>[]  GetGeneratedSerializers()
+                {{
+                    var pairs = new KeyValuePair<Type, IBsonSerializer>[{meta.Count}];                    
+                ");
+                int index = 0;
+                foreach(var decl in meta)
+                {
+
+                    builder.Append($@"
+                    pairs[{index}] = KeyValuePair.Create<Type, IBsonSerializer>(typeof({decl.ClassSymbol.Name}), {decl.ClassSymbol.Name}GeneratedSerializerStaticField);
+                    ");
+                    index ++;
+                }
+                builder.Append(@"
+                    return pairs;
+                }
+                ");
                 return builder.ToString();
             }
         }

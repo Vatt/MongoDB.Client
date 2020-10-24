@@ -25,7 +25,7 @@ namespace MongoDB.Test
 
             Console.WriteLine();
 
-            var factory = new MongoDBSessionFactory(new DnsEndPoint("centos0.mshome.net", 27017));
+            var factory = new MongoSessionFactory(new DnsEndPoint("centos0.mshome.net", 27017));
             var session = await factory.ConnectAsync();
             var connectionInfo = await session!.SayHelloAsync();
             await session.DisposeAsync();
