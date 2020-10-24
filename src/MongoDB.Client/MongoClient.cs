@@ -23,21 +23,21 @@ namespace MongoDB.Client
             _channel = new Channel(_endPoint);
         }
 
-        public ValueTask<BsonDocument> ConnectAsync(CancellationToken cancellationToken)
+        public ValueTask<(BsonDocument config, BsonDocument hell)> ConnectAsync(CancellationToken cancellationToken)
         {
-            if (_configMessage is not null)
+            if (_configMessage is not null && _hell is not null)
             {
-                return new ValueTask<BsonDocument>(_configMessage);
+                return new ValueTask<(BsonDocument, BsonDocument)>((_configMessage, _hell));
             }
 
             return Slow(cancellationToken);
 
-            async ValueTask<BsonDocument> Slow(CancellationToken cancellationToken)
+            async ValueTask<(BsonDocument, BsonDocument)> Slow(CancellationToken cancellationToken)
             {
                 await _channel.ConnectAsync(cancellationToken).ConfigureAwait(false);
                 _configMessage = await _channel.SendAsync<BsonDocument>(Config, cancellationToken);
                 _hell = await _channel.SendAsync<BsonDocument>(Hell, cancellationToken);
-                return _configMessage;
+                return (_configMessage, _hell);
             }
         }
 

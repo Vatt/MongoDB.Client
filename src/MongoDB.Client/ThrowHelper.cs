@@ -67,5 +67,12 @@ namespace MongoDB.Client
         {
             throw new NotSupportedException($"Opcode '{opcode}' not supported");
         }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
+        public static T InvalidPayloadTypeException<T>(int payloadType)
+        {
+            throw new NotSupportedException($"Command message invalid payload type: {payloadType}.");
+        }
     }
 }
