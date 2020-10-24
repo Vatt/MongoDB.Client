@@ -11,10 +11,10 @@ namespace MongoDB.Client.Protocol.Readers
         {
             // The message consists of
             //
-            // [4 bytes   ]
-            // [OpMsgFlags]
+            // [4 bytes   ] [1 byte     ]
+            // [OpMsgFlags] [payloadType]
 
-            if (input.Length < 4)
+            if (input.Length < 5)
             {
                 message = default;
                 return false;
@@ -22,8 +22,8 @@ namespace MongoDB.Client.Protocol.Readers
 
             var reader = new SequenceReader<byte>(input);
             reader.TryReadLittleEndian(out int msgFlags);
-
-            message = new MsgMessageHeader(msgFlags);
+            reader.TryRead(out var payloadType);
+            message = new MsgMessageHeader(msgFlags, payloadType);
             consumed = reader.Position;
             examined = reader.Position;
             return true;

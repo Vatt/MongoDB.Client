@@ -162,13 +162,26 @@ namespace MongoDB.Client
                     case MsgMessage msgMessage:
                         if (SerializersMap.TryGetSerializer<T>(out var msgSerializer))
                         {
-                            var bodyReader = new MsgBodyReader<T>(msgSerializer, msgMessage);
+                            MsgBodyReader<T> bodyReader;
+                            if (msgMessage.MsgHeader.PayloadType == 0)
+                            {
+                                bodyReader = new MsgType0BodyReader<T>(msgSerializer, msgMessage);
+                            }
+                            else if (msgMessage.MsgHeader.PayloadType == 1)
+                            {
+                                bodyReader = new MsgType1BodyReader<T>(msgSerializer, msgMessage);
+                            }
+                            else
+                            {
+                                return ThrowHelper.InvalidPayloadTypeException<List<T>>(msgMessage.MsgHeader.PayloadType);
+                            }
+
                             while (bodyReader.Complete == false)
                             {
                                 _ = await reader.ReadAsync(bodyReader, _shutdownToken.Token).ConfigureAwait(false);
+                                reader.Advance();
                             }
 
-                            reader.Advance();
                             return bodyReader.objects;
                         }
 
