@@ -20,8 +20,6 @@ namespace MongoDB.Test
             var client = new MongoClient();
             var (connectionInfo, hell) = await client.ConnectAsync(default);
             var result1 = await client.GetListAsync<BsonDocument>(Req1, default);
-            var result2 = await client.GetListAsync<BsonDocument>(Req2, default);
-
 
             Console.WriteLine();
 
