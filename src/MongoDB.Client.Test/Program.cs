@@ -27,21 +27,21 @@ namespace MongoDB.Test
 
             Console.WriteLine();
 
-            var factory = new MongoSessionFactory(new DnsEndPoint("centos0.mshome.net", 27017));
-            var session = await factory.ConnectAsync();
-            var connectionInfo = await session!.SayHelloAsync();
-            await session.DisposeAsync();
-            var root = new BsonDocument();
-            var driverDoc = new BsonDocument();
+            //var factory = new MongoSessionFactory(new DnsEndPoint("centos0.mshome.net", 27017));
+            //var session = await factory.ConnectAsync();
+            //var connectionInfo = await session!.SayHelloAsync();
+            //await session.DisposeAsync();
+            //var root = new BsonDocument();
+            //var driverDoc = new BsonDocument();
 
-            driverDoc.Elements.AddRange(new List<BsonElement>{
-                BsonElement.Create(driverDoc, "driver", "MongoDB.Client"),
-                BsonElement.Create(driverDoc, "version", "0.0.0"),
-            });
-            root.Elements.AddRange(new List<BsonElement>
-            {
-                BsonElement.Create(root, "driver", driverDoc)
-            });
+            //driverDoc.Elements.AddRange(new List<BsonElement>{
+            //    BsonElement.Create(driverDoc, "driver", "MongoDB.Client"),
+            //    BsonElement.Create(driverDoc, "version", "0.0.0"),
+            //});
+            //root.Elements.AddRange(new List<BsonElement>
+            //{
+            //    BsonElement.Create(root, "driver", driverDoc)
+            //});
 
         }
         static void Test()

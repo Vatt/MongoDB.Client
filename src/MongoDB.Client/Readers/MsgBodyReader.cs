@@ -37,7 +37,7 @@ namespace MongoDB.Client.Readers
                     switch (payloadType)
                     {
                         case 0:
-                            if (_serializer.GenericTryParse(ref bsonReader, out var item))
+                            if (_serializer.TryParse(ref bsonReader, out var item))
                             {
                                 objects.Add(item);
                                 consumedBytes = bsonReader.BytesConsumed;
