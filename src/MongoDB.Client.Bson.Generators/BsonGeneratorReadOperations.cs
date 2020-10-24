@@ -1,7 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace MongoDB.Client.Bson.Generators
 {
@@ -9,7 +7,7 @@ namespace MongoDB.Client.Bson.Generators
     {
         internal static readonly Dictionary<string, string> SimpleOperations = new Dictionary<string, string>()
         {
-            ["Double"] = @"if (!reader.TryGetDouble(out {0})) {{ return false; }}",                          
+            ["Double"] = @"if (!reader.TryGetDouble(out {0})) {{ return false; }}",
             ["String"] = @"if (!reader.TryGetDouble(out {0})) {{ return false; }}",
             ["BsonDocument"] = @"if (!reader.TryParseDocument(null, out {0})) {{ return false; }}",
             ["BsonObjectId"] = @"if (!reader.TryGetObjectId(out {0})) {{ return false; }}",

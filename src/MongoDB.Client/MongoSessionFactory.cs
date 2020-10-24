@@ -4,19 +4,19 @@ using System.Threading.Tasks;
 
 namespace MongoDB.Client
 {
-    public class MongoDBSessionFactory
+    public class MongoSessionFactory
     {
         private readonly EndPoint? _endpoint;
         private readonly NetworkConnectionFactory _networkFactory;
-        public MongoDBSessionFactory(EndPoint? endpoint)
+        public MongoSessionFactory(EndPoint? endpoint)
         {
             _endpoint = endpoint;
             _networkFactory = new NetworkConnectionFactory();
         }
-        public async ValueTask<MongoDBSession?> ConnectAsync()
+        public async ValueTask<MongoSession?> ConnectAsync()
         {
             var connection = await _networkFactory.ConnectAsync(_endpoint);
-            return new MongoDBSession(connection);
+            return new MongoSession(connection);
         }
     }
 }

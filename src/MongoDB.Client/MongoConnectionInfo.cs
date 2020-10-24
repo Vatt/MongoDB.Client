@@ -1,12 +1,11 @@
 ﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using System;
-using System.Collections.Generic;
 
 namespace MongoDB.Client
 {
     [BsonSerializable]
-    public class TopologyVersion
+    public class MongoTopologyVersion
     {
         [BsonElementField(ElementName = "processId")]
         public BsonObjectId ProcesssId { get; set; }
@@ -16,13 +15,13 @@ namespace MongoDB.Client
     }
 
     [BsonSerializable]
-    public class MongoDBConnectionInfo
+    public class MongoConnectionInfo
     {
         [BsonElementField(ElementName = "ismaster")]
         public bool IsMaster;
 
         [BsonElementField(ElementName = "topologyVersion")]
-        public TopologyVersion Topology { get; set; }
+        public MongoTopologyVersion Topology { get; set; }
 
         [BsonElementField(ElementName = "maxBsonObjectSize")]
         public int MaxBsonObjectSize { get; set; }
