@@ -165,7 +165,7 @@ namespace MongoDB.Client
                             MsgBodyReader<T> bodyReader;
                             if (msgMessage.MsgHeader.PayloadType == 0)
                             {
-                                bodyReader = new MsgType0BodyReader<T>(msgSerializer, msgMessage);
+                                bodyReader = new MsgType0BodyReader2<T>(msgSerializer, msgMessage);
                             }
                             else if (msgMessage.MsgHeader.PayloadType == 1)
                             {
@@ -182,7 +182,7 @@ namespace MongoDB.Client
                                 reader.Advance();
                             }
 
-                            return bodyReader.objects;
+                            return bodyReader.Objects;
                         }
 
                         return ThrowHelper.UnsupportedTypeException<List<T>>(typeof(T));

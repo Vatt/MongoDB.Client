@@ -74,5 +74,12 @@ namespace MongoDB.Client
         {
             throw new NotSupportedException($"Command message invalid payload type: {payloadType}.");
         }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
+        public static T UnknownCursorFieldException<T>(string fieldName)
+        {
+            throw new NotSupportedException($"Unknown cursor field: {fieldName}.");
+        }
     }
 }

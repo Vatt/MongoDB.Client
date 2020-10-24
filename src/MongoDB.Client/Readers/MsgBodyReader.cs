@@ -12,7 +12,7 @@ namespace MongoDB.Client.Readers
     {
         protected readonly IGenericBsonSerializer<T> Serializer;
         protected readonly MsgMessage Message;
-        public readonly List<T> objects = new List<T>();
+        public readonly List<T> Objects = new List<T>();
         public bool Complete { get; protected set; }
 
         public MsgBodyReader(IGenericBsonSerializer<T> serializer, MsgMessage message)

@@ -20,7 +20,7 @@ namespace MongoDB.Client.Readers
 
             if (Serializer.TryParse(ref bsonReader, out var item))
             {
-                objects.Add(item);
+                Objects.Add(item);
                 consumed = bsonReader.Position;
                 examined = bsonReader.Position;
                 Complete = true;
