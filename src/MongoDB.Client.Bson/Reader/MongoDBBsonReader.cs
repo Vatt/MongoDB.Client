@@ -1,4 +1,5 @@
 ﻿using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Utils;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -184,7 +185,7 @@ namespace MongoDB.Client.Bson.Reader
                     }
                 default:
                     {
-                        throw new ArgumentException($"{nameof(MongoDBBsonReader)}.{nameof(TryGetBinaryData)}  with subtype {subtype}");
+                        return ThrowHelper.UnknownSubtypeException<bool>(subtype);
                     }
             }
 
@@ -195,24 +196,26 @@ namespace MongoDB.Client.Bson.Reader
             if (!TryGetInt32(out var len)) { return false; }
             if (!TryGetByte(out var subtype)) { return false; }
             if (_input.Remaining < len) { return false; }
-            if (subtype != 4)
+            if (subtype == 4)
             {
-                throw new ArgumentException($"{nameof(MongoDBBsonReader)}.{nameof(TryGetBinaryDataGuid)}  with subtype {subtype}");
+                if (_input.UnreadSpan.Length < len)
+                {
+                    value = new Guid(_input.UnreadSpan.Slice(0, len));
+                    _input.Advance(len);
+                    return true;
+                }
+                Span<byte> buffer = stackalloc byte[len];
+                if (_input.TryCopyTo(buffer))
+                {
+                    value = new Guid(buffer);
+                    _input.Advance(len);
+                    return true;
+                }
+                return false;
             }
-            if (_input.UnreadSpan.Length < len)
-            {
-                value = new Guid(_input.UnreadSpan.Slice(0, len));
-                _input.Advance(len);
-                return true;
-            }
-            Span<byte> buffer = stackalloc byte[len];
-            if (_input.TryCopyTo(buffer))
-            {
-                value = new Guid(buffer);
-                _input.Advance(len);
-                return true;
-            }
-            return false;
+
+
+            return ThrowHelper.UnknownSubtypeException<bool>(subtype);
         }
         public bool TryGetGuidFromString(out Guid value)
         {
@@ -252,7 +255,7 @@ namespace MongoDB.Client.Bson.Reader
             TryGetByte(out var endDocumentMarker);
             if (endDocumentMarker != '\x00')
             {
-                throw new ArgumentException($"{nameof(MongoDBBsonReader)}.{nameof(TryParseDocument)} End document marker missmatch");
+                return ThrowHelper.MissedDocumentEndMarkerException<bool>();
             }
             value = root;
             return true;
@@ -272,7 +275,7 @@ namespace MongoDB.Client.Bson.Reader
             TryGetByte(out var endDocumentMarker);
             if (endDocumentMarker != '\x00')
             {
-                throw new ArgumentException($"{nameof(MongoDBBsonReader)}.{nameof(TryParseDocument)} End document marker missmatch");
+                return ThrowHelper.MissedDocumentEndMarkerException<bool>();
             }
             return true;
         }
@@ -292,7 +295,7 @@ namespace MongoDB.Client.Bson.Reader
             if (!TryGetByte(out var endDocumentMarker)) { return false; }
             if (endDocumentMarker != '\x00')
             {
-                throw new ArgumentException($"{nameof(MongoDBBsonReader)}.{nameof(TryGetDatetimeFromDocument)} End document marker missmatch");
+                return ThrowHelper.MissedDocumentEndMarkerException<bool>();
             }
             date = DateTimeOffset.FromUnixTimeMilliseconds(longDate);
             return true;
@@ -371,7 +374,7 @@ namespace MongoDB.Client.Bson.Reader
                     }
                 default:
                     {
-                        throw new ArgumentException($"{nameof(MongoDBBsonReader)}.{nameof(TryParseElement)}  with type {type}");
+                        return ThrowHelper.UnknownTypeException<bool>(type);
                     }
             }
         }
@@ -390,7 +393,7 @@ namespace MongoDB.Client.Bson.Reader
             if (!TryGetByte(out var endDocumentMarker)) { return false; }
             if (endDocumentMarker != '\x00')
             {
-                throw new ArgumentException($"{nameof(MongoDBBsonReader)}.{nameof(TryParseDocument)} End document marker missmatch");
+                return ThrowHelper.MissedDocumentEndMarkerException<bool>();
             }
 
             return true;
