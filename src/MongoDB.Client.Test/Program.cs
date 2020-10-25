@@ -23,13 +23,13 @@ namespace MongoDB.Client.Test
 
             for (int i = 0; i < 100; i++)
             {
-                var result = await client.GetCursorAsync<GeoIp>(Req2, default);
+                var result = await client.GetCursorAsync<GeoIp>(Req2, default).ToListAsync();
             }
 
             var sw = Stopwatch.StartNew();
             for (int i = 0; i < 100; i++)
             {
-                var result = await client.GetCursorAsync<GeoIp>(Req2, default);
+                var result = await client.GetCursorAsync<GeoIp>(Req2, default).ToListAsync();
             }
             sw.Stop();
             await client.DisposeAsync();
