@@ -15,7 +15,6 @@ namespace MongoDB.Client.Bson.Reader
 
         public SequencePosition Position => _input.Position;
 
-        public readonly ReadOnlySpan<byte> UnreadSpan => _input.UnreadSpan;
         public readonly long Remaining => _input.Remaining;
         public MongoDBBsonReader(in ReadOnlyMemory<byte> memory)
         {
@@ -61,7 +60,6 @@ namespace MongoDB.Client.Bson.Reader
         }
         public bool TryGetCStringAsSpan(out ReadOnlySpan<byte> value)
         {
-            value = default;
             if (!_input.TryReadTo(out value, (byte)'\x00'))
             {
                 return false;
@@ -80,31 +78,74 @@ namespace MongoDB.Client.Bson.Reader
         {
             value = default;
             if (!TryGetInt32(out var length)) { return false; }
-            if (_input.UnreadSpan.Length < length)
+            if (_input.Remaining < length)
             {
                 return false;
             }
-            var data = _input.UnreadSpan.Slice(0, length - 1);
-            _input.Advance(length);
-            value = Encoding.UTF8.GetString(data);
-            return true;
+
+            if (_input.UnreadSpan.Length >= length)
+            {
+                var data = _input.UnreadSpan.Slice(0, length - 1);
+                _input.Advance(length);
+                value = Encoding.UTF8.GetString(data);
+                return true;
+            }
+
+            byte[]? buffer = null;
+            var bufferSize = length - 1;
+            Span<byte> span = bufferSize < 512 ? stackalloc byte[bufferSize] : (buffer = ArrayPool<byte>.Shared.Rent(bufferSize)).AsSpan(0, bufferSize);
+            try
+            {
+                if (_input.TryCopyTo(span))
+                {
+                    _input.Advance(length);
+                    value = Encoding.UTF8.GetString(span);
+                    return true;
+                }
+                return false;
+            }
+            finally
+            {
+                if (buffer is not null)
+                {
+                    ArrayPool<byte>.Shared.Return(buffer);
+                }
+            }
         }
+
         public bool TryGetStringAsSpan(out ReadOnlySpan<byte> value)
         {
             value = default;
             if (!TryGetInt32(out var length)) { return false; }
-            if (_input.UnreadSpan.Length < length)
+            if (_input.Remaining < length)
             {
                 return false;
             }
-            value = _input.UnreadSpan.Slice(0, length - 1);
-            _input.Advance(length);
-            return true;
+
+
+            if (_input.UnreadSpan.Length >= length)
+            {
+                value = _input.UnreadSpan.Slice(0, length - 1);
+                _input.Advance(length);
+                return true;
+            }
+
+            var result = new byte[length - 1];
+
+            if (_input.TryCopyTo(result))
+            {
+                _input.Advance(length);
+                value = result;
+                return true;
+            }
+            return false;
         }
+
+
         public bool TryGetObjectId(out BsonObjectId value)
         {
             value = default;
-            if (_input.UnreadSpan.Length < 12)
+            if (_input.Remaining < 12)
             {
                 return false;
             }
@@ -115,19 +156,31 @@ namespace MongoDB.Client.Bson.Reader
             return true;
 
         }
+
         public bool TryGetBinaryData(out BsonBinaryData value)
         {
             value = default;
             if (!TryGetInt32(out var len)) { return false; }
             if (!TryGetByte(out var subtype)) { return false; }
-            if (UnreadSpan.Length < len) { return false; }
+            if (_input.Remaining < len) { return false; }
             switch (subtype)
             {
                 case 4:
                     {
-                        value = BsonBinaryData.Create(new Guid(UnreadSpan.Slice(0, len)));
-                        _input.Advance(len);
-                        return true;
+                        if (_input.UnreadSpan.Length < len)
+                        {
+                            value = BsonBinaryData.Create(new Guid(_input.UnreadSpan.Slice(0, len)));
+                            _input.Advance(len);
+                            return true;
+                        }
+                        Span<byte> buffer = stackalloc byte[len];
+                        if (_input.TryCopyTo(buffer))
+                        {
+                            value = BsonBinaryData.Create(new Guid(buffer));
+                            _input.Advance(len);
+                            return true;
+                        }
+                        return false;
                     }
                 default:
                     {
@@ -141,20 +194,34 @@ namespace MongoDB.Client.Bson.Reader
             value = default;
             if (!TryGetInt32(out var len)) { return false; }
             if (!TryGetByte(out var subtype)) { return false; }
-            if (UnreadSpan.Length < len) { return false; }
+            if (_input.Remaining < len) { return false; }
             if (subtype != 4)
             {
                 throw new ArgumentException($"{nameof(MongoDBBsonReader)}.{nameof(TryGetBinaryDataGuid)}  with subtype {subtype}");
             }
-            value = new Guid(UnreadSpan.Slice(0, len));
-            _input.Advance(len);
-            return true;
+            if (_input.UnreadSpan.Length < len)
+            {
+                value = new Guid(_input.UnreadSpan.Slice(0, len));
+                _input.Advance(len);
+                return true;
+            }
+            Span<byte> buffer = stackalloc byte[len];
+            if (_input.TryCopyTo(buffer))
+            {
+                value = new Guid(buffer);
+                _input.Advance(len);
+                return true;
+            }
+            return false;
         }
         public bool TryGetGuidFromString(out Guid value)
         {
             value = default;
             if (TryGetString(out var data))
+            {
                 value = new Guid(data);
+            }
+
             return true;
         }
         public bool TryGetUTCDatetime(out DateTimeOffset value)
