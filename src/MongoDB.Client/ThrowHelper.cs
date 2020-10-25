@@ -81,5 +81,12 @@ namespace MongoDB.Client
         {
             throw new NotSupportedException($"Unknown cursor field: {fieldName}.");
         }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
+        public static T MissedDocumentEndMarkerException<T>()
+        {
+            throw new NotSupportedException($"Document end marker was not found");
+        }
     }
 }

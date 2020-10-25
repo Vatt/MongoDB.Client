@@ -134,7 +134,7 @@ namespace MongoDB.Client
             }
         }
 
-        public async ValueTask<List<TResp>> GetListAsync<TResp>(ReadOnlyMemory<byte> message, CancellationToken cancellationToken)
+        public async ValueTask<Cursor<TResp>> GetCursorAsync<TResp>(ReadOnlyMemory<byte> message, CancellationToken cancellationToken)
         {
             if (_shutdownToken.IsCancellationRequested == false)
             {
@@ -148,13 +148,13 @@ namespace MongoDB.Client
                     return await ParseAsync<TResp>(response).ConfigureAwait(false);
                 }
 
-                return ThrowHelper.ConnectionException<List<TResp>>(_endpoint);
+                return ThrowHelper.ConnectionException<Cursor<TResp>>(_endpoint);
             }
-            return ThrowHelper.ObjectDisposedException<List<TResp>>(nameof(Channel));
+            return ThrowHelper.ObjectDisposedException<Cursor<TResp>>(nameof(Channel));
 
 
             // Temp implementation
-            async ValueTask<List<T>> ParseAsync<T>(MongoMessage message)
+            async ValueTask<Cursor<T>> ParseAsync<T>(MongoMessage message)
             {
                 var reader = _reader!;
                 switch (message)
@@ -165,7 +165,7 @@ namespace MongoDB.Client
                             MsgBodyReader<T> bodyReader;
                             if (msgMessage.MsgHeader.PayloadType == 0)
                             {
-                                bodyReader = new MsgType0BodyReader2<T>(msgSerializer, msgMessage);
+                                bodyReader = new MsgType0BodyReader<T>(msgSerializer, msgMessage);
                             }
                             else if (msgMessage.MsgHeader.PayloadType == 1)
                             {
@@ -173,7 +173,7 @@ namespace MongoDB.Client
                             }
                             else
                             {
-                                return ThrowHelper.InvalidPayloadTypeException<List<T>>(msgMessage.MsgHeader.PayloadType);
+                                return ThrowHelper.InvalidPayloadTypeException<Cursor<T>>(msgMessage.MsgHeader.PayloadType);
                             }
 
                             while (bodyReader.Complete == false)
@@ -182,12 +182,12 @@ namespace MongoDB.Client
                                 reader.Advance();
                             }
 
-                            return bodyReader.Objects;
+                            return bodyReader.CursorResult.Cursor;
                         }
 
-                        return ThrowHelper.UnsupportedTypeException<List<T>>(typeof(T));
+                        return ThrowHelper.UnsupportedTypeException<Cursor<T>>(typeof(T));
                     default:
-                        return ThrowHelper.UnsupportedTypeException<List<T>>(typeof(T));
+                        return ThrowHelper.UnsupportedTypeException<Cursor<T>>(typeof(T));
                 }
             }
         }
