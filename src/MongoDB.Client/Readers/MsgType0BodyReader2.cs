@@ -51,8 +51,15 @@ namespace MongoDB.Client.Readers
                 long consumedBytes = 0;
                 while (_modelsReaded + consumedBytes < _modelsLength - 1)
                 {
+#if DEBUG
+                    if (bsonReader.TryGetByte(out var type) == false) { return false; }
+                    if (bsonReader.TryGetCString(out var name) == false) { return false; }
+#else
                     if (bsonReader.TryGetByte(out _) == false) { return false; }
                     if (bsonReader.TryGetCStringAsSpan(out _) == false) { return false; }
+#endif
+
+
 
                     if (Serializer.TryParse(ref bsonReader, out var item))
                     {
