@@ -28,8 +28,7 @@ namespace MongoDB.Client
 
         private static readonly ReadOnlyMemoryWriter memoryWriter = new ReadOnlyMemoryWriter();
 
-
-        private TaskCompletionSource<MongoMessage> completionSource = new TaskCompletionSource<MongoMessage>();
+        private readonly ManualResetValueTaskSource<MongoMessage> completionSource = new ManualResetValueTaskSource<MongoMessage>();
         private CancellationTokenSource _shutdownToken = new CancellationTokenSource();
         private Task? _readingTask;
 
@@ -99,11 +98,10 @@ namespace MongoDB.Client
             {
                 if (_writer is not null)
                 {
-                    completionSource = new TaskCompletionSource<MongoMessage>();
-
                     await _writer.WriteAsync(memoryWriter, message, cancellationToken).ConfigureAwait(false);
 
-                    var response = await completionSource.Task.ConfigureAwait(false);
+                    var response = await new ValueTask<MongoMessage>(completionSource, completionSource.Version).ConfigureAwait(false);
+                    completionSource.Reset();
                     return await ParseAsync<TResp>(response).ConfigureAwait(false);
                 }
 
@@ -112,7 +110,6 @@ namespace MongoDB.Client
             return ThrowHelper.ObjectDisposedException<TResp>(nameof(Channel));
 
 
-            // Temp implementation
             async ValueTask<T> ParseAsync<T>(MongoMessage message)
             {
                 var reader = _reader!;
@@ -140,11 +137,10 @@ namespace MongoDB.Client
             {
                 if (_writer is not null)
                 {
-                    completionSource = new TaskCompletionSource<MongoMessage>();
-
                     await _writer.WriteAsync(memoryWriter, message, cancellationToken).ConfigureAwait(false);
 
-                    var response = await completionSource.Task.ConfigureAwait(false);
+                    var response = await new ValueTask<MongoMessage>(completionSource, completionSource.Version).ConfigureAwait(false);
+                    completionSource.Reset();
                     return await ParseAsync<TResp>(response).ConfigureAwait(false);
                 }
 
@@ -153,7 +149,6 @@ namespace MongoDB.Client
             return ThrowHelper.ObjectDisposedException<Cursor<TResp>>(nameof(Channel));
 
 
-            // Temp implementation
             async ValueTask<Cursor<T>> ParseAsync<T>(MongoMessage message)
             {
                 var reader = _reader!;

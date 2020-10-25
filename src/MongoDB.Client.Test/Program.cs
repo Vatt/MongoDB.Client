@@ -1,6 +1,5 @@
 ﻿using MongoDB.Client.Bson.Reader;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
@@ -9,29 +8,31 @@ namespace MongoDB.Client.Test
 {
     class Program
     {
-        private static ReadOnlyMemory<byte> Hell2 = new byte[] { 55, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 221, 7, 0, 0, 0, 0, 0, 0, 0, 34, 0, 0, 0, 16, 105, 115, 77, 97, 115, 116, 101, 114, 0, 1, 0, 0, 0, 2, 36, 100, 98, 0, 6, 0, 0, 0, 97, 100, 109, 105, 110, 0, 0 };
-        private static ReadOnlyMemory<byte> Req1 = new byte[] { 118, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 221, 7, 0, 0, 0, 0, 0, 0, 0, 97, 0, 0, 0, 2, 102, 105, 110, 100, 0, 16, 0, 0, 0, 84, 101, 115, 116, 67, 111, 108, 108, 101, 99, 116, 105, 111, 110, 52, 0, 3, 102, 105, 108, 116, 101, 114, 0, 5, 0, 0, 0, 0, 2, 36, 100, 98, 0, 8, 0, 0, 0, 84, 101, 115, 116, 68, 98, 50, 0, 3, 108, 115, 105, 100, 0, 30, 0, 0, 0, 5, 105, 100, 0, 16, 0, 0, 0, 4, 131, 62, 100, 234, 152, 197, 69, 158, 132, 179, 177, 163, 226, 139, 75, 233, 0, 0 };
-        private static readonly byte[] Req2 = new byte[] { 116, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 221, 7, 0, 0, 0, 0, 0, 0, 0, 95, 0, 0, 0, 2, 102, 105, 110, 100, 0, 15, 0, 0, 0, 84, 101, 115, 116, 67, 111, 108, 108, 101, 99, 116, 105, 111, 110, 0, 3, 102, 105, 108, 116, 101, 114, 0, 5, 0, 0, 0, 0, 2, 36, 100, 98, 0, 7, 0, 0, 0, 84, 101, 115, 116, 68, 98, 0, 3, 108, 115, 105, 100, 0, 30, 0, 0, 0, 5, 105, 100, 0, 16, 0, 0, 0, 4, 240, 238, 24, 182, 212, 193, 68, 157, 154, 174, 170, 95, 96, 34, 122, 59, 0, 0 };
-
+        private static readonly byte[] NotEmptyCollection = new byte[] { 116, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 221, 7, 0, 0, 0, 0, 0, 0, 0, 95, 0, 0, 0, 2, 102, 105, 110, 100, 0, 15, 0, 0, 0, 84, 101, 115, 116, 67, 111, 108, 108, 101, 99, 116, 105, 111, 110, 0, 3, 102, 105, 108, 116, 101, 114, 0, 5, 0, 0, 0, 0, 2, 36, 100, 98, 0, 7, 0, 0, 0, 84, 101, 115, 116, 68, 98, 0, 3, 108, 115, 105, 100, 0, 30, 0, 0, 0, 5, 105, 100, 0, 16, 0, 0, 0, 4, 240, 238, 24, 182, 212, 193, 68, 157, 154, 174, 170, 95, 96, 34, 122, 59, 0, 0 };
+        private static readonly byte[] EmptyCollection = new byte[] { 117, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 221, 7, 0, 0, 0, 0, 0, 0, 0, 96, 0, 0, 0, 2, 102, 105, 110, 100, 0, 16, 0, 0, 0, 84, 101, 115, 116, 67, 111, 108, 108, 101, 99, 116, 105, 111, 110, 50, 0, 3, 102, 105, 108, 116, 101, 114, 0, 5, 0, 0, 0, 0, 2, 36, 100, 98, 0, 7, 0, 0, 0, 84, 101, 115, 116, 68, 98, 0, 3, 108, 115, 105, 100, 0, 30, 0, 0, 0, 5, 105, 100, 0, 16, 0, 0, 0, 4, 1, 159, 223, 195, 102, 86, 79, 175, 184, 118, 148, 208, 140, 216, 134, 192, 0, 0 };
 
         static async Task Main(string[] args)
         {
             //Test();
             var client = new MongoClient();
             var (connectionInfo, hell) = await client.ConnectAsync(default);
-            //var result1 = await client.GetListAsync<Data>(Req1, default);
+            var result1 = await client.GetCursorAsync<GeoIp>(EmptyCollection, default).ToListAsync();
+            var result2 = await client.GetCursorAsync<GeoIp>(NotEmptyCollection, default).ToListAsync();
+            var result3 = await client.GetCursorAsync<GeoIp>(EmptyCollection, default).ToListAsync();
+            var result4 = await client.GetCursorAsync<GeoIp>(NotEmptyCollection, default).ToListAsync();
 
             for (int i = 0; i < 100; i++)
             {
-                var result = await client.GetCursorAsync<GeoIp>(Req2, default).ToListAsync();
+                var warmupResult = await client.GetCursorAsync<GeoIp>(NotEmptyCollection, default).ToListAsync();
             }
 
             var sw = Stopwatch.StartNew();
             for (int i = 0; i < 100; i++)
             {
-                var result = await client.GetCursorAsync<GeoIp>(Req2, default).ToListAsync();
+                var testResult = await client.GetCursorAsync<GeoIp>(NotEmptyCollection, default).ToListAsync();
             }
             sw.Stop();
+           
             await client.DisposeAsync();
             Console.WriteLine(sw.Elapsed);
 
