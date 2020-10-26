@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -12,7 +13,7 @@ namespace MongoDB.Client.Bson.Generators
     [Generator]
     partial class BsonSerializatorGenerator : ISourceGenerator
     {
-        private List<ClassDecl> meta = new List<ClassDecl>();
+        private List<ClassDeclMeta> meta = new List<ClassDeclMeta>();
         GeneratorExecutionContext _context;
         public string GenerateGlobalHelperStaticClass()
         {
@@ -66,25 +67,30 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
         public void Execute(GeneratorExecutionContext context)
         {
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver)) { return; }
-            //System.Diagnostics.Debugger.Launch();
+            System.Diagnostics.Debugger.Launch();
             if (receiver.Candidates.Count == 0)
             {
                 return;
             }
             _context = context;
+            
             CollectMapData(context, receiver.Candidates);
             context.AddSource($"GlobalSerializationHelperGenerated.cs", SourceText.From(GenerateGlobalHelperStaticClass(), Encoding.UTF8));
             AddCandidatesToOperationsMap();
             foreach (var item in meta)
             {
-                var builder = Generate(item);
-                context.AddSource($"{item.ClassSymbol.Name}GeneratedSerializator.cs", SourceText.From(builder.ToString(), Encoding.UTF8));
+                var gen = BsonSyntaxGenerator.Create(item);
+                //gen.DeclarTryParseMethod();
+                gen.Build();
+                
+                //var builder = Generate(item);
+                //context.AddSource($"{item.ClassSymbol.Name}GeneratedSerializator.cs", SourceText.From(builder.ToString(), Encoding.UTF8));
             }
 
             //Debugger.Launch();
 
         }
-        private StringBuilder Generate(ClassDecl info)
+        private StringBuilder Generate(ClassDeclMeta info)
         {
             var builder = new StringBuilder($@"          
 using MongoDB.Client.Bson.Reader;
@@ -137,7 +143,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated
 
                 SemanticModel classModel = context.Compilation.GetSemanticModel(candidate.SyntaxTree);
                 var symbol = classModel.GetDeclaredSymbol(candidate);
-                var info = new ClassDecl(symbol);
+                var info = new ClassDeclMeta(symbol);
                 foreach (var member in candidate.Members)
                 {
 
@@ -151,7 +157,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated
                             IFieldSymbol fieldSymbol = memberModel.GetDeclaredSymbol(variable) as IFieldSymbol;
                             if (fieldSymbol.DeclaredAccessibility == Accessibility.Public)
                             {
-                                info.MemberDeclarations.Add(new MemberDeclarationInfo(fieldSymbol));
+                                info.MemberDeclarations.Add(new MemberDeclarationMeta(fieldSymbol));
                             }
                         }
                     }
@@ -162,14 +168,14 @@ namespace MongoDB.Client.Bson.Serialization.Generated
                         ISymbol propertySymbol = memberModel.GetDeclaredSymbol(propDecl);
                         if (propertySymbol.DeclaredAccessibility == Accessibility.Public)
                         {
-                            info.MemberDeclarations.Add(new MemberDeclarationInfo(propertySymbol));
+                            info.MemberDeclarations.Add(new MemberDeclarationMeta(propertySymbol));
                         }
                     }
                 }
                 meta.Add(info);
             }
         }
-        private string GenerateStaticReadOnlyBsonFieldsSpans(ClassDecl info)
+        private string GenerateStaticReadOnlyBsonFieldsSpans(ClassDeclMeta info)
         {
             StringBuilder builder = new StringBuilder();
             foreach (var fieldinfo in info.MemberDeclarations)

@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using MongoDB.Client.Bson.Serialization.Generated;
+//using MongoDB.Client.Bson.Serialization.Generated;
 namespace MongoDB.Client
 {
     internal static class SerializersMap
@@ -15,10 +15,10 @@ namespace MongoDB.Client
         };
         static SerializersMap()
         {
-            foreach(var pair in GlobalSerializationHelperGenerated.GetGeneratedSerializers())
-            {
-                _serializerMap.Add(pair.Key, pair.Value);
-            }
+            //foreach(var pair in GlobalSerializationHelperGenerated.GetGeneratedSerializers())
+            //{
+            //    _serializerMap.Add(pair.Key, pair.Value);
+            //}
         }
         public static bool TryGetSerializer<T>([MaybeNullWhen(false)] out IGenericBsonSerializer<T> serializer)
         {

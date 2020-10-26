@@ -3,7 +3,7 @@
 
 namespace MongoDB.Client.Bson.Generators
 {
-    internal class MemberDeclarationInfo
+    internal class MemberDeclarationMeta
     {
 
         public ISymbol DeclSymbol { get; }
@@ -13,7 +13,7 @@ namespace MongoDB.Client.Bson.Generators
         public bool IsGenericList => (DeclType.ToString().Contains("System.Collections.Generic.List") || DeclType.ToString().Contains("System.Collections.Generic.IList")) && DeclType.IsGenericType;
         public bool IsClassOrStruct => DeclType.TypeKind == TypeKind.Class || DeclType.TypeKind == TypeKind.Struct;
         public ITypeSymbol GenericType => DeclType.TypeArguments[0];
-        public MemberDeclarationInfo(ISymbol symbol)
+        public MemberDeclarationMeta(ISymbol symbol)
         {
             DeclSymbol = symbol;
             if (DeclSymbol is IFieldSymbol fieldSym)

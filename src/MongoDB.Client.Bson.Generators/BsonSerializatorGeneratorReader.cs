@@ -6,7 +6,7 @@ namespace MongoDB.Client.Bson.Generators
 {
     partial class BsonSerializatorGenerator
     {
-        private string GenerateReaderMethod(ClassDecl info)
+        private string GenerateReaderMethod(ClassDeclMeta info)
         {
             StringBuilder builder = new StringBuilder();
             builder.Append($@"
@@ -37,7 +37,7 @@ namespace MongoDB.Client.Bson.Generators
         ");
             return builder.ToString();
         }
-        private string GenerateReads(ClassDecl info)
+        private string GenerateReads(ClassDeclMeta info)
         {
             StringBuilder buidler = new StringBuilder();
             foreach (var declinfo in info.MemberDeclarations)
@@ -58,7 +58,7 @@ namespace MongoDB.Client.Bson.Generators
             return buidler.ToString();
         }
 
-        private string GenerateReadsAndAssign(ClassDecl info, MemberDeclarationInfo declinfo)
+        private string GenerateReadsAndAssign(ClassDeclMeta info, MemberDeclarationMeta declinfo)
         {
             StringBuilder builder = new StringBuilder();
             ReportNullableFieldMaybe(declinfo);
@@ -109,7 +109,7 @@ namespace MongoDB.Client.Bson.Generators
             return builder.ToString();
         }
 
-        private string GenerateSimpleReadOpAndAssign(MemberDeclarationInfo declinfo, string readOp, string typeArg, string varArg, string assignOp, bool forceAssign = false)
+        private string GenerateSimpleReadOpAndAssign(MemberDeclarationMeta declinfo, string readOp, string typeArg, string varArg, string assignOp, bool forceAssign = false)
         {
             var builder = new StringBuilder();
             if (forceAssign)
@@ -151,7 +151,7 @@ namespace MongoDB.Client.Bson.Generators
             return builder.ToString();
         }
 
-        private string GeneratehHardReadOpAndAssign(MemberDeclarationInfo declinfo, ITypeSymbol sym, string typeArg, string varArg, string assignOp)
+        private string GeneratehHardReadOpAndAssign(MemberDeclarationMeta declinfo, ITypeSymbol sym, string typeArg, string varArg, string assignOp)
         {
             var builder = new StringBuilder();
             foreach (var bsonType in BsonGeneratorReadOperations.SupportedHardOperationsBsonTypesMap[sym.Name])
@@ -170,7 +170,7 @@ namespace MongoDB.Client.Bson.Generators
             return builder.ToString();
         }
 
-        private string GenerateReadArrayToBsonDocumentList(ClassDecl classdecl, MemberDeclarationInfo memberdecl)
+        private string GenerateReadArrayToBsonDocumentList(ClassDeclMeta classdecl, MemberDeclarationMeta memberdecl)
         {
             StringBuilder builder = new StringBuilder();
             if (memberdecl.IsProperty)
@@ -190,7 +190,7 @@ namespace MongoDB.Client.Bson.Generators
 
             return builder.ToString();
         }
-        private string GenerateReadArray(ClassDecl classdecl, MemberDeclarationInfo memberdecl)
+        private string GenerateReadArray(ClassDeclMeta classdecl, MemberDeclarationMeta memberdecl)
         {
             StringBuilder builder = new StringBuilder();
             builder.Append($@"
@@ -210,7 +210,7 @@ namespace MongoDB.Client.Bson.Generators
         ");
             return builder.ToString();
         }
-        private string GenerateArrayReadOp(MemberDeclarationInfo memberdecl, string typeArg, string varArg)
+        private string GenerateArrayReadOp(MemberDeclarationMeta memberdecl, string typeArg, string varArg)
         {
             var assignOp = $"result.{memberdecl.DeclSymbol.Name}.Add({varArg});";
             var assignGenericOp = $"result.{memberdecl.DeclSymbol.Name}.Add(({memberdecl.GenericType.Name}){varArg});";
@@ -235,7 +235,7 @@ namespace MongoDB.Client.Bson.Generators
             }
             return builder.ToString();
         }
-        private string GenerateGeneratedReadOpAndAssign(MemberDeclarationInfo declinfo, ITypeSymbol sym, string readOp, string typeArg, string varArg, string assignOp, bool forceAssign = false)
+        private string GenerateGeneratedReadOpAndAssign(MemberDeclarationMeta declinfo, ITypeSymbol sym, string readOp, string typeArg, string varArg, string assignOp, bool forceAssign = false)
         {
             var builder = new StringBuilder();
             if (forceAssign)
@@ -276,7 +276,7 @@ namespace MongoDB.Client.Bson.Generators
             }
             return builder.ToString();
         }
-        private string GenerateReadOtherDocument(ClassDecl classdecl, MemberDeclarationInfo memberdecl)
+        private string GenerateReadOtherDocument(ClassDeclMeta classdecl, MemberDeclarationMeta memberdecl)
         {
 
             StringBuilder builder = new StringBuilder();

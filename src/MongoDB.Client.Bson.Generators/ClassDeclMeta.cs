@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace MongoDB.Client.Bson.Generators
 {
-    internal class ClassDecl
+    internal class ClassDeclMeta
     {
         public INamedTypeSymbol ClassSymbol { get; set; }
         public string StringNamespace
@@ -13,15 +13,11 @@ namespace MongoDB.Client.Bson.Generators
                 return ClassSymbol.ContainingNamespace.ToString();
             }
         }
-        public List<MemberDeclarationInfo> MemberDeclarations { get; set; }
-        public ClassDecl(INamedTypeSymbol classSymbol)
+        public List<MemberDeclarationMeta> MemberDeclarations { get; set; }
+        public ClassDeclMeta(INamedTypeSymbol classSymbol)
         {
-            MemberDeclarations = new List<MemberDeclarationInfo>();
+            MemberDeclarations = new List<MemberDeclarationMeta>();
             ClassSymbol = classSymbol;
-        }
-        public string GetNamespace()
-        {
-            return ClassSymbol.ContainingNamespace.ToString();
         }
     }
 }
