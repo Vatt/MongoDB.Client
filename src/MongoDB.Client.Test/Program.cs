@@ -1,7 +1,13 @@
-﻿using MongoDB.Client.Bson.Reader;
+﻿using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Reader;
+using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Protocol.Core;
+using MongoDB.Client.Readers;
+using MongoDB.Client.Writers;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipelines;
 using System.Threading.Tasks;
 
 namespace MongoDB.Client.Test
@@ -13,7 +19,7 @@ namespace MongoDB.Client.Test
 
         static async Task Main(string[] args)
         {
-            //Test();
+            await Test2();
             var client = new MongoClient();
             var (connectionInfo, hell) = await client.ConnectAsync(default);
             var result1 = await client.GetCursorAsync<GeoIp>(EmptyCollection, default).ToListAsync();
@@ -32,7 +38,7 @@ namespace MongoDB.Client.Test
                 var testResult = await client.GetCursorAsync<GeoIp>(NotEmptyCollection, default).ToListAsync();
             }
             sw.Stop();
-           
+
             await client.DisposeAsync();
             Console.WriteLine(sw.Elapsed);
 
@@ -70,6 +76,43 @@ namespace MongoDB.Client.Test
             //reader.TryParseDocument(null, out var document4);
             //reader.TryParseDocument(null, out var document5);
 
+        }
+
+
+        static async Task Test2()
+        {
+            var doc = new BsonDocument
+            {
+                { "int", 42},
+                { "bool", true},
+                { "string", "vat hui"}
+            };
+
+
+            var pipe = new Pipe();
+            var read = StartReadAsync(pipe.Reader);
+            await StartWriteAsync(pipe.Writer, doc);
+            var result = await read;
+
+            Console.WriteLine();
+        }
+
+        private static async Task<BsonDocument> StartReadAsync(PipeReader input)
+        {
+            var reader = new ProtocolReader(input);
+
+            var messageReader = new ReplyBodyReader<BsonDocument>(new BsonDocumentSerializer());
+            var result = await reader.ReadAsync(messageReader).ConfigureAwait(false);
+            reader.Advance();
+            return result.Message;
+        }
+
+        private static async Task StartWriteAsync(PipeWriter output, BsonDocument message)
+        {
+            var writer = new ProtocolWriter(output);
+
+            var messageWriter = new ReplyBodyWriter<BsonDocument>(new BsonDocumentSerializer());
+            await writer.WriteAsync(messageWriter, message).ConfigureAwait(false);
         }
     }
 }

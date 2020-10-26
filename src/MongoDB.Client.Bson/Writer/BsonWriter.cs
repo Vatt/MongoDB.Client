@@ -1,5 +1,4 @@
-﻿#pragma warning disable CS8656
-using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Client.Bson.Document;
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
@@ -15,6 +14,9 @@ namespace MongoDB.Client.Bson.Writer
 
         private IBufferWriter<byte> _output;
         private Span<byte> _span;
+#if DEBUG
+        private Span<byte> _origin;
+#endif
         private int _buffered;
         private int _written;
 
@@ -94,6 +96,9 @@ namespace MongoDB.Client.Bson.Writer
         {
             _output = output;
             _span = _output.GetSpan();
+#if DEBUG
+            _origin = _span;
+#endif
             _buffered = 0;
             _written = 0;
         }
@@ -118,6 +123,13 @@ namespace MongoDB.Client.Bson.Writer
             _span = _output.GetSpan();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void GetNextSpanWithoutCommit()
+        {
+            _buffered = 0;
+            _span = _output.GetSpan();
+        }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Advance(int count)
@@ -133,11 +145,21 @@ namespace MongoDB.Client.Bson.Writer
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void WriteBytes(Span<byte> source)
+        public void WriteBytes(Span<byte> source)
         {
-            Commit();
-            _output.Write(source);
-            GetNextSpan();
+            var slice = source;
+            while (slice.Length > 0)
+            {
+                if (_span.Length == 0)
+                {
+                    GetNextSpan();
+                }
+
+                var writable = Math.Min(slice.Length, _span.Length);
+                slice.Slice(0, writable).CopyTo(_span);
+                slice = slice.Slice(writable);
+                Advance(writable);
+            }
         }
 
 
@@ -155,6 +177,7 @@ namespace MongoDB.Client.Bson.Writer
             if (BinaryPrimitives.TryWriteInt16LittleEndian(_span, value))
             {
                 Advance(sizeof(short));
+                return;
             }
 
             _span[0] = (byte)value;
@@ -171,13 +194,13 @@ namespace MongoDB.Client.Bson.Writer
             if (BinaryPrimitives.TryWriteInt32LittleEndian(_span, value))
             {
                 Advance(sizeof(int));
+                return;
             }
 
             if (_span.Length == 1)
             {
                 _span[0] = (byte)value;
                 Advance(1);
-                GetNextSpan();
                 _span[0] = (byte)(value << 24);
                 _span[1] = (byte)(value << 16);
                 _span[3] = (byte)(value << 8);
@@ -189,7 +212,6 @@ namespace MongoDB.Client.Bson.Writer
                 _span[0] = (byte)value;
                 _span[1] = (byte)(value << 24);
                 Advance(2);
-                GetNextSpan();
                 _span[0] = (byte)(value << 16);
                 _span[1] = (byte)(value << 8);
                 Advance(2);
@@ -201,7 +223,6 @@ namespace MongoDB.Client.Bson.Writer
                 _span[1] = (byte)(value << 24);
                 _span[2] = (byte)(value << 16);
                 Advance(3);
-                GetNextSpan();
                 _span[3] = (byte)(value << 8);
                 Advance(1);
                 return;
@@ -215,6 +236,7 @@ namespace MongoDB.Client.Bson.Writer
             if (BinaryPrimitives.TryWriteInt64LittleEndian(_span, value))
             {
                 Advance(sizeof(int));
+                return;
             }
 
 
@@ -222,7 +244,6 @@ namespace MongoDB.Client.Bson.Writer
             {
                 _span[0] = (byte)value;
                 Advance(1);
-                GetNextSpan();
                 _span[0] = (byte)(value << 56);
                 _span[1] = (byte)(value << 48);
                 _span[2] = (byte)(value << 40);
@@ -238,7 +259,6 @@ namespace MongoDB.Client.Bson.Writer
                 _span[0] = (byte)value;
                 _span[1] = (byte)(value << 56);
                 Advance(2);
-                GetNextSpan();
                 _span[0] = (byte)(value << 48);
                 _span[1] = (byte)(value << 40);
                 _span[2] = (byte)(value << 32);
@@ -254,7 +274,6 @@ namespace MongoDB.Client.Bson.Writer
                 _span[1] = (byte)(value << 56);
                 _span[2] = (byte)(value << 48);
                 Advance(3);
-                GetNextSpan();
                 _span[0] = (byte)(value << 40);
                 _span[1] = (byte)(value << 32);
                 _span[2] = (byte)(value << 24);
@@ -270,7 +289,6 @@ namespace MongoDB.Client.Bson.Writer
                 _span[2] = (byte)(value << 48);
                 _span[3] = (byte)(value << 40);
                 Advance(4);
-                GetNextSpan();
                 _span[0] = (byte)(value << 32);
                 _span[1] = (byte)(value << 24);
                 _span[2] = (byte)(value << 16);
@@ -286,7 +304,6 @@ namespace MongoDB.Client.Bson.Writer
                 _span[3] = (byte)(value << 40);
                 _span[4] = (byte)(value << 32);
                 Advance(5);
-                GetNextSpan();
                 _span[0] = (byte)(value << 24);
                 _span[1] = (byte)(value << 16);
                 _span[2] = (byte)(value << 8);
@@ -302,7 +319,6 @@ namespace MongoDB.Client.Bson.Writer
                 _span[4] = (byte)(value << 32);
                 _span[5] = (byte)(value << 24);
                 Advance(6);
-                GetNextSpan();
                 _span[0] = (byte)(value << 16);
                 _span[1] = (byte)(value << 8);
                 Advance(2);
@@ -318,7 +334,6 @@ namespace MongoDB.Client.Bson.Writer
                 _span[5] = (byte)(value << 24);
                 _span[6] = (byte)(value << 16);
                 Advance(7);
-                GetNextSpan();
                 _span[0] = (byte)(value << 8);
                 Advance(1);
                 return;
@@ -338,22 +353,25 @@ namespace MongoDB.Client.Bson.Writer
         public void WriteCString(ReadOnlySpan<char> value)
         {
             Commit();
-            Encoding.UTF8.GetBytes(value, _output);
-            GetNextSpan();
+            var written = Encoding.UTF8.GetBytes(value, _output);
+            Advance((int)written);
+            GetNextSpanWithoutCommit();
             WriteByte(EndMarker);
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void WriteString(ReadOnlySpan<char> value)
+        public void WriteString(ReadOnlySpan<char> value)
         {
             var len = Encoding.UTF8.GetByteCount(value);
-            WriteInt32(len);
+            WriteInt32(len + 1);
             Commit();
-            Encoding.UTF8.GetBytes(value, _output);
-            GetNextSpan();
+            var written = Encoding.UTF8.GetBytes(value, _output);
+            Advance((int)written);
+            GetNextSpanWithoutCommit();
             WriteByte(EndMarker);
         }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteObjectId(BsonObjectId value)
@@ -377,17 +395,22 @@ namespace MongoDB.Client.Bson.Writer
             if (guid.TryWriteBytes(_span))
             {
                 Advance(16);
+                return;
             }
             Span<byte> buffer = stackalloc byte[16];
             guid.TryWriteBytes(buffer);
-            WriteBytes(buffer);
+
+            var rem = _span.Length;
+            buffer.Slice(0, rem).CopyTo(_span);
+            Advance(rem);
+            buffer.Slice(rem).CopyTo(_span);
+            Advance(16 - rem);
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteGuidAsString(Guid guid)
         {
-            Span<char> buffer = stackalloc char[36];
             _ = guid.TryFormat(buffer, out var written);
             WriteString(buffer);
         }
@@ -398,6 +421,9 @@ namespace MongoDB.Client.Bson.Writer
         {
             WriteByte(value ? 1 : 0);
         }
+
+
+        [ThreadStatic]
+        private static char[] buffer = new char[32];
     }
 }
-#pragma warning restore CS8656

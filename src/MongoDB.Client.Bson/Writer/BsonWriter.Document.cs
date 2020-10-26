@@ -22,9 +22,34 @@ namespace MongoDB.Client.Bson.Writer
                         WriteString((string)element.Value);
                         break;
                     }
+                case 3:
+                    {
+                        WriteDocument((BsonDocument)element.Value);
+                        break;
+                    }
+                case 4:
+                    {
+                        // write array
+                        break;
+                    }
+                case 5:
+                    {
+                        // write binary data
+                        break;
+                    }
                 case 7:
                     {
                         WriteObjectId((BsonObjectId)element.Value);
+                        break;
+                    }
+                case 8:
+                    {
+                        WriteBoolean((bool)element.Value);
+                        break;
+                    }
+                case 9:
+                    {
+                        WriteUTCDateTime((DateTimeOffset)element.Value);
                         break;
                     }
                 case 16:
@@ -48,15 +73,15 @@ namespace MongoDB.Client.Bson.Writer
         public void WriteDocument(BsonDocument document)
         {
             var reserved = Reserve(4);
-            var checkpoint = _written;
             for (var i = 0; i < document.Elements.Count; i++)
             {
                 WriteElement(document.Elements[i]);
             }
             WriteByte(EndMarker);
             Span<byte> sizeSpan = stackalloc byte[4];
-            BinaryPrimitives.WriteInt32LittleEndian(sizeSpan, _written - checkpoint);
+            BinaryPrimitives.WriteInt32LittleEndian(sizeSpan, _written);
             reserved.Write(sizeSpan);
+            Commit();
         }
     }
 }

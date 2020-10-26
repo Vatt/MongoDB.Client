@@ -7,7 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace MongoDB.Client.Readers
 {
-    internal class ReplyBodyReader<T> : IMessageReader<T>
+    public class ReplyBodyReader<T> : IMessageReader<T>
     {
         private readonly IGenericBsonSerializer<T> _serializer;
 
