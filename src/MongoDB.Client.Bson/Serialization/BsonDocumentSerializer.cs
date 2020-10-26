@@ -6,7 +6,7 @@ namespace MongoDB.Client.Bson.Serialization
 {
     public class BsonDocumentSerializer : IGenericBsonSerializer<BsonDocument>
     {
-        bool IGenericBsonSerializer<BsonDocument>.TryParse(ref MongoDBBsonReader reader, out BsonDocument message)
+        bool IGenericBsonSerializer<BsonDocument>.TryParse(ref BsonReader reader, out BsonDocument message)
         {
             return reader.TryParseDocument(out message);
         }

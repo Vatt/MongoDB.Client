@@ -26,7 +26,7 @@ namespace MongoDB.Client.Readers
 
         public override bool TryParseMessage(in ReadOnlySequence<byte> input, ref SequencePosition consumed, ref SequencePosition examined, [MaybeNullWhen(false)] out Unit message)
         {
-            var bsonReader = new MongoDBBsonReader(input);
+            var bsonReader = new BsonReader(input);
 
             if (_state == ParserState.Initial)
             {
@@ -103,7 +103,7 @@ namespace MongoDB.Client.Readers
         }
 
 #if DEBUG
-        private bool TryReadCursorStart(ref MongoDBBsonReader reader, out int modelsLength, out int docLength, out bool hasBatch)
+        private bool TryReadCursorStart(ref BsonReader reader, out int modelsLength, out int docLength, out bool hasBatch)
         {
             modelsLength = 0;
             hasBatch = false;
@@ -146,7 +146,7 @@ namespace MongoDB.Client.Readers
             return false;
         }
 
-        private bool TryReadCursorEnd(ref MongoDBBsonReader reader)
+        private bool TryReadCursorEnd(ref BsonReader reader)
         {
             string name;
             if (TryGetName(ref reader, out name) == false) { return false; }
@@ -171,14 +171,14 @@ namespace MongoDB.Client.Readers
             return ThrowHelper.MissedDocumentEndMarkerException<bool>();
         }
 
-        private static bool TryGetName(ref MongoDBBsonReader breader, out string name)
+        private static bool TryGetName(ref BsonReader breader, out string name)
         {
             if (!breader.TryGetByte(out _)) { name = default; return false; }
             if (!breader.TryGetCString(out name)) { return false; }
             return true;
         }
 
-        private bool TryParseValue(ref MongoDBBsonReader reader, string name, out bool hasItems, out int modelsLength)
+        private bool TryParseValue(ref BsonReader reader, string name, out bool hasItems, out int modelsLength)
         {
             hasItems = false;
             modelsLength = 0;
@@ -218,7 +218,7 @@ namespace MongoDB.Client.Readers
             return ThrowHelper.UnknownCursorFieldException<bool>(name);
         }
 #else
-        private bool TryReadCursorStart(ref MongoDBBsonReader reader, out int modelsLength, out int docLength, out bool hasBatch)
+        private bool TryReadCursorStart(ref BsonReader reader, out int modelsLength, out int docLength, out bool hasBatch)
         {
             modelsLength = 0;
             hasBatch = false;
@@ -261,7 +261,7 @@ namespace MongoDB.Client.Readers
             return false;
         }
 
-        private bool TryReadCursorEnd(ref MongoDBBsonReader reader)
+        private bool TryReadCursorEnd(ref BsonReader reader)
         {
             ReadOnlySpan<byte> name;
             if (TryGetName(ref reader, out name) == false) { return false; }
@@ -286,14 +286,14 @@ namespace MongoDB.Client.Readers
             return ThrowHelper.MissedDocumentEndMarkerException<bool>();
         }
 
-        private static bool TryGetName(ref MongoDBBsonReader breader, out ReadOnlySpan<byte> name)
+        private static bool TryGetName(ref BsonReader breader, out ReadOnlySpan<byte> name)
         {
             if (!breader.TryGetByte(out _)) { name = default; return false; }
             if (!breader.TryGetCStringAsSpan(out name)) { return false; }
             return true;
         }
 
-        private bool TryParseValue(ref MongoDBBsonReader reader, ReadOnlySpan<byte> name, out bool hasItems, out int modelsLength)
+        private bool TryParseValue(ref BsonReader reader, ReadOnlySpan<byte> name, out bool hasItems, out int modelsLength)
         {
             hasItems = false;
             modelsLength = 0;
@@ -342,7 +342,7 @@ namespace MongoDB.Client.Readers
         private static ReadOnlySpan<byte> OkSpan => new byte[] { 111, 107 }; // ok
 
 
-        private bool TryReadCursorStart2(ref MongoDBBsonReader reader, out int modelsLength, out int docLength, out bool hasBatch)
+        private bool TryReadCursorStart2(ref BsonReader reader, out int modelsLength, out int docLength, out bool hasBatch)
         {
             modelsLength = 0;
             docLength = 0;

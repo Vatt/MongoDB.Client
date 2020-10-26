@@ -10,7 +10,7 @@ namespace MongoDB.Client.Bson.Generators
         {
             StringBuilder builder = new StringBuilder();
             builder.Append($@"
-            bool IGenericBsonSerializer<{info.ClassSymbol.Name}>.TryParse(ref MongoDBBsonReader reader, out {info.ClassSymbol.Name} message)
+            bool IGenericBsonSerializer<{info.ClassSymbol.Name}>.TryParse(ref BsonReader reader, out {info.ClassSymbol.Name} message)
             {{
                 message = default;
                 var result = new {info.ClassSymbol.Name}();

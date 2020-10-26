@@ -2,14 +2,16 @@
 using MongoDB.Client.Bson.Utils;
 using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace MongoDB.Client.Bson.Reader
 {
-    public ref struct MongoDBBsonReader
+    public ref partial struct BsonReader
     {
+        private const byte EndMarker = (byte)'\x00';
+
+
         private SequenceReader<byte> _input;
 
         public long BytesConsumed => _input.Consumed;
@@ -17,18 +19,18 @@ namespace MongoDB.Client.Bson.Reader
         public SequencePosition Position => _input.Position;
 
         public readonly long Remaining => _input.Remaining;
-        public MongoDBBsonReader(in ReadOnlyMemory<byte> memory)
+        public BsonReader(in ReadOnlyMemory<byte> memory)
         {
             var ros = new ReadOnlySequence<byte>(memory);
             _input = new SequenceReader<byte>(ros);
         }
 
-        public MongoDBBsonReader(in ReadOnlySequence<byte> sequence)
+        public BsonReader(in ReadOnlySequence<byte> sequence)
         {
             _input = new SequenceReader<byte>(sequence);
         }
 
-        public MongoDBBsonReader(in SequenceReader<byte> reader)
+        public BsonReader(in SequenceReader<byte> reader)
         {
             _input = reader;
         }
@@ -37,36 +39,48 @@ namespace MongoDB.Client.Bson.Reader
         {
             return _input.TryRead(out value);
         }
+
+
         public bool TryGetInt16(out short value)
         {
             return _input.TryReadLittleEndian(out value);
         }
+
+
         public bool TryGetInt32(out int value)
         {
             return _input.TryReadLittleEndian(out value);
         }
+
+
         public bool TryGetInt64(out long value)
         {
             return _input.TryReadLittleEndian(out value);
         }
+
+
         public bool TryGetCString([NotNullWhen(true)] out string? value)
         {
             value = default;
-            if (!_input.TryReadTo(out ReadOnlySpan<byte> data, (byte)'\x00'))
+            if (!_input.TryReadTo(out ReadOnlySpan<byte> data, EndMarker))
             {
                 return false;
             }
             value = Encoding.UTF8.GetString(data);
             return true;
         }
+
+
         public bool TryGetCStringAsSpan(out ReadOnlySpan<byte> value)
         {
-            if (!_input.TryReadTo(out value, (byte)'\x00'))
+            if (!_input.TryReadTo(out value, EndMarker))
             {
                 return false;
             }
             return true;
         }
+
+
         public bool TryGetDouble(out double value)
         {
             value = default;
@@ -75,6 +89,8 @@ namespace MongoDB.Client.Bson.Reader
             return true;
 
         }
+
+
         public bool TryGetString([NotNullWhen(true)] out string? value)
         {
             value = default;
@@ -113,6 +129,7 @@ namespace MongoDB.Client.Bson.Reader
                 }
             }
         }
+
 
         public bool TryGetStringAsSpan(out ReadOnlySpan<byte> value)
         {
@@ -190,6 +207,8 @@ namespace MongoDB.Client.Bson.Reader
             }
 
         }
+
+
         public bool TryGetBinaryDataGuid(out Guid value)
         {
             value = default;
@@ -217,6 +236,8 @@ namespace MongoDB.Client.Bson.Reader
 
             return ThrowHelper.UnknownSubtypeException<bool>(subtype);
         }
+
+
         public bool TryGetGuidFromString(out Guid value)
         {
             value = default;
@@ -227,6 +248,8 @@ namespace MongoDB.Client.Bson.Reader
 
             return true;
         }
+
+
         public bool TryGetUTCDatetime(out DateTimeOffset value)
         {
             value = default;
@@ -234,6 +257,8 @@ namespace MongoDB.Client.Bson.Reader
             value = DateTimeOffset.FromUnixTimeMilliseconds(data);
             return true;
         }
+
+
         public bool TryGetBoolean(out bool value)
         {
             value = default;
@@ -241,44 +266,8 @@ namespace MongoDB.Client.Bson.Reader
             value = boolean == 1 ? true : false;
             return true;
         }
-        public bool TryGetArray([NotNullWhen(true)] out BsonDocument? value)
-        {
-            value = default;
-            var root = new BsonDocument();
-            if (!TryGetInt32(out var docLength)) { return false; }
-            var unreaded = _input.Remaining + sizeof(int);
-            while (unreaded - _input.Remaining < docLength - 1)
-            {
-                if (!TryParseElement(root, out var element)) { return false; }
-                root.Elements.Add(element);
-            }
-            TryGetByte(out var endDocumentMarker);
-            if (endDocumentMarker != '\x00')
-            {
-                return ThrowHelper.MissedDocumentEndMarkerException<bool>();
-            }
-            value = root;
-            return true;
-        }
-        public bool TryGetArrayAsDocumentList([NotNullWhen(true)] out List<BsonDocument>? value)
-        {
-            value = new List<BsonDocument>();
-            if (!TryGetInt32(out var docLength)) { return false; }
-            var unreaded = _input.Remaining + sizeof(int);
-            while (unreaded - _input.Remaining < docLength - 1)
-            {
-                if (!TryGetByte(out var type)) { return false; }
-                if (!TryGetCString(out var name)) { return false; }
-                if (!TryParseDocument(null, out var element)) { return false; }
-                value.Add(element);
-            }
-            TryGetByte(out var endDocumentMarker);
-            if (endDocumentMarker != '\x00')
-            {
-                return ThrowHelper.MissedDocumentEndMarkerException<bool>();
-            }
-            return true;
-        }
+
+
         public bool TryGetDatetimeFromDocument(out DateTimeOffset date)
         {
             date = default;
@@ -293,119 +282,12 @@ namespace MongoDB.Client.Bson.Reader
             if (!TryGetCString(out var nameOffset)) { return false; }
             if (!TryGetInt32(out var offset)) { return false; }
             if (!TryGetByte(out var endDocumentMarker)) { return false; }
-            if (endDocumentMarker != '\x00')
+            if (endDocumentMarker != EndMarker)
             {
                 return ThrowHelper.MissedDocumentEndMarkerException<bool>();
             }
             date = DateTimeOffset.FromUnixTimeMilliseconds(longDate);
             return true;
-        }
-        public bool TryParseElement(BsonDocument parent, out BsonElement element)
-        {
-            element = default;
-            if (!TryGetByte(out var type)) { return false; }
-            if (!TryGetCString(out var name)) { return false; }
-            switch (type)
-            {
-                case 1:
-                    {
-                        if (!TryGetDouble(out var doubleVal)) { return false; }
-                        element = BsonElement.Create(parent, name, doubleVal);
-                        return true;
-                    }
-                case 2:
-                    {
-                        if (!TryGetString(out var stringValue)) { return false; }
-                        element = BsonElement.Create(parent, name, stringValue);
-                        return true;
-                    }
-                case 3:
-                    {
-                        if (!TryParseDocument(parent, out var docValue)) { return false; }
-                        element = BsonElement.Create(parent, name, docValue);
-                        return true;
-                    }
-                case 4:
-                    {
-                        if (!TryGetArray(out var arrayDoc)) { return false; }
-                        element = BsonElement.CreateArray(parent, name, arrayDoc);
-                        return true;
-                    }
-                case 5:
-                    {
-                        if (!TryGetBinaryData(out var binary)) { return false; }
-                        element = BsonElement.Create(parent, name, binary);
-                        return true;
-                    }
-                case 7:
-                    {
-                        if (!TryGetObjectId(out var objectId)) { return false; }
-                        element = BsonElement.Create(parent, name, objectId);
-                        return true;
-                    }
-                case 8:
-                    {
-                        if (!TryGetBoolean(out var boolValue)) { return false; }
-                        element = BsonElement.Create(parent, name, boolValue);
-                        return true;
-                    }
-                case 9:
-                    {
-                        if (!TryGetUTCDatetime(out var datetime)) { return false; }
-                        element = BsonElement.Create(parent, name, datetime);
-                        return true;
-                    }
-                case 10:
-                    {
-                        element = BsonElement.Create(parent, name);
-                        return true;
-                    }
-                case 16:
-                    {
-                        if (!TryGetInt32(out var intValue)) { return false; }
-                        element = BsonElement.Create(parent, name, intValue);
-                        return true;
-                    }
-                case 18:
-                    {
-                        if (!TryGetInt64(out var longValue)) { return false; }
-                        element = BsonElement.Create(parent, name, longValue);
-                        return true;
-                    }
-                default:
-                    {
-                        return ThrowHelper.UnknownTypeException<bool>(type);
-                    }
-            }
-        }
-
-
-        public bool TryParseDocument(BsonDocument? parent, out BsonDocument document)
-        {
-            document = new BsonDocument();
-            if (!TryGetInt32(out var docLength)) { return false; }
-            var unreaded = _input.Remaining + sizeof(int);
-            while (unreaded - _input.Remaining < docLength - 1)
-            {
-                if (!TryParseElement(document, out var element)) { return false; }
-                document.Elements.Add(element);
-            }
-            if (!TryGetByte(out var endDocumentMarker)) { return false; }
-            if (endDocumentMarker != '\x00')
-            {
-                return ThrowHelper.MissedDocumentEndMarkerException<bool>();
-            }
-
-            return true;
-        }
-
-        public bool TryParseDocument(out BsonDocument document)
-        {
-            if (TryParseDocument(null, out document))
-            {
-                return true;
-            }
-            return false;
         }
     }
 }
