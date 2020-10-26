@@ -59,7 +59,15 @@ namespace MongoDB.Client.Bson.Reader
         }
 
 
-        public bool TryGetCString([NotNullWhen(true)] out string? value)
+        public bool TryGetDouble(out double value)
+        {
+            value = default;
+            if (!TryGetInt64(out var temp)) { return false; }
+            value = BitConverter.Int64BitsToDouble(temp);
+            return true;
+        }
+
+        public bool TryGetCString([MaybeNullWhen(false)] out string? value)
         {
             value = default;
             if (!_input.TryReadTo(out ReadOnlySpan<byte> data, EndMarker))
@@ -81,17 +89,7 @@ namespace MongoDB.Client.Bson.Reader
         }
 
 
-        public bool TryGetDouble(out double value)
-        {
-            value = default;
-            if (!TryGetInt64(out var temp)) { return false; }
-            value = BitConverter.Int64BitsToDouble(temp);
-            return true;
-
-        }
-
-
-        public bool TryGetString([NotNullWhen(true)] out string? value)
+        public bool TryGetString([MaybeNullWhen(false)] out string? value)
         {
             value = default;
             if (!TryGetInt32(out var length)) { return false; }
@@ -175,6 +173,7 @@ namespace MongoDB.Client.Bson.Reader
 
         }
 
+
         public bool TryGetBinaryData(out BsonBinaryData value)
         {
             value = default;
@@ -205,7 +204,6 @@ namespace MongoDB.Client.Bson.Reader
                         return ThrowHelper.UnknownSubtypeException<bool>(subtype);
                     }
             }
-
         }
 
 

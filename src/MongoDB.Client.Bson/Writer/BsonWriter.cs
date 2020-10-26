@@ -1,4 +1,5 @@
-﻿using MongoDB.Client.Bson.Document;
+﻿#pragma warning disable CS8656
+using MongoDB.Client.Bson.Document;
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
@@ -8,8 +9,10 @@ using System.Text;
 
 namespace MongoDB.Client.Bson.Writer
 {
-    public ref struct MongoDBBsonWriter
+    public ref partial struct BsonWriter
     {
+        private const byte EndMarker = (byte)'\x00';
+
         private IBufferWriter<byte> _output;
         private Span<byte> _span;
         private int _buffered;
@@ -52,6 +55,8 @@ namespace MongoDB.Client.Bson.Writer
                 source.Slice(_reserved1.Length, _reserved2.Length).CopyTo(_reserved2);
             }
         }
+
+
         internal Reserved Reserve(int length)
         {
             if (length > 4096)
@@ -84,14 +89,14 @@ namespace MongoDB.Client.Bson.Writer
             }
         }
 
-        public MongoDBBsonWriter(IBufferWriter<byte> output)
+
+        public BsonWriter(IBufferWriter<byte> output)
         {
             _output = output;
             _span = _output.GetSpan();
             _buffered = 0;
             _written = 0;
         }
-
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -105,15 +110,14 @@ namespace MongoDB.Client.Bson.Writer
             }
         }
 
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void GetNextSpan()
         {
-            if (_buffered > 0)
-            {
-                Commit();
-            }
+            Commit();
             _span = _output.GetSpan();
         }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Advance(int count)
@@ -121,64 +125,58 @@ namespace MongoDB.Client.Bson.Writer
             _buffered += count;
             _written += count;
             _span = _span.Slice(count);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteBytes(Span<byte> source)
-        {
-            var slice = source;
-            while (slice.Length > 0)
+            if (_span.IsEmpty)
             {
-                if (_span.Length == 0)
-                {
-                    GetNextSpan();
-                }
-
-                var writable = Math.Min(slice.Length, _span.Length);
-                slice.Slice(0, writable).CopyTo(_span);
-                slice = slice.Slice(writable);
-                Advance(writable);
+                GetNextSpan();
             }
         }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly void WriteBytes(Span<byte> source)
+        {
+            Commit();
+            _output.Write(source);
+            GetNextSpan();
+        }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteByte(byte value)
         {
-            if (_span.Length == 0)
-            {
-                GetNextSpan();
-            }
             _span[0] = value;
+            Advance(1);
         }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteInt16(short value)
         {
-            if (_span.Length == 1)
+            if (BinaryPrimitives.TryWriteInt16LittleEndian(_span, value))
             {
-                _span[0] = (byte)value;
-                GetNextSpan();
-                _span[0] = (byte)(value << 8);
-                Advance(1);
-                return;
+                Advance(sizeof(short));
             }
-            if (_span.Length == 0)
-            {
-                GetNextSpan();
-            }
-            BinaryPrimitives.WriteInt16LittleEndian(_span, value);
-            Advance(2);
+
+            _span[0] = (byte)value;
+            Advance(1);
+            GetNextSpan();
+            _span[0] = (byte)(value << 8);
+            Advance(1);
         }
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteInt32(int value)
         {
-            if (_span.Length == 0)
+            if (BinaryPrimitives.TryWriteInt32LittleEndian(_span, value))
             {
-                GetNextSpan();
+                Advance(sizeof(int));
             }
+
             if (_span.Length == 1)
             {
                 _span[0] = (byte)value;
+                Advance(1);
                 GetNextSpan();
                 _span[0] = (byte)(value << 24);
                 _span[1] = (byte)(value << 16);
@@ -190,6 +188,7 @@ namespace MongoDB.Client.Bson.Writer
             {
                 _span[0] = (byte)value;
                 _span[1] = (byte)(value << 24);
+                Advance(2);
                 GetNextSpan();
                 _span[0] = (byte)(value << 16);
                 _span[1] = (byte)(value << 8);
@@ -201,24 +200,28 @@ namespace MongoDB.Client.Bson.Writer
                 _span[0] = (byte)value;
                 _span[1] = (byte)(value << 24);
                 _span[2] = (byte)(value << 16);
+                Advance(3);
                 GetNextSpan();
                 _span[3] = (byte)(value << 8);
                 Advance(1);
                 return;
             }
-            BinaryPrimitives.WriteInt32LittleEndian(_span, value);
-            Advance(sizeof(int));
         }
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteInt64(long value)
         {
-            if (_span.Length == 0)
+            if (BinaryPrimitives.TryWriteInt64LittleEndian(_span, value))
             {
-                GetNextSpan();
+                Advance(sizeof(int));
             }
+
+
             if (_span.Length == 1)
             {
                 _span[0] = (byte)value;
+                Advance(1);
                 GetNextSpan();
                 _span[0] = (byte)(value << 56);
                 _span[1] = (byte)(value << 48);
@@ -234,6 +237,7 @@ namespace MongoDB.Client.Bson.Writer
             {
                 _span[0] = (byte)value;
                 _span[1] = (byte)(value << 56);
+                Advance(2);
                 GetNextSpan();
                 _span[0] = (byte)(value << 48);
                 _span[1] = (byte)(value << 40);
@@ -249,6 +253,7 @@ namespace MongoDB.Client.Bson.Writer
                 _span[0] = (byte)value;
                 _span[1] = (byte)(value << 56);
                 _span[2] = (byte)(value << 48);
+                Advance(3);
                 GetNextSpan();
                 _span[0] = (byte)(value << 40);
                 _span[1] = (byte)(value << 32);
@@ -264,6 +269,7 @@ namespace MongoDB.Client.Bson.Writer
                 _span[1] = (byte)(value << 56);
                 _span[2] = (byte)(value << 48);
                 _span[3] = (byte)(value << 40);
+                Advance(4);
                 GetNextSpan();
                 _span[0] = (byte)(value << 32);
                 _span[1] = (byte)(value << 24);
@@ -279,6 +285,7 @@ namespace MongoDB.Client.Bson.Writer
                 _span[2] = (byte)(value << 48);
                 _span[3] = (byte)(value << 40);
                 _span[4] = (byte)(value << 32);
+                Advance(5);
                 GetNextSpan();
                 _span[0] = (byte)(value << 24);
                 _span[1] = (byte)(value << 16);
@@ -294,6 +301,7 @@ namespace MongoDB.Client.Bson.Writer
                 _span[3] = (byte)(value << 40);
                 _span[4] = (byte)(value << 32);
                 _span[5] = (byte)(value << 24);
+                Advance(6);
                 GetNextSpan();
                 _span[0] = (byte)(value << 16);
                 _span[1] = (byte)(value << 8);
@@ -309,41 +317,42 @@ namespace MongoDB.Client.Bson.Writer
                 _span[4] = (byte)(value << 32);
                 _span[5] = (byte)(value << 24);
                 _span[6] = (byte)(value << 16);
+                Advance(7);
                 GetNextSpan();
                 _span[0] = (byte)(value << 8);
                 Advance(1);
                 return;
             }
-            BinaryPrimitives.WriteInt64LittleEndian(_span, value);
-            Advance(sizeof(int));
         }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteDouble(double value)
         {
-            unsafe
-            {
-                long longValue = *(long*)&value;
-                WriteInt64(longValue);
-            }
-
+            long longValue = BitConverter.DoubleToInt64Bits(value);
+            WriteInt64(longValue);
         }
 
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteCString(string value)
+        public void WriteCString(ReadOnlySpan<char> value)
         {
-            var span = Encoding.UTF8.GetBytes(value);
-            WriteBytes(span);
-            WriteByte((byte)'\x00');
+            Commit();
+            Encoding.UTF8.GetBytes(value, _output);
+            GetNextSpan();
+            WriteByte(EndMarker);
         }
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteString(string value)
+        public readonly void WriteString(ReadOnlySpan<char> value)
         {
-            //var len = Encoding.UTF8.GetByteCount(value);
-            var span = Encoding.UTF8.GetBytes(value);
-            WriteInt32(span.Length);
-            WriteBytes(span);
-            WriteByte((byte)'\x00');
+            var len = Encoding.UTF8.GetByteCount(value);
+            WriteInt32(len);
+            Commit();
+            Encoding.UTF8.GetBytes(value, _output);
+            GetNextSpan();
+            WriteByte(EndMarker);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -354,68 +363,41 @@ namespace MongoDB.Client.Bson.Writer
             WriteInt32(value.Part3);
         }
 
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteUTCDateTime(DateTimeOffset datetime)
         {
             WriteInt64(datetime.ToUnixTimeMilliseconds());
         }
 
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void WriteGuidAsBytes(Guid guid)
+        {
+            if (guid.TryWriteBytes(_span))
+            {
+                Advance(16);
+            }
+            Span<byte> buffer = stackalloc byte[16];
+            guid.TryWriteBytes(buffer);
+            WriteBytes(buffer);
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void WriteGuidAsString(Guid guid)
+        {
+            Span<char> buffer = stackalloc char[36];
+            _ = guid.TryFormat(buffer, out var written);
+            WriteString(buffer);
+        }
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteBoolean(bool value)
         {
             WriteByte(value ? 1 : 0);
         }
-        public void WriteElement(BsonElement element)
-        {
-            WriteByte((byte)element.Type);
-            WriteCString(element.Name);
-            switch ((byte)element.Type)
-            {
-                case 1:
-                    {
-                        WriteDouble((double)element.Value);
-                        break;
-                    }
-                case 2:
-                    {
-                        WriteString((string)element.Value);
-                        break;
-                    }
-                case 7:
-                    {
-                        WriteObjectId((BsonObjectId)element.Value);
-                        break;
-                    }
-                case 16:
-                    {
-                        WriteInt32((int)element.Value);
-                        break;
-                    }
-                case 18:
-                    {
-                        WriteInt64((long)element.Value);
-                        break;
-                    }
-                default:
-                    {
-                        throw new ArgumentException($"{nameof(MongoDBBsonWriter)}.{nameof(WriteElement)}  with type {(byte)element.Type}");
-                    }
-            }
-        }
-        public void WriteDocument(BsonDocument document)
-        {
-            var reserved = Reserve(4);
-            var checkpoint = _written;
-            for (var i = 0; i < document.Elements.Count; i++)
-            {
-                WriteElement(document.Elements[i]);
-            }
-            WriteByte((byte)'\x00');
-            Span<byte> sizeSpan = stackalloc byte[4];
-            BinaryPrimitives.WriteInt32LittleEndian(sizeSpan, _written - checkpoint);
-            reserved.Write(sizeSpan);
-
-        }
     }
-
 }
+#pragma warning restore CS8656
