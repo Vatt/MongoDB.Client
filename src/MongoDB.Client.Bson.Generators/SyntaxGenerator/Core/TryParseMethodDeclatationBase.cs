@@ -27,7 +27,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
                                     .AddRange(list.Generate())
                                     .Add(SF.ParseStatement(@$"throw new ArgumentException($""{ClassSymbol.Name}.TryParse  with bson type number {{bsonType}}"");"));
             return SF.Block(
-                SF.ExpressionStatement(SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, GeneratorBasics.TryParseOutVariableIdentifier,GeneratorBasics.ObjectCreationWitoutArgs(ClassSymbol))),
+                SF.ExpressionStatement(SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, Basics.TryParseOutVariableIdentifier,Basics.ObjectCreationWitoutArgs(ClassSymbol))),
                 SF.ParseStatement("if (!reader.TryGetInt32(out var docLength)) { return false; }"),
                 SF.ParseStatement("var unreaded = reader.Remaining + sizeof(int);"),
                 SF.WhileStatement(
@@ -47,13 +47,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
                     .AddParameters(SF.Parameter(
                         attributeLists: default,
                         modifiers: new SyntaxTokenList().Add(SF.Token(SyntaxKind.RefKeyword)),
-                        identifier: GeneratorBasics.ReaderInputVariable,
-                        type: GeneratorBasics.ReaderInputVariableType,
+                        identifier: Basics.ReaderInputVariable,
+                        type: Basics.ReaderInputVariableType,
                         @default: default))
                     .AddParameters(SF.Parameter(
                         attributeLists: default,
                         modifiers: new SyntaxTokenList().Add(SF.Token(SyntaxKind.OutKeyword)),
-                        identifier: GeneratorBasics.TryParseOutputVariable,
+                        identifier: Basics.TryParseOutputVariable,
                         type: GetParseMethodOutParameter(),
                         @default: default));
         }

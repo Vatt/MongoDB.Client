@@ -35,7 +35,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
                 foreach (var info in meta)
                 {
                     //builder.Append($"\n\t\tpublic static readonly  {info.ClassSymbol.Name}GeneratedSerializer {info.ClassSymbol.Name}GeneratedSerializerStaticField = new {info.ClassSymbol.Name}GeneratedSerializer();");
-                    builder.Append($"\n\t\tpublic static readonly  IGenericBsonSerializer<{info.ClassSymbol.Name}>  {GeneratorBasics.GenerateSerializerName(info.ClassSymbol)}StaticField = new {GeneratorBasics.GenerateSerializerName(info.ClassSymbol)};");
+                    builder.Append($"\n\t\tpublic static readonly  IGenericBsonSerializer<{info.ClassSymbol.Name}>  {Basics.GenerateSerializerName(info.ClassSymbol)}StaticField = new {Basics.GenerateSerializerName(info.ClassSymbol)};");
                 }
                 return builder.ToString();
             }
@@ -66,7 +66,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
         public void Execute(GeneratorExecutionContext context)
         {
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver)) { return; }
-            //System.Diagnostics.Debugger.Launch();
+            System.Diagnostics.Debugger.Launch();
             if (receiver.Candidates.Count == 0)
             {
                 return;
@@ -80,7 +80,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
             {
                 var source = BsonSyntaxGenerator.Create(item).NormalizeWhitespace().ToFullString();
 
-                context.AddSource(GeneratorBasics.GenerateSerializerName(item.ClassSymbol), SourceText.From(source, Encoding.UTF8));
+                context.AddSource(Basics.GenerateSerializerName(item.ClassSymbol), SourceText.From(source, Encoding.UTF8));
             }
 
             //Debugger.Launch();
@@ -96,7 +96,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
                 {
                     BsonGeneratorReadOperations.GeneratedSerializatorsOperations.Add(
                     decl.ClassSymbol.Name,
-                    @$"if ( !GlobalSerializationHelperGenerated.{GeneratorBasics.GenerateSerializerName(decl.ClassSymbol)}StaticField.TryParse(ref reader, out {{0}})){{{{ return false;}}}}"
+                    @$"if ( !GlobalSerializationHelperGenerated.{Basics.GenerateSerializerName(decl.ClassSymbol)}StaticField.TryParse(ref reader, out {{0}})){{{{ return false;}}}}"
                     );
                 }
 

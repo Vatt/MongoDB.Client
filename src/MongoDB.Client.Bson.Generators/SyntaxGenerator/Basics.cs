@@ -5,7 +5,7 @@ using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
-    static class GeneratorBasics
+    static class Basics
     {
         public static string SerializerInterface => "IGenericBsonSerializer";
         public static SyntaxToken SerializerInterfaceIdentifier => SF.ParseToken("IGenericBsonSerializer");

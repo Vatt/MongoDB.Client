@@ -16,7 +16,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
         {
             return SF.ExplicitInterfaceSpecifier(
                    SF.GenericName(
-                       GeneratorBasics.SerializerInterfaceIdentifier,
+                       Basics.SerializerInterfaceIdentifier,
                        SF.TypeArgumentList(new SeparatedSyntaxList<TypeSyntax>().Add(SF.ParseTypeName(ClassSymbol.Name)))),
                    SF.Token(SyntaxKind.DotToken));
         }

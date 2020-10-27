@@ -25,7 +25,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
         }
         public void WithMemberAssign(IdentifierNameSyntax source, IdentifierNameSyntax member)
         {
-            _assignExpr = GeneratorBasics.SimpleMemberAccess(source, member);
+            _assignExpr = Basics.SimpleMemberAccess(source, member);
         }
         public virtual ArgumentListSyntax ArgumentList()
         {
@@ -34,7 +34,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
         public virtual InvocationExpressionSyntax Generate()
         {
             return SF.InvocationExpression(
-                        expression: GeneratorBasics.SimpleMemberAccess(_readerVariableName, MethodIdentifier),
+                        expression: Basics.SimpleMemberAccess(_readerVariableName, MethodIdentifier),
                         argumentList: ArgumentList());
         }
     }

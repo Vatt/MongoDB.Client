@@ -25,7 +25,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
         public override ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier()
         {
             return SF.ExplicitInterfaceSpecifier(
-                  SF.GenericName(GeneratorBasics.SerializerInterfaceIdentifier, SF.TypeArgumentList(
+                  SF.GenericName(Basics.SerializerInterfaceIdentifier, SF.TypeArgumentList(
                       new SeparatedSyntaxList<TypeSyntax>()
                           .Add(SF.GenericName(SF.ParseToken(ClassSymbol.Name), SF.TypeArgumentList(GetGenericParametersList())))
                       )),

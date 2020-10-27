@@ -29,7 +29,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         }
         public override ClassDeclarationSyntax Build()
         {
-            var decl = SF.ClassDeclaration(GeneratorBasics.GenerateSerializerName(ClassSymbol));
+            var decl = SF.ClassDeclaration(Basics.GenerateSerializerName(ClassSymbol));
             return decl.WithBaseList(SF.BaseList(GetBaseList()))
                        .WithMembers(GenerateStaticNamesSpans())
                        .AddMembers(DeclareTryParseMethod());

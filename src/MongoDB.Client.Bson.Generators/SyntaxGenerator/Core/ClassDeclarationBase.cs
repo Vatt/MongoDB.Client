@@ -35,7 +35,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
         public SeparatedSyntaxList<BaseTypeSyntax> GetBaseList()
         {
             SeparatedSyntaxList<BaseTypeSyntax> list = new SeparatedSyntaxList<BaseTypeSyntax>();
-            return list.Add(SF.SimpleBaseType(SF.GenericName(GeneratorBasics.SerializerInterface).WithTypeArgumentList(GetInterfaceParameters())));
+            return list.Add(SF.SimpleBaseType(SF.GenericName(Basics.SerializerInterface).WithTypeArgumentList(GetInterfaceParameters())));
 
         }
         public static ArrowExpressionClauseSyntax GenerateSpanNameValues(MemberDeclarationMeta memberdecl) //=> { byte, byte, byte, byte}
@@ -45,13 +45,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
                 SeparatedSyntaxList<ExpressionSyntax> expr = new SeparatedSyntaxList<ExpressionSyntax>();
                 foreach (var byteItem in Encoding.UTF8.GetBytes(memberdecl.StringFieldNameAlias))
                 {
-                    expr = expr.Add(GeneratorBasics.NumberLiteral(byteItem));
+                    expr = expr.Add(Basics.NumberLiteral(byteItem));
                 }
                 return expr;
             }
             ArrayRankSpecifierSyntax ArrayRank(MemberDeclarationMeta memberdecl)
             {
-                return SF.ArrayRankSpecifier().AddSizes(GeneratorBasics.NumberLiteral(memberdecl.StringFieldNameAlias.Length));
+                return SF.ArrayRankSpecifier().AddSizes(Basics.NumberLiteral(memberdecl.StringFieldNameAlias.Length));
             }
 
             return SF.ArrowExpressionClause(
@@ -73,10 +73,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
                 list = list.Add(
                    SF.PropertyDeclaration(
                        attributeLists: default,
-                       modifiers: GeneratorBasics.PrivateStatic,
+                       modifiers: Basics.PrivateStatic,
                        type: SF.ParseTypeName("ReadOnlySpan<byte>"),
                        explicitInterfaceSpecifier: default,
-                       identifier: GeneratorBasics.GenerateReadOnlySpanNameSyntaxToken(ClassSymbol, memberdecl),
+                       identifier: Basics.GenerateReadOnlySpanNameSyntaxToken(ClassSymbol, memberdecl),
                        accessorList: default,
                        expressionBody: GenerateSpanNameValues(memberdecl),
                        initializer: default,

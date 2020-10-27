@@ -6,13 +6,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
 {
     internal class OperationsList
     {
-        private List<FieldOperation> _operations;
+        private List<InLoopFieldOperation> _operations;
         public OperationsList(INamedTypeSymbol classSymbol, List<MemberDeclarationMeta> members)
         {
-            _operations = new List<FieldOperation>();
+            _operations = new List<InLoopFieldOperation>();
             foreach (var member in members)
             {
-                _operations.Add(new FieldOperation(classSymbol, member));
+                _operations.Add(new InLoopFieldOperation(classSymbol, member));
             }
         }
         public StatementSyntax[] Generate()
