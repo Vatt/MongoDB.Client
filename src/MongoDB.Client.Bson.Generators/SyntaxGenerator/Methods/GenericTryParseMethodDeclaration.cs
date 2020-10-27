@@ -3,8 +3,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Core;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
@@ -37,6 +35,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
         public override TypeSyntax GetParseMethodOutParameter()
         {
             return SF.GenericName(SF.ParseToken(ClassSymbol.Name), SF.TypeArgumentList(GetGenericParametersList()));
+        }
+
+        public override BlockSyntax GenerateMethodBody()
+        {
+            throw new NotImplementedException();
         }
     }
 }

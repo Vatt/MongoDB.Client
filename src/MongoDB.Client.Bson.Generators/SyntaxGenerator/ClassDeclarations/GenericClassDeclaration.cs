@@ -1,13 +1,9 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Core;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
+namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.ClassDeclarations
 {
     internal class GenericClassDeclaration : ClassDeclarationBase
     {

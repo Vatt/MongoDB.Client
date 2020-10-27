@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
 using System.Collections.Generic;
 using System.Text;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -11,6 +10,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
     {
         protected ClassDeclarationSyntax ClassDeclatation;
         protected ClassDeclMeta classDecl;
+        protected TryParseMethodDeclatationBase TryParseMethod;
         internal INamedTypeSymbol ClassSymbol => classDecl.ClassSymbol;
         internal List<MemberDeclarationMeta> Members => classDecl.MemberDeclarations;
         public ClassDeclarationBase(ClassDeclMeta classdecl)
@@ -19,7 +19,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
 
         }
         public abstract MethodDeclarationSyntax DeclareTryParseMethod();
-        
+
         public abstract TypeSyntax GetTryParseMethodOutParameter();
         public abstract TypeArgumentListSyntax GetInterfaceParameters();
 

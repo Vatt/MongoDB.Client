@@ -4,6 +4,6 @@
     {
         //bool TryParse(ref MongoDBBsonReader reader, [MaybeNullWhen(false)] out object message);
 
-        void Write(object message);
+        //void Write(object message);
     }
 }

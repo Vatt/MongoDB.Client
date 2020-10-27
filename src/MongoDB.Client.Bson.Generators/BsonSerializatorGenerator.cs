@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator;
 using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace MongoDB.Client.Bson.Generators
@@ -36,7 +35,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
                 foreach (var info in meta)
                 {
                     //builder.Append($"\n\t\tpublic static readonly  {info.ClassSymbol.Name}GeneratedSerializer {info.ClassSymbol.Name}GeneratedSerializerStaticField = new {info.ClassSymbol.Name}GeneratedSerializer();");
-                    builder.Append($"\n\t\tpublic static readonly  IGenericBsonSerializer<{info.ClassSymbol.Name}>  {info.ClassSymbol.Name}GeneratedSerializerStaticField = new {info.ClassSymbol.Name}GeneratedSerializer();");
+                    builder.Append($"\n\t\tpublic static readonly  IGenericBsonSerializer<{info.ClassSymbol.Name}>  {GeneratorBasics.GenerateSerializerName(info.ClassSymbol)}StaticField = new {GeneratorBasics.GenerateSerializerName(info.ClassSymbol)};");
                 }
                 return builder.ToString();
             }
@@ -49,13 +48,13 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
                     var pairs = new KeyValuePair<Type, IBsonSerializer>[{meta.Count}];                    
                 ");
                 int index = 0;
-                foreach(var decl in meta)
+                foreach (var decl in meta)
                 {
 
                     builder.Append($@"
                     pairs[{index}] = KeyValuePair.Create<Type, IBsonSerializer>(typeof({decl.ClassSymbol.Name}), {decl.ClassSymbol.Name}GeneratedSerializerStaticField);
                     ");
-                    index ++;
+                    index++;
                 }
                 builder.Append(@"
                     return pairs;
@@ -67,52 +66,27 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
         public void Execute(GeneratorExecutionContext context)
         {
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver)) { return; }
-            System.Diagnostics.Debugger.Launch();
+            //System.Diagnostics.Debugger.Launch();
             if (receiver.Candidates.Count == 0)
             {
                 return;
             }
             _context = context;
-            
+
             CollectMapData(context, receiver.Candidates);
             context.AddSource($"GlobalSerializationHelperGenerated.cs", SourceText.From(GenerateGlobalHelperStaticClass(), Encoding.UTF8));
             AddCandidatesToOperationsMap();
             foreach (var item in meta)
             {
-                var gen = BsonSyntaxGenerator.Create(item);
-                //gen.DeclarTryParseMethod();
-                gen.Build();
-                
-                //var builder = Generate(item);
-                //context.AddSource($"{item.ClassSymbol.Name}GeneratedSerializator.cs", SourceText.From(builder.ToString(), Encoding.UTF8));
+                var source = BsonSyntaxGenerator.Create(item).NormalizeWhitespace().ToFullString();
+
+                context.AddSource(GeneratorBasics.GenerateSerializerName(item.ClassSymbol), SourceText.From(source, Encoding.UTF8));
             }
 
             //Debugger.Launch();
 
         }
-        private StringBuilder Generate(ClassDeclMeta info)
-        {
-            var builder = new StringBuilder($@"          
-using MongoDB.Client.Bson.Reader;
-using MongoDB.Client.Bson.Writer;
-using MongoDB.Client.Bson.Serialization;
-using MongoDB.Client.Bson.Document;
-using System;
-using System.Collections.Generic;
-using {info.StringNamespace};
-namespace MongoDB.Client.Bson.Serialization.Generated
-{{      
-        public class {info.ClassSymbol.Name}GeneratedSerializer : IGenericBsonSerializer<{info.ClassSymbol.Name}> 
-        {{
-            {GenerateStaticReadOnlyBsonFieldsSpans(info)}
-            public {info.ClassSymbol.Name}GeneratedSerializer(){{}}
-            void IBsonSerializer.Write(object message){{ throw new NotImplementedException(); }}
-            {GenerateReaderMethod(info)}
-         }}
-        
-}}");
-            return builder;
-        }
+
 
         public void AddCandidatesToOperationsMap()
         {
@@ -122,7 +96,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated
                 {
                     BsonGeneratorReadOperations.GeneratedSerializatorsOperations.Add(
                     decl.ClassSymbol.Name,
-                    @$"if ( !GlobalSerializationHelperGenerated.{decl.ClassSymbol.Name}GeneratedSerializerStaticField.TryParse(ref reader, out {{0}})){{{{ return false;}}}}"
+                    @$"if ( !GlobalSerializationHelperGenerated.{GeneratorBasics.GenerateSerializerName(decl.ClassSymbol)}StaticField.TryParse(ref reader, out {{0}})){{{{ return false;}}}}"
                     );
                 }
 
@@ -175,44 +149,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated
                 meta.Add(info);
             }
         }
-        private string GenerateStaticReadOnlyBsonFieldsSpans(ClassDeclMeta info)
-        {
-            StringBuilder builder = new StringBuilder();
-            foreach (var fieldinfo in info.MemberDeclarations)
-            {
-                int len = 0;
-                byte[] bytes;
-                var haveNamedElement = fieldinfo.TryGetElementNameFromBsonAttribute(out var bsonField);
-                if (!haveNamedElement)
-                {
-                    len = Encoding.UTF8.GetByteCount(fieldinfo.DeclSymbol.Name);
-                    bytes = Encoding.UTF8.GetBytes(fieldinfo.DeclSymbol.Name);
-                }
-                else
-                {
-                    len = Encoding.UTF8.GetByteCount(bsonField);
-                    bytes = Encoding.UTF8.GetBytes(bsonField);
-                }
 
-                builder.Append($"\n\t\t    private static ReadOnlySpan<byte> {info.ClassSymbol.Name}{fieldinfo.StringFieldNameAlias} => new byte[{len}] {{");
-
-
-                for (var ind = 0; ind < len; ind++)
-                {
-                    if (ind == len - 1)
-                    {
-                        builder.Append($"{bytes[ind]}");
-                    }
-                    else
-                    {
-                        builder.Append($"{bytes[ind]}, ");
-                    }
-
-                }
-                builder.Append("};");
-            }
-            return builder.ToString();
-        }
     }
 
 }

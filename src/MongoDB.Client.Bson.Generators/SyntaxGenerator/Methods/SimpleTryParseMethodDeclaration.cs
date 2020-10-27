@@ -2,9 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Core;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
 {
@@ -23,10 +21,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
                    SF.Token(SyntaxKind.DotToken));
         }
 
-        public override TypeSyntax GetParseMethodOutParameter() => SF.ParseTypeName(ClassSymbol.Name);
-        //public ParameterListSyntax GetTryParseParameterList()
+        //public override BlockSyntax GenerateMethodBody()
         //{
-        //    return SF.ParameterList().AddParameters(SF.Parameter(SF.Identifier(ClassSymbol.Name)));
+        //    var list = new OperationsList(ClassSymbol, ClassDecl.Members);
+        //    return SF.Block(list.Generate());
         //}
+
+        public override TypeSyntax GetParseMethodOutParameter() => SF.ParseTypeName(ClassSymbol.Name);
     }
 }

@@ -11,23 +11,23 @@ namespace MongoDB.Client.Test
     [BsonSerializable]
     class Sample
     {
-        public long LongValue { get; set; }
-        public Guid GuidValue { get; set; }
+        public long LongValue;
+        public Guid GuidValue;
         public string StringValue;
         public int IntValue;
         public double DoubleValue;
         public DateTimeOffset DateTimeValue;
         public BsonObjectId ObjectId;
-        public bool BooleanValue { get; set; }
-        BsonDocument BsonDocumentValue { get; set; }
+        public bool BooleanValue;
+        //BsonDocument BsonDocumentValue;
     }
 
-    [BsonSerializable]
-    class GenericSample<T>
-    {
-        public T Value { get; set; }
-        public Guid Id;
-    }
+    //[BsonSerializable]
+    //class GenericSample<T>
+    //{
+    //    public T Value { get; set; }
+    //    public Guid Id;
+    //}
 
     //[BsonSerializable]
     //class GenericDTO<T0, T1, T2>

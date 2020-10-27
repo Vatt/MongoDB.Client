@@ -25,10 +25,7 @@ namespace MongoDB.Client.Bson.Generators
                     throw new ArgumentException($""{info.ClassSymbol.Name}.TryParse  with bson type number {{bsonType}}"");      
                 }}
                 if ( !reader.TryGetByte(out var endMarker)){{ return false; }}
-                if (endMarker != '\x00')
-                {{
-                    throw new ArgumentException(""{info.ClassSymbol.Name}GeneratedSerializator.TryParse End document marker missmatch"");
-                }}
+                if (endMarker != '\x00'){{ throw new ArgumentException(""{info.ClassSymbol.Name}GeneratedSerializator.TryParse End document marker missmatch""); }}
 
                 message = result;
                 return true;
