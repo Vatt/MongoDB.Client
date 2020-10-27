@@ -1,28 +1,20 @@
 ﻿using System.Collections.Generic;
-using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Messages
 {
-    [BsonSerializable]
-    class CursorOwner<T>
+    public class CursorResult<T>
     {
-        [BsonElementField(ElementName = "cursor")]
         public Cursor<T> Cursor { get; set; }
 
-        [BsonElementField(ElementName = "ok")]
-        public int Ok { get; set; }
+        public double Ok { get; set; }
     }
 
-    [BsonSerializable]
-    class Cursor<T>
+    public class Cursor<T>
     {
-        [BsonElementField(ElementName = "id")]
-        public int Id { get; set; }
+        public long Id { get; set; }
 
-        [BsonElementField(ElementName = "ns")]
-        public int Namespace { get; set; }
+        public string Namespace { get; set; }
 
-        [BsonElementField(ElementName = "firstBatch")]
-        public List<T> FirstBatch { get; set; }
+        public List<T> Items { get; set; }
     }
 }

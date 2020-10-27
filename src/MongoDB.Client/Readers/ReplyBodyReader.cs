@@ -7,7 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace MongoDB.Client.Readers
 {
-    internal class ReplyBodyReader<T> : IMessageReader<T>
+    public class ReplyBodyReader<T> : IMessageReader<T>
     {
         private readonly IGenericBsonSerializer<T> _serializer;
 
@@ -18,7 +18,7 @@ namespace MongoDB.Client.Readers
 
         public bool TryParseMessage(in ReadOnlySequence<byte> input, ref SequencePosition consumed, ref SequencePosition examined, [MaybeNullWhen(false)] out T message)
         {
-            var bsonReader = new MongoDBBsonReader(input);
+            var bsonReader = new BsonReader(input);
             if (_serializer.TryParse(ref bsonReader, out message))
             {
                 consumed = bsonReader.Position;
