@@ -110,6 +110,7 @@ namespace MongoDB.Client.Bson.Document
             return new BsonElement(parent, BsonElementType.Null, name, null);
         }
 
+        public BsonDocument AsBsonDocument => (BsonDocument)Value;
 
         public override string ToString()
         {

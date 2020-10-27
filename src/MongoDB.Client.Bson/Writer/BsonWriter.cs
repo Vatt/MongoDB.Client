@@ -19,6 +19,7 @@ namespace MongoDB.Client.Bson.Writer
 #endif
         private int _buffered;
         private int _written;
+        public int Writen => _written;
 
         internal readonly ref struct Reserved
         {

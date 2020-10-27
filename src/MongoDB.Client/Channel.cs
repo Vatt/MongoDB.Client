@@ -7,7 +7,6 @@ using MongoDB.Client.Protocol.Readers;
 using MongoDB.Client.Protocol.Writers;
 using MongoDB.Client.Readers;
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Connections;
 using System.Threading;
@@ -27,6 +26,7 @@ namespace MongoDB.Client
         private static readonly MsgMessageReader msgMessageReader = new MsgMessageReader();
 
         private static readonly ReadOnlyMemoryWriter memoryWriter = new ReadOnlyMemoryWriter();
+        private static readonly QueryMessageWriter queryWriter = new QueryMessageWriter();
 
         private readonly ManualResetValueTaskSource<MongoMessage> completionSource = new ManualResetValueTaskSource<MongoMessage>();
         private CancellationTokenSource _shutdownToken = new CancellationTokenSource();
@@ -99,6 +99,45 @@ namespace MongoDB.Client
                 if (_writer is not null)
                 {
                     await _writer.WriteAsync(memoryWriter, message, cancellationToken).ConfigureAwait(false);
+
+                    var response = await new ValueTask<MongoMessage>(completionSource, completionSource.Version).ConfigureAwait(false);
+                    completionSource.Reset();
+                    return await ParseAsync<TResp>(response).ConfigureAwait(false);
+                }
+
+                return ThrowHelper.ConnectionException<TResp>(_endpoint);
+            }
+            return ThrowHelper.ObjectDisposedException<TResp>(nameof(Channel));
+
+
+            async ValueTask<T> ParseAsync<T>(MongoMessage message)
+            {
+                var reader = _reader!;
+                switch (message)
+                {
+                    case ReplyMessage replyMessage:
+                        if (SerializersMap.TryGetSerializer<T>(out var replySerializer))
+                        {
+                            var bodyReader = new ReplyBodyReader<T>(replySerializer);
+                            var bodyResult = await reader.ReadAsync(bodyReader, _shutdownToken.Token).ConfigureAwait(false);
+                            reader.Advance();
+                            return bodyResult.Message;
+                        }
+
+                        return ThrowHelper.UnsupportedTypeException<T>(typeof(T));
+                    default:
+                        return ThrowHelper.UnsupportedTypeException<T>(typeof(T));
+                }
+            }
+        }
+
+        public async ValueTask<TResp> SendQueryAsync<TResp>(QueryMessage message, CancellationToken cancellationToken)
+        {
+            if (_shutdownToken.IsCancellationRequested == false)
+            {
+                if (_writer is not null)
+                {
+                    await _writer.WriteAsync(queryWriter, message, cancellationToken).ConfigureAwait(false);
 
                     var response = await new ValueTask<MongoMessage>(completionSource, completionSource.Version).ConfigureAwait(false);
                     completionSource.Reset();

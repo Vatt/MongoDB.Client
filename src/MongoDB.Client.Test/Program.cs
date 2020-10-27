@@ -8,7 +8,6 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace MongoDB.Client.Test
@@ -20,7 +19,7 @@ namespace MongoDB.Client.Test
 
         static async Task Main(string[] args)
         {
-            await Test2();
+          //  await Test2();
             var client = new MongoClient();
             var (connectionInfo, hell) = await client.ConnectAsync(default);
             var result1 = await client.GetCursorAsync<GeoIp>(EmptyCollection, default).ToListAsync();
