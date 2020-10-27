@@ -6,7 +6,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
 {
     internal abstract class ReadBase
     {
-        VariableDeclarationSyntax variableDecl;
+        DeclarationExpressionSyntax _variableDecl;
         protected ExpressionSyntax _assignExpr;
         protected IdentifierNameSyntax _readerVariableName;
 
@@ -15,9 +15,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
         {
             _readerVariableName = readerVariableName;
         }
-        public void WithVariableDeclarations()
+        public void WithVariableDeclaration(string identifier)
         {
-
+            _variableDecl = SF.DeclarationExpression(SF.IdentifierName("var"), //SF.Token(SyntaxKind.VarKeyword)
+                                                     SF.SingleVariableDesignation(SF.Identifier(identifier)));
         }
         public void WithVariableAssign()
         {
@@ -29,13 +30,23 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
         }
         public virtual ArgumentListSyntax ArgumentList()
         {
-            return SF.ArgumentList(new SeparatedSyntaxList<ArgumentSyntax>().Add(SF.Argument(default, SF.Token(SyntaxKind.OutKeyword), _assignExpr)));
+            if(_variableDecl != null)
+            {
+                return SF.ArgumentList(new SeparatedSyntaxList<ArgumentSyntax>().Add(SF.Argument(default, SF.Token(SyntaxKind.OutKeyword), _variableDecl)));
+            }
+            else if(_assignExpr != null)
+            {
+                return SF.ArgumentList(new SeparatedSyntaxList<ArgumentSyntax>().Add(SF.Argument(default, SF.Token(SyntaxKind.OutKeyword), _assignExpr)));
+            }
+            return default;
+            
         }
         public virtual InvocationExpressionSyntax Generate()
         {
             return SF.InvocationExpression(
-                        expression: Basics.SimpleMemberAccess(_readerVariableName, MethodIdentifier),
-                        argumentList: ArgumentList());
+                       expression: Basics.SimpleMemberAccess(_readerVariableName, MethodIdentifier),
+                       argumentList: ArgumentList());
+
         }
     }
 }

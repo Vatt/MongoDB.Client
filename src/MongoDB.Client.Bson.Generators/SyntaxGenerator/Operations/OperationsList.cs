@@ -1,18 +1,27 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Core;
 using System.Collections.Generic;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
 {
     internal class OperationsList
     {
-        private List<InLoopFieldOperation> _operations;
+        private List<OperationBase> _operations;
         public OperationsList(INamedTypeSymbol classSymbol, List<MemberDeclarationMeta> members)
         {
-            _operations = new List<InLoopFieldOperation>();
+            _operations = new List<OperationBase>();
             foreach (var member in members)
             {
-                _operations.Add(new InLoopFieldOperation(classSymbol, member));
+                if (member.IsProperty)
+                {
+                    _operations.Add(new InLoopPropertyOperation(classSymbol, member));
+                }
+                else
+                {
+                    _operations.Add(new InLoopFieldOperation(classSymbol, member));
+                }
+                
             }
         }
         public StatementSyntax[] Generate()

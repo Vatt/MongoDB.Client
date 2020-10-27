@@ -23,12 +23,12 @@ namespace MongoDB.Client.Bson.Serialization.Generated
             var unreaded = reader.Remaining + sizeof(int);
             while (unreaded - reader.Remaining < docLength - 1)
             {
-                if (!reader.TryGetByte(out var bsonType))
+                if (!reader.TryGetByte(out var bsonType))   
                 {
                     return false;
                 }
 
-                if (!reader.TryGetCStringAsSpan(out var bsonName))
+                if (!reader.TryGetCStringAsSpan(out var bsonName))  
                 {
                     return false;
                 }
@@ -57,11 +57,11 @@ namespace MongoDB.Client.Bson.Serialization.Generated
                         continue;
                     }
 
-                    if (!reader.TryGetInt64(out message.Counter))
+                    if (!reader.TryGetInt64(out var value))
                     {
                         return false;
                     }
-
+                    message.Counter = value;
                     continue;
                 }
 
