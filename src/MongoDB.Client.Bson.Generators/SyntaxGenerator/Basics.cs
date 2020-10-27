@@ -26,6 +26,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         {
             return $"{classSymbol.Name}SerializerGenerated";
         }
+        public static string GenerateSerializerNameStaticField(INamedTypeSymbol classSymbol)
+        {
+            return $"{GenerateSerializerName(classSymbol)}StaticField";
+        }
         public static SyntaxToken GenerateReadOnlySpanNameToken(INamedTypeSymbol classSymbol, MemberDeclarationMeta memberdecl)
         {
             return SF.Identifier($"{classSymbol.Name}{memberdecl.StringFieldNameAlias}");

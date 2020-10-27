@@ -34,7 +34,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
                 var builder = new StringBuilder();
                 foreach (var info in meta)
                 {
-                    builder.Append($"\n\t\tpublic static readonly  IGenericBsonSerializer<{info.ClassSymbol.Name}>  {Basics.GenerateSerializerName(info.ClassSymbol)}StaticField = new {Basics.GenerateSerializerName(info.ClassSymbol)};");
+                    builder.Append($"\n\t\tpublic static readonly  IGenericBsonSerializer<{info.ClassSymbol.Name}>  {Basics.GenerateSerializerNameStaticField(info.ClassSymbol)} = new {Basics.GenerateSerializerName(info.ClassSymbol)};");
                 }
                 return builder.ToString();
             }
@@ -51,7 +51,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
                 {
 
                     builder.Append($@"
-                    pairs[{index}] = KeyValuePair.Create<Type, IBsonSerializer>(typeof({decl.ClassSymbol.Name}), {Basics.GenerateSerializerName(decl.ClassSymbol)}StaticField);
+                    pairs[{index}] = KeyValuePair.Create<Type, IBsonSerializer>(typeof({decl.ClassSymbol.Name}), {Basics.GenerateSerializerNameStaticField(decl.ClassSymbol)});
                     ");
                     index++;
                 }
