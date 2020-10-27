@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.Reads;
 using System.Collections.Generic;
 using System.Text;
 
@@ -23,7 +24,7 @@ using MongoDB.Client.Bson.Serialization;
 using System;
 using System.Collections.Generic;
 namespace MongoDB.Client.Bson.Serialization.Generated{{
-    public static class GlobalSerializationHelperGenerated{{
+    public static class {Basics.GlobalSerializationHelperGeneratedString}{{
         {GenerateFields()}
         {GenerateGetSeriazlizersMethod()}
     }}
@@ -74,6 +75,14 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
 
             CollectMapData(context, receiver.Candidates);
             context.AddSource($"GlobalSerializationHelperGenerated.cs", SourceText.From(GenerateGlobalHelperStaticClass(), Encoding.UTF8));
+            foreach (var item in meta)
+            {
+                if (!ReadsMap.SimpleOperations.ContainsKey(item.ClassSymbol.Name))
+                {
+                    ReadsMap.SimpleOperations.Add(item.ClassSymbol.Name, new GeneratedSerializerRead(item.ClassSymbol, Basics.TryParseBsonNameIdentifier));
+                }
+                
+            }
             foreach (var item in meta)
             {
                 var source = BsonSyntaxGenerator.Create(item).NormalizeWhitespace().ToFullString();

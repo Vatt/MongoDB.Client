@@ -6,7 +6,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
 {
     internal abstract class ReadBase
     {
-        DeclarationExpressionSyntax _variableDecl;
+        protected DeclarationExpressionSyntax _variableDecl;
         protected ExpressionSyntax _assignExpr;
         protected IdentifierNameSyntax _readerVariableName;
 

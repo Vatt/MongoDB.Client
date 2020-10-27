@@ -16,7 +16,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
         }
         StatementSyntax GenerateMainOperationBlock()
         {
-            ReadsMap.TryGetValue(MemberDecl.DeclType, out var readOp);
+            ITypeSymbol type = MemberDecl.DeclType;
+            if (MemberDecl.DeclType.Name.Equals("Nullable"))
+            {
+                type = MemberDecl.DeclType.TypeArguments[0];
+            }
+            ReadsMap.TryGetValue(type/*MemberDecl.DeclType*/, out var readOp);
             readOp.WithVariableDeclaration(_variadleIdentifier);
             return SF.IfStatement(
                 condition: SF.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, readOp.Generate()),

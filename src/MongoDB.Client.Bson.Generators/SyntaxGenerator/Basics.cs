@@ -8,6 +8,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
     static class Basics
     {
         public static string SerializerInterface => "IGenericBsonSerializer";
+        public static IdentifierNameSyntax GlobalSerializationHelperGenerated => SF.IdentifierName("GlobalSerializationHelperGenerated");
+        public static string GlobalSerializationHelperGeneratedString => "GlobalSerializationHelperGenerated";
         public static SyntaxToken SerializerInterfaceIdentifier => SF.ParseToken("IGenericBsonSerializer");
         public static SyntaxToken ReaderInputVariable => SF.Identifier("reader");
         public static IdentifierNameSyntax ReaderInputVariableIdentifier => SF.IdentifierName("reader");

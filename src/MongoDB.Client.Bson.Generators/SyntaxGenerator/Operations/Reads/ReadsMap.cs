@@ -19,7 +19,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             ["DateTimeOffset"] = new DateTimeOffsetRead(Basics.ReaderInputVariableIdentifier)
 
         };
-        internal static bool TryGetValue(INamedTypeSymbol sym, out ReadBase readOp)
+        internal static bool TryGetValue(ITypeSymbol sym, out ReadBase readOp)
         {
             return SimpleOperations.TryGetValue(sym.Name, out readOp);
         }
