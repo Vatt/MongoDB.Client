@@ -34,7 +34,6 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
                 var builder = new StringBuilder();
                 foreach (var info in meta)
                 {
-                    //builder.Append($"\n\t\tpublic static readonly  {info.ClassSymbol.Name}GeneratedSerializer {info.ClassSymbol.Name}GeneratedSerializerStaticField = new {info.ClassSymbol.Name}GeneratedSerializer();");
                     builder.Append($"\n\t\tpublic static readonly  IGenericBsonSerializer<{info.ClassSymbol.Name}>  {Basics.GenerateSerializerName(info.ClassSymbol)}StaticField = new {Basics.GenerateSerializerName(info.ClassSymbol)};");
                 }
                 return builder.ToString();
@@ -52,7 +51,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
                 {
 
                     builder.Append($@"
-                    pairs[{index}] = KeyValuePair.Create<Type, IBsonSerializer>(typeof({decl.ClassSymbol.Name}), {decl.ClassSymbol.Name}GeneratedSerializerStaticField);
+                    pairs[{index}] = KeyValuePair.Create<Type, IBsonSerializer>(typeof({decl.ClassSymbol.Name}), {Basics.GenerateSerializerName(decl.ClassSymbol)}StaticField);
                     ");
                     index++;
                 }
@@ -75,7 +74,6 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
 
             CollectMapData(context, receiver.Candidates);
             context.AddSource($"GlobalSerializationHelperGenerated.cs", SourceText.From(GenerateGlobalHelperStaticClass(), Encoding.UTF8));
-            AddCandidatesToOperationsMap();
             foreach (var item in meta)
             {
                 var source = BsonSyntaxGenerator.Create(item).NormalizeWhitespace().ToFullString();
@@ -85,22 +83,6 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
 
             //Debugger.Launch();
 
-        }
-
-
-        public void AddCandidatesToOperationsMap()
-        {
-            foreach (var decl in meta)
-            {
-                if (!BsonGeneratorReadOperations.GeneratedSerializatorsOperations.ContainsKey(decl.ClassSymbol.Name))
-                {
-                    BsonGeneratorReadOperations.GeneratedSerializatorsOperations.Add(
-                    decl.ClassSymbol.Name,
-                    @$"if ( !GlobalSerializationHelperGenerated.{Basics.GenerateSerializerName(decl.ClassSymbol)}StaticField.TryParse(ref reader, out {{0}})){{{{ return false;}}}}"
-                    );
-                }
-
-            }
         }
         public void Initialize(GeneratorInitializationContext context)
         {
