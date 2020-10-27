@@ -87,6 +87,7 @@ namespace MongoDB.Client.Test
                 { "string1", "vat hui"},
                 { "string2", ""},
                 { "string3", default(string)},
+                {"array", new  BsonArray { "item1", default(string), 42, true } },
                 { "inner", new BsonDocument {
                     {"innerString", "inner vat hui" }
                 } }

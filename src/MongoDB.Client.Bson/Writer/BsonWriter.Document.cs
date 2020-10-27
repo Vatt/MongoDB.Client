@@ -29,7 +29,7 @@ namespace MongoDB.Client.Bson.Writer
                     }
                 case 4:
                     {
-                        // write array
+                        WriteDocument((BsonDocument)element.Value);
                         break;
                     }
                 case 5:
@@ -72,7 +72,6 @@ namespace MongoDB.Client.Bson.Writer
                     }
             }
         }
-
 
         public void WriteDocument(BsonDocument document)
         {

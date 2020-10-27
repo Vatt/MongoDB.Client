@@ -17,25 +17,36 @@ namespace MongoDB.Client.Bson.Document
             _elements = new List<BsonElement>();
         }
 
+
         public void Add(BsonElement element)
         {
             _elements.Add(element);
         }
+
 
         public void Add(string name, int value)
         {
             _elements.Add(BsonElement.Create(this, name, value));
         }
 
+
         public void Add(string name, bool value)
         {
             _elements.Add(BsonElement.Create(this, name, value));
         }
 
+
         public void Add(string name, BsonDocument? value)
         {
             _elements.Add(BsonElement.Create(this, name, value));
         }
+
+
+        public void Add(string name, BsonArray? value)
+        {
+            _elements.Add(BsonElement.CreateArray(this, name, value));
+        }
+
 
         public void Add(string name, string? value)
         {

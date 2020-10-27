@@ -101,9 +101,13 @@ namespace MongoDB.Client.Bson.Document
         }
 
 
-        public static BsonElement CreateArray(BsonDocument parent, string name, BsonDocument root)
+        public static BsonElement CreateArray(BsonDocument parent, string name, BsonDocument? root)
         {
-            return new BsonElement(parent, BsonElementType.Array, name, root);
+            if (root is not null)
+            {
+                return new BsonElement(parent, BsonElementType.Array, name, root);
+            }
+            return new BsonElement(parent, BsonElementType.Null, name, null);
         }
 
 
