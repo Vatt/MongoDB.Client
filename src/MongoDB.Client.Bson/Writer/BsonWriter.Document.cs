@@ -6,7 +6,7 @@ namespace MongoDB.Client.Bson.Writer
 {
     public ref partial struct BsonWriter
     {
-        public void WriteElement(BsonElement element)
+        public void WriteElement(in BsonElement element)
         {
             WriteByte((byte)element.Type);
             WriteCString(element.Name);
@@ -50,6 +50,10 @@ namespace MongoDB.Client.Bson.Writer
                 case 9:
                     {
                         WriteUTCDateTime((DateTimeOffset)element.Value);
+                        break;
+                    }
+                case 10:
+                    {
                         break;
                     }
                 case 16:
