@@ -6,7 +6,7 @@ namespace MongoDB.Client.Bson.Reader
     public static class MongoDBBsonReaderExt
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool TryGetGuidWithBsonType(this ref MongoDBBsonReader reader, int bsonType, out Guid value)
+        public static bool TryGetGuidWithBsonType(this ref BsonReader reader, int bsonType, out Guid value)
         {
             value = default;
             
@@ -22,7 +22,7 @@ namespace MongoDB.Client.Bson.Reader
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool TryGetDateTimeWithBsonType(this ref MongoDBBsonReader reader, int bsonType, out DateTimeOffset value)
+        public static bool TryGetDateTimeWithBsonType(this ref BsonReader reader, int bsonType, out DateTimeOffset value)
         {
             value = default;
 

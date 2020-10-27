@@ -1,98 +1,86 @@
-﻿
-//using MongoDB.Client.Bson.Reader;
-//using MongoDB.Client.Bson.Writer;
-//using MongoDB.Client.Bson.Serialization;
-//using MongoDB.Client.Bson.Document;
-//using System;
-//using System.Collections.Generic;
-//using MongoDB.Client;
-//using MongoDB.Client.Test;
-//using System.Runtime.CompilerServices;
+﻿using MongoDB.Client.Bson.Reader;
+using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Bson.Document;
+using System;
+using System.Collections.Generic;
+using MongoDB.Client;
+using MongoDB.Client;
 
+namespace MongoDB.Client.Bson.Serialization.Generated
+{
+    class MongoTopologyVersionSerializerGenerated : IGenericBsonSerializer<MongoTopologyVersion>
+    {
+        private static ReadOnlySpan<byte> MongoTopologyVersionprocessId => new byte[9] { 112, 114, 111, 99, 101, 115, 115, 73, 100 };
+        private static ReadOnlySpan<byte> MongoTopologyVersioncounter => new byte[7] { 99, 111, 117, 110, 116, 101, 114 };
+        bool IGenericBsonSerializer<MongoTopologyVersion>.TryParse(ref BsonReader reader, out MongoTopologyVersion message)
+        {
+            message = new MongoTopologyVersion();
+            if (!reader.TryGetInt32(out var docLength))
+            {
+                return false;
+            }
 
-//namespace MongoDB.Client.Bson.Serialization.Generated
-//{
+            var unreaded = reader.Remaining + sizeof(int);
+            while (unreaded - reader.Remaining < docLength - 1)
+            {
+                if (!reader.TryGetByte(out var bsonType))
+                {
+                    return false;
+                }
 
+                if (!reader.TryGetCStringAsSpan(out var bsonName))
+                {
+                    return false;
+                }
 
-//    public class MongoTopologyVersionGeneratedSerializer<Sample> : IGenericBsonSerializer<Sample>
-//    {
+                if (!bsonName.SequenceEqual(MongoTopologyVersionprocessId))
+                {
+                    if (bsonType == 10)
+                    {
+                        message.ProcesssId = default;
+                        continue;
+                    }
 
-//        //private unsafe readonly ref struct GenericT0Wrapper
-//        //{
-//        //    public readonly void* Wrapped;
-//        //    public GenericT0Wrapper(T0 genericval)
-//        //    {
-//        //        Wrapped = Unsafe.AsPointer(ref genericval);
-//        //    }
-//        //};
-//        private static ReadOnlySpan<byte> MongoTopologyVersionprocessId => new byte[9] { 112, 114, 111, 99, 101, 115, 115, 73, 100 };
-//        private static ReadOnlySpan<byte> MongoTopologyVersioncounter => new byte[7] { 99, 111, 117, 110, 116, 101, 114 };
-//        public MongoTopologyVersionGeneratedSerializer() { }
-//        void IBsonSerializer.Write(object message) { throw new NotImplementedException(); }
+                    if (!reader.TryGetObjectId(out message.ProcesssId))
+                    {
+                        return false;
+                    }
 
-//        bool IGenericBsonSerializer<Sample>.TryParse(ref MongoDBBsonReader reader, out Sample message)
-//        {
-//            message = default;
+                    continue;
+                }
 
-//            //var result1 = new GenericDTO<T0, T1, T2>();
-//            //unsafe
-//            //{
-//            //    GenericT0Wrapper wrapper = new GenericT0Wrapper(result1.Value00);
-//            //    reader.TryGetInt32(out *(int*)wrapper.Wrapped);
-//            //}
+                if (!bsonName.SequenceEqual(MongoTopologyVersioncounter))
+                {
+                    if (bsonType == 10)
+                    {
+                        message.Counter = default;
+                        continue;
+                    }
 
-//            var result = new MongoTopologyVersion();
-//            if (!reader.TryGetInt32(out var docLength)) { return false; }
-//            var unreaded = reader.Remaining + sizeof(int);
-//            while (unreaded - reader.Remaining < docLength - 1)
-//            {
-//                if (!reader.TryGetByte(out var bsonType)) { return false; }
-//                if (!reader.TryGetCStringAsSpan(out var bsonName)) { return false; }
+                    if (!reader.TryGetInt64(out message.Counter))
+                    {
+                        return false;
+                    }
 
-//                if (bsonName.SequenceEqual(MongoTopologyVersionprocessId))
-//                {
-//                    if (bsonType == 10)
-//                    {
-//                        result.ProcesssId = default;
-//                        continue;
-//                    }
+                    continue;
+                }
 
-//                    if (!reader.TryGetObjectId(out var value)) { return false; }   
-//                    result.ProcesssId = value;
+                throw new ArgumentException($"MongoTopologyVersion.TryParse  with bson type number {bsonType}");
+            }
 
-//                    continue;
-//                }
+            if (!reader.TryGetByte(out var endMarker))
+            {
+                return false;
+            }
 
-//                if (bsonName.SequenceEqual(MongoTopologyVersioncounter))
-//                {
-//                    if (bsonType == 10)
-//                    {
-//                        result.Counter = default;
-//                        continue;
-//                    }
+            if (endMarker != '\x00')
+            {
+                throw new ArgumentException("MongoTopologyVersionGeneratedSerializator.TryParse End document marker missmatch");
+            }
 
-//                    if (!reader.TryGetInt64(out var value)) { return false; }
-//                    result.Counter = value;
+            return true;
+        }
 
-//                    continue;
-//                }
-
-
-//                throw new ArgumentException($"MongoTopologyVersion.TryParse  with bson type number {bsonType}");
-//            }
-//            byte endMarker;
-//            if (!reader.TryGetByte(out result.Counter)) { return false; }
-//            if (endMarker != '\x00')
-//            {
-//                throw new ArgumentException("MongoTopologyVersionGeneratedSerializator.TryParse End document marker missmatch");
-//            }
-
-//            message = result;
-//            return true;
-//        }
-
-
-//    }
-
-
-//}
+        ;
+    }
+}

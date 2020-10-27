@@ -11,7 +11,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         public static SyntaxToken SerializerInterfaceIdentifier => SF.ParseToken("IGenericBsonSerializer");
         public static SyntaxToken ReaderInputVariable => SF.Identifier("reader");
         public static IdentifierNameSyntax ReaderInputVariableIdentifier => SF.IdentifierName("reader");
-        public static TypeSyntax ReaderInputVariableType => SF.ParseTypeName("MongoDBBsonReader");
+        public static TypeSyntax ReaderInputVariableType => SF.ParseTypeName("BsonReader");
         public static SyntaxToken TryParseOutputVariable => SF.Identifier("message");
         public static IdentifierNameSyntax TryParseOutVariableIdentifier => SF.IdentifierName("message");
         public static IdentifierNameSyntax TryParseBsonNameIdentifier => SF.IdentifierName("bsonName");
