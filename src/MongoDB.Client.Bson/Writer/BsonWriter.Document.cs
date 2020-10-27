@@ -76,14 +76,16 @@ namespace MongoDB.Client.Bson.Writer
 
         public void WriteDocument(BsonDocument document)
         {
+            var docStartPoint = _written;
             var reserved = Reserve(4);
-            for (var i = 0; i < document.Elements.Count; i++)
+            for (var i = 0; i < document.Count; i++)
             {
-                WriteElement(document.Elements[i]);
+                WriteElement(document[i]);
             }
             WriteByte(EndMarker);
+            var docLength = _written - docStartPoint;
             Span<byte> sizeSpan = stackalloc byte[4];
-            BinaryPrimitives.WriteInt32LittleEndian(sizeSpan, _written);
+            BinaryPrimitives.WriteInt32LittleEndian(sizeSpan, docLength);
             reserved.Write(sizeSpan);
             Commit();
         }

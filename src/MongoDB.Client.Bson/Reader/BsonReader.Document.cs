@@ -16,7 +16,7 @@ namespace MongoDB.Client.Bson.Reader
             while (unreaded - _input.Remaining < docLength - 1)
             {
                 if (!TryParseElement(root, out var element)) { return false; }
-                root.Elements.Add(element);
+                root.Add(element);
             }
             TryGetByte(out var endDocumentMarker);
             if (endDocumentMarker != '\x00')
@@ -137,7 +137,7 @@ namespace MongoDB.Client.Bson.Reader
             while (unreaded - _input.Remaining < docLength - 1)
             {
                 if (!TryParseElement(document, out var element)) { return false; }
-                document.Elements.Add(element);
+                document.Add(element);
             }
             if (!TryGetByte(out var endDocumentMarker)) { return false; }
             if (endDocumentMarker != '\x00')

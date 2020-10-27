@@ -10,40 +10,50 @@ namespace MongoDB.Client.Bson.Document
     public class BsonDocument : IEnumerable<BsonElement>
     {
 
-        public readonly List<BsonElement> Elements;
+        private readonly List<BsonElement> _elements;
 
         public BsonDocument()
         {
-            Elements = new List<BsonElement>();
+            _elements = new List<BsonElement>();
         }
 
         public void Add(BsonElement element)
         {
-            Elements.Add(element);
+            _elements.Add(element);
         }
 
         public void Add(string name, int value)
         {
-            Elements.Add(BsonElement.Create(this, name, value));
+            _elements.Add(BsonElement.Create(this, name, value));
         }
 
         public void Add(string name, bool value)
         {
-            Elements.Add(BsonElement.Create(this, name, value));
+            _elements.Add(BsonElement.Create(this, name, value));
         }
 
-        public void Add(string name, string value)
+        public void Add(string name, BsonDocument? value)
         {
-            Elements.Add(BsonElement.Create(this, name, value));
+            _elements.Add(BsonElement.Create(this, name, value));
         }
 
-        public IEnumerator<BsonElement> GetEnumerator() => Elements.GetEnumerator();
+        public void Add(string name, string? value)
+        {
+            _elements.Add(BsonElement.Create(this, name, value));
+        }
+
+
+        public BsonElement this[int idx] => _elements[idx];
+
+        public int Count => _elements.Count;
+
+        public IEnumerator<BsonElement> GetEnumerator() => _elements.GetEnumerator();
 
         public override string ToString()
         {
-            return string.Join(';', Elements.Select(e => e.ToString()));
+            return string.Join(';', _elements.Select(e => e.ToString()));
         }
 
-        IEnumerator IEnumerable.GetEnumerator() => Elements.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => _elements.GetEnumerator();
     }
 }

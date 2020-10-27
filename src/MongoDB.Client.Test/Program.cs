@@ -8,6 +8,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace MongoDB.Client.Test
@@ -61,7 +62,6 @@ namespace MongoDB.Client.Test
         }
         static void Test()
         {
-
             ReadOnlyMemory<byte> file = File.ReadAllBytes("../../../ReaderTestCollection.bson");
             //ReadOnlyMemory<byte> file = File.ReadAllBytes("../../../Meteoritelandings.bson");
             var reader = new BsonReader(file);
@@ -75,7 +75,6 @@ namespace MongoDB.Client.Test
             //reader.TryParseDocument(null, out var document3);
             //reader.TryParseDocument(null, out var document4);
             //reader.TryParseDocument(null, out var document5);
-
         }
 
 
@@ -85,7 +84,12 @@ namespace MongoDB.Client.Test
             {
                 { "int", 42},
                 { "bool", true},
-                { "string", "vat hui"}
+                { "string1", "vat hui"},
+                { "string2", ""},
+                { "string3", default(string)},
+                { "inner", new BsonDocument {
+                    {"innerString", "inner vat hui" }
+                } }
             };
 
 
@@ -97,6 +101,7 @@ namespace MongoDB.Client.Test
             Console.WriteLine();
         }
 
+
         private static async Task<BsonDocument> StartReadAsync(PipeReader input)
         {
             var reader = new ProtocolReader(input);
@@ -106,6 +111,7 @@ namespace MongoDB.Client.Test
             reader.Advance();
             return result.Message;
         }
+
 
         private static async Task StartWriteAsync(PipeWriter output, BsonDocument message)
         {

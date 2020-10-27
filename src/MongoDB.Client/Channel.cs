@@ -189,17 +189,14 @@ namespace MongoDB.Client
 
         private BsonDocument GetHelloMessage()
         {
-            var root = new BsonDocument();
-            var driverDoc = new BsonDocument();
-
-            driverDoc.Elements.AddRange(new List<BsonElement>{
-                BsonElement.Create(driverDoc, "driver", "MongoDB.Client"),
-                BsonElement.Create(driverDoc, "version", "0.0.0"),
-            });
-            root.Elements.AddRange(new List<BsonElement>
+            var root = new BsonDocument
             {
-                BsonElement.Create(root, "driver", driverDoc)
-            });
+                {"driver",  new BsonDocument
+                {
+                    {"driver",  "MongoDB.Client"},
+                    {"version", "0.0.0" }
+                } }
+            };
 
             return root;
         }
