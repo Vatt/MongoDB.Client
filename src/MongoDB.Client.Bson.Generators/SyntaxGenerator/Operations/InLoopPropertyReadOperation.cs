@@ -36,12 +36,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
         IfStatementSyntax GenerateIfNameEqualsStatement()
         {
             return SF.IfStatement(
-                    condition: SF.PrefixUnaryExpression(
-                        SyntaxKind.LogicalNotExpression,
-                        SF.InvocationExpression(
-                            expression: Basics.SimpleMemberAccess(Basics.TryParseBsonNameIdentifier, SF.IdentifierName("SequenceEqual")),
-                            argumentList: Basics.Arguments(Basics.GenerateReadOnlySpanNameIdentifier(ClassSymbol, MemberDecl)))
-                        ),
+                    condition: SF.InvocationExpression(
+                                    expression: Basics.SimpleMemberAccess(Basics.TryParseBsonNameIdentifier, SF.IdentifierName("SequenceEqual")),
+                                    argumentList: Basics.Arguments(Basics.GenerateReadOnlySpanNameIdentifier(ClassSymbol, MemberDecl))),
                     statement: SF.Block(GenerateIfBsonTypeNull(),
                                         GenerateMainOperationBlock(),
                                         GenerateAssignForTempVariable(),
