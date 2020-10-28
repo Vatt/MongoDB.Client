@@ -9,7 +9,7 @@ namespace MongoDB.Client.Network
 {
     public class NetworkConnectionFactory : ConnectionFactory
     {
-        public override async ValueTask<Connection?> ConnectAsync(EndPoint? endPoint, IConnectionProperties? options = null, CancellationToken cancellationToken = default)
+        public override async ValueTask<System.Net.Connections.Connection?> ConnectAsync(EndPoint? endPoint, IConnectionProperties? options = null, CancellationToken cancellationToken = default)
         {
             Debug.Assert(endPoint != null, nameof(endPoint) + " != null");
             var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
@@ -19,7 +19,7 @@ namespace MongoDB.Client.Network
                 return null;
             }
             var ns = new NetworkStream(socket);
-            return Connection.FromStream(ns, localEndPoint: socket.LocalEndPoint, remoteEndPoint: socket.RemoteEndPoint);
+            return System.Net.Connections.Connection.FromStream(ns, localEndPoint: socket.LocalEndPoint, remoteEndPoint: socket.RemoteEndPoint);
         }
     }
 }

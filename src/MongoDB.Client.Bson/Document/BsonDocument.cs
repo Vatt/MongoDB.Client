@@ -36,6 +36,34 @@ namespace MongoDB.Client.Bson.Document
             _elements.Add(BsonElement.Create(this, name, value));
         }
 
+        public void Add(string name, int? value)
+        {
+            if (value.HasValue)
+            {
+                _elements.Add(BsonElement.Create(this, name, value.Value));
+            }
+            else
+            {
+                _elements.Add(BsonElement.Create(this, name));
+            }
+        }
+
+        public void Add(string name, int? value, bool condition)
+        {
+            if (condition)
+            {
+                Add(name, value);
+            }
+        }
+
+        public void Add(string name, Func<int> valueFactory, bool condition)
+        {
+            if (condition)
+            {
+                Add(name, valueFactory());
+            }
+        }
+
         public void Add(string name, long value)
         {
             _elements.Add(BsonElement.Create(this, name, value));
@@ -66,6 +94,33 @@ namespace MongoDB.Client.Bson.Document
             _elements.Add(BsonElement.Create(this, name, value));
         }
 
+        public void Add(string name, bool? value)
+        {
+            if (value.HasValue)
+            {
+                _elements.Add(BsonElement.Create(this, name, value.Value));
+            }
+            else
+            {
+                _elements.Add(BsonElement.Create(this, name));
+            }
+        }
+
+        public void Add(string name, bool? value, bool condition)
+        {
+            if (condition)
+            {
+                Add(name, value);
+            }
+        }
+
+        public void Add(string name, Func<bool> valueFactory, bool condition)
+        {
+            if (condition)
+            {
+                Add(name, valueFactory());
+            }
+        }
 
         public void Add(string name, BsonDocument? value)
         {
@@ -77,6 +132,14 @@ namespace MongoDB.Client.Bson.Document
             if (condition)
             {
                 _elements.Add(BsonElement.Create(this, name, value));
+            }
+        }
+
+        public void Add(string name, Func<BsonDocument> valueFactory, bool condition)
+        {
+            if (condition)
+            {
+                Add(name, valueFactory());
             }
         }
 

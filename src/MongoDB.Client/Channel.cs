@@ -18,7 +18,7 @@ namespace MongoDB.Client
     {
         private readonly EndPoint _endpoint;
         private readonly NetworkConnectionFactory _connectionFactory;
-        private Connection? _connection;
+        private System.Net.Connections.Connection? _connection;
         private ProtocolReader? _reader;
         private ProtocolWriter? _writer;
         private static readonly MessageHeaderReader messageHeaderReader = new MessageHeaderReader();
