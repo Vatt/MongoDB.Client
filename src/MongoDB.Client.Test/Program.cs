@@ -8,6 +8,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
+using System.Net;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 
@@ -21,7 +22,7 @@ namespace MongoDB.Client.Test
         static async Task Main(string[] args)
         {
             await Test2();
-            var client = new MongoClient();
+            var client = new MongoClient(/*new DnsEndPoint("centos0.mshome.net", 27017)*/);
             var (connectionInfo, hell) = await client.ConnectAsync(default);
             var result1 = await client.GetCursorAsync<GeoIp>(EmptyCollection, default).ToListAsync();
             var result2 = await client.GetCursorAsync<GeoIp>(NotEmptyCollection, default).ToListAsync();
@@ -84,11 +85,11 @@ namespace MongoDB.Client.Test
             {
                 { "int", 42},
                 { "bool", true},
-                { "string1", "vat hui"},
+                { "string1", "anarh hui"},
                 { "string2", ""},
                 { "string3", default(string)},
                 { "inner", new BsonDocument {
-                    {"innerString", "inner vat hui" }
+                    {"innerString", "inner anarh hui" }
                 } }
             };
 
