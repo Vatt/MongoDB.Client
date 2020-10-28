@@ -27,22 +27,22 @@ namespace MongoDB.Client
             _initialDocument = CreateInitialCommand();
         }
 
-        public ValueTask<(BsonDocument config, BsonDocument hell)> ConnectAsync(CancellationToken cancellationToken)
+        public ValueTask<BsonDocument> ConnectAsync(CancellationToken cancellationToken)
         {
             if (_configMessage is not null && _hell is not null)
             {
-                return new ValueTask<(BsonDocument, BsonDocument)>((_configMessage, _hell));
+                return new ValueTask<BsonDocument>(_configMessage);
             }
 
             return Slow(cancellationToken);
 
-            async ValueTask<(BsonDocument, BsonDocument)> Slow(CancellationToken cancellationToken)
+            async ValueTask<BsonDocument> Slow(CancellationToken cancellationToken)
             {
                 await _channel.ConnectAsync(cancellationToken).ConfigureAwait(false);
                 QueryMessage? request = CreateRequest();
                 _configMessage = await _channel.SendQueryAsync<BsonDocument>(request, cancellationToken);
                 //_hell = await _channel.SendAsync<BsonDocument>(Hell, cancellationToken);
-                return (_configMessage, _hell);
+                return _configMessage;
             }
         }
 

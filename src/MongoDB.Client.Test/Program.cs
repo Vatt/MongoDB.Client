@@ -21,7 +21,7 @@ namespace MongoDB.Client.Test
         {
             await Test2();
             var client = new MongoClient(/*new DnsEndPoint("centos0.mshome.net", 27017)*/);
-            var (connectionInfo, hell) = await client.ConnectAsync(default);
+            var connectionInfo = await client.ConnectAsync(default);
             var result1 = await client.GetCursorAsync<GeoIp>(EmptyCollection, default).ToListAsync();
             var result2 = await client.GetCursorAsync<GeoIp>(NotEmptyCollection, default).ToListAsync();
             var result3 = await client.GetCursorAsync<GeoIp>(EmptyCollection, default).ToListAsync();
