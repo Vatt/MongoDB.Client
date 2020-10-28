@@ -8,8 +8,6 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
-using System.Net;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace MongoDB.Client.Test
@@ -96,15 +94,15 @@ namespace MongoDB.Client.Test
 
 
             var pipe = new Pipe();
-            var read = StartReadAsync(pipe.Reader);
-            await StartWriteAsync(pipe.Writer, doc);
-            var result = await read;
+            
+            await WriteAsync(pipe.Writer, doc);
+            var result = await ReadAsync(pipe.Reader);
 
             Console.WriteLine();
         }
 
 
-        private static async Task<BsonDocument> StartReadAsync(PipeReader input)
+        private static async Task<BsonDocument> ReadAsync(PipeReader input)
         {
             var reader = new ProtocolReader(input);
 
@@ -115,12 +113,14 @@ namespace MongoDB.Client.Test
         }
 
 
-        private static async Task StartWriteAsync(PipeWriter output, BsonDocument message)
+        private static async Task WriteAsync(PipeWriter output, BsonDocument message)
         {
             var writer = new ProtocolWriter(output);
 
             var messageWriter = new ReplyBodyWriter<BsonDocument>(new BsonDocumentSerializer());
             await writer.WriteAsync(messageWriter, message).ConfigureAwait(false);
+            await output.FlushAsync();
+            await output.CompleteAsync();
         }
     }
 }
