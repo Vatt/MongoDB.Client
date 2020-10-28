@@ -198,36 +198,14 @@ namespace MongoDB.Client.Bson.Writer
                 return;
             }
 
-            if (_span.Length == 1)
-            {
-                _span[0] = (byte)value;
-                Advance(1);
-                _span[0] = (byte)(value << 24);
-                _span[1] = (byte)(value << 16);
-                _span[3] = (byte)(value << 8);
-                Advance(3);
-                return;
-            }
-            if (_span.Length == 2)
-            {
-                _span[0] = (byte)value;
-                _span[1] = (byte)(value << 24);
-                Advance(2);
-                _span[0] = (byte)(value << 16);
-                _span[1] = (byte)(value << 8);
-                Advance(2);
-                return;
-            }
-            if (_span.Length == 3)
-            {
-                _span[0] = (byte)value;
-                _span[1] = (byte)(value << 24);
-                _span[2] = (byte)(value << 16);
-                Advance(3);
-                _span[3] = (byte)(value << 8);
-                Advance(1);
-                return;
-            }
+            Span<byte> buffer = stackalloc byte[sizeof(int)];
+            BinaryPrimitives.WriteInt32LittleEndian(buffer, value);
+
+            var rem = _span.Length;
+            buffer.Slice(0, rem).CopyTo(_span);
+            Advance(rem);
+            buffer.Slice(rem).CopyTo(_span);
+            Advance(sizeof(int) - rem);
         }
 
 
@@ -236,109 +214,19 @@ namespace MongoDB.Client.Bson.Writer
         {
             if (BinaryPrimitives.TryWriteInt64LittleEndian(_span, value))
             {
-                Advance(sizeof(int));
+                Advance(sizeof(long));
                 return;
             }
 
 
-            if (_span.Length == 1)
-            {
-                _span[0] = (byte)value;
-                Advance(1);
-                _span[0] = (byte)(value << 56);
-                _span[1] = (byte)(value << 48);
-                _span[2] = (byte)(value << 40);
-                _span[3] = (byte)(value << 32);
-                _span[4] = (byte)(value << 24);
-                _span[5] = (byte)(value << 16);
-                _span[6] = (byte)(value << 8);
-                Advance(7);
-                return;
-            }
-            if (_span.Length == 2)
-            {
-                _span[0] = (byte)value;
-                _span[1] = (byte)(value << 56);
-                Advance(2);
-                _span[0] = (byte)(value << 48);
-                _span[1] = (byte)(value << 40);
-                _span[2] = (byte)(value << 32);
-                _span[3] = (byte)(value << 24);
-                _span[4] = (byte)(value << 16);
-                _span[5] = (byte)(value << 8);
-                Advance(6);
-                return;
-            }
-            if (_span.Length == 3)
-            {
-                _span[0] = (byte)value;
-                _span[1] = (byte)(value << 56);
-                _span[2] = (byte)(value << 48);
-                Advance(3);
-                _span[0] = (byte)(value << 40);
-                _span[1] = (byte)(value << 32);
-                _span[2] = (byte)(value << 24);
-                _span[3] = (byte)(value << 16);
-                _span[4] = (byte)(value << 8);
-                Advance(5);
-                return;
-            }
-            if (_span.Length == 4)
-            {
-                _span[0] = (byte)value;
-                _span[1] = (byte)(value << 56);
-                _span[2] = (byte)(value << 48);
-                _span[3] = (byte)(value << 40);
-                Advance(4);
-                _span[0] = (byte)(value << 32);
-                _span[1] = (byte)(value << 24);
-                _span[2] = (byte)(value << 16);
-                _span[3] = (byte)(value << 8);
-                Advance(4);
-                return;
-            }
-            if (_span.Length == 5)
-            {
-                _span[0] = (byte)value;
-                _span[1] = (byte)(value << 56);
-                _span[2] = (byte)(value << 48);
-                _span[3] = (byte)(value << 40);
-                _span[4] = (byte)(value << 32);
-                Advance(5);
-                _span[0] = (byte)(value << 24);
-                _span[1] = (byte)(value << 16);
-                _span[2] = (byte)(value << 8);
-                Advance(3);
-                return;
-            }
-            if (_span.Length == 6)
-            {
-                _span[0] = (byte)value;
-                _span[1] = (byte)(value << 56);
-                _span[2] = (byte)(value << 48);
-                _span[3] = (byte)(value << 40);
-                _span[4] = (byte)(value << 32);
-                _span[5] = (byte)(value << 24);
-                Advance(6);
-                _span[0] = (byte)(value << 16);
-                _span[1] = (byte)(value << 8);
-                Advance(2);
-                return;
-            }
-            if (_span.Length == 7)
-            {
-                _span[0] = (byte)value;
-                _span[1] = (byte)(value << 56);
-                _span[2] = (byte)(value << 48);
-                _span[3] = (byte)(value << 40);
-                _span[4] = (byte)(value << 32);
-                _span[5] = (byte)(value << 24);
-                _span[6] = (byte)(value << 16);
-                Advance(7);
-                _span[0] = (byte)(value << 8);
-                Advance(1);
-                return;
-            }
+            Span<byte> buffer = stackalloc byte[sizeof(long)];
+            BinaryPrimitives.WriteInt64LittleEndian(buffer, value);
+
+            var rem = _span.Length;
+            buffer.Slice(0, rem).CopyTo(_span);
+            Advance(rem);
+            buffer.Slice(rem).CopyTo(_span);
+            Advance(sizeof(long) - rem);
         }
 
 
@@ -393,27 +281,29 @@ namespace MongoDB.Client.Bson.Writer
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteGuidAsBytes(Guid guid)
         {
+            const int guidSize = 16;
+
             if (guid.TryWriteBytes(_span))
             {
-                Advance(16);
+                Advance(guidSize);
                 return;
             }
-            Span<byte> buffer = stackalloc byte[16];
+            Span<byte> buffer = stackalloc byte[guidSize];
             guid.TryWriteBytes(buffer);
 
             var rem = _span.Length;
             buffer.Slice(0, rem).CopyTo(_span);
             Advance(rem);
             buffer.Slice(rem).CopyTo(_span);
-            Advance(16 - rem);
+            Advance(guidSize - rem);
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteGuidAsString(Guid guid)
         {
-            _ = guid.TryFormat(buffer, out var written);
-            WriteString(buffer);
+            _ = guid.TryFormat(Buffer, out var written);
+            WriteString(Buffer);
         }
 
 
@@ -424,7 +314,9 @@ namespace MongoDB.Client.Bson.Writer
         }
 
 
+
         [ThreadStatic]
-        private static char[] buffer = new char[32];
+        private static char[]? _buffer;
+        private static Span<char> Buffer => _buffer ??= new char[32];
     }
 }
