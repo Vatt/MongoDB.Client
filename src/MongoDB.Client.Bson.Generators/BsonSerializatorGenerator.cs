@@ -66,7 +66,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
         public void Execute(GeneratorExecutionContext context)
         {
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver)) { return; }
-            System.Diagnostics.Debugger.Launch();
+            //System.Diagnostics.Debugger.Launch();
             if (receiver.Candidates.Count == 0)
             {
                 return;
@@ -120,11 +120,11 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
                             AddMemberIfNeed(declmeta, structdecl);
                             break;
                         }
-                    case RecordDeclarationSyntax recorddecl:
-                        {
-                            AddMemberIfNeed(declmeta, recorddecl);
-                            break;
-                        }
+                    //case RecordDeclarationSyntax recorddecl:
+                    //    {
+                    //        AddMemberIfNeed(declmeta, recorddecl);
+                    //        break;
+                    //    }
                 }
                 if (declmeta.MemberDeclarations.Count > 0)
                 {
