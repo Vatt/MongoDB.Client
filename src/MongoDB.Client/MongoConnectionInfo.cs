@@ -8,7 +8,7 @@ namespace MongoDB.Client
     public class MongoTopologyVersion
     {
         [BsonElementField(ElementName = "processId")]
-        public BsonObjectId ProcesssId { get; set; }
+        public BsonObjectId ProcesssId;
 
         [BsonElementField(ElementName = "counter")]
         public long Counter { get; set; }

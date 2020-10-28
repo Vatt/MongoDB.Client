@@ -2,8 +2,9 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.Reads;
 using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace MongoDB.Client.Bson.Generators
@@ -12,7 +13,7 @@ namespace MongoDB.Client.Bson.Generators
     [Generator]
     partial class BsonSerializatorGenerator : ISourceGenerator
     {
-        private List<ClassDecl> meta = new List<ClassDecl>();
+        private List<ClassDeclMeta> meta = new List<ClassDeclMeta>();
         GeneratorExecutionContext _context;
         public string GenerateGlobalHelperStaticClass()
         {
@@ -23,7 +24,7 @@ using MongoDB.Client.Bson.Serialization;
 using System;
 using System.Collections.Generic;
 namespace MongoDB.Client.Bson.Serialization.Generated{{
-    public static class GlobalSerializationHelperGenerated{{
+    public static class {Basics.GlobalSerializationHelperGeneratedString}{{
         {GenerateFields()}
         {GenerateGetSeriazlizersMethod()}
     }}
@@ -34,8 +35,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
                 var builder = new StringBuilder();
                 foreach (var info in meta)
                 {
-                    //builder.Append($"\n\t\tpublic static readonly  {info.ClassSymbol.Name}GeneratedSerializer {info.ClassSymbol.Name}GeneratedSerializerStaticField = new {info.ClassSymbol.Name}GeneratedSerializer();");
-                    builder.Append($"\n\t\tpublic static readonly  IGenericBsonSerializer<{info.ClassSymbol.Name}>  {info.ClassSymbol.Name}GeneratedSerializerStaticField = new {info.ClassSymbol.Name}GeneratedSerializer();");
+                    builder.Append($"\n\t\tpublic static readonly  IGenericBsonSerializer<{info.ClassSymbol.Name}>  {Basics.GenerateSerializerNameStaticField(info.ClassSymbol)} = new {Basics.GenerateSerializerName(info.ClassSymbol)}();");
                 }
                 return builder.ToString();
             }
@@ -48,13 +48,13 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
                     var pairs = new KeyValuePair<Type, IBsonSerializer>[{meta.Count}];                    
                 ");
                 int index = 0;
-                foreach(var decl in meta)
+                foreach (var decl in meta)
                 {
 
                     builder.Append($@"
-                    pairs[{index}] = KeyValuePair.Create<Type, IBsonSerializer>(typeof({decl.ClassSymbol.Name}), {decl.ClassSymbol.Name}GeneratedSerializerStaticField);
+                    pairs[{index}] = KeyValuePair.Create<Type, IBsonSerializer>(typeof({decl.ClassSymbol.Name}), {Basics.GenerateSerializerNameStaticField(decl.ClassSymbol)});
                     ");
-                    index ++;
+                    index++;
                 }
                 builder.Append(@"
                     return pairs;
@@ -72,55 +72,27 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
                 return;
             }
             _context = context;
-            CollectMapData(context, receiver.Candidates);
+
+            ProcessCandidates(receiver.Candidates);
             context.AddSource($"GlobalSerializationHelperGenerated.cs", SourceText.From(GenerateGlobalHelperStaticClass(), Encoding.UTF8));
-            AddCandidatesToOperationsMap();
             foreach (var item in meta)
             {
-                var builder = Generate(item);
-                context.AddSource($"{item.ClassSymbol.Name}GeneratedSerializator.cs", SourceText.From(builder.ToString(), Encoding.UTF8));
+                if (!ReadsMap.SimpleOperations.ContainsKey(item.ClassSymbol.Name))
+                {
+                    ReadsMap.SimpleOperations.Add(item.ClassSymbol.Name, new GeneratedSerializerRead(item.ClassSymbol, Basics.TryParseBsonNameIdentifier));
+                }
+
+            }
+            foreach (var item in meta)
+            {
+                var source = BsonSyntaxGenerator.Create(item)?.NormalizeWhitespace().ToFullString();
+
+                context.AddSource(Basics.GenerateSerializerName(item.ClassSymbol), SourceText.From(source, Encoding.UTF8));
+                System.Diagnostics.Debugger.Break();
             }
 
             //Debugger.Launch();
 
-        }
-        private StringBuilder Generate(ClassDecl info)
-        {
-            var builder = new StringBuilder($@"          
-using MongoDB.Client.Bson.Reader;
-using MongoDB.Client.Bson.Writer;
-using MongoDB.Client.Bson.Serialization;
-using MongoDB.Client.Bson.Document;
-using System;
-using System.Collections.Generic;
-using {info.StringNamespace};
-namespace MongoDB.Client.Bson.Serialization.Generated
-{{      
-        public class {info.ClassSymbol.Name}GeneratedSerializer : IGenericBsonSerializer<{info.ClassSymbol.Name}> 
-        {{
-            {GenerateStaticReadOnlyBsonFieldsSpans(info)}
-            public {info.ClassSymbol.Name}GeneratedSerializer(){{}}
-            void IBsonSerializer.Write(object message){{ throw new NotImplementedException(); }}
-            {GenerateReaderMethod(info)}
-         }}
-        
-}}");
-            return builder;
-        }
-
-        public void AddCandidatesToOperationsMap()
-        {
-            foreach (var decl in meta)
-            {
-                if (!BsonGeneratorReadOperations.GeneratedSerializatorsOperations.ContainsKey(decl.ClassSymbol.Name))
-                {
-                    BsonGeneratorReadOperations.GeneratedSerializatorsOperations.Add(
-                    decl.ClassSymbol.Name,
-                    @$"if ( !GlobalSerializationHelperGenerated.{decl.ClassSymbol.Name}GeneratedSerializerStaticField.TryParse(ref reader, out {{0}})){{{{ return false;}}}}"
-                    );
-                }
-
-            }
         }
         public void Initialize(GeneratorInitializationContext context)
         {
@@ -128,85 +100,77 @@ namespace MongoDB.Client.Bson.Serialization.Generated
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
         }
 
-        private void CollectMapData(GeneratorExecutionContext context, List<TypeDeclarationSyntax> candidates)
+        private void ProcessCandidates(List<TypeDeclarationSyntax> candidates)
         {
-
-            INamedTypeSymbol attrName = context.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonElementField");
             foreach (var candidate in candidates)
             {
 
-                SemanticModel classModel = context.Compilation.GetSemanticModel(candidate.SyntaxTree);
+                SemanticModel classModel = _context.Compilation.GetSemanticModel(candidate.SyntaxTree);
                 var symbol = classModel.GetDeclaredSymbol(candidate);
-                var info = new ClassDecl(symbol);
-                foreach (var member in candidate.Members)
+                var declmeta = new ClassDeclMeta(symbol);
+                switch (candidate)
                 {
-
-                    if (member is FieldDeclarationSyntax fieldDecl)
-                    {
-                        SemanticModel memberModel = context.Compilation.GetSemanticModel(fieldDecl.SyntaxTree);
-
-                        foreach (var variable in fieldDecl.Declaration.Variables)
+                    case ClassDeclarationSyntax classdecl:
                         {
-
-                            IFieldSymbol fieldSymbol = memberModel.GetDeclaredSymbol(variable) as IFieldSymbol;
-                            if (fieldSymbol.DeclaredAccessibility == Accessibility.Public)
-                            {
-                                info.MemberDeclarations.Add(new MemberDeclarationInfo(fieldSymbol));
-                            }
+                            AddMemberIfNeed(declmeta, classdecl);
+                            break;
                         }
-                    }
-                    if (member is PropertyDeclarationSyntax propDecl)
-                    {
-                        SemanticModel memberModel = context.Compilation.GetSemanticModel(propDecl.SyntaxTree);
-
-                        ISymbol propertySymbol = memberModel.GetDeclaredSymbol(propDecl);
-                        if (propertySymbol.DeclaredAccessibility == Accessibility.Public)
+                    case StructDeclarationSyntax structdecl:
                         {
-                            info.MemberDeclarations.Add(new MemberDeclarationInfo(propertySymbol));
+                            AddMemberIfNeed(declmeta, structdecl);
+                            break;
                         }
-                    }
+                        //case RecordDeclarationSyntax recorddecl:
+                        //    {
+                        //        AddMemberIfNeed(declmeta, recorddecl);
+                        //        break;
+                        //    }
                 }
-                meta.Add(info);
+                if (declmeta.MemberDeclarations.Count > 0)
+                {
+                    meta.Add(declmeta);
+                }
+
             }
         }
-        private string GenerateStaticReadOnlyBsonFieldsSpans(ClassDecl info)
+        private void AddMemberIfNeed(ClassDeclMeta decl, TypeDeclarationSyntax syntax)
         {
-            StringBuilder builder = new StringBuilder();
-            foreach (var fieldinfo in info.MemberDeclarations)
+            foreach (var member in syntax.Members)
             {
-                int len = 0;
-                byte[] bytes;
-                var haveNamedElement = fieldinfo.TryGetElementNameFromBsonAttribute(out var bsonField);
-                if (!haveNamedElement)
+                switch (member)
                 {
-                    len = Encoding.UTF8.GetByteCount(fieldinfo.DeclSymbol.Name);
-                    bytes = Encoding.UTF8.GetBytes(fieldinfo.DeclSymbol.Name);
+                    case FieldDeclarationSyntax fielddecl:
+                        {
+                            SemanticModel memberModel = _context.Compilation.GetSemanticModel(fielddecl.SyntaxTree);
+
+                            foreach (var variable in fielddecl.Declaration.Variables)
+                            {
+
+                                IFieldSymbol fieldSymbol = memberModel.GetDeclaredSymbol(variable) as IFieldSymbol;
+                                if (fieldSymbol.DeclaredAccessibility == Accessibility.Public)
+                                {
+                                    decl.MemberDeclarations.Add(new MemberDeclarationMeta(fieldSymbol));
+                                }
+                            }
+                            break;
+                        }
+                    case PropertyDeclarationSyntax propdecl:
+                        {
+                            SemanticModel memberModel = _context.Compilation.GetSemanticModel(propdecl.SyntaxTree);
+
+                            ISymbol propertySymbol = memberModel.GetDeclaredSymbol(propdecl);
+                            if (propertySymbol.DeclaredAccessibility == Accessibility.Public)
+                            {
+                                decl.MemberDeclarations.Add(new MemberDeclarationMeta(propertySymbol));
+                            }
+                            break;
+                        }
+
                 }
-                else
-                {
-                    len = Encoding.UTF8.GetByteCount(bsonField);
-                    bytes = Encoding.UTF8.GetBytes(bsonField);
-                }
 
-                builder.Append($"\n\t\t    private static ReadOnlySpan<byte> {info.ClassSymbol.Name}{fieldinfo.StringFieldNameAlias} => new byte[{len}] {{");
-
-
-                for (var ind = 0; ind < len; ind++)
-                {
-                    if (ind == len - 1)
-                    {
-                        builder.Append($"{bytes[ind]}");
-                    }
-                    else
-                    {
-                        builder.Append($"{bytes[ind]}, ");
-                    }
-
-                }
-                builder.Append("};");
             }
-            return builder.ToString();
         }
+
     }
 
 }

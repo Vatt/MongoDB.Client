@@ -2,6 +2,6 @@
 {
     public interface IBsonSerializer
     {
-        void Write(object message);
+
     }
 }
