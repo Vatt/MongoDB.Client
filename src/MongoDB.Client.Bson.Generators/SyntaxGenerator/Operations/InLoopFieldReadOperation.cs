@@ -6,9 +6,9 @@ using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
 {
-    internal class InLoopFieldOperation : OperationBase
+    internal class InLoopFieldReadOperation : OperationBase
     {
-        public InLoopFieldOperation(INamedTypeSymbol classsymbol, MemberDeclarationMeta memberdecl) : base(classsymbol, memberdecl)
+        public InLoopFieldReadOperation(INamedTypeSymbol classsymbol, MemberDeclarationMeta memberdecl) : base(classsymbol, memberdecl)
         {
 
         }
@@ -33,27 +33,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
                                         GenerateMainOperationBlock(),
                                         SF.ContinueStatement())
                   );
-        }
-        IfStatementSyntax GenerateIfBsonTypeNull()
-        {
-            return SF.IfStatement(
-                    condition: SF.BinaryExpression(
-                            SyntaxKind.EqualsExpression,
-                            Basics.TryParseBsonTypeIdentifier,
-                            SF.Token(SyntaxKind.EqualsEqualsToken),
-                            Basics.NumberLiteral(10)
-                        ),
-                    statement: SF.Block(
-                        SF.ExpressionStatement(
-                            SF.AssignmentExpression(
-                                kind: SyntaxKind.SimpleAssignmentExpression,
-                                left: Basics.SimpleMemberAccess(Basics.TryParseOutVariableIdentifier, Basics.IdentifierName(MemberDecl.DeclSymbol)),
-                                right: SF.LiteralExpression(SyntaxKind.DefaultLiteralExpression))
-                            ),
-                        SF.ContinueStatement())
-                    );
-
-
         }
         public override StatementSyntax Generate()
         {

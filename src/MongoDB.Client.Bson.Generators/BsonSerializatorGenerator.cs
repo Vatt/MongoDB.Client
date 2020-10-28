@@ -88,6 +88,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
                 var source = BsonSyntaxGenerator.Create(item).NormalizeWhitespace().ToFullString();
 
                 context.AddSource(Basics.GenerateSerializerName(item.ClassSymbol), SourceText.From(source, Encoding.UTF8));
+                System.Diagnostics.Debugger.Break();
             }
 
             //Debugger.Launch();

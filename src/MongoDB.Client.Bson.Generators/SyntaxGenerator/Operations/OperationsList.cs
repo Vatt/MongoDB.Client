@@ -13,13 +13,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
             _operations = new List<OperationBase>();
             foreach (var member in members)
             {
-                if (member.IsProperty)
+                if (member.IsGenericList)
                 {
-                    _operations.Add(new InLoopPropertyOperation(classSymbol, member));
+                    _operations.Add(new InLoopArrayReadOperation(classSymbol, member));
+                }
+                else if (member.IsProperty)
+                {
+                    _operations.Add(new InLoopPropertyReadOperation(classSymbol, member));
                 }
                 else
                 {
-                    _operations.Add(new InLoopFieldOperation(classSymbol, member));
+                    _operations.Add(new InLoopFieldReadOperation(classSymbol, member));
                 }
                 
             }

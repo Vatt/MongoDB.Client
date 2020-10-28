@@ -43,9 +43,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
         }
         public virtual InvocationExpressionSyntax Generate()
         {
-            return SF.InvocationExpression(
-                       expression: Basics.SimpleMemberAccess(_readerVariableName, MethodIdentifier),
-                       argumentList: ArgumentList());
+            
+            var expr =  SF.InvocationExpression(
+                               expression: Basics.SimpleMemberAccess(_readerVariableName, MethodIdentifier),
+                               argumentList: ArgumentList());
+            _variableDecl = null;
+            _assignExpr = null;
+            return expr;
 
         }
     }

@@ -7,10 +7,10 @@ using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
 {
-    internal class InLoopPropertyOperation : OperationBase
+    internal class InLoopPropertyReadOperation : OperationBase
     {
         private string _variadleIdentifier => "value";
-        public InLoopPropertyOperation(INamedTypeSymbol classsymbol, MemberDeclarationMeta memberdecl) : base(classsymbol, memberdecl)
+        public InLoopPropertyReadOperation(INamedTypeSymbol classsymbol, MemberDeclarationMeta memberdecl) : base(classsymbol, memberdecl)
         {
 
         }
@@ -31,7 +31,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
         {
             return SF.ExpressionStatement(SF.AssignmentExpression(
                                             kind:  SyntaxKind.SimpleAssignmentExpression,
-                                            left:  Basics.SimpleMemberAccess(ClassSymbol, MemberDecl),
+                                            left:  Basics.SimpleMemberAccess(Basics.TryParseOutVariableIdentifier, MemberDecl),
                                             right: SF.IdentifierName(_variadleIdentifier)));
         }
         IfStatementSyntax GenerateIfNameEqualsStatement()
@@ -49,27 +49,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
                                         SF.ContinueStatement())
                   );
         }
-        IfStatementSyntax GenerateIfBsonTypeNull()
-        {
-            return SF.IfStatement(
-                    condition: SF.BinaryExpression(
-                            SyntaxKind.EqualsExpression,
-                            Basics.TryParseBsonTypeIdentifier,
-                            SF.Token(SyntaxKind.EqualsEqualsToken),
-                            Basics.NumberLiteral(10)
-                        ),
-                    statement: SF.Block(
-                        SF.ExpressionStatement(
-                            SF.AssignmentExpression(
-                                kind: SyntaxKind.SimpleAssignmentExpression,
-                                left: Basics.SimpleMemberAccess(Basics.TryParseOutVariableIdentifier, Basics.IdentifierName(MemberDecl.DeclSymbol)),
-                                right: SF.LiteralExpression(SyntaxKind.DefaultLiteralExpression))
-                            ),
-                        SF.ContinueStatement())
-                    );
 
-
-        }
         public override StatementSyntax Generate()
         {
             return GenerateIfNameEqualsStatement();

@@ -57,6 +57,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         {
             return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SF.IdentifierName(classSymbol.Name), SF.IdentifierName(memberdecl.DeclSymbol.Name));
         }
+        public static MemberAccessExpressionSyntax SimpleMemberAccess(IdentifierNameSyntax source, MemberDeclarationMeta memberdecl)
+        {
+            return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, SF.IdentifierName(memberdecl.DeclSymbol.Name));
+        }
         public static IdentifierNameSyntax IdentifierName(INamedTypeSymbol sym) => SF.IdentifierName(sym.Name);
         public static IdentifierNameSyntax IdentifierName(ISymbol sym) => SF.IdentifierName(sym.Name);
         public static ArgumentListSyntax Arguments(params IdentifierNameSyntax[] args)

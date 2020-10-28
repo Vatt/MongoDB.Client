@@ -9,17 +9,22 @@ using System.Threading.Tasks;
 namespace MongoDB.Client.Test
 {
     [BsonSerializable]
-    class Sample
+    public class Sample
     {
         public long LongValue;
         public Guid GuidValue;
         public string StringValue;
         public int IntValue;
         public double DoubleValue;
-        public DateTimeOffset DateTimeValue;
+        public DateTimeOffset DateTimeValue { get; set; }
         public BsonObjectId ObjectId;
         public bool BooleanValue;
-        //BsonDocument BsonDocumentValue;
+        public List<int> ListIntValue;
+        public List<Sample> ListSampleValue { get; set; }
+        public List<string> ListStringValue;
+        public List<double> ListDoubleValue;
+        public List<DateTimeOffset> ListDateTimeOffsetValue;
+        public BsonDocument BsonDocumentValue { get; set; }
     }
 
     //[BsonSerializable]

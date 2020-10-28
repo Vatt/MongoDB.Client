@@ -10,7 +10,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         {
             ["Double"] = new DoubleRead(Basics.ReaderInputVariableIdentifier),
             ["String"] = new StringRead(Basics.ReaderInputVariableIdentifier),
-            //["BsonDocument"] = SF.IdentifierName("TryParseDocument"),
+            ["BsonDocument"] = new BsonDocumentRead(Basics.ReaderInputVariableIdentifier),
             ["BsonObjectId"] = new ObjectIdRead(Basics.ReaderInputVariableIdentifier),
             ["Boolean"] = new BooleanRead(Basics.ReaderInputVariableIdentifier),
             ["Int32"] = new Int32Read(Basics.ReaderInputVariableIdentifier),

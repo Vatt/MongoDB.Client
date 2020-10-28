@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-	<ProjectReference Include="..\MongoDB.Client.Bson.Generators\MongoDB.Client.Bson.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+	  <ProjectReference Include="..\MongoDB.Client.Bson.Generators\MongoDB.Client.Bson.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\MongoDB.Client.Bson\MongoDB.Client.Bson.csproj" />
     <ProjectReference Include="..\MongoDB.Client.Protocol\MongoDB.Client.Protocol.csproj" />
     <ProjectReference Include="..\MongoDB.Client\MongoDB.Client.csproj" />
