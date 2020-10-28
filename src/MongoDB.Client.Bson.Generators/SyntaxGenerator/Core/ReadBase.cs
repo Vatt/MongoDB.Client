@@ -30,21 +30,21 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
         }
         public virtual ArgumentListSyntax ArgumentList()
         {
-            if(_variableDecl != null)
+            if (_variableDecl != null)
             {
                 return SF.ArgumentList(new SeparatedSyntaxList<ArgumentSyntax>().Add(SF.Argument(default, SF.Token(SyntaxKind.OutKeyword), _variableDecl)));
             }
-            else if(_assignExpr != null)
+            else if (_assignExpr != null)
             {
                 return SF.ArgumentList(new SeparatedSyntaxList<ArgumentSyntax>().Add(SF.Argument(default, SF.Token(SyntaxKind.OutKeyword), _assignExpr)));
             }
             return default;
-            
+
         }
         public virtual InvocationExpressionSyntax Generate()
         {
-            
-            var expr =  SF.InvocationExpression(
+
+            var expr = SF.InvocationExpression(
                                expression: Basics.SimpleMemberAccess(_readerVariableName, MethodIdentifier),
                                argumentList: ArgumentList());
             _variableDecl = null;

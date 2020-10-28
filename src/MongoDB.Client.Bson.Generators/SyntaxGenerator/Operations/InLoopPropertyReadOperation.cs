@@ -2,7 +2,6 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Core;
-using System;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
@@ -30,8 +29,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
         StatementSyntax GenerateAssignForTempVariable()
         {
             return SF.ExpressionStatement(SF.AssignmentExpression(
-                                            kind:  SyntaxKind.SimpleAssignmentExpression,
-                                            left:  Basics.SimpleMemberAccess(Basics.TryParseOutVariableIdentifier, MemberDecl),
+                                            kind: SyntaxKind.SimpleAssignmentExpression,
+                                            left: Basics.SimpleMemberAccess(Basics.TryParseOutVariableIdentifier, MemberDecl),
                                             right: SF.IdentifierName(_variadleIdentifier)));
         }
         IfStatementSyntax GenerateIfNameEqualsStatement()

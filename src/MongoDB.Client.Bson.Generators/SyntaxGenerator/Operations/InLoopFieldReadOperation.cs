@@ -29,7 +29,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
                             expression: Basics.SimpleMemberAccess(Basics.TryParseBsonNameIdentifier, SF.IdentifierName("SequenceEqual")),
                             argumentList: Basics.Arguments(Basics.GenerateReadOnlySpanNameIdentifier(ClassSymbol, MemberDecl)))
                         ),
-                    statement: SF.Block(GenerateIfBsonTypeNull(), 
+                    statement: SF.Block(GenerateIfBsonTypeNull(),
                                         GenerateMainOperationBlock(),
                                         SF.ContinueStatement())
                   );

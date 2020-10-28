@@ -7,49 +7,44 @@ namespace MongoDB.Client.Bson.Generators
     class SyntaxReceiver : ISyntaxReceiver
     {
         public List<TypeDeclarationSyntax> Candidates { get; } = new List<TypeDeclarationSyntax>();
-
-        public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
+        public void AddIfhaveBsonAttribute(TypeDeclarationSyntax decl)
         {
-
-            if (syntaxNode is ClassDeclarationSyntax classDeclarationSyntax)
+            if (decl.AttributeLists == null)
             {
-                if (classDeclarationSyntax.AttributeLists == null)
+                return;
+            }
+            foreach (var attrList in decl.AttributeLists)
+            {
+                foreach (var attr in attrList.Attributes)
                 {
-                    return;
-                }
-                foreach (var attrList in classDeclarationSyntax.AttributeLists)
-                {
-                    foreach (var attr in attrList.Attributes)
+                    if (((IdentifierNameSyntax)attr.Name).Identifier.Text.Equals("BsonSerializable"))
                     {
-                        if (((IdentifierNameSyntax)attr.Name).Identifier.Text.Equals("BsonSerializable"))
-                        {
-                            Candidates.Add(classDeclarationSyntax);
+                        Candidates.Add(decl);
 
-                        }
                     }
-
                 }
 
             }
-            else if (syntaxNode is StructDeclarationSyntax structDeclarationSyntax)
+        }
+        public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
+        {
+            switch (syntaxNode)
             {
-                if (structDeclarationSyntax.AttributeLists == null)
-                {
-                    return;
-                }
-                foreach (var attrList in structDeclarationSyntax.AttributeLists)
-                {
-                    foreach (var attr in attrList.Attributes)
+                case ClassDeclarationSyntax classdecl:
                     {
-                        if (((IdentifierNameSyntax)attr.Name).Identifier.Text.Equals("BsonSerializable"))
-                        {
-                            Candidates.Add(structDeclarationSyntax);
-
-                        }
+                        AddIfhaveBsonAttribute(classdecl);
+                        break;
                     }
-
-                }
-
+                case StructDeclarationSyntax structdecl:
+                    {
+                        AddIfhaveBsonAttribute(structdecl);
+                        break;
+                    }
+                case RecordDeclarationSyntax recorddecl:
+                    {
+                        AddIfhaveBsonAttribute(recorddecl);
+                        break;
+                    }
             }
         }
     }

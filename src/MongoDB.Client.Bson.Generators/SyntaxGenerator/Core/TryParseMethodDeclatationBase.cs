@@ -27,18 +27,18 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
                                     .AddRange(list.Generate())
                                     .Add(SF.ParseStatement(@$"throw new ArgumentException($""{ClassSymbol.Name}.TryParse  with bson type number {{bsonType}}"");"));
             return SF.Block(
-                SF.ExpressionStatement(SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, Basics.TryParseOutVariableIdentifier,Basics.ObjectCreationWitoutArgs(ClassSymbol))),
+                SF.ExpressionStatement(SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, Basics.TryParseOutVariableIdentifier, Basics.ObjectCreationWitoutArgs(ClassSymbol))),
                 SF.ParseStatement("if (!reader.TryGetInt32(out var docLength)) { return false; }"),
                 SF.ParseStatement("var unreaded = reader.Remaining + sizeof(int);"),
                 SF.WhileStatement(
-                    attributeLists: default, 
+                    attributeLists: default,
                     condition: SF.ParseExpression("unreaded - reader.Remaining < docLength - 1"),
                     statement: SF.Block(whileStatement)),
                 SF.ParseStatement(@$"if ( !reader.TryGetByte(out var endMarker)){{ return false; }}"),
                 SF.ParseStatement($@"if (endMarker != '\x00'){{ throw new ArgumentException(""{ClassSymbol.Name}GeneratedSerializator.TryParse End document marker missmatch""); }}"),
                 SF.ParseStatement("return true;")
                 );
-            
+
         }
 
         public ParameterListSyntax GetTryParseParameterList()

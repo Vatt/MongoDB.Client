@@ -66,14 +66,14 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
         public void Execute(GeneratorExecutionContext context)
         {
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver)) { return; }
-            //System.Diagnostics.Debugger.Launch();
+            System.Diagnostics.Debugger.Launch();
             if (receiver.Candidates.Count == 0)
             {
                 return;
             }
             _context = context;
 
-            CollectMapData(context, receiver.Candidates);
+            ProcessCandidates(receiver.Candidates);
             context.AddSource($"GlobalSerializationHelperGenerated.cs", SourceText.From(GenerateGlobalHelperStaticClass(), Encoding.UTF8));
             foreach (var item in meta)
             {
@@ -81,13 +81,13 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
                 {
                     ReadsMap.SimpleOperations.Add(item.ClassSymbol.Name, new GeneratedSerializerRead(item.ClassSymbol, Basics.TryParseBsonNameIdentifier));
                 }
-                
+
             }
             foreach (var item in meta)
             {
-                var source = BsonSyntaxGenerator.Create(item).NormalizeWhitespace().ToFullString();
+                var source = BsonSyntaxGenerator.Create(item);
 
-                context.AddSource(Basics.GenerateSerializerName(item.ClassSymbol), SourceText.From(source, Encoding.UTF8));
+                context.AddSource(Basics.GenerateSerializerName(item.ClassSymbol), SourceText.From(source?.NormalizeWhitespace().ToFullString(), Encoding.UTF8));
                 System.Diagnostics.Debugger.Break();
             }
 
@@ -100,45 +100,74 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
         }
 
-        private void CollectMapData(GeneratorExecutionContext context, List<TypeDeclarationSyntax> candidates)
+        private void ProcessCandidates(List<TypeDeclarationSyntax> candidates)
         {
-
-            INamedTypeSymbol attrName = context.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonElementField");
             foreach (var candidate in candidates)
             {
 
-                SemanticModel classModel = context.Compilation.GetSemanticModel(candidate.SyntaxTree);
+                SemanticModel classModel = _context.Compilation.GetSemanticModel(candidate.SyntaxTree);
                 var symbol = classModel.GetDeclaredSymbol(candidate);
-                var info = new ClassDeclMeta(symbol);
-                foreach (var member in candidate.Members)
+                var declmeta = new ClassDeclMeta(symbol);
+                switch (candidate)
                 {
-
-                    if (member is FieldDeclarationSyntax fieldDecl)
-                    {
-                        SemanticModel memberModel = context.Compilation.GetSemanticModel(fieldDecl.SyntaxTree);
-
-                        foreach (var variable in fieldDecl.Declaration.Variables)
+                    case ClassDeclarationSyntax classdecl:
                         {
-
-                            IFieldSymbol fieldSymbol = memberModel.GetDeclaredSymbol(variable) as IFieldSymbol;
-                            if (fieldSymbol.DeclaredAccessibility == Accessibility.Public)
-                            {
-                                info.MemberDeclarations.Add(new MemberDeclarationMeta(fieldSymbol));
-                            }
+                            AddMemberIfNeed(declmeta, classdecl);
+                            break;
                         }
-                    }
-                    if (member is PropertyDeclarationSyntax propDecl)
-                    {
-                        SemanticModel memberModel = context.Compilation.GetSemanticModel(propDecl.SyntaxTree);
-
-                        ISymbol propertySymbol = memberModel.GetDeclaredSymbol(propDecl);
-                        if (propertySymbol.DeclaredAccessibility == Accessibility.Public)
+                    case StructDeclarationSyntax structdecl:
                         {
-                            info.MemberDeclarations.Add(new MemberDeclarationMeta(propertySymbol));
+                            AddMemberIfNeed(declmeta, structdecl);
+                            break;
                         }
-                    }
+                    case RecordDeclarationSyntax recorddecl:
+                        {
+                            AddMemberIfNeed(declmeta, recorddecl);
+                            break;
+                        }
                 }
-                meta.Add(info);
+                if (declmeta.MemberDeclarations.Count > 0)
+                {
+                    meta.Add(declmeta);
+                }
+
+            }
+        }
+        private void AddMemberIfNeed(ClassDeclMeta decl, TypeDeclarationSyntax syntax)
+        {
+            foreach (var member in syntax.Members)
+            {
+                switch (member)
+                {
+                    case FieldDeclarationSyntax fielddecl:
+                        {
+                            SemanticModel memberModel = _context.Compilation.GetSemanticModel(fielddecl.SyntaxTree);
+
+                            foreach (var variable in fielddecl.Declaration.Variables)
+                            {
+
+                                IFieldSymbol fieldSymbol = memberModel.GetDeclaredSymbol(variable) as IFieldSymbol;
+                                if (fieldSymbol.DeclaredAccessibility == Accessibility.Public)
+                                {
+                                    decl.MemberDeclarations.Add(new MemberDeclarationMeta(fieldSymbol));
+                                }
+                            }
+                            break;
+                        }
+                    case PropertyDeclarationSyntax propdecl:
+                        {
+                            SemanticModel memberModel = _context.Compilation.GetSemanticModel(propdecl.SyntaxTree);
+
+                            ISymbol propertySymbol = memberModel.GetDeclaredSymbol(propdecl);
+                            if (propertySymbol.DeclaredAccessibility == Accessibility.Public)
+                            {
+                                decl.MemberDeclarations.Add(new MemberDeclarationMeta(propertySymbol));
+                            }
+                            break;
+                        }
+
+                }
+
             }
         }
 

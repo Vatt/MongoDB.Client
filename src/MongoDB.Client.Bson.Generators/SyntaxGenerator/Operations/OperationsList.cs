@@ -25,7 +25,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
                 {
                     _operations.Add(new InLoopFieldReadOperation(classSymbol, member));
                 }
-                
+
             }
         }
         public StatementSyntax[] Generate()

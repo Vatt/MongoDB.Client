@@ -24,6 +24,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         }
         public static CompilationUnitSyntax Create(ClassDeclMeta classmeta)
         {
+            if (classmeta.MemberDeclarations.Count == 0)
+            {
+                return default;
+            }
             return GenerateRootUnit(classmeta)
                     .AddMembers(
                         GenerateNamespace(classmeta)

@@ -14,13 +14,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.Reads
         }
         public override ArgumentListSyntax ArgumentList()
         {
-            if(_assignExpr != null)
+            if (_assignExpr != null)
             {
                 return SF.ArgumentList(new SeparatedSyntaxList<ArgumentSyntax>()
                     .Add(SF.Argument(Basics.TryParseBsonTypeIdentifier))
                     .Add(SF.Argument(default, SF.Token(SyntaxKind.OutKeyword), _assignExpr)));
             }
-            else if(_variableDecl != null)
+            else if (_variableDecl != null)
             {
                 return SF.ArgumentList(new SeparatedSyntaxList<ArgumentSyntax>()
                     .Add(SF.Argument(Basics.TryParseBsonTypeIdentifier))

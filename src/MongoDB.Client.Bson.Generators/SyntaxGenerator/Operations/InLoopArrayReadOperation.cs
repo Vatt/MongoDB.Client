@@ -20,7 +20,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
             {
                 type = MemberDecl.DeclType.TypeArguments[0];
             }
-            if(MemberDecl.IsGenericList)
+            if (MemberDecl.IsGenericList)
             {
                 type = MemberDecl.DeclType.TypeArguments[0];
             }
