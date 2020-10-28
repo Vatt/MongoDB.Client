@@ -34,7 +34,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.Reads
         {
             var serializer = Basics.GlobalSerializationHelperGenerated;
             return SF.InvocationExpression(
-                           expression: Basics.SimpleMemberAccess(serializer, MethodIdentifier),
+                           expression: SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                            Basics.SimpleMemberAccess(serializer, MethodIdentifier),
+                                            SF.IdentifierName("TryParse")),
                            argumentList: ArgumentList());
         }
 

@@ -40,11 +40,11 @@ namespace MongoDB.Client.Bson.Generators
                         AddIfhaveBsonAttribute(structdecl);
                         break;
                     }
-                //case RecordDeclarationSyntax recorddecl:
-                //    {
-                //        AddIfhaveBsonAttribute(recorddecl);
-                //        break;
-                //    }
+                    //case RecordDeclarationSyntax recorddecl:
+                    //    {
+                    //        AddIfhaveBsonAttribute(recorddecl);
+                    //        break;
+                    //    }
             }
         }
     }

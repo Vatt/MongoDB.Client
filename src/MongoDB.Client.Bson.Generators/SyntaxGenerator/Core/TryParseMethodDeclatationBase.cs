@@ -71,7 +71,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
                     constraintClauses: default,
                     expressionBody: default,
                     typeParameterList: default,
-                    semicolonToken: SF.Token(SyntaxKind.SemicolonToken))
+                    semicolonToken: default)
                 .WithBody(GenerateMethodBody());
         }
     }

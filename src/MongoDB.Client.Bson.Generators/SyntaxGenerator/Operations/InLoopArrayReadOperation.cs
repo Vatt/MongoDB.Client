@@ -51,7 +51,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
                                             attributeLists: default,
                                             condition: SF.ParseExpression("unreaded - reader.Remaining < docLength - 1"),
                                             statement: SF.Block(whileStatement)),
-                                        SF.ParseStatement("if ( !reader.TryGetByte(out var arrayEndMarker)){{ return false; }}"),
+                                        SF.ParseStatement("if ( !reader.TryGetByte(out var arrayEndMarker)){ return false; }"),
                                         SF.ParseStatement(@$"if (arrayEndMarker != '\x00'){{ throw new ArgumentException($""{ClassSymbol.Name}GeneratedSerializer.TryParse End document marker missmatch"");}}"),
                                         SF.ContinueStatement()));
         }

@@ -35,7 +35,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
                 var builder = new StringBuilder();
                 foreach (var info in meta)
                 {
-                    builder.Append($"\n\t\tpublic static readonly  IGenericBsonSerializer<{info.ClassSymbol.Name}>  {Basics.GenerateSerializerNameStaticField(info.ClassSymbol)} = new {Basics.GenerateSerializerName(info.ClassSymbol)};");
+                    builder.Append($"\n\t\tpublic static readonly  IGenericBsonSerializer<{info.ClassSymbol.Name}>  {Basics.GenerateSerializerNameStaticField(info.ClassSymbol)} = new {Basics.GenerateSerializerName(info.ClassSymbol)}();");
                 }
                 return builder.ToString();
             }
@@ -85,9 +85,9 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
             }
             foreach (var item in meta)
             {
-                var source = BsonSyntaxGenerator.Create(item);
+                var source = BsonSyntaxGenerator.Create(item)?.NormalizeWhitespace().ToFullString();
 
-                context.AddSource(Basics.GenerateSerializerName(item.ClassSymbol), SourceText.From(source?.NormalizeWhitespace().ToFullString(), Encoding.UTF8));
+                context.AddSource(Basics.GenerateSerializerName(item.ClassSymbol), SourceText.From(source, Encoding.UTF8));
                 System.Diagnostics.Debugger.Break();
             }
 
@@ -120,11 +120,11 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
                             AddMemberIfNeed(declmeta, structdecl);
                             break;
                         }
-                    //case RecordDeclarationSyntax recorddecl:
-                    //    {
-                    //        AddMemberIfNeed(declmeta, recorddecl);
-                    //        break;
-                    //    }
+                        //case RecordDeclarationSyntax recorddecl:
+                        //    {
+                        //        AddMemberIfNeed(declmeta, recorddecl);
+                        //        break;
+                        //    }
                 }
                 if (declmeta.MemberDeclarations.Count > 0)
                 {

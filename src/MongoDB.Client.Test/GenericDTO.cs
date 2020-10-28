@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 
 namespace MongoDB.Client.Test
 {
-    [BsonSerializable]
+    //[BsonSerializable]
     public record SampleRecord(int Value0, double Value1, Guid Value2, DateTimeOffset Value3, BsonObjectId Value4, List<Sample> Value5);
     
-    [BsonSerializable]
+    //[BsonSerializable]
     public class Sample
     {
         public long LongValue;
