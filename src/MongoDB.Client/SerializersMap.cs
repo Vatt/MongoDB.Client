@@ -15,7 +15,7 @@ namespace MongoDB.Client
         };
         static SerializersMap()
         {
-            foreach(var pair in GlobalSerializationHelperGenerated.GetGeneratedSerializers())
+            foreach (var pair in GlobalSerializationHelperGenerated.GetGeneratedSerializers())
             {
                 _serializerMap.Add(pair.Key, pair.Value);
             }
