@@ -1,34 +1,84 @@
 ﻿using MongoDB.Client.Bson.Document;
 using System;
+using System.Buffers;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace MongoDB.Client.Bson.Writer
 {
     public ref partial struct BsonWriter
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(double value) => WriteDouble(value);
+        public void WriteCString(ReadOnlySpan<byte> value)
+        {
+            Commit();
+            _output.Write(value);
+            Advance(value.Length);
+            GetNextSpanWithoutCommit();
+            WriteByte(EndMarker);
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(string value) => WriteString(value);
+        public void WriteTypeNameValue(ReadOnlySpan<byte> name, double value)
+        {
+            WriteByte(1);
+            WriteCString(name);
+            WriteDouble(value);
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(BsonDocument value) => WriteDocument(value);
+        public void WriteTypeNameValue(ReadOnlySpan<byte> name, string value)
+        {
+            WriteByte(2);
+            WriteCString(name);
+            WriteString(value);
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(BsonObjectId value) => WriteObjectId(value);
+        public void WriteTypeNameValue(ReadOnlySpan<byte> name, BsonDocument value)
+        {
+            WriteByte(3);
+            WriteCString(name);
+            WriteDocument(value);
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(bool value) => WriteBoolean(value);
+        public void WriteTypeNameValue(ReadOnlySpan<byte> name, BsonObjectId value)
+        {
+            WriteByte(7);
+            WriteCString(name);
+            WriteObjectId(value);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void WriteTypeNameValue(ReadOnlySpan<byte> name, bool value) 
+        {
+            WriteByte(8);
+            WriteCString(name);
+            WriteBoolean(value);
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(DateTimeOffset value) => WriteUTCDateTime(value);
+        public void WriteTypeNameValue(ReadOnlySpan<byte> name, DateTimeOffset value)
+        {
+            WriteByte(9);
+            WriteCString(name);
+            WriteUTCDateTime(value);
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(int value) => WriteInt32(value);
-
+        public void WriteTypeNameValue(ReadOnlySpan<byte> name, int value)
+        {
+            WriteByte(16);
+            WriteCString(name);
+            WriteInt32(value);
+        }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(long value) => WriteInt64(value);        
+        public void WriteTypeNameValue(ReadOnlySpan<byte> name, long value)
+        {
+            WriteByte(18);
+            WriteCString(name);
+            WriteInt64(value);
+        }       
     }
 }

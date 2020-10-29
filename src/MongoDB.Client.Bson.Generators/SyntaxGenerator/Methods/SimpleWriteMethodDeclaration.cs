@@ -2,18 +2,20 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Core;
+using System;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
 {
-    internal class SimpleTryParseMethodDeclaration : TryParseMethodDeclatationBase
+    internal class SimpleWriteMethodDeclaration : WriteMethodDeclarationBase
     {
-        public SimpleTryParseMethodDeclaration(ClassDeclarationBase classdecl) : base(classdecl.ClassSymbol, classdecl.Members)
+        public SimpleWriteMethodDeclaration(ClassDeclarationBase classdecl) : base(classdecl.ClassSymbol, classdecl.Members)
         {
 
         }
+
         public override ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier()
         {
-            
             return SF.ExplicitInterfaceSpecifier(
                    SF.GenericName(
                        Basics.SerializerInterfaceIdentifier,
@@ -21,12 +23,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
                    SF.Token(SyntaxKind.DotToken));
         }
 
-        //public override BlockSyntax GenerateMethodBody()
-        //{
-        //    var list = new OperationsList(ClassSymbol, ClassDecl.Members);
-        //    return SF.Block(list.Generate());
-        //}
-
-        public override TypeSyntax GetParseMethodOutParameter() => SF.ParseTypeName(ClassSymbol.Name);
+        public override BlockSyntax GenerateMethodBody()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

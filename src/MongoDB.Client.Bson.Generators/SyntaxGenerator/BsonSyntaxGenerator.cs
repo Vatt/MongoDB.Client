@@ -14,7 +14,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     SF.UsingDirective(SF.ParseName("MongoDB.Client.Bson.Document")),
                     SF.UsingDirective(SF.ParseName("System")),
                     SF.UsingDirective(SF.ParseName("System.Collections.Generic")),
-                    SF.UsingDirective(SF.ParseName("MongoDB.Client")),
                     SF.UsingDirective(SF.ParseName(classmeta.StringNamespace)));
             //                .AddMembers(SF.NamespaceDeclaration(SF.ParseName("MongoDB.Client.Bson.Serialization.Generated")));
         }

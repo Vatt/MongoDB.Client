@@ -1,5 +1,6 @@
 ﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
+using MongoDB.Client.Bson.Writer;
 using System;
 
 namespace MongoDB.Client.Bson.Serialization
@@ -11,7 +12,9 @@ namespace MongoDB.Client.Bson.Serialization
             return reader.TryParseDocument(out message);
         }
 
-        public void Write(object message) => throw new NotImplementedException();
-
+        public void Write(ref BsonWriter writer, in BsonDocument message)
+        {
+            writer.WriteDocument(message);
+        }
     }
 }

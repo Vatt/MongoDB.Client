@@ -2,25 +2,21 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations;
+using System.Collections.Generic;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
 {
-    internal abstract class TryParseMethodDeclatationBase
+    internal abstract class TryParseMethodDeclatationBase : MethodDeclarationBase
     {
-        protected ClassDeclarationBase ClassDecl;
-        public INamedTypeSymbol ClassSymbol => ClassDecl.ClassSymbol;
-        public TryParseMethodDeclatationBase(ClassDeclarationBase classdecl)
+
+        public TryParseMethodDeclatationBase(INamedTypeSymbol classSymbol, List<MemberDeclarationMeta> members) : base(classSymbol , members)
         {
-            ClassDecl = classdecl;
         }
         public abstract TypeSyntax GetParseMethodOutParameter();
-
-        public abstract ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier();
-
-        //GeneratorBasics.SimpleMemberAccess(GeneratorBasics.ReaderInputVariableIdentifier,SF.IdentifierName("TryGetInt32"))
-        public virtual BlockSyntax GenerateMethodBody()
+       
+        public override BlockSyntax GenerateMethodBody()
         {
-            var list = new OperationsList(ClassSymbol, ClassDecl.Members);
+            var list = OperationsList.CreateReadOperations(ClassSymbol, Members);
             var whileStatement = new SyntaxList<StatementSyntax>()
                                     .Add(SF.ParseStatement("if (!reader.TryGetByte(out var bsonType)) { return false; }"))
                                     .Add(SF.ParseStatement("if (!reader.TryGetCStringAsSpan(out var bsonName)) { return false; } "))

@@ -9,7 +9,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
 {
     class GenericTryParseMethodDeclaration : TryParseMethodDeclatationBase
     {
-        public GenericTryParseMethodDeclaration(ClassDeclarationBase classdecl) : base(classdecl)
+        public GenericTryParseMethodDeclaration(ClassDeclarationBase classdecl) : base(classdecl.ClassSymbol, classdecl.Members)
         {
 
         }

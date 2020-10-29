@@ -8,25 +8,29 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
     internal class OperationsList
     {
         private List<OperationBase> _operations;
-        public OperationsList(INamedTypeSymbol classSymbol, List<MemberDeclarationMeta> members)
+        private OperationsList(List<OperationBase> operations)
         {
-            _operations = new List<OperationBase>();
+            _operations = operations;
+        }
+        public static OperationsList CreateReadOperations(INamedTypeSymbol classSymbol, List<MemberDeclarationMeta> members)
+        {
+            var operations = new List<OperationBase>();
             foreach (var member in members)
             {
                 if (member.IsGenericList)
                 {
-                    _operations.Add(new InLoopArrayReadOperation(classSymbol, member));
+                    operations.Add(new InLoopArrayReadOperation(classSymbol, member));
                 }
                 else if (member.IsProperty)
                 {
-                    _operations.Add(new InLoopPropertyReadOperation(classSymbol, member));
+                    operations.Add(new InLoopPropertyReadOperation(classSymbol, member));
                 }
                 else
                 {
-                    _operations.Add(new InLoopFieldReadOperation(classSymbol, member));
+                    operations.Add(new InLoopFieldReadOperation(classSymbol, member));
                 }
-
             }
+            return new OperationsList(operations);
         }
         public StatementSyntax[] Generate()
         {
