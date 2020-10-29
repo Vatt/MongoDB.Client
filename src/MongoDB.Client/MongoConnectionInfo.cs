@@ -2,7 +2,7 @@
 using MongoDB.Client.Bson.Serialization.Attributes;
 using System;
 
-namespace MongoDB.Client
+namespace MongoDB.Client.Data
 {
     [BsonSerializable]
     public class MongoTopologyVersion
