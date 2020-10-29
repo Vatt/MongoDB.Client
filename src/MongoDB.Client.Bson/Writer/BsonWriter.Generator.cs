@@ -58,6 +58,14 @@ namespace MongoDB.Client.Bson.Writer
             WriteBoolean(value);
         }
 
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //public void Write_Type_Name_Value(ReadOnlySpan<byte> name, Guid value)
+        //{
+        //    WriteByte(5);
+        //    WriteCString(name);
+        //    WriteGuidAsBytes(value);
+        //}
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, DateTimeOffset value)
         {

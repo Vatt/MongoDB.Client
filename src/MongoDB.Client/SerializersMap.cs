@@ -7,7 +7,7 @@ using System.Linq;
 using MongoDB.Client.Bson.Serialization.Generated;
 namespace MongoDB.Client
 {
-    internal static class SerializersMap
+    public static class SerializersMap
     {
         private static readonly Dictionary<Type, IBsonSerializer> _serializerMap = new Dictionary<Type, IBsonSerializer>
         {

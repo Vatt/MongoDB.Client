@@ -18,7 +18,8 @@ namespace MongoDB.Client.Writers
         public void WriteMessage(T message, IBufferWriter<byte> output)
         {
             var writer = new BsonWriter(output);
-            writer.WriteDocument((BsonDocument)(object)message);
+            //writer.WriteDocument((BsonDocument)(object)message);
+            _serializer.Write(ref writer, message);
         }
     }
 }
