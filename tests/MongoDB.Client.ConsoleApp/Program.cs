@@ -19,7 +19,6 @@ namespace MongoDB.Client.Test
 
         static async Task Main(string[] args)
         {
-            await Test2();
             var client = new MongoClient(/*new DnsEndPoint("centos0.mshome.net", 27017)*/);
             var connectionInfo = await client.ConnectAsync(default);
             var result1 = await client.GetCursorAsync<GeoIp>(EmptyCollection, default).ToListAsync();
@@ -42,23 +41,8 @@ namespace MongoDB.Client.Test
             await client.DisposeAsync();
             Console.WriteLine(sw.Elapsed);
 
-            //var factory = new MongoSessionFactory(new DnsEndPoint("centos0.mshome.net", 27017));
-            //var session = await factory.ConnectAsync();
-            //var connectionInfo = await session!.SayHelloAsync();
-            //await session.DisposeAsync();
-            //var root = new BsonDocument();
-            //var driverDoc = new BsonDocument();
-
-            //driverDoc.Elements.AddRange(new List<BsonElement>{
-            //    BsonElement.Create(driverDoc, "driver", "MongoDB.Client"),
-            //    BsonElement.Create(driverDoc, "version", "0.0.0"),
-            //});
-            //root.Elements.AddRange(new List<BsonElement>
-            //{
-            //    BsonElement.Create(root, "driver", driverDoc)
-            //});
-
         }
+
         static void Test()
         {
             ReadOnlyMemory<byte> file = File.ReadAllBytes("../../../ReaderTestCollection.bson");
@@ -76,51 +60,5 @@ namespace MongoDB.Client.Test
             //reader.TryParseDocument(null, out var document5);
         }
 
-
-        static async Task Test2()
-        {
-            var doc = new BsonDocument
-            {
-                { "int", 42},
-                { "bool", true},
-                { "string1", "hui"},
-                { "string2", ""},
-                { "string3", default(string)},
-                {"array", new  BsonArray { "item1", default(string), 42, true } },
-                { "inner", new BsonDocument {
-                    {"innerString", "inner hui" }
-                } }
-            };
-
-
-            var pipe = new Pipe();
-            
-            await WriteAsync(pipe.Writer, doc);
-            var result = await ReadAsync(pipe.Reader);
-
-            Console.WriteLine();
-        }
-
-
-        private static async Task<BsonDocument> ReadAsync(PipeReader input)
-        {
-            var reader = new ProtocolReader(input);
-
-            var messageReader = new ReplyBodyReader<BsonDocument>(new BsonDocumentSerializer());
-            var result = await reader.ReadAsync(messageReader).ConfigureAwait(false);
-            reader.Advance();
-            return result.Message;
-        }
-
-
-        private static async Task WriteAsync(PipeWriter output, BsonDocument message)
-        {
-            var writer = new ProtocolWriter(output);
-
-            var messageWriter = new ReplyBodyWriter<BsonDocument>(new BsonDocumentSerializer());
-            await writer.WriteAsync(messageWriter, message).ConfigureAwait(false);
-            await output.FlushAsync();
-            await output.CompleteAsync();
-        }
     }
 }
