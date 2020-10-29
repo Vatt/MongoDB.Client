@@ -28,7 +28,6 @@ namespace MongoDB.Client.Tests
 
             var result = await RoundTripAsync(doc, new BsonDocumentSerializer());
 
-            // TODO: Need to implement BsonDocument equals
             Assert.Equal(doc, result);
         }
 

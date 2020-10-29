@@ -8,7 +8,7 @@ using System.Linq;
 namespace MongoDB.Client.Bson.Document
 {
     [DebuggerTypeProxy(typeof(CollectionDebugView<>))]
-    public class BsonDocument : IEnumerable<BsonElement>
+    public class BsonDocument : IEnumerable<BsonElement>, IEquatable<BsonDocument>
     {
 
         private readonly List<BsonElement> _elements;
@@ -120,5 +120,37 @@ namespace MongoDB.Client.Bson.Document
         }
 
         IEnumerator IEnumerable.GetEnumerator() => _elements.GetEnumerator();
+
+
+        public override bool Equals(object? obj)
+        {
+            return obj is BsonDocument document && Equals(document);
+        }
+
+        public bool Equals(BsonDocument? obj)
+        {
+            if (obj is null)
+            {
+                return false;
+            }
+            if (ReferenceEquals(obj, this))
+            {
+                return true;
+            }
+            if (obj.Count != Count)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < _elements.Count; i++)
+            {
+                if (this[i].Equals(obj[i]) == false)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }

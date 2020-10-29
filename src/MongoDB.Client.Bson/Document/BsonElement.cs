@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace MongoDB.Client.Bson.Document
 {
     [DebuggerDisplay("{Value}", Name = "{Name}")]
-    public readonly struct BsonElement
+    public readonly struct BsonElement : IEquatable<BsonElement>
     {
         public readonly BsonDocument Parent { get; }
         public readonly BsonElementType Type { get; }
@@ -115,6 +116,16 @@ namespace MongoDB.Client.Bson.Document
         public override string ToString()
         {
             return Name + ": " + (Value is not null ? Value.ToString() : "null");
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is BsonElement element && Equals(element);
+        }
+
+        public bool Equals(BsonElement element)
+        {
+            return Type == element.Type && Name == element.Name && EqualityComparer<object?>.Default.Equals(Value, element.Value);
         }
     }
 }
