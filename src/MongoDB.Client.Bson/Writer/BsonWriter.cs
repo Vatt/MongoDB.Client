@@ -19,9 +19,9 @@ namespace MongoDB.Client.Bson.Writer
 #endif
         private int _buffered;
         private int _written;
-        public int Writen => _written;
+        public int Written => _written;
 
-        internal readonly ref struct Reserved
+        public readonly ref struct Reserved
         {
             private readonly Span<byte> _reserved1;
             private readonly Span<byte> _reserved2;
@@ -60,7 +60,7 @@ namespace MongoDB.Client.Bson.Writer
         }
 
 
-        internal Reserved Reserve(int length)
+        public Reserved Reserve(int length)
         {
             if (length > 4096)
             {
