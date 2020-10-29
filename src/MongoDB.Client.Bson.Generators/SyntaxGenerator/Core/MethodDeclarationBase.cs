@@ -17,5 +17,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
         }
         public abstract ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier();
         public abstract BlockSyntax GenerateMethodBody();
+
+        public abstract MethodDeclarationSyntax DeclareMethod();
     }
 }

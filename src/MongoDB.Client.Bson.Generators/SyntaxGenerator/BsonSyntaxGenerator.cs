@@ -10,10 +10,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             return SF.CompilationUnit()
                 .AddUsings(
                     SF.UsingDirective(SF.ParseName("MongoDB.Client.Bson.Reader")),
+                    SF.UsingDirective(SF.ParseName("MongoDB.Client.Bson.Writer")),
                     SF.UsingDirective(SF.ParseName("MongoDB.Client.Bson.Serialization")),
                     SF.UsingDirective(SF.ParseName("MongoDB.Client.Bson.Document")),
                     SF.UsingDirective(SF.ParseName("System")),
                     SF.UsingDirective(SF.ParseName("System.Collections.Generic")),
+                    SF.UsingDirective(SF.ParseName("System.Buffers.Binary")),
                     SF.UsingDirective(SF.ParseName(classmeta.StringNamespace)));
             //                .AddMembers(SF.NamespaceDeclaration(SF.ParseName("MongoDB.Client.Bson.Serialization.Generated")));
         }

@@ -19,6 +19,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
 
         }
         public abstract MethodDeclarationSyntax DeclareTryParseMethod();
+        public abstract MethodDeclarationSyntax DeclareWriteMethod();
 
         public abstract TypeSyntax GetTryParseMethodOutParameter();
         public abstract TypeArgumentListSyntax GetInterfaceParameters();

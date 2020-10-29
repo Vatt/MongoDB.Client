@@ -33,7 +33,7 @@ namespace MongoDB.Client
         public int MaxWriteBatchSize { get; set; }
 
         [BsonElementField(ElementName = "localTime")]
-        public DateTimeOffset? LocalTime { get; set; }
+        public DateTimeOffset LocalTime { get; set; }
 
         [BsonElementField(ElementName = "logicalSessionTimeoutMinutes")]
         public int LogicalSessionTimeoutMinutes { get; set; }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Diagnostics;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
 {
@@ -22,7 +23,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
         }
         public void WithVariableAssign()
         {
-
+            Debugger.Break();
         }
         public void WithMemberAssign(IdentifierNameSyntax source, IdentifierNameSyntax member)
         {

@@ -15,9 +15,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 
         public override MethodDeclarationSyntax DeclareTryParseMethod()
         {
-            return new SimpleTryParseMethodDeclaration(this).DeclareTryParseMethod();
+            return new SimpleTryParseMethodDeclaration(this).DeclareMethod();
         }
-
+        public override MethodDeclarationSyntax DeclareWriteMethod()
+        {
+            return new SimpleWriteMethodDeclaration(this).DeclareMethod();
+        }
         public override TypeArgumentListSyntax GetInterfaceParameters()
         {
             return SF.TypeArgumentList().AddArguments(SF.ParseTypeName(ClassSymbol.Name));
@@ -32,7 +35,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             var decl = SF.ClassDeclaration(Basics.GenerateSerializerName(ClassSymbol));
             return decl.WithBaseList(SF.BaseList(GetBaseList()))
                        .WithMembers(GenerateStaticNamesSpans())
-                       .AddMembers(DeclareTryParseMethod());
+                       .AddMembers(DeclareTryParseMethod())
+                       .AddMembers(DeclareWriteMethod());
         }
+
+
     }
 }

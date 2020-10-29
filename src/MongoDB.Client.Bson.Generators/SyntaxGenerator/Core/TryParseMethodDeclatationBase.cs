@@ -16,11 +16,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
        
         public override BlockSyntax GenerateMethodBody()
         {
-            var list = OperationsList.CreateReadOperations(ClassSymbol, Members);
             var whileStatement = new SyntaxList<StatementSyntax>()
                                     .Add(SF.ParseStatement("if (!reader.TryGetByte(out var bsonType)) { return false; }"))
                                     .Add(SF.ParseStatement("if (!reader.TryGetCStringAsSpan(out var bsonName)) { return false; } "))
-                                    .AddRange(list.Generate())
+                                    .AddRange(OperationsList.CreateReadOperations(ClassSymbol, Members).Generate())
                                     .Add(SF.ParseStatement(@$"throw new ArgumentException($""{ClassSymbol.Name}.TryParse  with bson type number {{bsonType}}"");"));
             return SF.Block(
                 SF.ExpressionStatement(SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, Basics.TryParseOutVariableIdentifier, Basics.ObjectCreationWitoutArgs(ClassSymbol))),
@@ -37,7 +36,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
 
         }
 
-        public ParameterListSyntax GetTryParseParameterList()
+        public virtual ParameterListSyntax GetTryParseParameterList()
         {
             return SF.ParameterList()
                     .AddParameters(SF.Parameter(
@@ -53,7 +52,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
                         type: GetParseMethodOutParameter(),
                         @default: default));
         }
-        public MethodDeclarationSyntax DeclareTryParseMethod()
+        public override MethodDeclarationSyntax DeclareMethod()
         {
 
             return SF.MethodDeclaration(

@@ -20,13 +20,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
                        SF.TypeArgumentList(new SeparatedSyntaxList<TypeSyntax>().Add(SF.ParseTypeName(ClassSymbol.Name)))),
                    SF.Token(SyntaxKind.DotToken));
         }
-
-        //public override BlockSyntax GenerateMethodBody()
-        //{
-        //    var list = new OperationsList(ClassSymbol, ClassDecl.Members);
-        //    return SF.Block(list.Generate());
-        //}
-
         public override TypeSyntax GetParseMethodOutParameter() => SF.ParseTypeName(ClassSymbol.Name);
     }
 }

@@ -40,7 +40,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.ClassDeclarations
 
         public override MethodDeclarationSyntax DeclareTryParseMethod()
         {
-            return new GenericTryParseMethodDeclaration(this).DeclareTryParseMethod();
+            return new GenericTryParseMethodDeclaration(this).DeclareMethod();
+        }
+        public override MethodDeclarationSyntax DeclareWriteMethod()
+        {
+            throw new System.NotImplementedException();
         }
         public override ClassDeclarationSyntax Build()
         {
@@ -50,5 +54,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.ClassDeclarations
                        .WithMembers(GenerateStaticNamesSpans())
                        .AddMembers(DeclareTryParseMethod());
         }
+
+
     }
 }
