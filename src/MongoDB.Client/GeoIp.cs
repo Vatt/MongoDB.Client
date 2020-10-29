@@ -1,7 +1,7 @@
 ﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
 
-namespace MongoDB.Client
+namespace MongoDB.Client.Test
 {
     [BsonSerializable]
     public class GeoIp
