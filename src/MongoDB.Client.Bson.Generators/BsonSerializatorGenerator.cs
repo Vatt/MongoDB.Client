@@ -15,6 +15,15 @@ namespace MongoDB.Client.Bson.Generators
     {
         private List<ClassDeclMeta> meta = new List<ClassDeclMeta>();
         GeneratorExecutionContext _context;
+        public string GenerateUsings()
+        {
+            StringBuilder builder = new StringBuilder();
+            foreach(var item in meta)
+            {
+                builder.Append($"\n using {item.StringNamespace};");
+            }
+            return builder.ToString();
+        }
         public string GenerateGlobalHelperStaticClass()
         {
             StringBuilder builder = new StringBuilder();
@@ -23,6 +32,7 @@ using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
 using System;
 using System.Collections.Generic;
+{GenerateUsings()}
 namespace MongoDB.Client.Bson.Serialization.Generated{{
     public static class {Basics.GlobalSerializationHelperGeneratedString}{{
         {GenerateFields()}
@@ -66,7 +76,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
         public void Execute(GeneratorExecutionContext context)
         {
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver)) { return; }
-           // System.Diagnostics.Debugger.Launch();
+            //System.Diagnostics.Debugger.Launch();
             if (receiver.Candidates.Count == 0)
             {
                 return;
