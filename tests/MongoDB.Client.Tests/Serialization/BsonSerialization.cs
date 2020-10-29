@@ -8,17 +8,6 @@ using Xunit;
 
 namespace MongoDB.Client.Tests
 {
-    [BsonSerializable]
-    public class Sample
-    {
-        public long LongValue;
-        public string StringValue;
-        public int IntValue;
-        public double DoubleValue;
-        public DateTimeOffset DateTimeValue { get; set; }
-        public BsonObjectId ObjectId;
-        public bool BooleanValue;
-    }
     public class BsonSerialization : BaseSerialization
     {
         [Fact]
@@ -42,17 +31,23 @@ namespace MongoDB.Client.Tests
             // TODO: Need to implement BsonDocument equals
             Assert.Equal(doc, result);
         }
+
+
         [Fact]
         public async Task SerializationDeserializationGenerated()
         {
-            var doc = new Data();
-            doc.Age = 42;
-            doc.Id = new BsonObjectId(42,42,42);
-            doc.Name = "DATA_TEST_STRING_NAME";
+            var doc = new Data
+            {
+                Age = 42,
+                Id = new BsonObjectId(42, 42, 42),
+                Name = "DATA_TEST_STRING_NAME"
+            };
             SerializersMap.TryGetSerializer<Data>(out var serializer);
+
+
             var result = await RoundTripAsync(doc, serializer);
 
-            // TODO: Need to implement BsonDocument equals
+
             Assert.Equal(doc, result);
         }
     }
