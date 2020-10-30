@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
@@ -22,6 +23,21 @@ namespace MongoDB.Client.Tests
                 { "inner", new BsonDocument {
                     {"innerString", "inner string" }
                 } }
+            };
+
+            var result = await RoundTripAsync(doc, new BsonDocumentSerializer());
+
+            Assert.Equal(doc, result);
+        }
+
+
+        [Fact]
+        public async Task GuidSerializationDeserialization()
+        {
+            var guid = Guid.NewGuid();
+            var doc = new BsonDocument
+            {
+                { "guid", BsonBinaryData.Create(guid)}
             };
 
             var result = await RoundTripAsync(doc, new BsonDocumentSerializer());

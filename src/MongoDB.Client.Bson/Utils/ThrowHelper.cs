@@ -26,5 +26,12 @@ namespace MongoDB.Client.Bson.Utils
         {
             throw new NotSupportedException($"Unknown document type: " + type.ToString());
         }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
+        public static T NotImplementedException<T>(string value)
+        {
+            throw new NotImplementedException($"'{value}' not implemented");
+        }
     }
 }

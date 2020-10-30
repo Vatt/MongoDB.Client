@@ -106,6 +106,12 @@ namespace MongoDB.Client.Bson.Document
             }
         }
 
+        public void Add(string name, BsonBinaryData value)
+        {
+            _elements.Add(BsonElement.Create(this, name, value));
+        }
+
+
 
         public BsonElement this[int idx] => _elements[idx];
         public BsonElement this[string name] => _elements.First(e => e.Name.Equals(name, StringComparison.Ordinal));
