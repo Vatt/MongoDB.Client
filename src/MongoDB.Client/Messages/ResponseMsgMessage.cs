@@ -2,11 +2,11 @@
 
 namespace MongoDB.Client.Messages
 {
-    class MsgMessage : MongoMessage
+    class ResponseMsgMessage : MongoResponseMessage
     {
         public MsgMessageHeader MsgHeader { get; }
 
-        public MsgMessage(in MessageHeader header, in MsgMessageHeader replyHeader) : base(header)
+        public ResponseMsgMessage(in MessageHeader header, in MsgMessageHeader replyHeader) : base(header)
         {
             MsgHeader = replyHeader;
         }

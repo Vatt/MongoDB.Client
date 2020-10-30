@@ -40,7 +40,7 @@ namespace MongoDB.Client.Bson.Document
         {
             if (value.HasValue)
             {
-                _elements.Add(BsonElement.Create(this, name, value.Value));
+                Add(name, value.Value);
             }
             else
             {

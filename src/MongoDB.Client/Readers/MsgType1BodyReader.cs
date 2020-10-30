@@ -8,7 +8,7 @@ namespace MongoDB.Client.Readers
 {
     internal class MsgType1BodyReader<T> : MsgBodyReader<T>
     {
-        public MsgType1BodyReader(IGenericBsonSerializer<T> serializer, MsgMessage message)
+        public MsgType1BodyReader(IGenericBsonSerializer<T> serializer, ResponseMsgMessage message)
             : base(serializer, message)
         {
         }

@@ -17,7 +17,7 @@ namespace MongoDB.Client.Readers
         private long _docLength;
         private ParserState _state;
 
-        public MsgType0BodyReader(IGenericBsonSerializer<T> serializer, MsgMessage message)
+        public MsgType0BodyReader(IGenericBsonSerializer<T> serializer, ResponseMsgMessage message)
             : base(serializer, message)
         {
             _payloadLength = message.Header.MessageLength - 21; // message header + msg flags + payloadType

@@ -24,7 +24,7 @@ namespace MongoDB.Client
 
         private ValueTask _listenerTask;
         private CancellationTokenSource _shutdownToken = new CancellationTokenSource();
-        private TaskCompletionSource<MongoMessage> _completionSource = new TaskCompletionSource<MongoMessage>();
+        private TaskCompletionSource<MongoResponseMessage> _completionSource = new TaskCompletionSource<MongoResponseMessage>();
         private ProtocolReader _protocolReader;
         private ProtocolWriter _protocolWriter;
         public MongoSession(System.Net.Connections.Connection connection)
@@ -69,7 +69,7 @@ namespace MongoDB.Client
             {
                 if (protocol is not null)
                 {
-                    _completionSource = new TaskCompletionSource<MongoMessage>();
+                    _completionSource = new TaskCompletionSource<MongoResponseMessage>();
 
                     await protocol.WriteAsync(ProtocolWriters.ReadOnlyMemoryWriter, Hello, cancellationToken).ConfigureAwait(false);
 

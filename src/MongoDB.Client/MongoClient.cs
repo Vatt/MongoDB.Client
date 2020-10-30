@@ -1,6 +1,7 @@
 ﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Messages;
+using MongoDB.Client.Protocol.Common;
 using System;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -40,7 +41,7 @@ namespace MongoDB.Client
             async ValueTask<ConnectionInfo> Slow(CancellationToken cancellationToken)
             {
                 await _channel.ConnectAsync(cancellationToken).ConfigureAwait(false);
-                QueryMessage? request = CreateRequest();
+                QueryMessage? request = CreateConnectRequest();
                 var configMessage = await _channel.SendQueryAsync<MongoConnectionInfo>(request, cancellationToken);
                 var hell = await _channel.SendAsync<BsonDocument>(Hell, cancellationToken);
                 _connectionInfo = new ConnectionInfo(configMessage, hell);
@@ -58,6 +59,18 @@ namespace MongoDB.Client
             return _channel.GetCursorAsync<TResp>(message, cancellationToken);
         }
 
+        public ValueTask<Cursor<TResp>> GetCursorAsync<TResp>(string database, CancellationToken cancellationToken)
+        {
+            var doc = new BsonDocument
+            {
+                {"find", database },
+                {"filter", new BsonDocument() }
+            };
+            
+            var request = CreateFindRequest(database, doc);
+            return _channel.GetCursorAsync<TResp>(request, cancellationToken);
+        }
+
         public ValueTask DisposeAsync()
         {
             return _channel.DisposeAsync();
@@ -65,12 +78,22 @@ namespace MongoDB.Client
 
         private int counter;
 
-        private QueryMessage CreateRequest()
+        private QueryMessage CreateConnectRequest()
+        {
+            var doc = CreateWrapperDocument();
+            return CreateRequest("admin.$cmd", Opcode.Query, doc);
+        }
+
+        private QueryMessage CreateRequest(string database, Opcode opcode, BsonDocument document)
         {
             var requestNumber = Interlocked.Increment(ref counter);
-            var database = "admin.$cmd";
-            var doc = CreateWrapperDocument();
-            return new QueryMessage(requestNumber, database, doc);
+            return new QueryMessage(requestNumber, database, opcode,document);
+        }
+
+        private MsgMessage CreateFindRequest(string database, BsonDocument document)
+        {
+            var requestNumber = Interlocked.Increment(ref counter);
+            return new MsgMessage(requestNumber, database, document);
         }
 
         private BsonDocument CreateWrapperDocument()
