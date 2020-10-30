@@ -11,7 +11,7 @@ namespace MongoDB.Client.Bson.Generators
 {
     //object - отдельная ветка генератора 
     [Generator]
-    partial class BsonSerializatorGenerator : ISourceGenerator
+    partial class BsonSerializerGenerator : ISourceGenerator
     {
         private List<ClassDeclMeta> meta = new List<ClassDeclMeta>();
         GeneratorExecutionContext _context;
@@ -32,11 +32,18 @@ using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 {GenerateUsings()}
 namespace MongoDB.Client.Bson.Serialization.Generated{{
     public static class {Basics.GlobalSerializationHelperGeneratedString}{{
         {GenerateFields()}
         {GenerateGetSeriazlizersMethod()}
+
+        [ModuleInitializerAttribute]
+        public static void MapInit()
+        {{
+            SerializersMap.RegisterSerializers(GetGeneratedSerializers()) ;
+        }}
     }}
 }}");
             return builder.ToString();

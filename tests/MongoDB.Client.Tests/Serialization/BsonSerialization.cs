@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
@@ -8,6 +9,49 @@ using Xunit;
 
 namespace MongoDB.Client.Tests
 {
+    [BsonSerializable]
+    public class TestData : IEquatable<TestData>
+    {
+        [BsonElementField(ElementName = "_id")]
+        public BsonObjectId Id { get; set; }
+
+        public string Name { get; set; }
+
+        public int Age { get; set; }
+
+        public TestData InnerData { get; set; }
+        public override bool Equals(object? obj)
+        {
+            return obj is Data data && Equals(data);
+        }
+
+        public bool Equals(TestData? other)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+            if (ReferenceEquals(other, this))
+            {
+                return true;
+            }
+            if (InnerData == null && other.InnerData == null)
+            {
+                return true;
+            }
+            if ((InnerData != null && other.InnerData == null) || (InnerData == null && other.InnerData != null))
+            {
+                return false;
+            }
+            return EqualityComparer<BsonObjectId>.Default.Equals(Id, other.Id) && Name == other.Name && Age == other.Age && InnerData.Equals(other.InnerData);
+        }
+
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Id, Name, Age);
+        }
+    }
     public class BsonSerialization : BaseSerialization
     {
         [Fact]
@@ -35,14 +79,14 @@ namespace MongoDB.Client.Tests
         [Fact]
         public async Task SerializationDeserializationGenerated()
         {
-            Data inner = new Data
+            TestData inner = new TestData
             {
                 Age = 24,
                 Id = new BsonObjectId(24, 24, 24),
                 Name = "INNER_DATA",
                 InnerData = null,
             };
-            Data doc = new Data
+            TestData doc = new TestData
             {
                 Age = 42,
                 Id = new BsonObjectId(42, 42, 42),
@@ -50,7 +94,7 @@ namespace MongoDB.Client.Tests
             };
             //inner.InnerData = doc;
             doc.InnerData = inner;
-            SerializersMap.TryGetSerializer<Data>(out var serializer);
+            SerializersMap.TryGetSerializer<TestData>(out var serializer);
             var result = await RoundTripAsync(doc, serializer);
 
 

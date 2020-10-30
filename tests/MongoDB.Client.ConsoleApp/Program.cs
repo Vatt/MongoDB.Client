@@ -1,10 +1,12 @@
 ﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Readers;
 using MongoDB.Client.Writers;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
@@ -12,6 +14,49 @@ using System.Threading.Tasks;
 
 namespace MongoDB.Client.Test
 {
+    [BsonSerializable]
+    public class TestData : IEquatable<TestData>
+    {
+        [BsonElementField(ElementName = "_id")]
+        public BsonObjectId Id { get; set; }
+
+        public string Name { get; set; }
+
+        public int Age { get; set; }
+
+        public TestData InnerData { get; set; }
+        public override bool Equals(object? obj)
+        {
+            return obj is Data data && Equals(data);
+        }
+
+        public bool Equals(TestData? other)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+            if (ReferenceEquals(other, this))
+            {
+                return true;
+            }
+            if (InnerData == null && other.InnerData == null)
+            {
+                return true;
+            }
+            if ((InnerData != null && other.InnerData == null) || (InnerData == null && other.InnerData != null))
+            {
+                return false;
+            }
+            return EqualityComparer<BsonObjectId>.Default.Equals(Id, other.Id) && Name == other.Name && Age == other.Age && InnerData.Equals(other.InnerData);
+        }
+
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Id, Name, Age);
+        }
+    }
     class Program
     {
         private static readonly byte[] NotEmptyCollection = new byte[] { 116, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 221, 7, 0, 0, 0, 0, 0, 0, 0, 95, 0, 0, 0, 2, 102, 105, 110, 100, 0, 15, 0, 0, 0, 84, 101, 115, 116, 67, 111, 108, 108, 101, 99, 116, 105, 111, 110, 0, 3, 102, 105, 108, 116, 101, 114, 0, 5, 0, 0, 0, 0, 2, 36, 100, 98, 0, 7, 0, 0, 0, 84, 101, 115, 116, 68, 98, 0, 3, 108, 115, 105, 100, 0, 30, 0, 0, 0, 5, 105, 100, 0, 16, 0, 0, 0, 4, 240, 238, 24, 182, 212, 193, 68, 157, 154, 174, 170, 95, 96, 34, 122, 59, 0, 0 };
