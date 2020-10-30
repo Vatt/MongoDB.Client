@@ -13,7 +13,9 @@
 
         public MongoCollection<T> GetCollection<T>(string name)
         {
-            return new MongoCollection<T>(this, name);
+            var collection = new MongoCollection<T>(this, name);
+            collection.BeginConnection();
+            return collection;
         }
     }
 }

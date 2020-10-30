@@ -1,7 +1,7 @@
 ﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Protocol.Common;
 
-namespace MongoDB.Client
+namespace MongoDB.Client.Protocol.Messages
 {
     public class MsgMessage
     {

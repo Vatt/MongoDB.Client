@@ -3,6 +3,7 @@ using MongoDB.Client.Protocol.Core;
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
+using MongoDB.Client.Protocol.Messages;
 
 namespace MongoDB.Client.Protocol.Writers
 {

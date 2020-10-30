@@ -1,34 +1,33 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Reader;
-using System;
-using System.Buffers.Binary;
-using System.Diagnostics;
+﻿using System;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
+using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Reader;
+using MongoDB.Client.Test;
 
-namespace MongoDB.Client.Test
+namespace MongoDB.Client.ConsoleApp
 {
     class Program
     {
         static async Task Main(string[] args)
         {
             var client = new MongoClient(/*new DnsEndPoint("centos0.mshome.net", 27017)*/);
-            var connectionInfo = await client.ConnectAsync(default);
-           
+
+            var db = client.GetDatabase("TestDb");
+            var collection1 = db.GetCollection<GeoIp>("TestCollection2");
+            var collection2 = db.GetCollection<GeoIp>("TestCollection3");
+
             var filter = new BsonDocument();
             
-            var result0 = await client.GetCursorAsync<GeoIp>("TestDb", "TestCollection3", filter, default);
-            var result1 = await client.GetCursorAsync<GeoIp>("TestDb", "TestCollection2", filter, default);
+            var result0 = await collection1.GetCursorAsync<GeoIp>( filter, default);
+            var result1 = await collection2.GetCursorAsync<GeoIp>( filter, default);
 
 
 
             var filter2 = new BsonDocument("_id", new BsonObjectId("5f987814bf344ec7cc57294b"));
-            var result2 = await client.GetCursorAsync<GeoIp>("TestDb", "TestCollection2", filter2, default);
+            var result2 = await collection1.GetCursorAsync<GeoIp>(filter2, default);
 
-
-            await client.DisposeAsync();
-
+            Console.WriteLine();
         }
 
         static void Test()
