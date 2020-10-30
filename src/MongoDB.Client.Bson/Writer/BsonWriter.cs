@@ -118,7 +118,7 @@ namespace MongoDB.Client.Bson.Writer
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void GetNextSpan()
+        public void GetNextSpan()
         {
             Commit();
             _span = _output.GetSpan();

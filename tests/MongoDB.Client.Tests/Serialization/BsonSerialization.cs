@@ -35,19 +35,21 @@ namespace MongoDB.Client.Tests
         [Fact]
         public async Task SerializationDeserializationGenerated()
         {
-            var inner = new Data
+            Data inner = new Data
             {
                 Age = 24,
                 Id = new BsonObjectId(24, 24, 24),
-                Name = "INNER_DATA"
+                Name = "INNER_DATA",
+                InnerData = null,
             };
-            var doc = new Data
+            Data doc = new Data
             {
                 Age = 42,
                 Id = new BsonObjectId(42, 42, 42),
                 Name = "DATA_TEST_STRING_NAME",
-                InnerData = inner
             };
+            //inner.InnerData = doc;
+            doc.InnerData = inner;
             SerializersMap.TryGetSerializer<Data>(out var serializer);
             var result = await RoundTripAsync(doc, serializer);
 

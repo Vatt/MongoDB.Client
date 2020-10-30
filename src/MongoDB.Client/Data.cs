@@ -31,7 +31,14 @@ namespace MongoDB.Client
             {
                 return true;
             }
-
+            if (InnerData == null && other.InnerData == null)
+            {
+                return true;
+            }
+            if ( (InnerData != null && other.InnerData == null ) || (InnerData == null && other.InnerData != null))
+            {
+                return false;
+            }
             return EqualityComparer<BsonObjectId>.Default.Equals(Id, other.Id) && Name == other.Name && Age == other.Age && InnerData.Equals(other.InnerData);
         }
 

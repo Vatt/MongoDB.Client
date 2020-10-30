@@ -18,7 +18,18 @@ namespace MongoDB.Client.Bson.Writer
             GetNextSpanWithoutCommit();
             WriteByte(EndMarker);
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void WriteBsonNull(ReadOnlySpan<byte> name)
+        {
+            WriteByte(10);
+            WriteCString(name);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write_Type_Name(byte type, ReadOnlySpan<byte> name)
+        {
+            WriteByte(type);
+            WriteCString(name);
+        }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, double value)
         {

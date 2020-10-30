@@ -9,5 +9,5 @@
   <ItemGroup>
     <PackageReference Include="System.IO.Pipelines" Version="5.0.0-rc.2.20475.5" />
   </ItemGroup>
-
+	
 </Project>

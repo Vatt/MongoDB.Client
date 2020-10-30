@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using MongoDB.Client.Bson.Serialization.Generated;
 namespace MongoDB.Client
 {
     public static class SerializersMap
@@ -15,7 +14,7 @@ namespace MongoDB.Client
         };
         static SerializersMap()
         {
-            foreach (var pair in GlobalSerializationHelperGenerated.GetGeneratedSerializers())
+            foreach (var pair in MongoDB.Client.Bson.Serialization.Generated.GlobalSerializationHelperGenerated.GetGeneratedSerializers())
             {
                 _serializerMap.Add(pair.Key, pair.Value);
             }
