@@ -1,13 +1,8 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Reader;
-using MongoDB.Client.Bson.Serialization;
-using MongoDB.Client.Protocol.Core;
-using MongoDB.Client.Readers;
-using MongoDB.Client.Writers;
+﻿using MongoDB.Client.Bson.Reader;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Pipelines;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace MongoDB.Client.Test
@@ -19,8 +14,11 @@ namespace MongoDB.Client.Test
 
         static async Task Main(string[] args)
         {
+            var msg = Encoding.UTF8.GetString(EmptyCollection);
+
             var client = new MongoClient(/*new DnsEndPoint("centos0.mshome.net", 27017)*/);
             var connectionInfo = await client.ConnectAsync(default);
+            var result0 = await client.GetCursorAsync<GeoIp>("TestCollection3", default);
             var result1 = await client.GetCursorAsync<GeoIp>(EmptyCollection, default).ToListAsync();
             var result2 = await client.GetCursorAsync<GeoIp>(NotEmptyCollection, default).ToListAsync();
             var result3 = await client.GetCursorAsync<GeoIp>(EmptyCollection, default).ToListAsync();

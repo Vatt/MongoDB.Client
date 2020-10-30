@@ -108,42 +108,79 @@ namespace MongoDB.Client.Readers
             modelsLength = 0;
             hasBatch = false;
             string name;
+            byte endMarker;
+            bool hasItems;
+            var checkpoint = reader.BytesConsumed;
             if (!reader.TryGetInt32(out docLength)) { return false; }
-            if (TryGetName(ref reader, out name) == false) { return false; }
-
-            if (name == "cursor")
+            do
             {
-                var initConsumed = reader.BytesConsumed;
-                if (!reader.TryGetInt32(out var cursorLength)) { return false; }
-                bool hasItems;
-                while (reader.BytesConsumed - initConsumed < cursorLength - 1)
+                
+                if (TryGetName(ref reader, out name) == false) { return false; }
+                if (name == "cursor")
                 {
-                    if (TryGetName(ref reader, out name) == false) { return false; }
-                    if (TryParseValue(ref reader, name, out hasItems, out modelsLength) == false) { return false; }
-                    if (hasItems)
+                    var initConsumed = reader.BytesConsumed;
+                    if (!reader.TryGetInt32(out var cursorLength)) { return false; }
+                    
+                    while (reader.BytesConsumed - initConsumed < cursorLength - 1)
                     {
-                        hasBatch = true;
-                        return true;
+                        if (TryGetName(ref reader, out name) == false) { return false; }
+                        if (TryParseValue(ref reader, name, out hasItems, out modelsLength) == false) { return false; }
+                        if (hasItems)
+                        {
+                            hasBatch = true;
+                            return true;
+                        }
                     }
-                }
 
-                byte endMarker;
-                if (!reader.TryGetByte(out endMarker)) { return false; }
-                if (endMarker is 0)
-                {
-                    if (TryGetName(ref reader, out name) == false) { return false; }
-                    if (TryParseValue(ref reader, name, out _, out modelsLength) == false) { return false; }
+
                     if (!reader.TryGetByte(out endMarker)) { return false; }
                     if (endMarker is 0)
                     {
-                        return true;
+                        if (TryGetName(ref reader, out name) == false) { return false; }
+                        if (TryParseValue(ref reader, name, out _, out modelsLength) == false) { return false; }
+                        if (!reader.TryGetByte(out endMarker)) { return false; }
+                        if (endMarker is 0)
+                        {
+                            return true;
+                        }
                     }
+
+                    return ThrowHelper.MissedDocumentEndMarkerException<bool>();
                 }
 
-                return ThrowHelper.MissedDocumentEndMarkerException<bool>();
-            }
 
-            return false;
+                if (name == "ok")
+                {
+                    if (!reader.TryGetDouble(out var okValue)) { return false; }
+                    CursorResult.Ok = okValue;
+                }
+
+                if (name == "errmsg")
+                {
+                    if (!reader.TryGetString(out var errorValue)) { return false; }
+                    CursorResult.ErrorMessage = errorValue;
+                }
+
+                if (name == "code")
+                {
+                    if (!reader.TryGetInt32(out var codeValue)) { return false; }
+                    CursorResult.Code = codeValue;
+                }
+
+                if (name == "codeName")
+                {
+                    if (!reader.TryGetString(out var codeNameValue)) { return false; }
+                    CursorResult.CodeName = codeNameValue;
+                }
+            }
+            while (reader.BytesConsumed - checkpoint < docLength - 1);
+
+            if (!reader.TryGetByte(out endMarker)) { return false; }
+            if (endMarker is 0)
+            {
+                return true;
+            }
+            return ThrowHelper.MissedDocumentEndMarkerException<bool>();
         }
 
         private bool TryReadCursorEnd(ref BsonReader reader)

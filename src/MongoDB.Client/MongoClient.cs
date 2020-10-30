@@ -64,9 +64,11 @@ namespace MongoDB.Client
             var doc = new BsonDocument
             {
                 {"find", database },
-                {"filter", new BsonDocument() }
+                {"filter", new BsonDocument() },
+                {"$db", "TestDb"},
+                {"lsid", new BsonDocument("id", new Guid("07dcacbc-5715-4780-832a-45ebb83fbe2f")) }
             };
-            
+
             var request = CreateFindRequest(database, doc);
             return _channel.GetCursorAsync<TResp>(request, cancellationToken);
         }
@@ -87,7 +89,7 @@ namespace MongoDB.Client
         private QueryMessage CreateRequest(string database, Opcode opcode, BsonDocument document)
         {
             var requestNumber = Interlocked.Increment(ref counter);
-            return new QueryMessage(requestNumber, database, opcode,document);
+            return new QueryMessage(requestNumber, database, opcode, document);
         }
 
         private MsgMessage CreateFindRequest(string database, BsonDocument document)

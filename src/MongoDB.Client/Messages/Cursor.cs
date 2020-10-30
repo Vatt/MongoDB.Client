@@ -7,6 +7,10 @@ namespace MongoDB.Client.Messages
         public Cursor<T> Cursor { get; set; }
 
         public double Ok { get; set; }
+
+        public string? ErrorMessage { get; set; }
+        public int Code { get; set; }
+        public string? CodeName { get; set; }
     }
 
     public class Cursor<T>
