@@ -11,18 +11,20 @@ namespace MongoDB.Client.Test
 {
     class Program
     {
-        private static readonly byte[] NotEmptyCollection = new byte[] { 116, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 221, 7, 0, 0, 0, 0, 0, 0, 0, 95, 0, 0, 0, 2, 102, 105, 110, 100, 0, 15, 0, 0, 0, 84, 101, 115, 116, 67, 111, 108, 108, 101, 99, 116, 105, 111, 110, 0, 3, 102, 105, 108, 116, 101, 114, 0, 5, 0, 0, 0, 0, 2, 36, 100, 98, 0, 7, 0, 0, 0, 84, 101, 115, 116, 68, 98, 0, 3, 108, 115, 105, 100, 0, 30, 0, 0, 0, 5, 105, 100, 0, 16, 0, 0, 0, 4, 240, 238, 24, 182, 212, 193, 68, 157, 154, 174, 170, 95, 96, 34, 122, 59, 0, 0 };
-        private static readonly byte[] EmptyCollection = new byte[] { 117, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 221, 7, 0, 0, 0, 0, 0, 0, 0, 96, 0, 0, 0, 2, 102, 105, 110, 100, 0, 16, 0, 0, 0, 84, 101, 115, 116, 67, 111, 108, 108, 101, 99, 116, 105, 111, 110, 50, 0, 3, 102, 105, 108, 116, 101, 114, 0, 5, 0, 0, 0, 0, 2, 36, 100, 98, 0, 7, 0, 0, 0, 84, 101, 115, 116, 68, 98, 0, 3, 108, 115, 105, 100, 0, 30, 0, 0, 0, 5, 105, 100, 0, 16, 0, 0, 0, 4, 1, 159, 223, 195, 102, 86, 79, 175, 184, 118, 148, 208, 140, 216, 134, 192, 0, 0 };
-
         static async Task Main(string[] args)
         {
             var client = new MongoClient(/*new DnsEndPoint("centos0.mshome.net", 27017)*/);
             var connectionInfo = await client.ConnectAsync(default);
-
+           
             var filter = new BsonDocument();
-            var id = new Guid("07dcacbc-5715-4780-832a-45ebb83fbe2f");
-            var result0 = await client.GetCursorAsync<GeoIp>("TestDb", "TestCollection3", filter, id, default);
-            var result1 = await client.GetCursorAsync<GeoIp>("TestDb", "TestCollection2", filter, id, default);
+            
+            var result0 = await client.GetCursorAsync<GeoIp>("TestDb", "TestCollection3", filter, default);
+            var result1 = await client.GetCursorAsync<GeoIp>("TestDb", "TestCollection2", filter, default);
+
+
+
+            var filter2 = new BsonDocument("_id", new BsonObjectId("5f987814bf344ec7cc57294b"));
+            var result2 = await client.GetCursorAsync<GeoIp>("TestDb", "TestCollection2", filter2, default);
 
 
             await client.DisposeAsync();

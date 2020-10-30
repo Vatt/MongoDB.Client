@@ -227,7 +227,7 @@ namespace MongoDB.Client
             }
         }
 
-        public async ValueTask<Cursor<TResp>> GetCursorAsync<TResp>(MsgMessage message, CancellationToken cancellationToken)
+        public async ValueTask<CursorResult<TResp>> GetCursorAsync<TResp>(MsgMessage message, CancellationToken cancellationToken)
         {
             if (_shutdownToken.IsCancellationRequested == false)
             {
@@ -240,12 +240,12 @@ namespace MongoDB.Client
                     return await ParseAsync<TResp>(response).ConfigureAwait(false);
                 }
 
-                return ThrowHelper.ConnectionException<Cursor<TResp>>(_endpoint);
+                return ThrowHelper.ConnectionException<CursorResult<TResp>>(_endpoint);
             }
-            return ThrowHelper.ObjectDisposedException<Cursor<TResp>>(nameof(Channel));
+            return ThrowHelper.ObjectDisposedException<CursorResult<TResp>>(nameof(Channel));
 
 
-            async ValueTask<Cursor<T>> ParseAsync<T>(MongoResponseMessage message)
+            async ValueTask<CursorResult<T>> ParseAsync<T>(MongoResponseMessage message)
             {
                 var reader = _reader!;
                 switch (message)
@@ -264,7 +264,7 @@ namespace MongoDB.Client
                             }
                             else
                             {
-                                return ThrowHelper.InvalidPayloadTypeException<Cursor<T>>(msgMessage.MsgHeader.PayloadType);
+                                return ThrowHelper.InvalidPayloadTypeException<CursorResult<T>>(msgMessage.MsgHeader.PayloadType);
                             }
 
                             while (bodyReader.Complete == false)
@@ -273,12 +273,12 @@ namespace MongoDB.Client
                                 reader.Advance();
                             }
 
-                            return bodyReader.CursorResult.Cursor;
+                            return bodyReader.CursorResult;
                         }
 
-                        return ThrowHelper.UnsupportedTypeException<Cursor<T>>(typeof(T));
+                        return ThrowHelper.UnsupportedTypeException<CursorResult<T>>(typeof(T));
                     default:
-                        return ThrowHelper.UnsupportedTypeException<Cursor<T>>(typeof(T));
+                        return ThrowHelper.UnsupportedTypeException<CursorResult<T>>(typeof(T));
                 }
             }
         }

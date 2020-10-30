@@ -30,7 +30,12 @@ namespace MongoDB.Client.Bson.Document
             Add(name, value);
         }
 
-        
+        public BsonDocument(string name, BsonObjectId value)
+            : this()
+        {
+            Add(name, value);
+        }
+
         public void Add(BsonElement element)
         {
             _elements.Add(element);
@@ -180,6 +185,10 @@ namespace MongoDB.Client.Bson.Document
             _elements.Add(BsonElement.Create(this, name, value));
         }
 
+        public void Add(string name, BsonObjectId value)
+        {
+            _elements.Add(BsonElement.Create(this, name, value));
+        }
 
 
         public BsonElement this[int idx] => _elements[idx];

@@ -33,5 +33,12 @@ namespace MongoDB.Client.Bson.Utils
         {
             throw new NotImplementedException($"'{value}' not implemented");
         }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
+        public static void ObjectIdParseException()
+        {
+            throw new ArgumentException($"The array must be larger than 12 bytes");
+        }
     }
 }

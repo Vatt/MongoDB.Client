@@ -1,18 +1,58 @@
 ﻿using System;
+using System.Buffers.Binary;
+using System.Globalization;
+using MongoDB.Client.Bson.Utils;
 
 namespace MongoDB.Client.Bson.Document
 {
-    public readonly struct BsonObjectId
+    public readonly struct BsonObjectId : IEquatable<BsonObjectId>
     {
         public readonly int Part1 { get; }
         public readonly int Part2 { get; }
         public readonly int Part3 { get; }
+
         public BsonObjectId(int p1, int p2, int p3)
         {
             Part1 = p1;
             Part2 = p2;
             Part3 = p3;
         }
+
+        public BsonObjectId(ReadOnlySpan<byte> span)
+        {
+            if (span.Length < 12)
+            {
+                ThrowHelper.ObjectIdParseException();
+            }
+            Part1 = BinaryPrimitives.ReadInt32LittleEndian(span);
+            Part2 = BinaryPrimitives.ReadInt32LittleEndian(span.Slice(4));
+            Part3 = BinaryPrimitives.ReadInt32LittleEndian(span.Slice(8));
+        }
+
+        public BsonObjectId(ReadOnlySpan<char> value)
+        {
+            if (value.Length < 24)
+            {
+                ThrowHelper.ObjectIdParseException();
+            }
+            if (int.TryParse(value.Slice(0, 8), NumberStyles.AllowHexSpecifier, null, out int part1) == false)
+            {
+                ThrowHelper.ObjectIdParseException();
+            }
+            if (int.TryParse(value.Slice(8, 8), NumberStyles.AllowHexSpecifier, null, out int part2) == false)
+            {
+                ThrowHelper.ObjectIdParseException();
+            }
+            if (int.TryParse(value.Slice(16, 8), NumberStyles.AllowHexSpecifier, null, out int part3) == false)
+            {
+                ThrowHelper.ObjectIdParseException();
+            }
+
+            Part1 = part1;
+            Part2 = part2;
+            Part3 = part3;
+        }
+
 
         public override string ToString()
         {
@@ -44,15 +84,32 @@ namespace MongoDB.Client.Bson.Document
             return new string(c);
         }
 
+        public bool TryWriteBytes(Span<byte> destination)
+        {
+            if (destination.Length >= 12)
+            {
+                BinaryPrimitives.WriteInt32BigEndian(destination, Part1);
+                BinaryPrimitives.WriteInt32BigEndian(destination.Slice(4), Part2);
+                BinaryPrimitives.WriteInt32BigEndian(destination.Slice(8), Part3);
+                return true;
+            }
+            return false;
+        }
+
 
         /// <summary>
         /// Converts a value to a hex character.
         /// </summary>
         /// <param name="value">The value (assumed to be between 0 and 15).</param>
         /// <returns>The hex character.</returns>
-        public static char ToHexChar(int value)
+        private static char ToHexChar(int value)
         {
             return (char)(value + (value < 10 ? '0' : 'a' - 10));
+        }
+
+        public bool Equals(BsonObjectId other)
+        {
+            return Part1 == other.Part1 && Part2 == other.Part2 && Part3 == other.Part3;
         }
     }
 }
