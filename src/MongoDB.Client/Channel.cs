@@ -8,7 +8,6 @@ using MongoDB.Client.Protocol.Writers;
 using MongoDB.Client.Readers;
 using System;
 using System.Net;
-using System.Net.Connections;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Client.Connection;
@@ -47,20 +46,6 @@ namespace MongoDB.Client
             _endpoint = endpoint ?? throw new ArgumentNullException(nameof(endpoint));
             _connectionFactory = new NetworkConnectionFactory();
             _initialDocument = InitHelper.CreateInitialCommand();
-        }
-
-        private async Task ConnectAsync(CancellationToken cancellationToken)
-        {
-            _connection = await _connectionFactory.ConnectAsync(_endpoint, null, cancellationToken)
-                .ConfigureAwait(false);
-            if (_connection is null)
-            {
-                ThrowHelper.ConnectionException<bool>(_endpoint);
-            }
-
-            _reader = new ProtocolReader(_connection.Pipe.Input);
-            _writer = new ProtocolWriter(_connection.Pipe.Output);
-            _readingTask = StartReadAsync();
         }
 
         private static readonly byte[] Hell = new byte[]
@@ -112,6 +97,20 @@ namespace MongoDB.Client
             }
         }
 
+        private async Task ConnectAsync(CancellationToken cancellationToken)
+        {
+            _connection = await _connectionFactory.ConnectAsync(_endpoint, null, cancellationToken)
+                .ConfigureAwait(false);
+            if (_connection is null)
+            {
+                ThrowHelper.ConnectionException<bool>(_endpoint);
+            }
+
+            _reader = new ProtocolReader(_connection.Pipe.Input);
+            _writer = new ProtocolWriter(_connection.Pipe.Output);
+            _readingTask = StartReadAsync();
+        }
+        
         private QueryMessage CreateConnectRequest()
         {
             var doc = CreateWrapperDocument();
@@ -188,49 +187,6 @@ namespace MongoDB.Client
             }
         }
 
-        public async ValueTask<TResp> SendAsync<TResp>(ReadOnlyMemory<byte> message,
-            CancellationToken cancellationToken)
-        {
-            if (_shutdownToken.IsCancellationRequested == false)
-            {
-                if (_writer is not null)
-                {
-                    await _writer.WriteAsync(memoryWriter, message, cancellationToken).ConfigureAwait(false);
-
-                    var response = await new ValueTask<MongoResponseMessage>(completionSource, completionSource.Version)
-                        .ConfigureAwait(false);
-                    completionSource.Reset();
-                    return await ParseAsync<TResp>(response).ConfigureAwait(false);
-                }
-
-                return ThrowHelper.ConnectionException<TResp>(_endpoint);
-            }
-
-            return ThrowHelper.ObjectDisposedException<TResp>(nameof(Channel));
-
-
-            async ValueTask<T> ParseAsync<T>(MongoResponseMessage message)
-            {
-                var reader = _reader!;
-                switch (message)
-                {
-                    case ReplyMessage replyMessage:
-                        if (SerializersMap.TryGetSerializer<T>(out var replySerializer))
-                        {
-                            var bodyReader = new ReplyBodyReader<T>(replySerializer);
-                            var bodyResult = await reader.ReadAsync(bodyReader, _shutdownToken.Token)
-                                .ConfigureAwait(false);
-                            reader.Advance();
-                            return bodyResult.Message;
-                        }
-
-                        return ThrowHelper.UnsupportedTypeException<T>(typeof(T));
-                    default:
-                        return ThrowHelper.UnsupportedTypeException<T>(typeof(T));
-                }
-            }
-        }
-
         public async ValueTask<TResp> SendQueryAsync<TResp>(QueryMessage message, CancellationToken cancellationToken)
         {
             if (_shutdownToken.IsCancellationRequested == false)
@@ -269,66 +225,6 @@ namespace MongoDB.Client
                         return ThrowHelper.UnsupportedTypeException<T>(typeof(T));
                     default:
                         return ThrowHelper.UnsupportedTypeException<T>(typeof(T));
-                }
-            }
-        }
-
-        public async ValueTask<Cursor<TResp>> GetCursorAsync<TResp>(ReadOnlyMemory<byte> message,
-            CancellationToken cancellationToken)
-        {
-            if (_shutdownToken.IsCancellationRequested == false)
-            {
-                if (_writer is not null)
-                {
-                    await _writer.WriteAsync(memoryWriter, message, cancellationToken).ConfigureAwait(false);
-
-                    var response = await new ValueTask<MongoResponseMessage>(completionSource, completionSource.Version)
-                        .ConfigureAwait(false);
-                    completionSource.Reset();
-                    return await ParseAsync<TResp>(response).ConfigureAwait(false);
-                }
-
-                return ThrowHelper.ConnectionException<Cursor<TResp>>(_endpoint);
-            }
-
-            return ThrowHelper.ObjectDisposedException<Cursor<TResp>>(nameof(Channel));
-
-
-            async ValueTask<Cursor<T>> ParseAsync<T>(MongoResponseMessage message)
-            {
-                var reader = _reader!;
-                switch (message)
-                {
-                    case ResponseMsgMessage msgMessage:
-                        if (SerializersMap.TryGetSerializer<T>(out var msgSerializer))
-                        {
-                            MsgBodyReader<T> bodyReader;
-                            if (msgMessage.MsgHeader.PayloadType == 0)
-                            {
-                                bodyReader = new MsgType0BodyReader<T>(msgSerializer, msgMessage);
-                            }
-                            else if (msgMessage.MsgHeader.PayloadType == 1)
-                            {
-                                bodyReader = new MsgType1BodyReader<T>(msgSerializer, msgMessage);
-                            }
-                            else
-                            {
-                                return ThrowHelper.InvalidPayloadTypeException<Cursor<T>>(msgMessage.MsgHeader
-                                    .PayloadType);
-                            }
-
-                            while (bodyReader.Complete == false)
-                            {
-                                _ = await reader.ReadAsync(bodyReader, _shutdownToken.Token).ConfigureAwait(false);
-                                reader.Advance();
-                            }
-
-                            return bodyReader.CursorResult.Cursor;
-                        }
-
-                        return ThrowHelper.UnsupportedTypeException<Cursor<T>>(typeof(T));
-                    default:
-                        return ThrowHelper.UnsupportedTypeException<Cursor<T>>(typeof(T));
                 }
             }
         }
@@ -393,22 +289,6 @@ namespace MongoDB.Client
             }
         }
 
-        private BsonDocument GetHelloMessage()
-        {
-            var root = new BsonDocument
-            {
-                {
-                    "driver", new BsonDocument
-                    {
-                        {"driver", "MongoDB.Client"},
-                        {"version", "0.0.0"}
-                    }
-                }
-            };
-
-            return root;
-        }
-
         public async ValueTask DisposeAsync()
         {
             _shutdownToken.Cancel();
@@ -423,5 +303,113 @@ namespace MongoDB.Client
                 await _connection.DisposeAsync().ConfigureAwait(false);
             }
         }
+
+
+        #region NeedToRemove
+
+        public async ValueTask<Cursor<TResp>> GetCursorAsync<TResp>(ReadOnlyMemory<byte> message,
+            CancellationToken cancellationToken)
+        {
+            if (_shutdownToken.IsCancellationRequested == false)
+            {
+                if (_writer is not null)
+                {
+                    await _writer.WriteAsync(memoryWriter, message, cancellationToken).ConfigureAwait(false);
+
+                    var response = await new ValueTask<MongoResponseMessage>(completionSource, completionSource.Version)
+                        .ConfigureAwait(false);
+                    completionSource.Reset();
+                    return await ParseAsync<TResp>(response).ConfigureAwait(false);
+                }
+
+                return ThrowHelper.ConnectionException<Cursor<TResp>>(_endpoint);
+            }
+
+            return ThrowHelper.ObjectDisposedException<Cursor<TResp>>(nameof(Channel));
+
+
+            async ValueTask<Cursor<T>> ParseAsync<T>(MongoResponseMessage message)
+            {
+                var reader = _reader!;
+                switch (message)
+                {
+                    case ResponseMsgMessage msgMessage:
+                        if (SerializersMap.TryGetSerializer<T>(out var msgSerializer))
+                        {
+                            MsgBodyReader<T> bodyReader;
+                            if (msgMessage.MsgHeader.PayloadType == 0)
+                            {
+                                bodyReader = new MsgType0BodyReader<T>(msgSerializer, msgMessage);
+                            }
+                            else if (msgMessage.MsgHeader.PayloadType == 1)
+                            {
+                                bodyReader = new MsgType1BodyReader<T>(msgSerializer, msgMessage);
+                            }
+                            else
+                            {
+                                return ThrowHelper.InvalidPayloadTypeException<Cursor<T>>(msgMessage.MsgHeader
+                                    .PayloadType);
+                            }
+
+                            while (bodyReader.Complete == false)
+                            {
+                                _ = await reader.ReadAsync(bodyReader, _shutdownToken.Token).ConfigureAwait(false);
+                                reader.Advance();
+                            }
+
+                            return bodyReader.CursorResult.Cursor;
+                        }
+
+                        return ThrowHelper.UnsupportedTypeException<Cursor<T>>(typeof(T));
+                    default:
+                        return ThrowHelper.UnsupportedTypeException<Cursor<T>>(typeof(T));
+                }
+            }
+        }
+
+        public async ValueTask<TResp> SendAsync<TResp>(ReadOnlyMemory<byte> message,
+            CancellationToken cancellationToken)
+        {
+            if (_shutdownToken.IsCancellationRequested == false)
+            {
+                if (_writer is not null)
+                {
+                    await _writer.WriteAsync(memoryWriter, message, cancellationToken).ConfigureAwait(false);
+
+                    var response = await new ValueTask<MongoResponseMessage>(completionSource, completionSource.Version)
+                        .ConfigureAwait(false);
+                    completionSource.Reset();
+                    return await ParseAsync<TResp>(response).ConfigureAwait(false);
+                }
+
+                return ThrowHelper.ConnectionException<TResp>(_endpoint);
+            }
+
+            return ThrowHelper.ObjectDisposedException<TResp>(nameof(Channel));
+
+
+            async ValueTask<T> ParseAsync<T>(MongoResponseMessage message)
+            {
+                var reader = _reader!;
+                switch (message)
+                {
+                    case ReplyMessage replyMessage:
+                        if (SerializersMap.TryGetSerializer<T>(out var replySerializer))
+                        {
+                            var bodyReader = new ReplyBodyReader<T>(replySerializer);
+                            var bodyResult = await reader.ReadAsync(bodyReader, _shutdownToken.Token)
+                                .ConfigureAwait(false);
+                            reader.Advance();
+                            return bodyResult.Message;
+                        }
+
+                        return ThrowHelper.UnsupportedTypeException<T>(typeof(T));
+                    default:
+                        return ThrowHelper.UnsupportedTypeException<T>(typeof(T));
+                }
+            }
+        }
+
+        #endregion
     }
 }
