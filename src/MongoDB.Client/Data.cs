@@ -15,6 +15,7 @@ namespace MongoDB.Client
 
         public int Age { get; set; }
 
+        public Data InnerData { get; set; }
         public override bool Equals(object? obj)
         {
             return obj is Data data && Equals(data);
@@ -31,7 +32,7 @@ namespace MongoDB.Client
                 return true;
             }
 
-            return EqualityComparer<BsonObjectId>.Default.Equals(Id, other.Id) && Name == other.Name && Age == other.Age;
+            return EqualityComparer<BsonObjectId>.Default.Equals(Id, other.Id) && Name == other.Name && Age == other.Age && InnerData.Equals(other.InnerData);
         }
 
 

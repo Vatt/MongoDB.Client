@@ -8,6 +8,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
     static class Basics
     {
+        public static IdentifierNameSyntax VarTypeIdentifier = SF.IdentifierName("var");
         public static string SerializerInterface => "IGenericBsonSerializer";
         public static IdentifierNameSyntax GlobalSerializationHelperGenerated => SF.IdentifierName("GlobalSerializationHelperGenerated");
         public static string GlobalSerializationHelperGeneratedString => "GlobalSerializationHelperGenerated";
@@ -28,7 +29,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         public static SyntaxTokenList PrivateStatic => new SyntaxTokenList().Add(SF.Token(SyntaxKind.PrivateKeyword)).Add(SF.Token(SyntaxKind.StaticKeyword));
         public static LiteralExpressionSyntax NumberLiteral(int number)
         {
-            return SF.LiteralExpression(SyntaxKind.NumericLiteralExpression, SF.ParseToken(number.ToString()));
+            return SF.LiteralExpression(SyntaxKind.NumericLiteralExpression, SF.Literal(number));
         }
         public static string GenerateSerializerName(ISymbol classSymbol)
         {
@@ -66,6 +67,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         public static InvocationExpressionSyntax InvocationExpression1(IdentifierNameSyntax source, IdentifierNameSyntax member, ArgumentSyntax arg)
         {
             return SF.InvocationExpression(SimpleMemberAccess(source, member), SF.ArgumentList(SF.SingletonSeparatedList(arg)));
+        }
+        public static InvocationExpressionSyntax InvocationExpression(IdentifierNameSyntax source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
+        {
+            return SF.InvocationExpression(SimpleMemberAccess(source, member), SF.ArgumentList().AddArguments(args));
+        }
+        public static InvocationExpressionSyntax InvocationExpression0(IdentifierNameSyntax source, IdentifierNameSyntax member)
+        {
+            return SF.InvocationExpression(SimpleMemberAccess(source, member), SF.ArgumentList());
         }
         public static MemberAccessExpressionSyntax SimpleMemberAccess(INamedTypeSymbol classSymbol, MemberDeclarationMeta memberdecl)
         {

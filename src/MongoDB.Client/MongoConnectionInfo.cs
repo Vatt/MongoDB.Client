@@ -18,7 +18,7 @@ namespace MongoDB.Client
     public class MongoConnectionInfo
     {
         [BsonElementField(ElementName = "ismaster")]
-        public bool IsMaster;
+        public bool IsMaster { get; set; }
 
         [BsonElementField(ElementName = "topologyVersion")]
         public MongoTopologyVersion Topology { get; set; }
