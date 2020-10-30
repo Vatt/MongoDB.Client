@@ -1,5 +1,7 @@
-﻿using MongoDB.Client.Bson.Reader;
+﻿using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Reader;
 using System;
+using System.Buffers.Binary;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -14,30 +16,16 @@ namespace MongoDB.Client.Test
 
         static async Task Main(string[] args)
         {
-            var msg = Encoding.UTF8.GetString(EmptyCollection);
-
             var client = new MongoClient(/*new DnsEndPoint("centos0.mshome.net", 27017)*/);
             var connectionInfo = await client.ConnectAsync(default);
-            var result0 = await client.GetCursorAsync<GeoIp>("TestCollection3", default);
-            var result1 = await client.GetCursorAsync<GeoIp>(EmptyCollection, default).ToListAsync();
-            var result2 = await client.GetCursorAsync<GeoIp>(NotEmptyCollection, default).ToListAsync();
-            var result3 = await client.GetCursorAsync<GeoIp>(EmptyCollection, default).ToListAsync();
-            var result4 = await client.GetCursorAsync<GeoIp>(NotEmptyCollection, default).ToListAsync();
 
-            for (int i = 0; i < 100; i++)
-            {
-                var warmupResult = await client.GetCursorAsync<GeoIp>(NotEmptyCollection, default).ToListAsync();
-            }
+            var filter = new BsonDocument();
+            var id = new Guid("07dcacbc-5715-4780-832a-45ebb83fbe2f");
+            var result0 = await client.GetCursorAsync<GeoIp>("TestDb", "TestCollection3", filter, id, default);
+            var result1 = await client.GetCursorAsync<GeoIp>("TestDb", "TestCollection2", filter, id, default);
 
-            var sw = Stopwatch.StartNew();
-            for (int i = 0; i < 100; i++)
-            {
-                var testResult = await client.GetCursorAsync<GeoIp>(NotEmptyCollection, default).ToListAsync();
-            }
-            sw.Stop();
 
             await client.DisposeAsync();
-            Console.WriteLine(sw.Elapsed);
 
         }
 

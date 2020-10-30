@@ -59,14 +59,14 @@ namespace MongoDB.Client
             return _channel.GetCursorAsync<TResp>(message, cancellationToken);
         }
 
-        public ValueTask<Cursor<TResp>> GetCursorAsync<TResp>(string database, CancellationToken cancellationToken)
+        public ValueTask<Cursor<TResp>> GetCursorAsync<TResp>(string database, string collection, BsonDocument filter, Guid id, CancellationToken cancellationToken)
         {
             var doc = new BsonDocument
             {
-                {"find", database },
-                {"filter", new BsonDocument() },
-                {"$db", "TestDb"},
-                {"lsid", new BsonDocument("id", new Guid("07dcacbc-5715-4780-832a-45ebb83fbe2f")) }
+                {"find", collection },
+                {"filter", filter },
+                {"$db", database},
+                {"lsid", new BsonDocument("id", BsonBinaryData.Create(id)) }
             };
 
             var request = CreateFindRequest(database, doc);

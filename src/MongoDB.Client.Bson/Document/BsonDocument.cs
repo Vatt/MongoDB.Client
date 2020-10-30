@@ -24,7 +24,13 @@ namespace MongoDB.Client.Bson.Document
             Add(name, value);
         }
 
+        public BsonDocument(string name, BsonBinaryData value)
+            : this()
+        {
+            Add(name, value);
+        }
 
+        
         public void Add(BsonElement element)
         {
             _elements.Add(element);
