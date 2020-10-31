@@ -33,7 +33,6 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         public BsonObjectId Id { get; set; }
 
         public string Name { get; set; }
-
         public int Age { get; set; }
 
         public InnerTestData InnerData { get; set; }
