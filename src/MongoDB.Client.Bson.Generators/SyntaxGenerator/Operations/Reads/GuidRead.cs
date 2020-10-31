@@ -4,7 +4,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.Reads
 {
     internal class GuidRead : ReadWithBsonType
     {
-        protected override IdentifierNameSyntax MethodIdentifier => SF.IdentifierName("TryGetGuidWithBsonType");
+        protected override IdentifierNameSyntax ReadMethodIdentifier => SF.IdentifierName("TryGetGuidWithBsonType");
+
+        protected override IdentifierNameSyntax WriteMethodIdentifier => throw new System.NotImplementedException();
+
         public GuidRead(IdentifierNameSyntax readerIdentifier) : base(readerIdentifier)
         {
 

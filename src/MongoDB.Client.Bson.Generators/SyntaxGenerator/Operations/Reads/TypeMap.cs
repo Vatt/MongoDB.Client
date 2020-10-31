@@ -4,9 +4,9 @@ using MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.Reads;
 using System.Collections.Generic;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
-    internal static class ReadsMap
+    internal static class TypeMap
     {
-        internal static readonly Dictionary<string, ReadBase> SimpleOperations = new Dictionary<string, ReadBase>()
+        internal static readonly Dictionary<string, ReadWriteBase> SimpleOperations = new Dictionary<string, ReadWriteBase>()
         {
             ["Double"] = new DoubleRead(Basics.ReaderInputVariableIdentifier),
             ["String"] = new StringRead(Basics.ReaderInputVariableIdentifier),
@@ -19,7 +19,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             ["DateTimeOffset"] = new DateTimeOffsetRead(Basics.ReaderInputVariableIdentifier)
 
         };
-        internal static bool TryGetValue(ITypeSymbol sym, out ReadBase readOp)
+        internal static bool TryGetValue(ITypeSymbol sym, out ReadWriteBase readOp)
         {
             return SimpleOperations.TryGetValue(sym.Name, out readOp);
         }

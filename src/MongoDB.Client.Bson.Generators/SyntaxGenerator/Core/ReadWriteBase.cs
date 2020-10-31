@@ -5,14 +5,15 @@ using System.Diagnostics;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
 {
-    internal abstract class ReadBase
+    internal abstract class ReadWriteBase
     {
         protected DeclarationExpressionSyntax _variableDecl;
         protected ExpressionSyntax _assignExpr;
         protected IdentifierNameSyntax _readerVariableName;
 
-        protected abstract IdentifierNameSyntax MethodIdentifier { get; }
-        public ReadBase(IdentifierNameSyntax readerVariableName)
+        protected abstract IdentifierNameSyntax ReadMethodIdentifier { get; }
+        protected abstract IdentifierNameSyntax WriteMethodIdentifier { get; }
+        public ReadWriteBase(IdentifierNameSyntax readerVariableName)
         {
             _readerVariableName = readerVariableName;
         }
@@ -42,11 +43,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
             return default;
 
         }
-        public virtual InvocationExpressionSyntax Generate()
+        public virtual InvocationExpressionSyntax GenerateRead()
         {
 
             var expr = SF.InvocationExpression(
-                               expression: Basics.SimpleMemberAccess(_readerVariableName, MethodIdentifier),
+                               expression: Basics.SimpleMemberAccess(_readerVariableName, ReadMethodIdentifier),
                                argumentList: ArgumentList());
             _variableDecl = null;
             _assignExpr = null;

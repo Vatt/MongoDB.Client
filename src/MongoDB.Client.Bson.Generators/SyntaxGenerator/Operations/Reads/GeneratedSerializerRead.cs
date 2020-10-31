@@ -6,10 +6,13 @@ using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.Reads
 {
-    internal class GeneratedSerializerRead : ReadBase
+    internal class GeneratedSerializerRead : ReadWriteBase
     {
         private INamedTypeSymbol _classSymbol;
-        protected override IdentifierNameSyntax MethodIdentifier => SF.IdentifierName(Basics.GenerateSerializerNameStaticField(_classSymbol));
+        protected override IdentifierNameSyntax ReadMethodIdentifier => SF.IdentifierName(Basics.GenerateSerializerNameStaticField(_classSymbol));
+
+        protected override IdentifierNameSyntax WriteMethodIdentifier => throw new System.NotImplementedException();
+
         public GeneratedSerializerRead(INamedTypeSymbol classSymbol, IdentifierNameSyntax readerVariableName) : base(readerVariableName)
         {
             _classSymbol = classSymbol;
@@ -30,12 +33,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.Reads
             }
             return default;
         }
-        public override InvocationExpressionSyntax Generate()
+        public override InvocationExpressionSyntax GenerateRead()
         {
             var serializer = Basics.GlobalSerializationHelperGenerated;
             return SF.InvocationExpression(
                            expression: SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                                            Basics.SimpleMemberAccess(serializer, MethodIdentifier),
+                                            Basics.SimpleMemberAccess(serializer, ReadMethodIdentifier),
                                             SF.IdentifierName("TryParse")),
                            argumentList: ArgumentList());
         }

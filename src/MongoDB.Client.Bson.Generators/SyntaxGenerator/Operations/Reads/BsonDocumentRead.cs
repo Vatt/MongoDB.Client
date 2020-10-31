@@ -4,9 +4,12 @@ using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.Reads
 {
-    internal class BsonDocumentRead : ReadBase
+    internal class BsonDocumentRead : ReadWriteBase
     {
-        protected override IdentifierNameSyntax MethodIdentifier => SF.IdentifierName("TryParseDocument");
+        protected override IdentifierNameSyntax ReadMethodIdentifier => SF.IdentifierName("TryParseDocument");
+
+        protected override IdentifierNameSyntax WriteMethodIdentifier => throw new System.NotImplementedException();
+
         public BsonDocumentRead(IdentifierNameSyntax readerVariableName) : base(readerVariableName)
         {
         }

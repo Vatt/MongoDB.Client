@@ -24,10 +24,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
             {
                 type = MemberDecl.DeclType.TypeArguments[0];
             }
-            ReadsMap.TryGetValue(type/*MemberDecl.DeclType*/, out var readOp);
+            TypeMap.TryGetValue(type/*MemberDecl.DeclType*/, out var readOp);
             readOp.WithVariableDeclaration(_variadleIdentifier);
             return SF.IfStatement(
-                condition: SF.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, readOp.Generate()),
+                condition: SF.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, readOp.GenerateRead()),
                 statement: SF.Block(SF.ReturnStatement(SF.LiteralExpression(SyntaxKind.FalseLiteralExpression))));
         }
         IfStatementSyntax GenerateIfNameEqualsStatement()

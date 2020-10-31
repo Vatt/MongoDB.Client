@@ -6,7 +6,7 @@ using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.Reads
 {
-    internal abstract class ReadWithBsonType : ReadBase
+    internal abstract class ReadWithBsonType : ReadWriteBase
     {
         public ReadWithBsonType(IdentifierNameSyntax readerVariableName) : base(readerVariableName)
         {

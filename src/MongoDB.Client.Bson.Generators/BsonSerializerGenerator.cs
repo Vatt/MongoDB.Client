@@ -30,9 +30,9 @@ namespace MongoDB.Client.Bson.Generators
             context.AddSource($"{Basics.GlobalSerializationHelperGeneratedString}.cs", SourceText.From(GenerateGlobalHelperStaticClass(), Encoding.UTF8));
             foreach (var item in meta)
             {
-                if (!ReadsMap.SimpleOperations.ContainsKey(item.ClassSymbol.Name))
+                if (!TypeMap.SimpleOperations.ContainsKey(item.ClassSymbol.Name))
                 {
-                    ReadsMap.SimpleOperations.Add(item.ClassSymbol.Name, new GeneratedSerializerRead(item.ClassSymbol, Basics.TryParseBsonNameIdentifier));
+                    TypeMap.SimpleOperations.Add(item.ClassSymbol.Name, new GeneratedSerializerRead(item.ClassSymbol, Basics.TryParseBsonNameIdentifier));
                 }
 
             }
