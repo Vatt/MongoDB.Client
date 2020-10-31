@@ -15,15 +15,14 @@ namespace MongoDB.Client.ConsoleApp
             var collection1 = db.GetCollection<GeoIp>("TestCollection2");
             var collection2 = db.GetCollection<GeoIp>("TestCollection3");
 
-            
             var filter = new BsonDocument();
 
-            var result0 = await collection1.GetCursorAsync<GeoIp>(filter, default);
-            var result1 = await collection2.GetCursorAsync<GeoIp>(filter, default);
+            var result0 = await collection1.GetCursorAsync(filter, default);
+            var result1 = await collection2.GetCursorAsync(filter, default);
 
 
             var filter2 = new BsonDocument("_id", new BsonObjectId("5f987814bf344ec7cc57294b"));
-            var result2 = await collection1.GetCursorAsync<GeoIp>(filter2, default);
+            var result2 = await collection1.GetCursorAsync(filter2, default);
 
             Console.WriteLine(result0.Cursor.Items.Count);
             Console.WriteLine(result1.Cursor.Items.Count);

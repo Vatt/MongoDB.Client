@@ -1,5 +1,4 @@
-﻿using System.Buffers;
-using System.IO;
+﻿using System.IO;
 using BenchmarkDotNet.Attributes;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;

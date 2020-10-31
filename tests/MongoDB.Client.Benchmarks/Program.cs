@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using BenchmarkDotNet.Running;
-using MongoDB.Client.Benchmarks.Serialization;
+﻿using BenchmarkDotNet.Running;
 
 namespace MongoDB.Client.Benchmarks
 {
@@ -12,7 +6,11 @@ namespace MongoDB.Client.Benchmarks
     {
         public static void Main(string[] args)
         {
-            BenchmarkRunner.Run<SerializationBenchmarks>();
+#if DEBUG
+            BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args, new BenchmarkDotNet.Configs.DebugInProcessConfig());
+#else
+            BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
+#endif
         }
     }
 }

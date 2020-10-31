@@ -8,6 +8,7 @@ using MongoDB.Client.Protocol.Readers;
 using MongoDB.Client.Protocol.Writers;
 using MongoDB.Client.Readers;
 using System;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,8 +34,11 @@ namespace MongoDB.Client
         private static readonly QueryMessageWriter queryWriter = new QueryMessageWriter();
         private static readonly MsgMessageWriter msgWriter = new MsgMessageWriter();
 
-        private readonly ManualResetValueTaskSource<MongoResponseMessage> completionSource =
-            new ManualResetValueTaskSource<MongoResponseMessage>();
+        private readonly ConcurrentDictionary<int, TaskCompletionSource<MongoResponseMessage>> _completionMap =
+            new ConcurrentDictionary<int, TaskCompletionSource<MongoResponseMessage>>();
+        
+        // private readonly ManualResetValueTaskSource<MongoResponseMessage> completionSource =
+        //     new ManualResetValueTaskSource<MongoResponseMessage>();
 
         private CancellationTokenSource _shutdownToken = new CancellationTokenSource();
         private Task? _readingTask;
@@ -97,8 +101,8 @@ namespace MongoDB.Client
                 await ConnectAsync(ct).ConfigureAwait(false);
                 QueryMessage? request = CreateConnectRequest();
                 var configMessage = await SendQueryAsync<MongoConnectionInfo>(request, ct).ConfigureAwait(false);
-                var hell = await SendAsync<BsonDocument>(Hell, ct).ConfigureAwait(false);
-                _connectionInfo = new ConnectionInfo(configMessage, hell);
+                // var hell = await SendAsync<BsonDocument>(Hell, ct).ConfigureAwait(false);
+                _connectionInfo = new ConnectionInfo(configMessage, null);
                 Init = true;
                 return _connectionInfo;
             }
@@ -126,7 +130,8 @@ namespace MongoDB.Client
 
         private QueryMessage CreateRequest(string database, Opcode opcode, BsonDocument document)
         {
-            return new QueryMessage(0, database, opcode, document);
+            var num = GetNextRequestNumber();
+            return new QueryMessage(num, database, opcode, document);
         }
 
         private BsonDocument CreateWrapperDocument()
@@ -157,6 +162,7 @@ namespace MongoDB.Client
             }
 
             MongoResponseMessage message;
+            TaskCompletionSource<MongoResponseMessage>? completion;
             while (_shutdownToken.IsCancellationRequested == false)
             {
                 var headerResult = await _reader.ReadAsync(messageHeaderReader, _shutdownToken.Token)
@@ -169,14 +175,22 @@ namespace MongoDB.Client
                             .ConfigureAwait(false);
                         _reader.Advance();
                         message = new ReplyMessage(headerResult.Message, replyResult.Message);
-                        completionSource.TrySetResult(message);
+                        if (_completionMap.TryGetValue(message.Header.ResponseTo, out completion))
+                        {
+                            completion.TrySetResult(message);
+                        }
+                        // TODO: 
                         break;
                     case Opcode.OpMsg:
                         var msgResult = await _reader.ReadAsync(msgMessageReader, _shutdownToken.Token)
                             .ConfigureAwait(false);
                         _reader.Advance();
                         message = new ResponseMsgMessage(headerResult.Message, msgResult.Message);
-                        completionSource.TrySetResult(message);
+                        if (_completionMap.TryGetValue(message.Header.ResponseTo, out completion))
+                        {
+                            completion.TrySetResult(message);
+                        }
+                        // TODO: 
                         break;
                     case Opcode.Message:
                     case Opcode.Update:
@@ -200,12 +214,23 @@ namespace MongoDB.Client
             {
                 if (_writer is not null)
                 {
-                    await _writer.WriteAsync(queryWriter, message, cancellationToken).ConfigureAwait(false);
-
-                    var response = await new ValueTask<MongoResponseMessage>(completionSource, completionSource.Version)
-                        .ConfigureAwait(false);
-                    completionSource.Reset();
-                    return await ParseAsync<TResp>(response).ConfigureAwait(false);
+                    var completion = _completionMap.GetOrAdd(message.RequestNumber,
+                     i => new TaskCompletionSource<MongoResponseMessage>());
+                    try
+                    {
+                        await _writer.WriteAsync(queryWriter, message, cancellationToken).ConfigureAwait(false);
+                 
+                        // var response = await new ValueTask<MongoResponseMessage>(completionSource, completionSource.Version)
+                        //     .ConfigureAwait(false);
+                        // completionSource.Reset();
+                        var response = await completion.Task.ConfigureAwait(false);
+                        
+                        return await ParseAsync<TResp>(response).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        _completionMap.TryRemove(message.RequestNumber, out _);
+                    }
                 }
 
                 return ThrowHelper.ConnectionException<TResp>(_endpoint);
@@ -243,12 +268,24 @@ namespace MongoDB.Client
             {
                 if (_writer is not null)
                 {
-                    await _writer.WriteAsync(msgWriter, message, cancellationToken).ConfigureAwait(false);
+                    var completion = _completionMap.GetOrAdd(message.RequestNumber,
+                        i => new TaskCompletionSource<MongoResponseMessage>());
+                    try
+                    {
+                        await _writer.WriteAsync(msgWriter, message, cancellationToken).ConfigureAwait(false);
 
-                    var response = await new ValueTask<MongoResponseMessage>(completionSource, completionSource.Version)
-                        .ConfigureAwait(false);
-                    completionSource.Reset();
-                    return await ParseAsync<TResp>(response).ConfigureAwait(false);
+
+                        // var response = await new ValueTask<MongoResponseMessage>(completionSource, completionSource.Version)
+                        //     .ConfigureAwait(false);
+                        // completionSource.Reset();
+                        var response = await completion.Task.ConfigureAwait(false);
+                        
+                        return await ParseAsync<TResp>(response).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        _completionMap.TryRemove(message.RequestNumber, out _);
+                    }
                 }
 
                 return ThrowHelper.ConnectionException<CursorResult<TResp>>(_endpoint);
@@ -313,109 +350,53 @@ namespace MongoDB.Client
 
 
         #region NeedToRemove
-
-        public async ValueTask<Cursor<TResp>> GetCursorAsync<TResp>(ReadOnlyMemory<byte> message,
-            CancellationToken cancellationToken)
-        {
-            if (_shutdownToken.IsCancellationRequested == false)
-            {
-                if (_writer is not null)
-                {
-                    await _writer.WriteAsync(memoryWriter, message, cancellationToken).ConfigureAwait(false);
-
-                    var response = await new ValueTask<MongoResponseMessage>(completionSource, completionSource.Version)
-                        .ConfigureAwait(false);
-                    completionSource.Reset();
-                    return await ParseAsync<TResp>(response).ConfigureAwait(false);
-                }
-
-                return ThrowHelper.ConnectionException<Cursor<TResp>>(_endpoint);
-            }
-
-            return ThrowHelper.ObjectDisposedException<Cursor<TResp>>(nameof(Channel));
-
-
-            async ValueTask<Cursor<T>> ParseAsync<T>(MongoResponseMessage message)
-            {
-                var reader = _reader!;
-                switch (message)
-                {
-                    case ResponseMsgMessage msgMessage:
-                        if (SerializersMap.TryGetSerializer<T>(out var msgSerializer))
-                        {
-                            MsgBodyReader<T> bodyReader;
-                            if (msgMessage.MsgHeader.PayloadType == 0)
-                            {
-                                bodyReader = new MsgType0BodyReader<T>(msgSerializer, msgMessage);
-                            }
-                            else if (msgMessage.MsgHeader.PayloadType == 1)
-                            {
-                                bodyReader = new MsgType1BodyReader<T>(msgSerializer, msgMessage);
-                            }
-                            else
-                            {
-                                return ThrowHelper.InvalidPayloadTypeException<Cursor<T>>(msgMessage.MsgHeader
-                                    .PayloadType);
-                            }
-
-                            while (bodyReader.Complete == false)
-                            {
-                                _ = await reader.ReadAsync(bodyReader, _shutdownToken.Token).ConfigureAwait(false);
-                                reader.Advance();
-                            }
-
-                            return bodyReader.CursorResult.Cursor;
-                        }
-
-                        return ThrowHelper.UnsupportedTypeException<Cursor<T>>(typeof(T));
-                    default:
-                        return ThrowHelper.UnsupportedTypeException<Cursor<T>>(typeof(T));
-                }
-            }
-        }
-
-        public async ValueTask<TResp> SendAsync<TResp>(ReadOnlyMemory<byte> message,
-            CancellationToken cancellationToken)
-        {
-            if (_shutdownToken.IsCancellationRequested == false)
-            {
-                if (_writer is not null)
-                {
-                    await _writer.WriteAsync(memoryWriter, message, cancellationToken).ConfigureAwait(false);
-
-                    var response = await new ValueTask<MongoResponseMessage>(completionSource, completionSource.Version)
-                        .ConfigureAwait(false);
-                    completionSource.Reset();
-                    return await ParseAsync<TResp>(response).ConfigureAwait(false);
-                }
-
-                return ThrowHelper.ConnectionException<TResp>(_endpoint);
-            }
-
-            return ThrowHelper.ObjectDisposedException<TResp>(nameof(Channel));
-
-
-            async ValueTask<T> ParseAsync<T>(MongoResponseMessage message)
-            {
-                var reader = _reader!;
-                switch (message)
-                {
-                    case ReplyMessage replyMessage:
-                        if (SerializersMap.TryGetSerializer<T>(out var replySerializer))
-                        {
-                            var bodyReader = new ReplyBodyReader<T>(replySerializer);
-                            var bodyResult = await reader.ReadAsync(bodyReader, _shutdownToken.Token)
-                                .ConfigureAwait(false);
-                            reader.Advance();
-                            return bodyResult.Message;
-                        }
-
-                        return ThrowHelper.UnsupportedTypeException<T>(typeof(T));
-                    default:
-                        return ThrowHelper.UnsupportedTypeException<T>(typeof(T));
-                }
-            }
-        }
+        
+        // public async ValueTask<TResp> SendAsync<TResp>(ReadOnlyMemory<byte> message,
+        //     CancellationToken cancellationToken)
+        // {
+        //     if (_shutdownToken.IsCancellationRequested == false)
+        //     {
+        //         if (_writer is not null)
+        //         {
+        //             await _writer.WriteAsync(memoryWriter, message, cancellationToken).ConfigureAwait(false);
+        //
+        //             var completion = _completionMap.GetOrAdd(message.RequestNumber,
+        //                 i => new TaskCompletionSource<MongoResponseMessage>());
+        //             // var response = await new ValueTask<MongoResponseMessage>(completionSource, completionSource.Version)
+        //             //     .ConfigureAwait(false);
+        //             // completionSource.Reset();
+        //             var response = await completion.Task.ConfigureAwait(false);
+        //             _completionMap.TryRemove(message.RequestNumber, out _);
+        //             return await ParseAsync<TResp>(response).ConfigureAwait(false);
+        //         }
+        //
+        //         return ThrowHelper.ConnectionException<TResp>(_endpoint);
+        //     }
+        //
+        //     return ThrowHelper.ObjectDisposedException<TResp>(nameof(Channel));
+        //
+        //
+        //     async ValueTask<T> ParseAsync<T>(MongoResponseMessage message)
+        //     {
+        //         var reader = _reader!;
+        //         switch (message)
+        //         {
+        //             case ReplyMessage replyMessage:
+        //                 if (SerializersMap.TryGetSerializer<T>(out var replySerializer))
+        //                 {
+        //                     var bodyReader = new ReplyBodyReader<T>(replySerializer);
+        //                     var bodyResult = await reader.ReadAsync(bodyReader, _shutdownToken.Token)
+        //                         .ConfigureAwait(false);
+        //                     reader.Advance();
+        //                     return bodyResult.Message;
+        //                 }
+        //
+        //                 return ThrowHelper.UnsupportedTypeException<T>(typeof(T));
+        //             default:
+        //                 return ThrowHelper.UnsupportedTypeException<T>(typeof(T));
+        //         }
+        //     }
+        // }
 
         #endregion
     }

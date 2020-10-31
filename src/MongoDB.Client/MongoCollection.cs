@@ -29,7 +29,7 @@ namespace MongoDB.Client
 
 
         
-        public async ValueTask<CursorResult<TResp>> GetCursorAsync<TResp>(BsonDocument filter, CancellationToken cancellationToken)
+        public async ValueTask<CursorResult<T>> GetCursorAsync(BsonDocument filter, CancellationToken cancellationToken)
         {
             if (_channel.Init == false)
             {
@@ -44,7 +44,7 @@ namespace MongoDB.Client
             };
             
             var request = CreateFindRequest(Database.Name, doc);
-            return await _channel.GetCursorAsync<TResp>(request, cancellationToken);
+            return await _channel.GetCursorAsync<T>(request, cancellationToken);
         }
 
         private MsgMessage CreateFindRequest(string database, BsonDocument document)
