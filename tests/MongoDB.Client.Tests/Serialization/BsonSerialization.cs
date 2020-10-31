@@ -66,7 +66,7 @@ namespace MongoDB.Client.Tests
             TestData doc = new TestData
             {
                 Age = 42,
-                Id = new BsonObjectId(42, 42, 42),
+                Id = new BsonObjectId("5f987814bf344ec7cc57294b"),
                 Name = "DATA_TEST_STRING_NAME",
                 InnerData = new TestData.InnerTestData
                 {

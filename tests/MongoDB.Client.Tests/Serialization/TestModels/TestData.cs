@@ -14,7 +14,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
             public int Value0;
             public int Value1;
             public int Value2;
-            public bool Equals(InnerTestData? other)
+            public bool Equals(InnerTestData other)
             {
                 if (other == null)
                 {
@@ -23,8 +23,8 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
                 return Value0 == other.Value0 && Value1 == other.Value1 && Value2 == other.Value2;
             }
             public override bool Equals(object? obj)
-            {
-                return obj is not null && Equals(obj);
+            {                
+                return obj is not null && obj is InnerTestData && Equals(obj);
             }
         }
 
