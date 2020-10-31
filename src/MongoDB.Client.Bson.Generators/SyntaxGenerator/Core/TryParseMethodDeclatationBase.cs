@@ -20,7 +20,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
                                     .Add(SF.ParseStatement("if (!reader.TryGetByte(out var bsonType)) { return false; }"))
                                     .Add(SF.ParseStatement("if (!reader.TryGetCStringAsSpan(out var bsonName)) { return false; } "))
                                     .AddRange(OperationsList.CreateReadOperations(ClassSymbol, Members).Generate())
-                                    .Add(SF.ParseStatement(@$"throw new ArgumentException($""{ClassSymbol.Name}.TryParse  with bson type number {{bsonType}}"");"));
+                                    .Add(SF.ParseStatement(@$"throw new ArgumentException($""{ClassSymbol.Name}.TryParse  with bson type number {{bsonType}} and name {{System.Text.Encoding.UTF8.GetString(bsonName)}}"");"));
             return SF.Block(
                 SF.ExpressionStatement(SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, Basics.TryParseOutVariableIdentifier, Basics.ObjectCreationWitoutArgs(ClassSymbol))),
                 SF.ParseStatement("if (!reader.TryGetInt32(out var docLength)) { return false; }"),
