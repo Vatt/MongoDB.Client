@@ -4,16 +4,16 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Core;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.Reads
+namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.ReadWrite
 {
-    internal class GeneratedSerializerRead : ReadWriteBase
+    internal class GeneratedSerializerRW : ReadWriteBase
     {
         private INamedTypeSymbol _classSymbol;
         protected override IdentifierNameSyntax ReadMethodIdentifier => SF.IdentifierName(Basics.GenerateSerializerNameStaticField(_classSymbol));
 
-        protected override IdentifierNameSyntax WriteMethodIdentifier => throw new System.NotImplementedException();
+        protected override IdentifierNameSyntax WriteMethodIdentifier => SF.IdentifierName("Write_Type_Name");
 
-        public GeneratedSerializerRead(INamedTypeSymbol classSymbol, IdentifierNameSyntax readerVariableName) : base(readerVariableName)
+        public GeneratedSerializerRW(INamedTypeSymbol classSymbol, IdentifierNameSyntax readerVariableName) : base(readerVariableName)
         {
             _classSymbol = classSymbol;
         }

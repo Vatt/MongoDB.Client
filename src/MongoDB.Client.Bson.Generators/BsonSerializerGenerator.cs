@@ -32,7 +32,7 @@ namespace MongoDB.Client.Bson.Generators
             {
                 if (!TypeMap.SimpleOperations.ContainsKey(item.ClassSymbol.Name))
                 {
-                    TypeMap.SimpleOperations.Add(item.ClassSymbol.Name, new GeneratedSerializerRead(item.ClassSymbol, Basics.TryParseBsonNameIdentifier));
+                    TypeMap.SimpleOperations.Add(item.ClassSymbol.Name, new GeneratedSerializerRW(item.ClassSymbol, Basics.TryParseBsonNameIdentifier));
                 }
 
             }
