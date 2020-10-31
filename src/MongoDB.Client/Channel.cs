@@ -56,6 +56,12 @@ namespace MongoDB.Client
             0, 0
         };
 
+        private static int _counter;
+        public int GetNextRequestNumber()
+        {
+            return Interlocked.Increment(ref _counter);
+        }
+        
         public ValueTask<ConnectionInfo> InitConnectAsync(CancellationToken cancellationToken)
         {
             if (_connectionInfo is not null)

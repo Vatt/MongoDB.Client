@@ -9,8 +9,6 @@ namespace MongoDB.Client
 {
     public class MongoCollection<T>
     {
-        private static int _counter;
-        
         private readonly Channel _channel;
 
         internal MongoCollection(MongoDatabase database, string name)
@@ -29,6 +27,8 @@ namespace MongoDB.Client
 
         public CollectionNamespace Namespace { get; }
 
+
+        
         public async ValueTask<CursorResult<TResp>> GetCursorAsync<TResp>(BsonDocument filter, CancellationToken cancellationToken)
         {
             if (_channel.Init == false)
@@ -49,7 +49,7 @@ namespace MongoDB.Client
 
         private MsgMessage CreateFindRequest(string database, BsonDocument document)
         {
-            var requestNumber = Interlocked.Increment(ref _counter);
+            var requestNumber = _channel.GetNextRequestNumber();
             return new MsgMessage(requestNumber, database, document);
         }
     }
