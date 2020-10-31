@@ -24,6 +24,17 @@ namespace MongoDB.Client.Bson.Document
             Add(name, value);
         }
 
+        public BsonDocument(string name, BsonBinaryData value)
+            : this()
+        {
+            Add(name, value);
+        }
+
+        public BsonDocument(string name, BsonObjectId value)
+            : this()
+        {
+            Add(name, value);
+        }
 
         public void Add(BsonElement element)
         {
@@ -34,6 +45,34 @@ namespace MongoDB.Client.Bson.Document
         public void Add(string name, int value)
         {
             _elements.Add(BsonElement.Create(this, name, value));
+        }
+
+        public void Add(string name, int? value)
+        {
+            if (value.HasValue)
+            {
+                Add(name, value.Value);
+            }
+            else
+            {
+                _elements.Add(BsonElement.Create(this, name));
+            }
+        }
+
+        public void Add(string name, int? value, bool condition)
+        {
+            if (condition)
+            {
+                Add(name, value);
+            }
+        }
+
+        public void Add(string name, Func<int> valueFactory, bool condition)
+        {
+            if (condition)
+            {
+                Add(name, valueFactory());
+            }
         }
 
         public void Add(string name, long value)
@@ -66,6 +105,33 @@ namespace MongoDB.Client.Bson.Document
             _elements.Add(BsonElement.Create(this, name, value));
         }
 
+        public void Add(string name, bool? value)
+        {
+            if (value.HasValue)
+            {
+                _elements.Add(BsonElement.Create(this, name, value.Value));
+            }
+            else
+            {
+                _elements.Add(BsonElement.Create(this, name));
+            }
+        }
+
+        public void Add(string name, bool? value, bool condition)
+        {
+            if (condition)
+            {
+                Add(name, value);
+            }
+        }
+
+        public void Add(string name, Func<bool> valueFactory, bool condition)
+        {
+            if (condition)
+            {
+                Add(name, valueFactory());
+            }
+        }
 
         public void Add(string name, BsonDocument? value)
         {
@@ -77,6 +143,14 @@ namespace MongoDB.Client.Bson.Document
             if (condition)
             {
                 _elements.Add(BsonElement.Create(this, name, value));
+            }
+        }
+
+        public void Add(string name, Func<BsonDocument> valueFactory, bool condition)
+        {
+            if (condition)
+            {
+                Add(name, valueFactory());
             }
         }
 
@@ -104,6 +178,16 @@ namespace MongoDB.Client.Bson.Document
             {
                 _elements.Add(BsonElement.Create(this, name, value));
             }
+        }
+
+        public void Add(string name, BsonBinaryData value)
+        {
+            _elements.Add(BsonElement.Create(this, name, value));
+        }
+
+        public void Add(string name, BsonObjectId value)
+        {
+            _elements.Add(BsonElement.Create(this, name, value));
         }
 
 

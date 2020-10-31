@@ -2,9 +2,6 @@
 {
     public enum BsonElementType : byte
     {
-        //   Byte,
-        //   Int16,
-
         Double = 1,
         String = 2,
         Document = 3,

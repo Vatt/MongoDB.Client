@@ -12,10 +12,10 @@ namespace MongoDB.Client.Readers
     {
         public CursorResult<T> CursorResult { get; private set; }
         protected readonly IGenericBsonSerializer<T> Serializer;
-        protected readonly MsgMessage Message;
+        protected readonly ResponseMsgMessage Message;
         public bool Complete { get; protected set; }
 
-        public MsgBodyReader(IGenericBsonSerializer<T> serializer, MsgMessage message)
+        public MsgBodyReader(IGenericBsonSerializer<T> serializer, ResponseMsgMessage message)
         {
             Serializer = serializer;
             Message = message;

@@ -173,23 +173,6 @@ namespace MongoDB.Client.Bson.Writer
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteInt16(short value)
-        {
-            if (BinaryPrimitives.TryWriteInt16LittleEndian(_span, value))
-            {
-                Advance(sizeof(short));
-                return;
-            }
-
-            _span[0] = (byte)value;
-            Advance(1);
-            GetNextSpan();
-            _span[0] = (byte)(value << 8);
-            Advance(1);
-        }
-
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteInt32(int value)
         {
             if (BinaryPrimitives.TryWriteInt32LittleEndian(_span, value))
@@ -198,6 +181,12 @@ namespace MongoDB.Client.Bson.Writer
                 return;
             }
 
+            SlowWriteInt32(value);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void SlowWriteInt32(int value)
+        {
             Span<byte> buffer = stackalloc byte[sizeof(int)];
             BinaryPrimitives.WriteInt32LittleEndian(buffer, value);
 
@@ -208,7 +197,6 @@ namespace MongoDB.Client.Bson.Writer
             Advance(sizeof(int) - rem);
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteInt64(long value)
         {
@@ -218,7 +206,12 @@ namespace MongoDB.Client.Bson.Writer
                 return;
             }
 
+            SlowWriteInt64(value);
+        }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void SlowWriteInt64(long value)
+        {
             Span<byte> buffer = stackalloc byte[sizeof(long)];
             BinaryPrimitives.WriteInt64LittleEndian(buffer, value);
 
@@ -228,7 +221,6 @@ namespace MongoDB.Client.Bson.Writer
             buffer.Slice(rem).CopyTo(_span);
             Advance(sizeof(long) - rem);
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteDouble(double value)
@@ -263,11 +255,29 @@ namespace MongoDB.Client.Bson.Writer
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteObjectId(BsonObjectId value)
+        public void WriteObjectId(in BsonObjectId value)
         {
-            WriteInt32(value.Part1);
-            WriteInt32(value.Part2);
-            WriteInt32(value.Part3);
+            const int oidSize = 12;
+            if (value.TryWriteBytes(_span))
+            {
+                Advance(oidSize);
+                return;
+            }
+            SlowWriteObjectId(value);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void SlowWriteObjectId(in BsonObjectId value)
+        {
+            const int oidSize = 12;
+            Span<byte> buffer = stackalloc byte[oidSize];
+            value.TryWriteBytes(buffer);
+
+            var rem = _span.Length;
+            buffer.Slice(0, rem).CopyTo(_span);
+            Advance(rem);
+            buffer.Slice(rem).CopyTo(_span);
+            Advance(oidSize - rem);
         }
 
 
@@ -279,7 +289,7 @@ namespace MongoDB.Client.Bson.Writer
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteGuidAsBytes(Guid guid)
+        public void WriteGuidAsBytes(in Guid guid)
         {
             const int guidSize = 16;
 
@@ -288,6 +298,14 @@ namespace MongoDB.Client.Bson.Writer
                 Advance(guidSize);
                 return;
             }
+            SlowWriteGuidAsBytes(guid);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void SlowWriteGuidAsBytes(in Guid guid)
+        {
+            const int guidSize = 16;
+
             Span<byte> buffer = stackalloc byte[guidSize];
             guid.TryWriteBytes(buffer);
 
@@ -297,7 +315,6 @@ namespace MongoDB.Client.Bson.Writer
             buffer.Slice(rem).CopyTo(_span);
             Advance(guidSize - rem);
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteGuidAsString(Guid guid)

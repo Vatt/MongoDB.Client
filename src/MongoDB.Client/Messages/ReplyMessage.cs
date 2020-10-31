@@ -2,7 +2,7 @@
 
 namespace MongoDB.Client.Messages
 {
-    class ReplyMessage : MongoMessage
+    class ReplyMessage : MongoResponseMessage
     {
         public ReplyMessageHeader ReplyHeader { get; }
 
