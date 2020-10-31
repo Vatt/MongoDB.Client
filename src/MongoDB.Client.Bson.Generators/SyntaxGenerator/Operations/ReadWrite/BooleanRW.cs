@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Core;
 
@@ -8,9 +9,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.ReadWrite
     {
         protected override IdentifierNameSyntax ReadMethodIdentifier => SyntaxFactory.IdentifierName("TryGetBoolean");
 
-        protected override IdentifierNameSyntax WriteMethodIdentifier => SyntaxFactory.IdentifierName("Write_Type_Name");
+        protected override IdentifierNameSyntax WriteMethodIdentifier => SyntaxFactory.IdentifierName("Write_Type_Name_Value");
 
-        public BooleanRW(IdentifierNameSyntax readerIdentifier) : base(readerIdentifier)
+        public BooleanRW() : base()
         {
 
         }

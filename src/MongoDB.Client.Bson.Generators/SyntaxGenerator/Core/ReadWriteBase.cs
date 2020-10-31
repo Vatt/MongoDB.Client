@@ -9,13 +9,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
     {
         protected DeclarationExpressionSyntax _variableDecl;
         protected ExpressionSyntax _assignExpr;
-        protected IdentifierNameSyntax _readerVariableName;
-
         protected abstract IdentifierNameSyntax ReadMethodIdentifier { get; }
         protected abstract IdentifierNameSyntax WriteMethodIdentifier { get; }
-        public ReadWriteBase(IdentifierNameSyntax readerVariableName)
+        public ReadWriteBase()
         {
-            _readerVariableName = readerVariableName;
+
         }
         public void WithVariableDeclaration(string identifier)
         {
@@ -30,7 +28,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
         {
             _assignExpr = Basics.SimpleMemberAccess(source, member);
         }
-        public virtual ArgumentListSyntax ArgumentList()
+        public virtual ArgumentListSyntax ReadArgumentList(INamedTypeSymbol classSym, MemberDeclarationMeta memberDecl)
         {
             if (_variableDecl != null)
             {
@@ -43,16 +41,26 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
             return default;
 
         }
-        public virtual InvocationExpressionSyntax GenerateRead()
+        public virtual InvocationExpressionSyntax GenerateRead(INamedTypeSymbol classSym, MemberDeclarationMeta memberDecl)
         {
 
             var expr = SF.InvocationExpression(
-                               expression: Basics.SimpleMemberAccess(_readerVariableName, ReadMethodIdentifier),
-                               argumentList: ArgumentList());
+                               expression: Basics.SimpleMemberAccess(Basics.ReaderInputVariableIdentifier, ReadMethodIdentifier),
+                               argumentList: ReadArgumentList(classSym, memberDecl));
             _variableDecl = null;
             _assignExpr = null;
             return expr;
 
+        }
+        public virtual StatementSyntax GenerateWrite(INamedTypeSymbol classSym, MemberDeclarationMeta memberDecl)
+        {
+            return SF.ExpressionStatement(
+                    SF.InvocationExpression(
+                        Basics.SimpleMemberAccess(Basics.WriterInputVariableIdentifierName, WriteMethodIdentifier),
+                        SF.ArgumentList()
+                            .AddArguments(
+                                SF.Argument(SF.IdentifierName(Basics.GenerateReadOnlySpanName(classSym, memberDecl))),
+                                SF.Argument(Basics.SimpleMemberAccess(Basics.WriteInputInVariableIdentifierName, SF.IdentifierName(memberDecl.DeclSymbol.Name))))));
         }
     }
 }

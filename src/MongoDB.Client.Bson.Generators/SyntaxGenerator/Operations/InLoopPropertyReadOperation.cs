@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Core;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.ReadWrite;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
@@ -23,7 +24,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
             TypeMap.TryGetValue(type/*MemberDecl.DeclType*/, out var readOp);
             readOp.WithVariableDeclaration(_variadleIdentifier);
             return SF.IfStatement(
-                condition: SF.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, readOp.GenerateRead()),
+                condition: SF.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, readOp.GenerateRead(ClassSymbol, MemberDecl)),
                 statement: SF.Block(SF.ReturnStatement(SF.LiteralExpression(SyntaxKind.FalseLiteralExpression))));
         }
         StatementSyntax GenerateAssignForTempVariable()

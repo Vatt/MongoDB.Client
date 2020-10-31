@@ -38,14 +38,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
             var operations = new List<OperationBase>();
             foreach (var member in members)
             {
-                if (SimpleOperations.Contains(member.DeclType.Name))
-                {
-                    operations.Add(new SimpleWriteOperation(classSymbol, member));
-                }
-                else
-                {
-                    operations.Add(new GeneratedSerializerWriteOperation(classSymbol, member));
-                }
+                operations.Add(new SimpleWriteOperation(classSymbol, member));
 
             }
             return new OperationsList(operations);

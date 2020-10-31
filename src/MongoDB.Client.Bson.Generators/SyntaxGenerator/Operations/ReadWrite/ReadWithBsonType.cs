@@ -8,11 +8,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.ReadWrite
 {
     internal abstract class ReadWithBsonType : ReadWriteBase
     {
-        public ReadWithBsonType(IdentifierNameSyntax readerVariableName) : base(readerVariableName)
+        public ReadWithBsonType() : base()
         {
 
         }
-        public override ArgumentListSyntax ArgumentList()
+        public override ArgumentListSyntax ReadArgumentList(INamedTypeSymbol classSym, MemberDeclarationMeta memberDecl)
         {
             if (_assignExpr != null)
             {

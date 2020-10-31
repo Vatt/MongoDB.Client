@@ -3,7 +3,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator;
-using MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.Reads;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.ReadWrite;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.ReadWrite;
 using System.Collections.Generic;
 using System.Text;
 
@@ -32,7 +33,7 @@ namespace MongoDB.Client.Bson.Generators
             {
                 if (!TypeMap.SimpleOperations.ContainsKey(item.ClassSymbol.Name))
                 {
-                    TypeMap.SimpleOperations.Add(item.ClassSymbol.Name, new GeneratedSerializerRW(item.ClassSymbol, Basics.TryParseBsonNameIdentifier));
+                    TypeMap.SimpleOperations.Add(item.ClassSymbol.Name, new GeneratedSerializerRW(item.ClassSymbol));
                 }
 
             }

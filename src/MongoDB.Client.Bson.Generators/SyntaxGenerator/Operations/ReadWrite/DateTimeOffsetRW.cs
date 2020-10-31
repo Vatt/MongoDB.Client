@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.ReadWrite
 {
@@ -7,9 +8,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.ReadWrite
     {
         protected override IdentifierNameSyntax ReadMethodIdentifier => SF.IdentifierName("TryGetDateTimeWithBsonType");
 
-        protected override IdentifierNameSyntax WriteMethodIdentifier => SF.IdentifierName("Write_Type_Name");
+        protected override IdentifierNameSyntax WriteMethodIdentifier => SF.IdentifierName("Write_Type_Name_Value");
 
-        public DateTimeOffsetRW(IdentifierNameSyntax readerIdentifier) : base(readerIdentifier)
+        public DateTimeOffsetRW() : base()
         {
 
         }

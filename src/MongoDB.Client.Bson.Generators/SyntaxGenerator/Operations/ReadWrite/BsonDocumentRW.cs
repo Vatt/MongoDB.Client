@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Core;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -8,9 +9,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.ReadWrite
     {
         protected override IdentifierNameSyntax ReadMethodIdentifier => SF.IdentifierName("TryParseDocument");
 
-        protected override IdentifierNameSyntax WriteMethodIdentifier => SF.IdentifierName("Write_Type_Name");
+        protected override IdentifierNameSyntax WriteMethodIdentifier => SF.IdentifierName("Write_Type_Name_Value");
 
-        public BsonDocumentRW(IdentifierNameSyntax readerVariableName) : base(readerVariableName)
+        public BsonDocumentRW() : base()
         {
         }
 

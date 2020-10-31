@@ -12,8 +12,8 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         public class InnerTestData
         {
             public int Value0;
-            public int Value1;
-            public int Value2;
+            public double Value1;
+            public long Value2;
             public bool Equals(InnerTestData other)
             {
                 if (other == null)
