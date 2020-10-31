@@ -27,14 +27,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.ClassDeclarations
             var genericsParameters = new SeparatedSyntaxList<TypeSyntax>();
             for (var index = 0; index < ClassSymbol.TypeArguments.Length; index++)
             {
-                genericsParameters = genericsParameters.Add(SF.ParseTypeName(ClassSymbol.TypeArguments[index].Name));
+                genericsParameters = genericsParameters.Add(SF.ParseTypeName(ClassSymbol.TypeArguments[index].ToString()));
             }
-            return SF.TypeArgumentList().AddArguments(SF.GenericName(ClassSymbol.Name).WithTypeArgumentList(SF.TypeArgumentList(genericsParameters)));
+            return SF.TypeArgumentList().AddArguments(SF.GenericName(ClassDecl.FullName).WithTypeArgumentList(SF.TypeArgumentList(genericsParameters)));
         }
 
         public override TypeSyntax GetTryParseMethodOutParameter()
         {
-            return SF.GenericName(SF.ParseToken(ClassSymbol.Name),
+            return SF.GenericName(SF.ParseToken(ClassDecl.FullName),
                                   SF.TypeArgumentList(GetGenericParametersList()));
         }
 

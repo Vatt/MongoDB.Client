@@ -8,6 +8,7 @@ namespace MongoDB.Client.Bson.Generators
         public INamedTypeSymbol ClassSymbol { get; set; }
         public string StringNamespace => ClassSymbol.ContainingNamespace.ToString();
         public List<MemberDeclarationMeta> MemberDeclarations { get; set; }
+        public string FullName => ClassSymbol.ToString();
         public ClassDeclMeta(INamedTypeSymbol classSymbol)
         {
             MemberDeclarations = new List<MemberDeclarationMeta>();

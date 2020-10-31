@@ -15,71 +15,7 @@ namespace MongoDB.Client.Bson.Generators
     {
         private List<ClassDeclMeta> meta = new List<ClassDeclMeta>();
         GeneratorExecutionContext _context;
-        public string GenerateUsings()
-        {
-            StringBuilder builder = new StringBuilder();
-            foreach(var item in meta)
-            {
-                builder.Append($"\n using {item.StringNamespace};");
-            }
-            return builder.ToString();
-        }
-        public string GenerateGlobalHelperStaticClass()
-        {
-            StringBuilder builder = new StringBuilder();
-            builder.Append($@"
-using MongoDB.Client.Bson.Reader;
-using MongoDB.Client.Bson.Serialization;
-using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-{GenerateUsings()}
-namespace MongoDB.Client.Bson.Serialization.Generated{{
-    public static class {Basics.GlobalSerializationHelperGeneratedString}{{
-        {GenerateFields()}
-        {GenerateGetSeriazlizersMethod()}
 
-        [ModuleInitializerAttribute]
-        public static void MapInit()
-        {{
-            SerializersMap.RegisterSerializers(GetGeneratedSerializers()) ;
-        }}
-    }}
-}}");
-            return builder.ToString();
-            string GenerateFields()
-            {
-                var builder = new StringBuilder();
-                foreach (var info in meta)
-                {
-                    builder.Append($"\n\t\tpublic static readonly  IGenericBsonSerializer<{info.ClassSymbol.Name}>  {Basics.GenerateSerializerNameStaticField(info.ClassSymbol)} = new {Basics.GenerateSerializerName(info.ClassSymbol)}();");
-                }
-                return builder.ToString();
-            }
-            string GenerateGetSeriazlizersMethod()
-            {
-                StringBuilder builder = new StringBuilder();
-                builder.Append($@"
-                public static KeyValuePair<Type, IBsonSerializer>[]  GetGeneratedSerializers()
-                {{
-                    var pairs = new KeyValuePair<Type, IBsonSerializer>[{meta.Count}];                    
-                ");
-                int index = 0;
-                foreach (var decl in meta)
-                {
-
-                    builder.Append($@"
-                    pairs[{index}] = KeyValuePair.Create<Type, IBsonSerializer>(typeof({decl.ClassSymbol.Name}), {Basics.GenerateSerializerNameStaticField(decl.ClassSymbol)});
-                    ");
-                    index++;
-                }
-                builder.Append(@"
-                    return pairs;
-                }
-                ");
-                return builder.ToString();
-            }
-        }
         public void Execute(GeneratorExecutionContext context)
         {
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver)) { return; }
@@ -91,7 +27,7 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
             _context = context;
 
             ProcessCandidates(receiver.Candidates);
-            context.AddSource($"GlobalSerializationHelperGenerated.cs", SourceText.From(GenerateGlobalHelperStaticClass(), Encoding.UTF8));
+            context.AddSource($"{Basics.GlobalSerializationHelperGeneratedString}.cs", SourceText.From(GenerateGlobalHelperStaticClass(), Encoding.UTF8));
             foreach (var item in meta)
             {
                 if (!ReadsMap.SimpleOperations.ContainsKey(item.ClassSymbol.Name))
@@ -107,13 +43,10 @@ namespace MongoDB.Client.Bson.Serialization.Generated{{
                 context.AddSource(Basics.GenerateSerializerName(item.ClassSymbol), SourceText.From(source, Encoding.UTF8));
                 System.Diagnostics.Debugger.Break();
             }
-
-            //Debugger.Launch();
-
         }
         public void Initialize(GeneratorInitializationContext context)
         {
-
+            //System.Diagnostics.Debugger.Launch();
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
         }
 

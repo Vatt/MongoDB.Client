@@ -12,6 +12,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
         protected ClassDeclMeta classDecl;
         protected TryParseMethodDeclatationBase TryParseMethod;
         internal INamedTypeSymbol ClassSymbol => classDecl.ClassSymbol;
+        internal ClassDeclMeta ClassDecl => classDecl;
         internal List<MemberDeclarationMeta> Members => classDecl.MemberDeclarations;
         public ClassDeclarationBase(ClassDeclMeta classdecl)
         {
@@ -58,7 +59,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
             return SF.ArrowExpressionClause(
                     SF.ArrayCreationExpression(
                         SF.ArrayType(
-                           SF.ParseTypeName("byte"),
+                           SF.PredefinedType(SF.Token(SyntaxKind.ByteKeyword)),
                            SF.SingletonList<ArrayRankSpecifierSyntax>(ArrayRank(memberdecl))),
 
 

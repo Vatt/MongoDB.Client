@@ -12,6 +12,7 @@ namespace MongoDB.Client.Bson.Generators
         public bool IsProperty => DeclSymbol.Kind == SymbolKind.Property;
         public bool IsGenericList => (DeclType.ToString().Contains("System.Collections.Generic.List") || DeclType.ToString().Contains("System.Collections.Generic.IList")) && DeclType.IsGenericType;
         public bool IsClassOrStruct => DeclType.TypeKind == TypeKind.Class || DeclType.TypeKind == TypeKind.Struct;
+        public string FullName => DeclSymbol.ToString();
         public ITypeSymbol GenericType => DeclType.TypeArguments[0];
         public MemberDeclarationMeta(ISymbol symbol)
         {

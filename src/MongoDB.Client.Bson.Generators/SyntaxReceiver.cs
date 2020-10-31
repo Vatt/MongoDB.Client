@@ -17,11 +17,14 @@ namespace MongoDB.Client.Bson.Generators
             {
                 foreach (var attr in attrList.Attributes)
                 {
-                    if (((IdentifierNameSyntax)attr.Name).Identifier.Text.Equals("BsonSerializable"))
+                    if (attr.Name is IdentifierNameSyntax identifier)
                     {
-                        Candidates.Add(decl);
-
+                        if (identifier.Identifier.Text.Equals("BsonSerializable"))
+                        {
+                            Candidates.Add(decl);
+                        }
                     }
+
                 }
 
             }
@@ -40,6 +43,7 @@ namespace MongoDB.Client.Bson.Generators
                         AddIfhaveBsonAttribute(structdecl);
                         break;
                     }
+
                     //case RecordDeclarationSyntax recorddecl:
                     //    {
                     //        AddIfhaveBsonAttribute(recorddecl);

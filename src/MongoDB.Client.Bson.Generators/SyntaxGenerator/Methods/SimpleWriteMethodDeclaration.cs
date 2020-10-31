@@ -3,7 +3,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Core;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations;
-using System;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
@@ -33,7 +32,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
             return SF.ExplicitInterfaceSpecifier(
                    SF.GenericName(
                        Basics.SerializerInterfaceIdentifier,
-                       SF.TypeArgumentList(new SeparatedSyntaxList<TypeSyntax>().Add(SF.ParseTypeName(ClassSymbol.Name)))),
+                       SF.TypeArgumentList(new SeparatedSyntaxList<TypeSyntax>().Add(SF.ParseTypeName(ClassSymbol.ToString())))),
                    SF.Token(SyntaxKind.DotToken));
         }
         StatementSyntax GenerateCheckpoint()
@@ -43,7 +42,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
                         SF.ParseTypeName("var"),
                         SF.SingletonSeparatedList(
                             SF.VariableDeclarator(
-                                checkpointToken, 
+                                checkpointToken,
                                 default,
                                 SF.EqualsValueClause(Basics.SimpleMemberAccess(Basics.WriterInputVariableIdentifierName, SF.IdentifierName("Written")))))));
         }
@@ -65,18 +64,18 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
         StatementSyntax GenerateWriteEndMarker()
         {
             var endMarkerLiteral = SF.LiteralExpression(SyntaxKind.NumericLiteralExpression, SF.Literal((byte)'\x00'));
-                                      
+
             return SF.ExpressionStatement(
                     SF.InvocationExpression(Basics.SimpleMemberAccess(Basics.WriterInputVariableIdentifierName, writeByteMethodId),
                                             SF.ArgumentList().AddArguments(SF.Argument(endMarkerLiteral))));
-              
+
         }
         StatementSyntax GenerateDocLenDeclareAndAssign()
         {
             var binaryExpr = SF.BinaryExpression(
                 kind: SyntaxKind.SubtractExpression,
                 left: Basics.SimpleMemberAccess(Basics.WriterInputVariableIdentifierName, writerWritePropId),
-                right: checkpointId);            
+                right: checkpointId);
             return SF.LocalDeclarationStatement(
                     SF.VariableDeclaration(
                         Basics.VarTypeIdentifier,
@@ -84,12 +83,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
         }
         StatementSyntax GenerateSizeSpanStackalloc()
         {
-            var spanGeneticName = SF.GenericName(SF.Identifier("Span"), 
+            var spanGeneticName = SF.GenericName(SF.Identifier("Span"),
                                                  SF.TypeArgumentList(new SeparatedSyntaxList<TypeSyntax>().Add(SF.PredefinedType(SF.Token(SyntaxKind.ByteKeyword)))));
             var equalsValueClause = SF.EqualsValueClause(
                                         SF.StackAllocArrayCreationExpression(
                                             SF.ArrayType(
-                                                SF.PredefinedType(SF.Token(SyntaxKind.ByteKeyword)), 
+                                                SF.PredefinedType(SF.Token(SyntaxKind.ByteKeyword)),
                                                 SF.SingletonList(SF.ArrayRankSpecifier().AddSizes(Basics.NumberLiteral(4))))));
             return SF.LocalDeclarationStatement(SF.VariableDeclaration(spanGeneticName, SF.SingletonSeparatedList(SF.VariableDeclarator(sizeSpanNameToken, default, equalsValueClause))));
         }
@@ -105,7 +104,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
         {
             return SF.ExpressionStatement(Basics.InvocationExpression0(Basics.WriterInputVariableIdentifierName, commitId));
         }
-        public override TypeSyntax GetWriteMethodInParameter() => SF.ParseTypeName(ClassSymbol.Name);
+        public override TypeSyntax GetWriteMethodInParameter() => SF.ParseTypeName(ClassSymbol.ToString());
 
         public override BlockSyntax GenerateMethodBody()
         {

@@ -41,7 +41,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
                                     expression: Basics.SimpleMemberAccess(Basics.TryParseBsonNameIdentifier, SF.IdentifierName("SequenceEqual")),
                                     argumentList: Basics.Arguments(Basics.GenerateReadOnlySpanNameIdentifier(ClassSymbol, MemberDecl))),
                     statement: SF.Block(GenerateIfBsonTypeNull(),
-                                        SF.ParseStatement($"message.{MemberDecl.DeclSymbol.Name} = new List<{MemberDecl.GenericType.Name}>();"),
+                                        SF.ParseStatement($"message.{MemberDecl.DeclSymbol.Name} = new List<{MemberDecl.GenericType.ToString()}>();"),
                                         SF.ParseStatement($"if (!reader.TryGetInt32(out var arrayDocLength)) {{ return false; }}"),
                                         SF.ParseStatement($"var arrayUnreaded = reader.Remaining + sizeof(int);"),
                                         SF.WhileStatement(

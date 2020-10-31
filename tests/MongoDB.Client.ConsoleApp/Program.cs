@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace MongoDB.Client.Test
@@ -17,6 +18,13 @@ namespace MongoDB.Client.Test
     [BsonSerializable]
     public class TestData : IEquatable<TestData>
     {
+        [BsonSerializable]
+        public class InnerTestData
+        {
+            public int a1;
+            public int a2;
+            public int a3;
+        }
         [BsonElementField(ElementName = "_id")]
         public BsonObjectId Id { get; set; }
 
@@ -64,7 +72,7 @@ namespace MongoDB.Client.Test
 
         static async Task Main(string[] args)
         {
-            var client = new MongoClient(/*new DnsEndPoint("centos0.mshome.net", 27017)*/);
+            var client = new MongoClient(new DnsEndPoint("centos0.mshome.net", 27017));
             var connectionInfo = await client.ConnectAsync(default);
             var result1 = await client.GetCursorAsync<GeoIp>(EmptyCollection, default).ToListAsync();
             var result2 = await client.GetCursorAsync<GeoIp>(NotEmptyCollection, default).ToListAsync();

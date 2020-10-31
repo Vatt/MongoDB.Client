@@ -7,6 +7,7 @@ using MongoDB.Client.Writers;
 
 namespace MongoDB.Client.Tests.Serialization
 {
+
     public abstract class BaseSerialization
     {
         public static async Task<T> RoundTripAsync<T>(T message, IGenericBsonSerializer<T> serializer)

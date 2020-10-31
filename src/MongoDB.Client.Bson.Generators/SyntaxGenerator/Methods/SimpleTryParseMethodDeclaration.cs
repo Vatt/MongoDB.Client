@@ -13,13 +13,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
         }
         public override ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier()
         {
-            
+
             return SF.ExplicitInterfaceSpecifier(
                    SF.GenericName(
                        Basics.SerializerInterfaceIdentifier,
-                       SF.TypeArgumentList(new SeparatedSyntaxList<TypeSyntax>().Add(SF.ParseTypeName(ClassSymbol.Name)))),
+                       SF.TypeArgumentList(new SeparatedSyntaxList<TypeSyntax>().Add(SF.ParseTypeName(ClassSymbol.ToString())))),
                    SF.Token(SyntaxKind.DotToken));
         }
-        public override TypeSyntax GetParseMethodOutParameter() => SF.ParseTypeName(ClassSymbol.Name);
+        public override TypeSyntax GetParseMethodOutParameter() => SF.ParseTypeName(ClassSymbol.ToString());
     }
 }

@@ -2,7 +2,6 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Core;
-using System;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
@@ -27,16 +26,16 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
             return SF.IfStatement(
                         condition: SF.BinaryExpression(
                                         kind: SyntaxKind.EqualsExpression,
-                                        left: Basics.SimpleMemberAccess(Basics.WriteInputInVariableIdentifierName, 
+                                        left: Basics.SimpleMemberAccess(Basics.WriteInputInVariableIdentifierName,
                                                                         SF.IdentifierName(MemberDecl.DeclSymbol.Name)),
                                         operatorToken: SF.Token(SyntaxKind.ExclamationEqualsToken),
                                         right: SF.LiteralExpression(SyntaxKind.NullLiteralExpression, SF.Token(SyntaxKind.NullKeyword))),
                         statement: SF.Block(
                                         SF.ExpressionStatement(
-                                            Basics.InvocationExpression(Basics.WriterInputVariableIdentifierName, 
-                                                                            SF.IdentifierName("Write_Type_Name"), 
+                                            Basics.InvocationExpression(Basics.WriterInputVariableIdentifierName,
+                                                                            SF.IdentifierName("Write_Type_Name"),
                                                                             SF.Argument(Basics.NumberLiteral(3)),
-                                                                            SF.Argument(SF.IdentifierName(Basics.GenerateReadOnlySpanName(ClassSymbol,MemberDecl))))), 
+                                                                            SF.Argument(SF.IdentifierName(Basics.GenerateReadOnlySpanName(ClassSymbol, MemberDecl))))),
                                         serializerInvocation),
                             @else: SF.ElseClause(
                                     SF.ExpressionStatement(

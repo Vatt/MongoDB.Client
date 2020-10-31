@@ -1,8 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
 {

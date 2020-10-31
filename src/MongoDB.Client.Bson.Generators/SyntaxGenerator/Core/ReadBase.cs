@@ -18,7 +18,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
         }
         public void WithVariableDeclaration(string identifier)
         {
-            _variableDecl = SF.DeclarationExpression(SF.IdentifierName("var"), //SF.Token(SyntaxKind.VarKeyword)
+            _variableDecl = SF.DeclarationExpression(SF.IdentifierName("var"),
                                                      SF.SingleVariableDesignation(SF.Identifier(identifier)));
         }
         public void WithVariableAssign()

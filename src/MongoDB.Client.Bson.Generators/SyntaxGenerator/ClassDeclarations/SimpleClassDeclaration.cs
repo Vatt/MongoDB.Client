@@ -23,12 +23,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         }
         public override TypeArgumentListSyntax GetInterfaceParameters()
         {
-            return SF.TypeArgumentList().AddArguments(SF.ParseTypeName(ClassSymbol.Name));
+            return SF.TypeArgumentList().AddArguments(SF.ParseTypeName(ClassDecl.FullName));
         }
 
         public override TypeSyntax GetTryParseMethodOutParameter()
         {
-            return SF.ParseTypeName(ClassSymbol.Name);
+            return SF.ParseTypeName(ClassSymbol.ToString());
         }
         public override ClassDeclarationSyntax Build()
         {

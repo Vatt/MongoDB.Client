@@ -9,11 +9,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
     internal abstract class TryParseMethodDeclatationBase : MethodDeclarationBase
     {
 
-        public TryParseMethodDeclatationBase(INamedTypeSymbol classSymbol, List<MemberDeclarationMeta> members) : base(classSymbol , members)
+        public TryParseMethodDeclatationBase(INamedTypeSymbol classSymbol, List<MemberDeclarationMeta> members) : base(classSymbol, members)
         {
         }
         public abstract TypeSyntax GetParseMethodOutParameter();
-       
+
         public override BlockSyntax GenerateMethodBody()
         {
             var whileStatement = new SyntaxList<StatementSyntax>()

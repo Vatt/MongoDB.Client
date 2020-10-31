@@ -7,7 +7,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
 {
     internal class OperationsList
     {
-        public static List<string> SimpleOperations = new() { "Double", "String", "BsonDocument", "BsonObjectId", "Boolean", "Int32", "Int64", "Guid", "DateTimeOffset"};
+        public static List<string> SimpleOperations = new() { "Double", "String", "BsonDocument", "BsonObjectId", "Boolean", "Int32", "Int64", "Guid", "DateTimeOffset" };
         private List<OperationBase> _operations;
         private OperationsList(List<OperationBase> operations)
         {
@@ -46,7 +46,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
                 {
                     operations.Add(new GeneratedSerializerWriteOperation(classSymbol, member));
                 }
-                
+
             }
             return new OperationsList(operations);
         }

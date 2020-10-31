@@ -2,7 +2,6 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Linq;
-using System.Linq.Expressions;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
@@ -91,6 +90,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 
             return SF.ArgumentList(new SeparatedSyntaxList<ArgumentSyntax>().AddRange(args.AsEnumerable().Select(arg => SF.Argument(arg))));
         }
-        public static ObjectCreationExpressionSyntax ObjectCreationWitoutArgs(INamedTypeSymbol sym) => SF.ObjectCreationExpression(SF.ParseTypeName(sym.Name), SF.ArgumentList(), default);
+        public static ObjectCreationExpressionSyntax ObjectCreationWitoutArgs(INamedTypeSymbol sym)
+        {
+            return SF.ObjectCreationExpression(SF.ParseTypeName(sym.ToString()), SF.ArgumentList(), default);
+        }
     }
 }
