@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using MongoDB.Client.Messages;
 
@@ -12,6 +13,12 @@ namespace MongoDB.Client
             return cursorResult.Cursor.ToList();
         }
 
+        public static async ValueTask<T> FirstOrDefaultAsync<T>(this ValueTask<CursorResult<T>> cursorTask)
+        {
+            var cursorResult = await cursorTask.ConfigureAwait(false);
+            return cursorResult.Cursor.Items.FirstOrDefault();
+        }
+        
         public static List<T> ToList<T>(this Cursor<T> cursor)
         {
             return cursor.Items;

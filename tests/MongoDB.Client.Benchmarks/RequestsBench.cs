@@ -1,7 +1,9 @@
 ﻿using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
-using MongoDB.Client.Bson.Document;
+using MongoDB.Bson;
 using MongoDB.Driver;
+using BsonDocument = MongoDB.Client.Bson.Document.BsonDocument;
+using BsonObjectId = MongoDB.Client.Bson.Document.BsonObjectId;
 
 namespace MongoDB.Client.Benchmarks
 {
@@ -26,16 +28,14 @@ namespace MongoDB.Client.Benchmarks
         [Benchmark]
         public async Task<int> NewClient()
         {
-            var filter = new BsonDocument();
-
-            var result = await _collection.GetCursorAsync(filter, default).ToListAsync();
+            var result = await _collection.GetCursorAsync(new BsonDocument("_id", new BsonObjectId("5f987814bf344ec7cc57294b")), default).ToListAsync();
             return result.Count;
         }
         
         [Benchmark]
         public async Task<int> OldClient()
         {
-            var result232 = await _oldCollection.Find(FilterDefinition<GeoIp>.Empty).ToListAsync();
+            var result232 = await _oldCollection.Find(g => g.OldId == new ObjectId("5f987814bf344ec7cc57294b")).ToListAsync();
             return result232.Count;
         }
     }
