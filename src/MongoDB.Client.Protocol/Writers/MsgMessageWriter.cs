@@ -22,7 +22,7 @@ namespace MongoDB.Client.Protocol.Writers
             writer.WriteByte((byte)message.Type);
             writer.WriteDocument(message.Document);
             writer.Commit();
-            BinaryPrimitives.WriteInt32LittleEndian(span, writer.Writen);
+            BinaryPrimitives.WriteInt32LittleEndian(span, writer.Written);
         }
 
 
