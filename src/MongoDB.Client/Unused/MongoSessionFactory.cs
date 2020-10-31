@@ -1,8 +1,8 @@
-﻿using MongoDB.Client.Network;
-using System.Net;
+﻿using System.Net;
 using System.Threading.Tasks;
+using MongoDB.Client.Network;
 
-namespace MongoDB.Client
+namespace MongoDB.Client.Unused
 {
     public class MongoSessionFactory
     {

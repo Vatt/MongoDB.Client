@@ -6,10 +6,10 @@ namespace MongoDB.Client
 {
     public static class MongoClientExtensions
     {
-        public static async ValueTask<List<T>> ToListAsync<T>(this ValueTask<Cursor<T>> cursorTask)
+        public static async ValueTask<List<T>> ToListAsync<T>(this ValueTask<CursorResult<T>> cursorTask)
         {
-            var cursor = await cursorTask.ConfigureAwait(false);
-            return cursor.ToList();
+            var cursorResult = await cursorTask.ConfigureAwait(false);
+            return cursorResult.Cursor.ToList();
         }
 
         public static List<T> ToList<T>(this Cursor<T> cursor)

@@ -1,6 +1,6 @@
 ﻿using MongoDB.Client.Bson.Document;
 
-namespace MongoDB.Client
+namespace MongoDB.Client.Unused
 {
     public readonly struct ReadConcern
     {

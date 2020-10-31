@@ -1,4 +1,4 @@
-﻿namespace MongoDB.Client
+﻿namespace MongoDB.Client.Unused
 {
     public class Session
     {

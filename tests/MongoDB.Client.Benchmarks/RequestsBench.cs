@@ -8,7 +8,7 @@ namespace MongoDB.Client.Benchmarks
     [MemoryDiagnoser]
     public class RequestsBench
     {
-        private MongoCollection<MongoDB.Client.GeoIp> _collection;
+        private MongoCollection<GeoIp> _collection;
         private IMongoCollection<GeoIp> _oldCollection;
 
         [GlobalSetup]
@@ -16,7 +16,7 @@ namespace MongoDB.Client.Benchmarks
         {
             var client = new MongoClient();
             var db = client.GetDatabase("TestDb");
-            _collection = db.GetCollection<MongoDB.Client.GeoIp>("TestCollection2");
+            _collection = db.GetCollection<GeoIp>("TestCollection2");
 
             var oldClient = new MongoDB.Driver.MongoClient("mongodb://localhost:27017");
             var oldDb = oldClient.GetDatabase("TestDb");
@@ -28,8 +28,8 @@ namespace MongoDB.Client.Benchmarks
         {
             var filter = new BsonDocument();
 
-            var result = await _collection.GetCursorAsync(filter, default);
-            return result.Cursor.Items.Count;
+            var result = await _collection.GetCursorAsync(filter, default).ToListAsync();
+            return result.Count;
         }
         
         [Benchmark]

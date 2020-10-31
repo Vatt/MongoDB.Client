@@ -1,17 +1,16 @@
-﻿using MongoDB.Client.Connection;
+﻿using System;
+using System.IO.Pipelines;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+using MongoDB.Client.Connection;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Common;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Readers;
-using System;
-using System.IO.Pipelines;
-using System.Net.Connections;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace MongoDB.Client
+namespace MongoDB.Client.Unused
 {
     public class MongoSession : IAsyncDisposable
     {

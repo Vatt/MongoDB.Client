@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
 
-namespace MongoDB.Client
+namespace MongoDB.Client.ConsoleApp
 {
     [BsonSerializable]
     public class Data : IEquatable<Data>

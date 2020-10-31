@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MongoDB.Client
+namespace MongoDB.Client.Unused
 {
     /// <summary>
     /// Represents the server type.

@@ -38,7 +38,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         public InnerTestData InnerData { get; set; }
         public override bool Equals(object? obj)
         {
-            return obj is Data data && Equals(data);
+            return obj is TestData data && Equals(data);
         }
 
         public bool Equals(TestData? other)

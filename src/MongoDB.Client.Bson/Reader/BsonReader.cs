@@ -110,24 +110,31 @@ namespace MongoDB.Client.Bson.Reader
                 return false;
             }
 
+            var stringLength = length - 1;
             if (_input.UnreadSpan.Length >= length)
             {
-                var data = _input.UnreadSpan.Slice(0, length - 1);
+                var data = _input.UnreadSpan.Slice(0, stringLength);
                 _input.Advance(length);
                 value = Encoding.UTF8.GetString(data);
                 return true;
             }
 
+            return SlowTryGetString(stringLength, out value);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private bool SlowTryGetString(int stringLength, [MaybeNullWhen(false)] out string? value)
+        {
+            value = default;
             byte[]? buffer = null;
-            var bufferSize = length - 1;
-            Span<byte> span = bufferSize < 512
-                ? stackalloc byte[bufferSize]
-                : (buffer = ArrayPool<byte>.Shared.Rent(bufferSize)).AsSpan(0, bufferSize);
+            Span<byte> span = stringLength < 512
+                ? stackalloc byte[stringLength]
+                : (buffer = ArrayPool<byte>.Shared.Rent(stringLength)).AsSpan(0, stringLength);
             try
             {
                 if (_input.TryCopyTo(span))
                 {
-                    _input.Advance(length);
+                    _input.Advance(stringLength + 1);
                     value = Encoding.UTF8.GetString(span);
                     return true;
                 }
@@ -142,7 +149,6 @@ namespace MongoDB.Client.Bson.Reader
                 }
             }
         }
-
 
         public bool TryGetStringAsSpan(out ReadOnlySpan<byte> value)
         {

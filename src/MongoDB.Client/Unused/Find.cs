@@ -5,7 +5,7 @@ using MongoDB.Client.Connection;
 
 #nullable disable
 
-namespace MongoDB.Client
+namespace MongoDB.Client.Unused
 {
     public class Find<T>
     {

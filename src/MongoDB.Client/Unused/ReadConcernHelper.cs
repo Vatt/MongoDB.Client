@@ -1,7 +1,7 @@
 ﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Connection;
 
-namespace MongoDB.Client
+namespace MongoDB.Client.Unused
 {
     internal static class ReadConcernHelper
     {

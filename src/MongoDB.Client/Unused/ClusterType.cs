@@ -1,4 +1,4 @@
-﻿namespace MongoDB.Client
+﻿namespace MongoDB.Client.Unused
 {
     /// <summary>
     /// Represents the type of a cluster.
