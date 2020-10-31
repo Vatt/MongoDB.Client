@@ -43,11 +43,10 @@ namespace MongoDB.Client.Readers
 
             if (_state == ParserState.Models)
             {
-                long initialConsumed = bsonReader.BytesConsumed;
-                long consumedBytes = 0;
                 var items = CursorResult.Cursor.Items;
-                while (_modelsReaded + consumedBytes < _modelsLength - 1)
+                while (_modelsReaded < _modelsLength - 1)
                 {
+                    var checkpoint = bsonReader.BytesConsumed;
 #if DEBUG
                     if (bsonReader.TryGetByte(out var type) == false) { return false; }
                     if (bsonReader.TryGetCString(out var name) == false) { return false; }
@@ -59,18 +58,16 @@ namespace MongoDB.Client.Readers
                     if (Serializer.TryParse(ref bsonReader, out var item))
                     {
                         items.Add(item);
-                        consumedBytes = bsonReader.BytesConsumed - initialConsumed;
+                        _modelsReaded += bsonReader.BytesConsumed - checkpoint;
                         consumed = bsonReader.Position;
                         examined = bsonReader.Position;
                     }
                     else
                     {
-                        _modelsReaded += consumedBytes;
                         message = default;
                         return false;
                     }
                 }
-                _modelsReaded += consumedBytes;
                 _state = ParserState.ModelsEnd;
             }
 

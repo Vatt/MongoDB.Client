@@ -8,6 +8,5 @@ namespace MongoDB.Client.Bson.Serialization
     {
         bool TryParse(ref BsonReader reader, [MaybeNullWhen(false)] out T message);
         void Write(ref BsonWriter writer, in T message);
-
     }
 }

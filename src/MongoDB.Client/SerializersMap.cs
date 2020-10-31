@@ -33,6 +33,7 @@ namespace MongoDB.Client
             serializer = default;
             return false;
         }
+
         public static void RegisterSerializers(KeyValuePair<Type, IBsonSerializer>[] serializers)
         {
             foreach (var pair in serializers)
