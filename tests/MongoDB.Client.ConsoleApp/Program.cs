@@ -2,6 +2,7 @@ using MongoDB.Client.Bson.Document;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 
 
@@ -34,11 +35,11 @@ namespace MongoDB.Client.ConsoleApp
             // Console.WriteLine(result0.Cursor.Items.Count);
             // Console.WriteLine(result1.Cursor.Items.Count);
             // Console.WriteLine(result2.Cursor.Items.Count);
-
+   
 
             var count = 1000000;
           //  await Concurrent(collection1, count, filter);
-            await Sequential(collection3, count, filter);
+            await Sequential(collection1, count, filter);
             // await Concurrent(collection1, count, filter);
             // await Sequential(collection1, count, filter);
             // await Concurrent(collection1, count, filter);
@@ -57,6 +58,7 @@ namespace MongoDB.Client.ConsoleApp
             var sw = Stopwatch.StartNew();
             for (int i = 0; i < count; i++)
             {
+  
                 list.Add(collection.GetCursorAsync(filter, default).FirstOrDefaultAsync().AsTask());
             }
             var results = await Task.WhenAll(list);
@@ -69,7 +71,18 @@ namespace MongoDB.Client.ConsoleApp
             var sw = Stopwatch.StartNew();
             for (int i = 0; i < count; i++)
             {
-                await collection.GetCursorAsync(filter, default).FirstOrDefaultAsync();
+                using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
+                {
+                    try
+                    {
+                        await collection.GetCursorAsync(filter, cts.Token).FirstOrDefaultAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                }
+                
                 Console.WriteLine(i);
             }
             sw.Stop();

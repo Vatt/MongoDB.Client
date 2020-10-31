@@ -8,6 +8,7 @@ namespace MongoDB.Client.Protocol.Readers
     {
         public bool TryParseMessage(in ReadOnlySequence<byte> input, ref SequencePosition consumed, ref SequencePosition examined, out MessageHeader message)
         {
+            Console.WriteLine("Got new message");
             // The header consists of
             //
             // [4 bytes]  [4 bytes  ]  [4 bytes   ]  [4 bytes]
@@ -15,6 +16,7 @@ namespace MongoDB.Client.Protocol.Readers
 
             if (input.Length < sizeof(int) * 4)
             {
+                Console.WriteLine("Got new message: low size");
                 message = default;
                 return false;
             }

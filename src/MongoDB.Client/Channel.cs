@@ -37,7 +37,7 @@ namespace MongoDB.Client
 
         private readonly ConcurrentDictionary<int, TaskCompletionSource<MongoResponseMessage>> _completionMap =
             new ConcurrentDictionary<int, TaskCompletionSource<MongoResponseMessage>>();
-        
+
         // private readonly ManualResetValueTaskSource<MongoResponseMessage> completionSource =
         //     new ManualResetValueTaskSource<MongoResponseMessage>();
 
@@ -62,11 +62,12 @@ namespace MongoDB.Client
         };
 
         private static int _counter;
+
         public int GetNextRequestNumber()
         {
             return Interlocked.Increment(ref _counter);
         }
-        
+
         public ValueTask<ConnectionInfo> InitConnectAsync(CancellationToken cancellationToken)
         {
             if (_connectionInfo is not null)
@@ -122,7 +123,7 @@ namespace MongoDB.Client
             _writer = new ProtocolWriter(_connection.Pipe.Output);
             _readingTask = StartReadAsync();
         }
-        
+
         private QueryMessage CreateConnectRequest()
         {
             var doc = CreateWrapperDocument();
@@ -172,6 +173,7 @@ namespace MongoDB.Client
                 switch (headerResult.Message.Opcode)
                 {
                     case Opcode.Reply:
+                        await Console.Out.WriteLineAsync($"Got Reply message '{headerResult.Message.ResponseTo}'");
                         // Debug.WriteLine($"Got Reply message '{headerResult.Message.ResponseTo}'");
                         var replyResult = await _reader.ReadAsync(replyMessageReader, _shutdownToken.Token)
                             .ConfigureAwait(false);
@@ -183,22 +185,25 @@ namespace MongoDB.Client
                             // Debug.WriteLine($"Set result to message '{message.Header.ResponseTo}'");
                             completion.TrySetResult(message);
                         }
+
                         // Debug.WriteLine($"Reply message '{message.Header.ResponseTo}' completed");
                         // TODO: 
                         break;
                     case Opcode.OpMsg:
+                        await Console.Out.WriteLineAsync($"Got Msg message '{headerResult.Message.ResponseTo}'");
                         // Debug.WriteLine($"Got Msg message '{headerResult.Message.ResponseTo}'");
                         var msgResult = await _reader.ReadAsync(msgMessageReader, _shutdownToken.Token)
                             .ConfigureAwait(false);
                         _reader.Advance();
                         // Debug.WriteLine($"Parsed Msg message '{headerResult.Message.ResponseTo}'");
                         message = new ResponseMsgMessage(headerResult.Message, msgResult.Message);
-                        
+
                         if (_completionMap.TryGetValue(message.Header.ResponseTo, out completion))
                         {
                             // Debug.WriteLine($"Set result to message '{message.Header.ResponseTo}'");
                             completion.TrySetResult(message);
                         }
+
                         // Debug.WriteLine($"Msg message '{message.Header.ResponseTo}' completed");
                         // TODO: 
                         break;
@@ -211,6 +216,7 @@ namespace MongoDB.Client
                     case Opcode.KillCursors:
                     case Opcode.Compressed:
                     default:
+                        await Console.Out.WriteLineAsync($"Unknown opcode '{headerResult.Message.Opcode}'");
                         ThrowHelper.OpcodeNotSupportedException<bool>(headerResult.Message
                             .Opcode); //TODO: need to read pipe to end
                         break;
@@ -225,7 +231,7 @@ namespace MongoDB.Client
                 if (_writer is not null)
                 {
                     var completion = _completionMap.GetOrAdd(message.RequestNumber,
-                     i => new TaskCompletionSource<MongoResponseMessage>());
+                        i => new TaskCompletionSource<MongoResponseMessage>());
                     try
                     {
                         await _writer.WriteAsync(queryWriter, message, cancellationToken).ConfigureAwait(false);
@@ -234,7 +240,7 @@ namespace MongoDB.Client
                         //     .ConfigureAwait(false);
                         // completionSource.Reset();
                         var response = await completion.Task.ConfigureAwait(false);
-                        
+
                         return await ParseAsync<TResp>(response).ConfigureAwait(false);
                     }
                     finally
@@ -285,14 +291,15 @@ namespace MongoDB.Client
                     try
                     {
                         await _writer.WriteAsync(msgWriter, message, cancellationToken).ConfigureAwait(false);
+                        await Console.Out.WriteLineAsync($"Sent cursor message '{message.RequestNumber}'");
                         // Debug.WriteLine($"Sent cursor message '{message.RequestNumber}'");
 
                         // var response = await new ValueTask<MongoResponseMessage>(completionSource, completionSource.Version)
                         //     .ConfigureAwait(false);
                         // completionSource.Reset();
                         var response = await completion.Task.ConfigureAwait(false);
-                        
-                        return await ParseAsync<TResp>(response).ConfigureAwait(false);
+
+                        return await ParseAsync<TResp>(response, cancellationToken).ConfigureAwait(false);
                     }
                     finally
                     {
@@ -306,7 +313,8 @@ namespace MongoDB.Client
             return ThrowHelper.ObjectDisposedException<CursorResult<TResp>>(nameof(Channel));
 
 
-            async ValueTask<CursorResult<T>> ParseAsync<T>(MongoResponseMessage message)
+            async ValueTask<CursorResult<T>> ParseAsync<T>(MongoResponseMessage message,
+                CancellationToken cancellationToken)
             {
                 var reader = _reader!;
                 switch (message)
@@ -330,11 +338,10 @@ namespace MongoDB.Client
                                     .PayloadType);
                             }
 
-                            while (bodyReader.Complete == false)
-                            {
-                                _ = await reader.ReadAsync(bodyReader, _shutdownToken.Token).ConfigureAwait(false);
-                                reader.Advance();
-                            }
+                            await Console.Out.WriteLineAsync($"Parsing msg message '{message.Header.ResponseTo}'");
+                            var result = await reader.ReadAsync(bodyReader, cancellationToken).ConfigureAwait(false);
+                            await Console.Out.WriteLineAsync($"Parsing msg message '{message.Header.ResponseTo}' complete");
+                            reader.Advance();
                             // Debug.WriteLine($"Parsing msg message '{message.Header.ResponseTo}' complete");
                             return bodyReader.CursorResult;
                         }
@@ -362,7 +369,7 @@ namespace MongoDB.Client
         }
 
         #region NeedToRemove
-        
+
         // public async ValueTask<TResp> SendAsync<TResp>(ReadOnlyMemory<byte> message,
         //     CancellationToken cancellationToken)
         // {
