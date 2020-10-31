@@ -23,7 +23,7 @@ namespace MongoDB.Client.Bson.Writer
         public void Write(bool value) => WriteBoolean(value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(DateTimeOffset value) => WriteUTCDateTime(value);
+        public void Write(DateTimeOffset value) => WriteUtcDateTime(value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(int value) => WriteInt32(value);
