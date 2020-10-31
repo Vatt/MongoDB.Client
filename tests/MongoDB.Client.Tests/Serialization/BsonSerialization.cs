@@ -60,6 +60,8 @@ namespace MongoDB.Client.Tests.Serialization
 
             Assert.Equal(doc, result);
         }
+
+
         [Fact]
         public async Task SerializationDeserializationGenerated()
         {
@@ -81,8 +83,25 @@ namespace MongoDB.Client.Tests.Serialization
 
             Assert.Equal(doc, result);
         }
-        
-        
+
+        [Fact]
+        public async Task IgnoreTest()
+        {
+            ModelWithIgnore doc = new ModelWithIgnore
+            {
+                Field = "Field",
+                IgnoredField = "IgnoredField"
+            };
+            SerializersMap.TryGetSerializer<ModelWithIgnore>(out var serializer);
+
+
+            var result = await RoundTripAsync(doc, serializer);
+
+
+            Assert.Equal(doc.Field, result.Field);
+            Assert.Null(result.IgnoredField);
+        }
+
         [Fact]
         public void ObjectIdSerializationDeserialization()
         {

@@ -97,6 +97,11 @@ namespace MongoDB.Client.Bson.Generators
                             {
 
                                 IFieldSymbol fieldSymbol = memberModel.GetDeclaredSymbol(variable) as IFieldSymbol;
+                                if (IsIgnore(fieldSymbol))
+                                {
+                                    continue;
+                                }
+
                                 if (fieldSymbol.DeclaredAccessibility == Accessibility.Public)
                                 {
                                     decl.MemberDeclarations.Add(new MemberDeclarationMeta(fieldSymbol));
@@ -107,8 +112,11 @@ namespace MongoDB.Client.Bson.Generators
                     case PropertyDeclarationSyntax propdecl:
                         {
                             SemanticModel memberModel = _context.Compilation.GetSemanticModel(propdecl.SyntaxTree);
-
                             ISymbol propertySymbol = memberModel.GetDeclaredSymbol(propdecl);
+                            if (IsIgnore(propertySymbol))
+                            {
+                                continue;
+                            }
                             if (propertySymbol.DeclaredAccessibility == Accessibility.Public)
                             {
                                 decl.MemberDeclarations.Add(new MemberDeclarationMeta(propertySymbol));
@@ -119,6 +127,21 @@ namespace MongoDB.Client.Bson.Generators
                 }
 
             }
+        }
+        private bool IsIgnore(ISymbol sym)
+        {
+            foreach(var attr in sym.GetAttributes())
+            {
+                if (attr.AttributeClass is null)
+                {
+                    continue;
+                }
+                if (attr.AttributeClass.Name.Equals("BsonIgnore"))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
     }
