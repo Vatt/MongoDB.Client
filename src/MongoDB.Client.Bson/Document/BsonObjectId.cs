@@ -24,9 +24,9 @@ namespace MongoDB.Client.Bson.Document
             {
                 ThrowHelper.ObjectIdParseException();
             }
-            Part1 = BinaryPrimitives.ReadInt32LittleEndian(span);
-            Part2 = BinaryPrimitives.ReadInt32LittleEndian(span.Slice(4));
-            Part3 = BinaryPrimitives.ReadInt32LittleEndian(span.Slice(8));
+            Part1 = BinaryPrimitives.ReadInt32BigEndian(span);
+            Part2 = BinaryPrimitives.ReadInt32BigEndian(span.Slice(4));
+            Part3 = BinaryPrimitives.ReadInt32BigEndian(span.Slice(8));
         }
 
         public BsonObjectId(ReadOnlySpan<char> value)

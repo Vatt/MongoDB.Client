@@ -3,13 +3,14 @@ using MongoDB.Client.Bson.Utils;
 using System;
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace MongoDB.Client.Bson.Reader
 {
     public ref partial struct BsonReader
     {
-        private const byte EndMarker = (byte)'\x00';
+        private const byte EndMarker = (byte) '\x00';
 
 
         private SequenceReader<byte> _input;
@@ -19,6 +20,7 @@ namespace MongoDB.Client.Bson.Reader
         public SequencePosition Position => _input.Position;
 
         public readonly long Remaining => _input.Remaining;
+
         public BsonReader(in ReadOnlyMemory<byte> memory)
         {
             var ros = new ReadOnlySequence<byte>(memory);
@@ -62,7 +64,11 @@ namespace MongoDB.Client.Bson.Reader
         public bool TryGetDouble(out double value)
         {
             value = default;
-            if (!TryGetInt64(out var temp)) { return false; }
+            if (!TryGetInt64(out var temp))
+            {
+                return false;
+            }
+
             value = BitConverter.Int64BitsToDouble(temp);
             return true;
         }
@@ -74,6 +80,7 @@ namespace MongoDB.Client.Bson.Reader
             {
                 return false;
             }
+
             value = Encoding.UTF8.GetString(data);
             return true;
         }
@@ -85,6 +92,7 @@ namespace MongoDB.Client.Bson.Reader
             {
                 return false;
             }
+
             return true;
         }
 
@@ -92,7 +100,11 @@ namespace MongoDB.Client.Bson.Reader
         public bool TryGetString([MaybeNullWhen(false)] out string? value)
         {
             value = default;
-            if (!TryGetInt32(out var length)) { return false; }
+            if (!TryGetInt32(out var length))
+            {
+                return false;
+            }
+
             if (_input.Remaining < length)
             {
                 return false;
@@ -108,7 +120,9 @@ namespace MongoDB.Client.Bson.Reader
 
             byte[]? buffer = null;
             var bufferSize = length - 1;
-            Span<byte> span = bufferSize < 512 ? stackalloc byte[bufferSize] : (buffer = ArrayPool<byte>.Shared.Rent(bufferSize)).AsSpan(0, bufferSize);
+            Span<byte> span = bufferSize < 512
+                ? stackalloc byte[bufferSize]
+                : (buffer = ArrayPool<byte>.Shared.Rent(bufferSize)).AsSpan(0, bufferSize);
             try
             {
                 if (_input.TryCopyTo(span))
@@ -117,6 +131,7 @@ namespace MongoDB.Client.Bson.Reader
                     value = Encoding.UTF8.GetString(span);
                     return true;
                 }
+
                 return false;
             }
             finally
@@ -132,7 +147,11 @@ namespace MongoDB.Client.Bson.Reader
         public bool TryGetStringAsSpan(out ReadOnlySpan<byte> value)
         {
             value = default;
-            if (!TryGetInt32(out var length)) { return false; }
+            if (!TryGetInt32(out var length))
+            {
+                return false;
+            }
+
             if (_input.Remaining < length)
             {
                 return false;
@@ -154,55 +173,84 @@ namespace MongoDB.Client.Bson.Reader
                 value = result;
                 return true;
             }
+
             return false;
         }
 
 
         public bool TryGetObjectId(out BsonObjectId value)
         {
+            const int oidSize = 12;
             value = default;
-            if (_input.Remaining < 12)
+            if (_input.Remaining < oidSize)
             {
                 return false;
             }
-            TryGetInt32(out var p1);
-            TryGetInt32(out var p2);
-            TryGetInt32(out var p3);
-            value = new BsonObjectId(p1, p2, p3);
-            return true;
 
+            if (_input.UnreadSpan.Length >= oidSize)
+            {
+                value = new BsonObjectId(_input.UnreadSpan);
+                _input.Advance(oidSize);
+                return true;
+            }
+
+            SlowGetObjectId(out value);
+            return true;
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void SlowGetObjectId(out BsonObjectId value)
+        {
+            const int oidSize = 12;
+            Span<byte> buffer = stackalloc byte[oidSize];
+            _input.TryCopyTo(buffer);
+            value = new BsonObjectId(buffer);
+            _input.Advance(oidSize);
+        }
 
         public bool TryGetBinaryData(out BsonBinaryData value)
         {
             value = default;
-            if (!TryGetInt32(out var len)) { return false; }
-            if (!TryGetByte(out var subtype)) { return false; }
-            if (_input.Remaining < len) { return false; }
+            if (!TryGetInt32(out var len))
+            {
+                return false;
+            }
+
+            if (!TryGetByte(out var subtype))
+            {
+                return false;
+            }
+
+            if (_input.Remaining < len)
+            {
+                return false;
+            }
+
             switch (subtype)
             {
                 case 4:
+                {
+                    if (_input.UnreadSpan.Length < len)
                     {
-                        if (_input.UnreadSpan.Length < len)
-                        {
-                            value = BsonBinaryData.Create(new Guid(_input.UnreadSpan.Slice(0, len)));
-                            _input.Advance(len);
-                            return true;
-                        }
-                        Span<byte> buffer = stackalloc byte[len];
-                        if (_input.TryCopyTo(buffer))
-                        {
-                            value = BsonBinaryData.Create(new Guid(buffer));
-                            _input.Advance(len);
-                            return true;
-                        }
-                        return false;
+                        value = BsonBinaryData.Create(new Guid(_input.UnreadSpan.Slice(0, len)));
+                        _input.Advance(len);
+                        return true;
                     }
+
+                    Span<byte> buffer = stackalloc byte[len];
+                    if (_input.TryCopyTo(buffer))
+                    {
+                        value = BsonBinaryData.Create(new Guid(buffer));
+                        _input.Advance(len);
+                        return true;
+                    }
+
+                    return false;
+                }
                 default:
-                    {
-                        return ThrowHelper.UnknownSubtypeException<bool>(subtype);
-                    }
+                {
+                    return ThrowHelper.UnknownSubtypeException<bool>(subtype);
+                }
             }
         }
 
@@ -210,9 +258,21 @@ namespace MongoDB.Client.Bson.Reader
         public bool TryGetBinaryDataGuid(out Guid value)
         {
             value = default;
-            if (!TryGetInt32(out var len)) { return false; }
-            if (!TryGetByte(out var subtype)) { return false; }
-            if (_input.Remaining < len) { return false; }
+            if (!TryGetInt32(out var len))
+            {
+                return false;
+            }
+
+            if (!TryGetByte(out var subtype))
+            {
+                return false;
+            }
+
+            if (_input.Remaining < len)
+            {
+                return false;
+            }
+
             if (subtype == 4)
             {
                 if (_input.UnreadSpan.Length < len)
@@ -221,6 +281,7 @@ namespace MongoDB.Client.Bson.Reader
                     _input.Advance(len);
                     return true;
                 }
+
                 Span<byte> buffer = stackalloc byte[len];
                 if (_input.TryCopyTo(buffer))
                 {
@@ -228,6 +289,7 @@ namespace MongoDB.Client.Bson.Reader
                     _input.Advance(len);
                     return true;
                 }
+
                 return false;
             }
 
@@ -251,7 +313,11 @@ namespace MongoDB.Client.Bson.Reader
         public bool TryGetUTCDatetime(out DateTimeOffset value)
         {
             value = default;
-            if (!TryGetInt64(out var data)) { return false; }
+            if (!TryGetInt64(out var data))
+            {
+                return false;
+            }
+
             value = DateTimeOffset.FromUnixTimeMilliseconds(data);
             return true;
         }
@@ -260,7 +326,11 @@ namespace MongoDB.Client.Bson.Reader
         public bool TryGetBoolean(out bool value)
         {
             value = default;
-            if (!TryGetByte(out var boolean)) { return false; }
+            if (!TryGetByte(out var boolean))
+            {
+                return false;
+            }
+
             value = boolean == 1 ? true : false;
             return true;
         }
@@ -269,21 +339,66 @@ namespace MongoDB.Client.Bson.Reader
         public bool TryGetDatetimeFromDocument(out DateTimeOffset date)
         {
             date = default;
-            if (!TryGetInt32(out var docLength)) { return false; }
-            if (!TryGetByte(out var typeDate)) { return false; }
-            if (!TryGetCString(out var nameDate)) { return false; }
-            if (!TryGetInt64(out var longDate)) { return false; }
-            if (!TryGetByte(out var typeTicks)) { return false; }
-            if (!TryGetCString(out var nameTicks)) { return false; }
-            if (!TryGetInt64(out var ticks)) { return false; }
-            if (!TryGetByte(out var typeOffset)) { return false; }
-            if (!TryGetCString(out var nameOffset)) { return false; }
-            if (!TryGetInt32(out var offset)) { return false; }
-            if (!TryGetByte(out var endDocumentMarker)) { return false; }
+            if (!TryGetInt32(out var docLength))
+            {
+                return false;
+            }
+
+            if (!TryGetByte(out var typeDate))
+            {
+                return false;
+            }
+
+            if (!TryGetCString(out var nameDate))
+            {
+                return false;
+            }
+
+            if (!TryGetInt64(out var longDate))
+            {
+                return false;
+            }
+
+            if (!TryGetByte(out var typeTicks))
+            {
+                return false;
+            }
+
+            if (!TryGetCString(out var nameTicks))
+            {
+                return false;
+            }
+
+            if (!TryGetInt64(out var ticks))
+            {
+                return false;
+            }
+
+            if (!TryGetByte(out var typeOffset))
+            {
+                return false;
+            }
+
+            if (!TryGetCString(out var nameOffset))
+            {
+                return false;
+            }
+
+            if (!TryGetInt32(out var offset))
+            {
+                return false;
+            }
+
+            if (!TryGetByte(out var endDocumentMarker))
+            {
+                return false;
+            }
+
             if (endDocumentMarker != EndMarker)
             {
                 return ThrowHelper.MissedDocumentEndMarkerException<bool>();
             }
+
             date = DateTimeOffset.FromUnixTimeMilliseconds(longDate);
             return true;
         }

@@ -6,7 +6,7 @@ using MongoDB.Client.Tests.Serialization;
 using MongoDB.Client.Tests.Serialization.TestModels;
 using Xunit;
 
-namespace MongoDB.Client.Tests
+namespace MongoDB.Client.Tests.Serialization
 {
     public class BsonSerialization : BaseSerialization
     {
@@ -48,7 +48,7 @@ namespace MongoDB.Client.Tests
         }
 
         [Fact]
-        public async Task ObjectIdSerializationDeserialization()
+        public async Task ObjectIdBsonSerializationDeserialization()
         {
             var oid = new BsonObjectId("5f987814bf344ec7cc57294b");
             var doc = new BsonDocument
@@ -80,6 +80,19 @@ namespace MongoDB.Client.Tests
 
 
             Assert.Equal(doc, result);
+        }
+        
+        
+        [Fact]
+        public void ObjectIdSerializationDeserialization()
+        {
+            var buffer = new byte[12];
+            var oid = new BsonObjectId("5f987814bf344ec7cc57294b");
+
+            oid.TryWriteBytes(buffer);
+            var newOid = new BsonObjectId(buffer);
+
+            Assert.Equal(oid, newOid);
         }
     }
 

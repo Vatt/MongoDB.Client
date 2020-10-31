@@ -1,32 +1,71 @@
-﻿using System.Threading.Tasks;
+﻿using System.Buffers;
+using System.IO;
 using BenchmarkDotNet.Attributes;
+using MongoDB.Bson.IO;
+using MongoDB.Bson.Serialization;
 using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization;
+using BsonWriter = MongoDB.Client.Bson.Writer.BsonWriter;
 
 namespace MongoDB.Client.Benchmarks.Serialization
 {
     [MemoryDiagnoser]
     public class SerializationBenchmarks
     {
-        private static readonly BsonDocumentSerializer _serializer = new BsonDocumentSerializer();
+        private static readonly byte[] ArrayBuffer = new byte[4096];
+        private BsonDocument _document;
+        private MongoDB.Bson.BsonDocument _bsonDocument;
+        
+        [GlobalSetup]
+        public void GlobalInit()
+        {
+            _document = new BsonDocument
+            {
+                {"int", 42},
+                {"bool", true},
+                {"string1", "string"},
+                {"string2", ""},
+                {"array", new BsonArray {"item1", 42, true}},
+                {
+                    "inner", new BsonDocument
+                    {
+                        {"innerString", "inner string"}
+                    }
+                }
+            };
+            _bsonDocument = new MongoDB.Bson.BsonDocument
+            {
+                {"int", 42},
+                {"bool", true},
+                {"string1", "string"},
+                {"string2", ""},
+                {"array", new MongoDB.Bson.BsonArray {"item1", 42, true}},
+                {
+                    "inner", new MongoDB.Bson.BsonDocument
+                    {
+                        {"innerString", "inner string"}
+                    }
+                }
+            };
+        }
 
         [Benchmark]
-        public async Task<BsonDocument> BsonSerialization()
+        public int BsonSerialization()
         {
-            var doc = new BsonDocument
-            {
-                { "int", 42},
-                { "bool", true},
-                { "string1", "string"},
-                { "string2", ""},
-                { "string3", default(string)},
-                {"array", new  BsonArray { "item1", default(string), 42, true } },
-                { "inner", new BsonDocument {
-                    {"innerString", "inner string" }
-                } }
-            };
+            var buffer = new TestBuffer(ArrayBuffer);
+            var writer = new BsonWriter(buffer);
+            writer.WriteDocument(_document);
+            return buffer.Written;
+        }
 
-            return await SerializationHelper.RoundTripAsync(doc, _serializer);
+        [Benchmark]
+        public int OldBsonSerialization()
+        {
+            using (var stream = new MemoryStream(ArrayBuffer))
+            using (var writer = new BsonBinaryWriter(stream))
+            {
+                BsonSerializer.Serialize(writer, _bsonDocument);
+                return (int) stream.Position;
+            }
         }
     }
 }

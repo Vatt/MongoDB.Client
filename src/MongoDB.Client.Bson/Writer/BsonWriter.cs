@@ -146,7 +146,19 @@ namespace MongoDB.Client.Bson.Writer
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteBytes(Span<byte> source)
+        public void WriteBytes(ReadOnlySpan<byte> source)
+        {
+            if (source.TryCopyTo(_span))
+            {
+                Advance(source.Length);
+                return;
+            }
+            
+            SlowWriteBytes(source);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void SlowWriteBytes(ReadOnlySpan<byte> source)
         {
             var slice = source;
             while (slice.Length > 0)
@@ -228,31 +240,59 @@ namespace MongoDB.Client.Bson.Writer
             long longValue = BitConverter.DoubleToInt64Bits(value);
             WriteInt64(longValue);
         }
-
-
+        
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteCString(ReadOnlySpan<char> value)
         {
+            var count = Encoding.UTF8.GetByteCount(value);
+            if (count <= _span.Length)
+            {
+                var written = Encoding.UTF8.GetBytes(value, _span);
+                Advance(written);
+                WriteByte(EndMarker);
+                return;
+            }
+
+            SlowWriteCString(value);
+        }
+        
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void SlowWriteCString(ReadOnlySpan<char> value)
+        {
             Commit();
             var written = Encoding.UTF8.GetBytes(value, _output);
             Advance((int)written);
             GetNextSpanWithoutCommit();
             WriteByte(EndMarker);
         }
-
-
+        
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteString(ReadOnlySpan<char> value)
         {
-            var len = Encoding.UTF8.GetByteCount(value);
-            WriteInt32(len + 1);
+            var count = Encoding.UTF8.GetByteCount(value);
+            WriteInt32(count + 1);
+            if (count <= _span.Length)
+            {
+                var written = Encoding.UTF8.GetBytes(value, _span);
+                Advance(written);
+                WriteByte(EndMarker);
+                return;
+            }
+
+            SlowWriteString(value);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void SlowWriteString(ReadOnlySpan<char> value)
+        {
             Commit();
             var written = Encoding.UTF8.GetBytes(value, _output);
             Advance((int)written);
             GetNextSpanWithoutCommit();
             WriteByte(EndMarker);
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteObjectId(in BsonObjectId value)
@@ -282,14 +322,14 @@ namespace MongoDB.Client.Bson.Writer
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteUTCDateTime(DateTimeOffset datetime)
+        public void WriteUtcDateTime(DateTimeOffset datetime)
         {
             WriteInt64(datetime.ToUnixTimeMilliseconds());
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteGuidAsBytes(in Guid guid)
+        public void WriteGuidAsBytes(Guid guid)
         {
             const int guidSize = 16;
 
@@ -302,7 +342,7 @@ namespace MongoDB.Client.Bson.Writer
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void SlowWriteGuidAsBytes(in Guid guid)
+        public void SlowWriteGuidAsBytes(Guid guid)
         {
             const int guidSize = 16;
 
@@ -319,8 +359,16 @@ namespace MongoDB.Client.Bson.Writer
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteGuidAsString(Guid guid)
         {
-            _ = guid.TryFormat(Buffer, out var written);
-            WriteString(Buffer);
+            var buffer = ArrayPool<char>.Shared.Rent(32);
+            try
+            {
+                _ = guid.TryFormat(buffer, out var written);
+                WriteString(buffer.AsSpan(0,32));
+            }
+            finally
+            {
+                ArrayPool<char>.Shared.Return(buffer);
+            }
         }
 
 
@@ -329,11 +377,5 @@ namespace MongoDB.Client.Bson.Writer
         {
             WriteByte(value ? 1 : 0);
         }
-
-
-
-        [ThreadStatic]
-        private static char[]? _buffer;
-        private static Span<char> Buffer => _buffer ??= new char[32];
     }
 }

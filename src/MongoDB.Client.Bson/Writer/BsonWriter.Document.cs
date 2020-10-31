@@ -50,7 +50,7 @@ namespace MongoDB.Client.Bson.Writer
                     }
                 case 9:
                     {
-                        WriteUTCDateTime((DateTimeOffset)element.Value);
+                        WriteUtcDateTime((DateTimeOffset)element.Value);
                         break;
                     }
                 case 10:

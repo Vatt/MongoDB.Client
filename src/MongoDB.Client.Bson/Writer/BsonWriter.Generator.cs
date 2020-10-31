@@ -55,6 +55,8 @@ namespace MongoDB.Client.Bson.Writer
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write(DateTimeOffset value) => WriteUtcDateTime(value);
+
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, BsonObjectId value)
         {
             WriteByte(7);
@@ -82,7 +84,7 @@ namespace MongoDB.Client.Bson.Writer
         {
             WriteByte(9);
             WriteCString(name);
-            WriteUTCDateTime(value);
+            WriteUtcDateTime(value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
