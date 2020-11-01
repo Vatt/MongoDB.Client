@@ -12,6 +12,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Protocol.Messages;
 
@@ -20,6 +21,7 @@ namespace MongoDB.Client
     internal class Channel : IAsyncDisposable
     {
         private readonly EndPoint _endpoint;
+        private readonly ILogger _logger;
         private readonly NetworkConnectionFactory _connectionFactory;
         private System.Net.Connections.Connection? _connection;
         private readonly BsonDocument _initialDocument;
@@ -47,9 +49,10 @@ namespace MongoDB.Client
         private Task<ConnectionInfo>? _initTask;
         public bool Init { get; private set; }
 
-        public Channel(EndPoint endpoint)
+        public Channel(EndPoint endpoint, ILogger logger)
         {
             _endpoint = endpoint ?? throw new ArgumentNullException(nameof(endpoint));
+            _logger = logger;
             _connectionFactory = new NetworkConnectionFactory();
             _initialDocument = InitHelper.CreateInitialCommand();
         }
@@ -173,38 +176,28 @@ namespace MongoDB.Client
                 switch (headerResult.Message.Opcode)
                 {
                     case Opcode.Reply:
-                        await Console.Out.WriteLineAsync($"Got Reply message '{headerResult.Message.ResponseTo}'");
-                        // Debug.WriteLine($"Got Reply message '{headerResult.Message.ResponseTo}'");
+                        _logger.LogTrace("Got Reply message '{requestNumber}'", headerResult.Message.ResponseTo);
                         var replyResult = await _reader.ReadAsync(replyMessageReader, _shutdownToken.Token)
                             .ConfigureAwait(false);
                         _reader.Advance();
                         message = new ReplyMessage(headerResult.Message, replyResult.Message);
-                        // Debug.WriteLine($"Parsed Reply message '{headerResult.Message.ResponseTo}'");
                         if (_completionMap.TryGetValue(message.Header.ResponseTo, out completion))
                         {
-                            // Debug.WriteLine($"Set result to message '{message.Header.ResponseTo}'");
                             completion.TrySetResult(message);
                         }
-
-                        // Debug.WriteLine($"Reply message '{message.Header.ResponseTo}' completed");
                         // TODO: 
                         break;
                     case Opcode.OpMsg:
-                        await Console.Out.WriteLineAsync($"Got Msg message '{headerResult.Message.ResponseTo}'");
-                        // Debug.WriteLine($"Got Msg message '{headerResult.Message.ResponseTo}'");
+                        _logger.LogTrace("Got Msg message '{requestNumber}'", headerResult.Message.ResponseTo);
                         var msgResult = await _reader.ReadAsync(msgMessageReader, _shutdownToken.Token)
                             .ConfigureAwait(false);
                         _reader.Advance();
-                        // Debug.WriteLine($"Parsed Msg message '{headerResult.Message.ResponseTo}'");
                         message = new ResponseMsgMessage(headerResult.Message, msgResult.Message);
 
                         if (_completionMap.TryGetValue(message.Header.ResponseTo, out completion))
                         {
-                            // Debug.WriteLine($"Set result to message '{message.Header.ResponseTo}'");
                             completion.TrySetResult(message);
                         }
-
-                        // Debug.WriteLine($"Msg message '{message.Header.ResponseTo}' completed");
                         // TODO: 
                         break;
                     case Opcode.Message:
@@ -216,10 +209,9 @@ namespace MongoDB.Client
                     case Opcode.KillCursors:
                     case Opcode.Compressed:
                     default:
-                        await Console.Out.WriteLineAsync($"Unknown opcode '{headerResult.Message.Opcode}'");
+                        _logger.LogError("Unknown opcode '{opcode}'", headerResult.Message.Opcode);
                         if (_completionMap.TryGetValue(headerResult.Message.ResponseTo, out completion))
                         {
-                            // Debug.WriteLine($"Set result to message '{message.Header.ResponseTo}'");
                             completion.TrySetException(
                                 new NotSupportedException($"Opcode '{headerResult.Message.Opcode}' not supported"));
                         }
@@ -268,14 +260,12 @@ namespace MongoDB.Client
                 switch (message)
                 {
                     case ReplyMessage replyMessage:
-                        // Debug.WriteLine($"Parsing reply message '{message.Header.ResponseTo}'");
                         if (SerializersMap.TryGetSerializer<T>(out var replySerializer))
                         {
                             var bodyReader = new ReplyBodyReader<T>(replySerializer);
                             var bodyResult = await reader.ReadAsync(bodyReader, _shutdownToken.Token)
                                 .ConfigureAwait(false);
                             reader.Advance();
-                            // Debug.WriteLine($"Parsing reply message '{message.Header.ResponseTo}' complete");
                             return bodyResult.Message;
                         }
 
@@ -298,8 +288,7 @@ namespace MongoDB.Client
                     try
                     {
                         await _writer.WriteAsync(msgWriter, message, cancellationToken).ConfigureAwait(false);
-                        await Console.Out.WriteLineAsync($"Sent cursor message '{message.RequestNumber}'");
-                        // Debug.WriteLine($"Sent cursor message '{message.RequestNumber}'");
+                        _logger.LogTrace("Sent cursor message '{requestNumber}'", message.RequestNumber);
 
                         // var response = await new ValueTask<MongoResponseMessage>(completionSource, completionSource.Version)
                         //     .ConfigureAwait(false);
@@ -328,7 +317,6 @@ namespace MongoDB.Client
                 switch (message)
                 {
                     case ResponseMsgMessage msgMessage:
-                        // Debug.WriteLine($"Parsing msg message '{message.Header.ResponseTo}'");
                         if (SerializersMap.TryGetSerializer<T>(out var msgSerializer))
                         {
                             MsgBodyReader<T> bodyReader;
@@ -346,12 +334,10 @@ namespace MongoDB.Client
                                     .PayloadType);
                             }
 
-                            await Console.Out.WriteLineAsync($"Parsing msg message '{message.Header.ResponseTo}'");
+                            _logger.LogTrace("Parsing msg message '{requestNumber}'", message.Header.ResponseTo);
                             var result = await reader.ReadAsync(bodyReader, cancellationToken).ConfigureAwait(false);
-                            await Console.Out.WriteLineAsync(
-                                $"Parsing msg message '{message.Header.ResponseTo}' complete");
                             reader.Advance();
-                            // Debug.WriteLine($"Parsing msg message '{message.Header.ResponseTo}' complete");
+                            _logger.LogTrace("Parsing msg message '{requestNumber}' complete", message.Header.ResponseTo);
                             return bodyReader.CursorResult;
                         }
 

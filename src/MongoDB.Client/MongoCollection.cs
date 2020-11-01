@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Messages;
@@ -9,13 +10,15 @@ namespace MongoDB.Client
 {
     public class MongoCollection<T>
     {
+        private readonly ILogger _logger;
         private readonly Channel _channel;
 
-        internal MongoCollection(MongoDatabase database, string name)
+        internal MongoCollection(MongoDatabase database, string name, ILogger logger)
         {
+            _logger = logger;
             Database = database;
             Namespace = new CollectionNamespace(database.Name, name);
-            _channel = new Channel(database.Client.EndPoint);
+            _channel = new Channel(database.Client.EndPoint, _logger);
         }
 
         internal void BeginConnection()

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 
 namespace MongoDB.Client.ConsoleApp
@@ -12,8 +13,15 @@ namespace MongoDB.Client.ConsoleApp
     {
         static async Task Main(string[] args)
         {
-            var client = new MongoClient( /*new DnsEndPoint("centos0.mshome.net", 27017)*/);
-            
+            var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder
+                    .SetMinimumLevel(LogLevel.Trace)
+                    .AddConsole();
+            });
+
+            var client = new MongoClient(/*new DnsEndPoint("centos0.mshome.net", 27017),*/ loggerFactory);
+
             var db = client.GetDatabase("TestDb");
             var collection1 = db.GetCollection<GeoIp>("TestCollection2");
             var collection3 = db.GetCollection<BsonDocument>("TestCollection2");
@@ -34,10 +42,10 @@ namespace MongoDB.Client.ConsoleApp
             // Console.WriteLine(result0.Cursor.Items.Count);
             // Console.WriteLine(result1.Cursor.Items.Count);
             // Console.WriteLine(result2.Cursor.Items.Count);
-   
+
 
             var count = 1000000;
-          //  await Concurrent(collection1, count, filter);
+            //  await Concurrent(collection1, count, filter);
             await Sequential(collection1, count, filter);
             // await Concurrent(collection1, count, filter);
             // await Sequential(collection1, count, filter);
@@ -57,14 +65,14 @@ namespace MongoDB.Client.ConsoleApp
             var sw = Stopwatch.StartNew();
             for (int i = 0; i < count; i++)
             {
-  
                 list.Add(collection.GetCursorAsync(filter, default).FirstOrDefaultAsync().AsTask());
             }
+
             var results = await Task.WhenAll(list);
             sw.Stop();
             Console.WriteLine("Concurrent: " + sw.Elapsed);
         }
-        
+
         private static async Task Sequential<T>(MongoCollection<T> collection, int count, BsonDocument filter)
         {
             var sw = Stopwatch.StartNew();
@@ -81,11 +89,12 @@ namespace MongoDB.Client.ConsoleApp
                         await Console.Out.WriteLineAsync(e.Message);
                     }
                 }
-                
-                await Console.Out.WriteLineAsync(i.ToString());
+
+                // await Console.Out.WriteLineAsync(i.ToString());
             }
+
             sw.Stop();
-            Console.WriteLine("Sequential: " +sw.Elapsed);
+            Console.WriteLine("Sequential: " + sw.Elapsed);
         }
     }
 }
