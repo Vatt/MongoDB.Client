@@ -9,7 +9,6 @@ using MongoDB.Client.Protocol.Writers;
 using MongoDB.Client.Readers;
 using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,8 +34,9 @@ namespace MongoDB.Client
         private static readonly QueryMessageWriter queryWriter = new QueryMessageWriter();
         private static readonly MsgMessageWriter msgWriter = new MsgMessageWriter();
 
-        private readonly ConcurrentDictionary<int, TaskCompletionSource<MongoResponseMessage>> _completionMap =
-            new ConcurrentDictionary<int, TaskCompletionSource<MongoResponseMessage>>();
+        private readonly ConcurrentDictionary<int, TaskCompletionSourceWithCancellation<MongoResponseMessage>>
+            _completionMap =
+                new ConcurrentDictionary<int, TaskCompletionSourceWithCancellation<MongoResponseMessage>>();
 
         // private readonly ManualResetValueTaskSource<MongoResponseMessage> completionSource =
         //     new ManualResetValueTaskSource<MongoResponseMessage>();
@@ -164,7 +164,7 @@ namespace MongoDB.Client
             }
 
             MongoResponseMessage message;
-            TaskCompletionSource<MongoResponseMessage>? completion;
+            TaskCompletionSourceWithCancellation<MongoResponseMessage>? completion;
             while (_shutdownToken.IsCancellationRequested == false)
             {
                 var headerResult = await _reader.ReadAsync(messageHeaderReader, _shutdownToken.Token)
@@ -217,8 +217,14 @@ namespace MongoDB.Client
                     case Opcode.Compressed:
                     default:
                         await Console.Out.WriteLineAsync($"Unknown opcode '{headerResult.Message.Opcode}'");
-                        ThrowHelper.OpcodeNotSupportedException<bool>(headerResult.Message
-                            .Opcode); //TODO: need to read pipe to end
+                        if (_completionMap.TryGetValue(headerResult.Message.ResponseTo, out completion))
+                        {
+                            // Debug.WriteLine($"Set result to message '{message.Header.ResponseTo}'");
+                            completion.TrySetException(
+                                new NotSupportedException($"Opcode '{headerResult.Message.Opcode}' not supported"));
+                        }
+
+                        //TODO: need to read pipe to end
                         break;
                 }
             }
@@ -231,7 +237,7 @@ namespace MongoDB.Client
                 if (_writer is not null)
                 {
                     var completion = _completionMap.GetOrAdd(message.RequestNumber,
-                        i => new TaskCompletionSource<MongoResponseMessage>());
+                        i => new TaskCompletionSourceWithCancellation<MongoResponseMessage>());
                     try
                     {
                         await _writer.WriteAsync(queryWriter, message, cancellationToken).ConfigureAwait(false);
@@ -239,7 +245,8 @@ namespace MongoDB.Client
                         // var response = await new ValueTask<MongoResponseMessage>(completionSource, completionSource.Version)
                         //     .ConfigureAwait(false);
                         // completionSource.Reset();
-                        var response = await completion.Task.ConfigureAwait(false);
+                        var response = await completion.WaitWithCancellationAsync(cancellationToken)
+                            .ConfigureAwait(false);
 
                         return await ParseAsync<TResp>(response).ConfigureAwait(false);
                     }
@@ -287,7 +294,7 @@ namespace MongoDB.Client
                 if (_writer is not null)
                 {
                     var completion = _completionMap.GetOrAdd(message.RequestNumber,
-                        i => new TaskCompletionSource<MongoResponseMessage>());
+                        i => new TaskCompletionSourceWithCancellation<MongoResponseMessage>());
                     try
                     {
                         await _writer.WriteAsync(msgWriter, message, cancellationToken).ConfigureAwait(false);
@@ -340,7 +347,8 @@ namespace MongoDB.Client
 
                             await Console.Out.WriteLineAsync($"Parsing msg message '{message.Header.ResponseTo}'");
                             var result = await reader.ReadAsync(bodyReader, cancellationToken).ConfigureAwait(false);
-                            await Console.Out.WriteLineAsync($"Parsing msg message '{message.Header.ResponseTo}' complete");
+                            await Console.Out.WriteLineAsync(
+                                $"Parsing msg message '{message.Header.ResponseTo}' complete");
                             reader.Advance();
                             // Debug.WriteLine($"Parsing msg message '{message.Header.ResponseTo}' complete");
                             return bodyReader.CursorResult;
