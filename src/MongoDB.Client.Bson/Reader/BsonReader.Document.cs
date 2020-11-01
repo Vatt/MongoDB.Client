@@ -1,4 +1,5 @@
-﻿using MongoDB.Client.Bson.Document;
+﻿using System;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Utils;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -115,6 +116,12 @@ namespace MongoDB.Client.Bson.Reader
                         element = BsonElement.Create(parent, name, intValue);
                         return true;
                     }
+                case 17:
+                {
+                    if (!TryGetInt64(out var timestampValue)) { return false; }
+                    element = BsonElement.Create(parent, name, new BsonTimestamp(timestampValue));
+                    return true;
+                }
                 case 18:
                     {
                         if (!TryGetInt64(out var longValue)) { return false; }

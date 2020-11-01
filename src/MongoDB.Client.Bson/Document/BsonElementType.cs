@@ -9,9 +9,10 @@
         BinaryData = 5,
         ObjectId = 7,
         Boolean = 8,
-        UTCDateTime = 9,
+        UtcDateTime = 9,
         Null = 10,
         Int32 = 16,
+        Timestamp = 17,
         Int64 = 18,
     }
 }

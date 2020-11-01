@@ -102,7 +102,7 @@ namespace MongoDB.Client
             {
                 await ConnectAsync(ct).ConfigureAwait(false);
                 QueryMessage? request = CreateConnectRequest();
-                var configMessage = await SendQueryAsync<MongoConnectionInfo>(request, ct).ConfigureAwait(false);
+                var configMessage = await SendQueryAsync<BsonDocument>(request, ct).ConfigureAwait(false);
                 // var hell = await SendAsync<BsonDocument>(Hell, ct).ConfigureAwait(false);
                 _connectionInfo = new ConnectionInfo(configMessage, null);
                 Init = true;
@@ -304,7 +304,8 @@ namespace MongoDB.Client
                         // var response = await new ValueTask<MongoResponseMessage>(completionSource, completionSource.Version)
                         //     .ConfigureAwait(false);
                         // completionSource.Reset();
-                        var response = await completion.Task.ConfigureAwait(false);
+                        var response = await completion.WaitWithCancellationAsync(cancellationToken)
+                            .ConfigureAwait(false);
 
                         return await ParseAsync<TResp>(response, cancellationToken).ConfigureAwait(false);
                     }

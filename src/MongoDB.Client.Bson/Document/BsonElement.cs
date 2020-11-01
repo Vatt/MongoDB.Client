@@ -77,6 +77,10 @@ namespace MongoDB.Client.Bson.Document
             return new BsonElement(parent, BsonElementType.ObjectId, name, value);
         }
 
+        public static BsonElement Create(BsonDocument parent, string name, BsonTimestamp value)
+        {
+            return new BsonElement(parent, BsonElementType.Timestamp, name, value);
+        }
 
         public static BsonElement Create(BsonDocument parent, string name, BsonBinaryData value)
         {
@@ -86,7 +90,7 @@ namespace MongoDB.Client.Bson.Document
 
         public static BsonElement Create(BsonDocument parent, string name, DateTimeOffset value)
         {
-            return new BsonElement(parent, BsonElementType.UTCDateTime, name, value);
+            return new BsonElement(parent, BsonElementType.UtcDateTime, name, value);
         }
 
 

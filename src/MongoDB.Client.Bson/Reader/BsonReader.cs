@@ -234,6 +234,18 @@ namespace MongoDB.Client.Bson.Reader
 
             switch (subtype)
             {
+                case 0:
+                {
+                    var data = new byte[len];
+                    if (_input.TryCopyTo(data))
+                    {
+                        value = BsonBinaryData.Create(data);
+                        _input.Advance(len);
+                        return true;
+                    }
+
+                    return false;
+                }
                 case 4:
                 {
                     if (_input.UnreadSpan.Length < len)

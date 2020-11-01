@@ -13,12 +13,11 @@ namespace MongoDB.Client.ConsoleApp
         static async Task Main(string[] args)
         {
             var client = new MongoClient( /*new DnsEndPoint("centos0.mshome.net", 27017)*/);
-
+            
             var db = client.GetDatabase("TestDb");
             var collection1 = db.GetCollection<GeoIp>("TestCollection2");
             var collection3 = db.GetCollection<BsonDocument>("TestCollection2");
-            // var collection2 = db.GetCollection<GeoIp>("TestCollection3");
-
+            var collection2 = db.GetCollection<GeoIp>("TestCollection3");
             var filter = new BsonDocument();
 
             // var result0 = await collection1.GetCursorAsync(filter, default);
@@ -75,15 +74,15 @@ namespace MongoDB.Client.ConsoleApp
                 {
                     try
                     {
-                        await collection.GetCursorAsync(filter, cts.Token).FirstOrDefaultAsync();
+                        var result = await collection.GetCursorAsync(filter, cts.Token);
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(e.Message);
+                        await Console.Out.WriteLineAsync(e.Message);
                     }
                 }
                 
-                Console.WriteLine(i);
+                await Console.Out.WriteLineAsync(i.ToString());
             }
             sw.Stop();
             Console.WriteLine("Sequential: " +sw.Elapsed);
