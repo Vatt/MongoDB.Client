@@ -2,6 +2,7 @@
 using MongoDB.Client.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
@@ -14,17 +15,18 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
             public int Value0;
             public double Value1;
             public long Value2;
+            public List<int> IntList;
             public bool Equals(InnerTestData other)
             {
                 if (other == null)
                 {
                     return false;
                 }
-                return Value0 == other.Value0 && Value1 == other.Value1 && Value2 == other.Value2;
+                return Value0 == other.Value0 && Value1 == other.Value1 && Value2 == other.Value2 && IntList.SequenceEqual(other.IntList);
             }
             public override bool Equals(object? obj)
             {                
-                return obj is not null && obj is InnerTestData && Equals(obj);
+                return obj is not null && obj is InnerTestData && Equals(obj) ;
             }
         }
 

@@ -34,6 +34,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
         IfStatementSyntax GenerateIfNameEqualsStatement()
         {
             var whileStatement = new SyntaxList<StatementSyntax>()
+                        .Add(SF.ParseStatement("if (!reader.TryGetByte(out var arrayType)) { return false; }"))
                         .Add(SF.ParseStatement("if (!reader.TryGetCStringAsSpan(out var index)) { return false; }"))
                         .Add(GenerateRead())
                         .Add(SF.ParseStatement($"message.{MemberDecl.DeclSymbol.Name}.Add(value);"));
@@ -47,7 +48,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
                                         SF.ParseStatement($"var arrayUnreaded = reader.Remaining + sizeof(int);"),
                                         SF.WhileStatement(
                                             attributeLists: default,
-                                            condition: SF.ParseExpression("unreaded - reader.Remaining < docLength - 1"),
+                                            condition: SF.ParseExpression("arrayUnreaded - reader.Remaining < arrayDocLength - 1"),
                                             statement: SF.Block(whileStatement)),
                                         SF.ParseStatement("if ( !reader.TryGetByte(out var arrayEndMarker)){ return false; }"),
                                         SF.ParseStatement(@$"if (arrayEndMarker != '\x00'){{ throw new ArgumentException($""{ClassSymbol.Name}GeneratedSerializer.TryParse End document marker missmatch"");}}"),

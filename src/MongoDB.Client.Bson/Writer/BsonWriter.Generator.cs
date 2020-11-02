@@ -95,6 +95,16 @@ namespace MongoDB.Client.Bson.Writer
             WriteInt32(value);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write_Type_Name_Value(int intName, int value)
+        {
+            ReadOnlySpan<byte> byteName = Encoding.UTF8.GetBytes(intName.ToString());//stackalloc byte[4];            
+            WriteByte(16);
+            WriteCString(byteName);
+            WriteInt32(value);
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, long value)
         {
             WriteByte(18);

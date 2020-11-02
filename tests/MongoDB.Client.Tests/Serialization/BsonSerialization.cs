@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
@@ -73,6 +74,7 @@ namespace MongoDB.Client.Tests.Serialization
                     Value0 = 42,
                     Value1 = 42,
                     Value2 = 42,
+                    IntList = new List<int>() { 1024, 1025, 1026, 1027, 1028, 1029 },
                 }
             };
             SerializersMap.TryGetSerializer<TestData>(out var serializer);

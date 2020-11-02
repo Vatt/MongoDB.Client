@@ -1,5 +1,6 @@
 using MongoDB.Client.Bson.Document;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 
@@ -28,6 +29,11 @@ namespace MongoDB.Client.ConsoleApp
             Console.WriteLine(result0.Cursor.Items.Count);
             Console.WriteLine(result1.Cursor.Items.Count);
             Console.WriteLine(result2.Cursor.Items.Count);
+            List<int> lst = new List<int>();
+            for(var i = 0; i < lst.Count; i++)  
+            {
+
+            }
         }
     }
 }
