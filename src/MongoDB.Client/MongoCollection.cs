@@ -10,29 +10,26 @@ namespace MongoDB.Client
 {
     public class MongoCollection<T>
     {
+        private readonly ChannelsPool _channelsPool;
         private readonly ILoggerFactory _loggerFactory;
         private readonly Channel _channel;
 
-        internal MongoCollection(MongoDatabase database, string name, ILoggerFactory loggerFactory)
+        internal MongoCollection(MongoDatabase database, string name, ChannelsPool channelsPool,
+            ILoggerFactory loggerFactory)
         {
+            _channelsPool = channelsPool;
             _loggerFactory = loggerFactory;
             Database = database;
             Namespace = new CollectionNamespace(database.Name, name);
             _channel = new Channel(database.Client.EndPoint, _loggerFactory);
-        }
-
-        internal void BeginConnection()
-        {
-            _ = _channel.InitConnectAsync(default);
         }
         
         public MongoDatabase Database { get; }
 
         public CollectionNamespace Namespace { get; }
 
-
         
-        public async ValueTask<CursorResult<T>> GetCursorAsync(BsonDocument filter, CancellationToken cancellationToken)
+        public async ValueTask<CursorResult<T>> GetCursorAsync(BsonDocument filter, CancellationToken cancellationToken = default)
         {
             var doc = new BsonDocument
             {
@@ -43,11 +40,8 @@ namespace MongoDB.Client
             };
             
             var request = CreateFindRequest(Database.Name, doc);
-            if (_channel.Init == false)
-            {
-                await _channel.InitConnectAsync(cancellationToken).ConfigureAwait(false);
-            }
-            return await _channel.GetCursorAsync<T>(request, cancellationToken);
+            var channel = await _channelsPool.GetChannelAsync(cancellationToken).ConfigureAwait(false);
+            return await channel.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
         }
 
         private MsgMessage CreateFindRequest(string database, BsonDocument document)

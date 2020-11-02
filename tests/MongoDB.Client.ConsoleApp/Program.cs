@@ -2,7 +2,6 @@ using MongoDB.Client.Bson.Document;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
@@ -16,7 +15,7 @@ namespace MongoDB.Client.ConsoleApp
             var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder
-                    .SetMinimumLevel(LogLevel.Error)
+                    .SetMinimumLevel(LogLevel.Information)
                     .AddConsole();
             });
 
@@ -25,8 +24,8 @@ namespace MongoDB.Client.ConsoleApp
 
             var db = client.GetDatabase("TestDb");
             var collection1 = db.GetCollection<GeoIp>("TestCollection2");
-            var collection3 = db.GetCollection<BsonDocument>("TestCollection2");
-            var collection2 = db.GetCollection<GeoIp>("TestCollection3");
+            //var collection3 = db.GetCollection<BsonDocument>("TestCollection2");
+            // var collection2 = db.GetCollection<GeoIp>("TestCollection3");
             var filter = new BsonDocument();
 
             // var result0 = await collection1.GetCursorAsync(filter, default);
@@ -43,11 +42,16 @@ namespace MongoDB.Client.ConsoleApp
             // Console.WriteLine(result0.Cursor.Items.Count);
             // Console.WriteLine(result1.Cursor.Items.Count);
             // Console.WriteLine(result2.Cursor.Items.Count);
+            await Warmup(collection1, filter);
 
-
-            var count = 1000000;
-            //  await Concurrent(collection1, count, filter);
+            var count = 40;
+           // await Concurrent(collection1, count, filter);
             await Sequential(collection1, count, filter);
+            // await Concurrent(collection1, count, filter);
+            // await Concurrent(collection1, count, filter);
+            // await Concurrent(collection1, count, filter);
+            // await Concurrent(collection1, count, filter);
+            // await Concurrent(collection1, count, filter);
             // await Concurrent(collection1, count, filter);
             // await Sequential(collection1, count, filter);
             // await Concurrent(collection1, count, filter);
@@ -62,14 +66,14 @@ namespace MongoDB.Client.ConsoleApp
 
         private static async Task Concurrent<T>(MongoCollection<T> collection, int count, BsonDocument filter)
         {
-            var list = new List<Task<T>>(count);
+            var list = new List<Task>(count);
             var sw = Stopwatch.StartNew();
             for (int i = 0; i < count; i++)
             {
-                list.Add(collection.GetCursorAsync(filter, default).FirstOrDefaultAsync().AsTask());
+                list.Add(collection.GetCursorAsync(filter).AsTask());
             }
 
-            var results = await Task.WhenAll(list);
+            await Task.WhenAll(list);
             sw.Stop();
             Console.WriteLine("Concurrent: " + sw.Elapsed);
         }
@@ -79,23 +83,44 @@ namespace MongoDB.Client.ConsoleApp
             var sw = Stopwatch.StartNew();
             for (int i = 0; i < count; i++)
             {
-                using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
-                {
-                    try
-                    {
-                        var result = await collection.GetCursorAsync(filter, cts.Token);
-                    }
-                    catch (Exception e)
-                    {
-                        await Console.Out.WriteLineAsync(e.Message);
-                    }
-                }
-
-                await Console.Out.WriteLineAsync(i.ToString());
+                // using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
+                // {
+                //     try
+                //     {
+                var result = await collection.GetCursorAsync(filter);
+                //     }
+                //     catch (Exception e)
+                //     {
+                //         await Console.Out.WriteLineAsync(e.Message);
+                //     }
+                // }
+                //
+                // await Console.Out.WriteLineAsync(i.ToString());
             }
 
             sw.Stop();
             Console.WriteLine("Sequential: " + sw.Elapsed);
+        }
+
+
+        private static async Task Warmup<T>(MongoCollection<T> collection, BsonDocument filter)
+        {
+            for (int i = 0; i < 1000; i++)
+            {
+                // using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
+                // {
+                //     try
+                //     {
+                var result = await collection.GetCursorAsync(filter);
+                //     }
+                //     catch (Exception e)
+                //     {
+                //         await Console.Out.WriteLineAsync(e.Message);
+                //     }
+                // }
+                //
+                // await Console.Out.WriteLineAsync(i.ToString());
+            }
         }
     }
 }
