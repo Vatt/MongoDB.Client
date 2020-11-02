@@ -23,6 +23,12 @@ namespace MongoDB.Client.Bson.Document
         {
             Add(name, value);
         }
+        
+        public BsonDocument(string name, int value)
+            : this()
+        {
+            Add(name, value);
+        }
 
         public BsonDocument(string name, BsonBinaryData value)
             : this()
@@ -235,6 +241,17 @@ namespace MongoDB.Client.Bson.Document
             }
 
             return true;
+        }
+
+        public override int GetHashCode()
+        {
+            var hash = new HashCode();
+            foreach (var element in _elements)
+            {
+                hash.Add(element);
+            }
+
+            return hash.ToHashCode();
         }
     }
 }

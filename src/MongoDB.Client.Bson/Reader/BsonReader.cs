@@ -82,7 +82,7 @@ namespace MongoDB.Client.Bson.Reader
             return true;
         }
 
-        public bool TryGetCString([MaybeNullWhen(false)] out string? value)
+        public bool TryGetCString([MaybeNullWhen(false)] out string value)
         {
             value = default;
             if (!_input.TryReadTo(out ReadOnlySpan<byte> data, EndMarker))
@@ -106,7 +106,7 @@ namespace MongoDB.Client.Bson.Reader
         }
 
 
-        public bool TryGetString([MaybeNullWhen(false)] out string? value)
+        public bool TryGetString([MaybeNullWhen(false)] out string value)
         {
             value = default;
             if (!TryGetInt32(out var length))
@@ -337,7 +337,7 @@ namespace MongoDB.Client.Bson.Reader
         }
 
 
-        public bool TryGetUTCDatetime(out DateTimeOffset value)
+        public bool TryGetUtcDatetime([MaybeNullWhen(false)] out DateTimeOffset value)
         {
             value = default;
             if (!TryGetInt64(out var data))
@@ -358,7 +358,7 @@ namespace MongoDB.Client.Bson.Reader
                 return false;
             }
 
-            value = boolean == 1 ? true : false;
+            value = boolean == 1;
             return true;
         }
 

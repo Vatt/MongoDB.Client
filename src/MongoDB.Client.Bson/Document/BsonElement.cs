@@ -115,7 +115,7 @@ namespace MongoDB.Client.Bson.Document
             return new BsonElement(parent, BsonElementType.Null, name, null);
         }
 
-        public BsonDocument AsBsonDocument => (BsonDocument)Value;
+        public BsonDocument? AsBsonDocument => (BsonDocument?)Value;
 
         public override string ToString()
         {
@@ -130,6 +130,11 @@ namespace MongoDB.Client.Bson.Document
         public bool Equals(BsonElement element)
         {
             return Type == element.Type && Name == element.Name && EqualityComparer<object?>.Default.Equals(Value, element.Value);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Type, Name, Value);
         }
     }
 }

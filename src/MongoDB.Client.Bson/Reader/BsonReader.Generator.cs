@@ -32,11 +32,11 @@ namespace MongoDB.Client.Bson.Reader
             }
             if (bsonType == 9)
             {
-                return reader.TryGetUTCDatetime(out value);
+                return reader.TryGetUtcDatetime(out value);
             }
             if (bsonType == 18)
             {
-                return reader.TryGetUTCDatetime(out value);
+                return reader.TryGetUtcDatetime(out value);
             }
             throw new ArgumentException("Unsupported DateTime type");
         }

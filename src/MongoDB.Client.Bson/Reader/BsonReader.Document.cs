@@ -101,7 +101,7 @@ namespace MongoDB.Client.Bson.Reader
                     }
                 case 9:
                     {
-                        if (!TryGetUTCDatetime(out var datetime)) { return false; }
+                        if (!TryGetUtcDatetime(out var datetime)) { return false; }
                         element = BsonElement.Create(parent, name, datetime);
                         return true;
                     }

@@ -48,6 +48,7 @@ namespace MongoDB.Client
         private readonly SemaphoreSlim _initSemaphore = new SemaphoreSlim(1);
         private Task<ConnectionInfo>? _initTask;
         public bool Init { get; private set; }
+        public bool IsBusy => _completionMap.Count > 10;
 
         public Channel(EndPoint endpoint, ILoggerFactory loggerFactory)
         {
@@ -104,10 +105,11 @@ namespace MongoDB.Client
             async Task<ConnectionInfo> DoConnectAsync(CancellationToken ct)
             {
                 await ConnectAsync(ct).ConfigureAwait(false);
-                QueryMessage? request = CreateConnectRequest();
-                var configMessage = await SendQueryAsync<BsonDocument>(request, ct).ConfigureAwait(false);
-                // var hell = await SendAsync<BsonDocument>(Hell, ct).ConfigureAwait(false);
-                _connectionInfo = new ConnectionInfo(configMessage, null);
+                QueryMessage? connectRequest = CreateQueryRequest(_initialDocument);
+                var configMessage = await SendQueryAsync<BsonDocument>(connectRequest, ct).ConfigureAwait(false);
+                QueryMessage? buildInfoRequest = CreateQueryRequest(new BsonDocument("buildInfo", 1));
+                 var hell = await SendQueryAsync<BsonDocument>(buildInfoRequest, ct).ConfigureAwait(false);
+                _connectionInfo = new ConnectionInfo(configMessage, hell);
                 Init = true;
                 return _connectionInfo;
             }
@@ -127,9 +129,9 @@ namespace MongoDB.Client
             _readingTask = StartReadAsync();
         }
 
-        private QueryMessage CreateConnectRequest()
+        private QueryMessage CreateQueryRequest(BsonDocument document)
         {
-            var doc = CreateWrapperDocument();
+            var doc = CreateWrapperDocument(document);
             return CreateRequest("admin.$cmd", Opcode.Query, doc);
         }
 
@@ -139,12 +141,12 @@ namespace MongoDB.Client
             return new QueryMessage(num, database, opcode, document);
         }
 
-        private BsonDocument CreateWrapperDocument()
+        private BsonDocument CreateWrapperDocument(BsonDocument document)
         {
             BsonDocument? readPreferenceDocument = null;
             var doc = new BsonDocument
             {
-                {"$query", _initialDocument},
+                {"$query", document},
                 {"$readPreference", readPreferenceDocument, readPreferenceDocument != null}
             };
 
