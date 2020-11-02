@@ -16,11 +16,12 @@ namespace MongoDB.Client.ConsoleApp
             var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder
-                    .SetMinimumLevel(LogLevel.Trace)
+                    .SetMinimumLevel(LogLevel.Error)
                     .AddConsole();
             });
 
-            var client = new MongoClient(/*new DnsEndPoint("centos0.mshome.net", 27017),*/ loggerFactory);
+            var client = new MongoClient( /*new DnsEndPoint("centos0.mshome.net", 27017),*/ loggerFactory);
+            // var client = new MongoClient( /*new DnsEndPoint("centos0.mshome.net", 27017),*/ );
 
             var db = client.GetDatabase("TestDb");
             var collection1 = db.GetCollection<GeoIp>("TestCollection2");
@@ -90,7 +91,7 @@ namespace MongoDB.Client.ConsoleApp
                     }
                 }
 
-                // await Console.Out.WriteLineAsync(i.ToString());
+                await Console.Out.WriteLineAsync(i.ToString());
             }
 
             sw.Stop();

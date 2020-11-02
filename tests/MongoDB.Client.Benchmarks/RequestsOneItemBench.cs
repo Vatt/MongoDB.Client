@@ -8,7 +8,7 @@ using BsonObjectId = MongoDB.Client.Bson.Document.BsonObjectId;
 namespace MongoDB.Client.Benchmarks
 {
     [MemoryDiagnoser]
-    public class RequestsBench
+    public class RequestsOneItemBench
     {
         private MongoCollection<GeoIp> _collection;
         private IMongoCollection<GeoIp> _oldCollection;

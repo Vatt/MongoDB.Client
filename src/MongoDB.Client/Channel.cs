@@ -28,13 +28,13 @@ namespace MongoDB.Client
         private ConnectionInfo? _connectionInfo;
         private ProtocolReader? _reader;
         private ProtocolWriter? _writer;
-        private static readonly MessageHeaderReader messageHeaderReader = new MessageHeaderReader();
-        private static readonly ReplyMessageReader replyMessageReader = new ReplyMessageReader();
-        private static readonly MsgMessageReader msgMessageReader = new MsgMessageReader();
+        private static readonly MessageHeaderReader MessageHeaderReader = new MessageHeaderReader();
+        private static readonly ReplyMessageReader ReplyMessageReader = new ReplyMessageReader();
+        private static readonly MsgMessageReader MsgMessageReader = new MsgMessageReader();
 
-        private static readonly ReadOnlyMemoryWriter memoryWriter = new ReadOnlyMemoryWriter();
-        private static readonly QueryMessageWriter queryWriter = new QueryMessageWriter();
-        private static readonly MsgMessageWriter msgWriter = new MsgMessageWriter();
+        // private static readonly ReadOnlyMemoryWriter memoryWriter = new ReadOnlyMemoryWriter();
+        private static readonly QueryMessageWriter QueryWriter = new QueryMessageWriter();
+        private static readonly MsgMessageWriter MsgWriter = new MsgMessageWriter();
 
         private readonly ConcurrentDictionary<int, TaskCompletionSourceWithCancellation<MongoResponseMessage>>
             _completionMap =
@@ -49,10 +49,10 @@ namespace MongoDB.Client
         private Task<ConnectionInfo>? _initTask;
         public bool Init { get; private set; }
 
-        public Channel(EndPoint endpoint, ILogger logger)
+        public Channel(EndPoint endpoint, ILoggerFactory loggerFactory)
         {
             _endpoint = endpoint ?? throw new ArgumentNullException(nameof(endpoint));
-            _logger = logger;
+            _logger = loggerFactory.CreateLogger($"MongoClient: {endpoint}");
             _connectionFactory = new NetworkConnectionFactory();
             _initialDocument = InitHelper.CreateInitialCommand();
         }
@@ -170,54 +170,69 @@ namespace MongoDB.Client
             TaskCompletionSourceWithCancellation<MongoResponseMessage>? completion;
             while (_shutdownToken.IsCancellationRequested == false)
             {
-                var headerResult = await _reader.ReadAsync(messageHeaderReader, _shutdownToken.Token)
-                    .ConfigureAwait(false);
-                _reader.Advance();
-                switch (headerResult.Message.Opcode)
+                try
                 {
-                    case Opcode.Reply:
-                        _logger.LogTrace("Got Reply message '{requestNumber}'", headerResult.Message.ResponseTo);
-                        var replyResult = await _reader.ReadAsync(replyMessageReader, _shutdownToken.Token)
-                            .ConfigureAwait(false);
-                        _reader.Advance();
-                        message = new ReplyMessage(headerResult.Message, replyResult.Message);
-                        if (_completionMap.TryGetValue(message.Header.ResponseTo, out completion))
-                        {
-                            completion.TrySetResult(message);
-                        }
-                        // TODO: 
-                        break;
-                    case Opcode.OpMsg:
-                        _logger.LogTrace("Got Msg message '{requestNumber}'", headerResult.Message.ResponseTo);
-                        var msgResult = await _reader.ReadAsync(msgMessageReader, _shutdownToken.Token)
-                            .ConfigureAwait(false);
-                        _reader.Advance();
-                        message = new ResponseMsgMessage(headerResult.Message, msgResult.Message);
+                    var headerResult = await _reader.ReadAsync(MessageHeaderReader, _shutdownToken.Token)
+                        .ConfigureAwait(false);
+                    _reader.Advance();
+                    switch (headerResult.Message.Opcode)
+                    {
+                        case Opcode.Reply:
+                            _logger.GotReplyMessage(headerResult.Message.ResponseTo);
+                            var replyResult = await _reader.ReadAsync(ReplyMessageReader, _shutdownToken.Token)
+                                .ConfigureAwait(false);
+                            _reader.Advance();
+                            message = new ReplyMessage(headerResult.Message, replyResult.Message);
+                            if (_completionMap.TryGetValue(message.Header.ResponseTo, out completion))
+                            {
+                                completion.TrySetResult(message);
+                            }
+                            else
+                            {
+                                _logger.LogError("Message not found");
+                            }
+                            // TODO: 
+                            break;
+                        case Opcode.OpMsg:
+                            _logger.GotMsgMessage(headerResult.Message.ResponseTo);
+                            var msgResult = await _reader.ReadAsync(MsgMessageReader, _shutdownToken.Token)
+                                .ConfigureAwait(false);
+                            _reader.Advance();
+                            message = new ResponseMsgMessage(headerResult.Message, msgResult.Message);
 
-                        if (_completionMap.TryGetValue(message.Header.ResponseTo, out completion))
-                        {
-                            completion.TrySetResult(message);
-                        }
-                        // TODO: 
-                        break;
-                    case Opcode.Message:
-                    case Opcode.Update:
-                    case Opcode.Insert:
-                    case Opcode.Query:
-                    case Opcode.GetMore:
-                    case Opcode.Delete:
-                    case Opcode.KillCursors:
-                    case Opcode.Compressed:
-                    default:
-                        _logger.LogError("Unknown opcode '{opcode}'", headerResult.Message.Opcode);
-                        if (_completionMap.TryGetValue(headerResult.Message.ResponseTo, out completion))
-                        {
-                            completion.TrySetException(
-                                new NotSupportedException($"Opcode '{headerResult.Message.Opcode}' not supported"));
-                        }
+                            if (_completionMap.TryGetValue(message.Header.ResponseTo, out completion))
+                            {
+                                completion.TrySetResult(message);
+                            }
+                            else
+                            {
+                                _logger.LogError("Message not found");
+                            }
+                            // TODO: 
+                            break;
+                        case Opcode.Message:
+                        case Opcode.Update:
+                        case Opcode.Insert:
+                        case Opcode.Query:
+                        case Opcode.GetMore:
+                        case Opcode.Delete:
+                        case Opcode.KillCursors:
+                        case Opcode.Compressed:
+                        default:
+                            _logger.UnknownOpcodeMessage(headerResult.Message.Opcode);
+                            if (_completionMap.TryGetValue(headerResult.Message.ResponseTo, out completion))
+                            {
+                                completion.TrySetException(
+                                    new NotSupportedException($"Opcode '{headerResult.Message.Opcode}' not supported"));
+                            }
 
-                        //TODO: need to read pipe to end
-                        break;
+                            //TODO: need to read pipe to end
+                            break;
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e.ToString());
                 }
             }
         }
@@ -232,7 +247,7 @@ namespace MongoDB.Client
                         i => new TaskCompletionSourceWithCancellation<MongoResponseMessage>());
                     try
                     {
-                        await _writer.WriteAsync(queryWriter, message, cancellationToken).ConfigureAwait(false);
+                        await _writer.WriteAsync(QueryWriter, message, cancellationToken).ConfigureAwait(false);
                         // Debug.WriteLine($"Sent query message '{message.RequestNumber}'");
                         // var response = await new ValueTask<MongoResponseMessage>(completionSource, completionSource.Version)
                         //     .ConfigureAwait(false);
@@ -287,9 +302,8 @@ namespace MongoDB.Client
                         i => new TaskCompletionSourceWithCancellation<MongoResponseMessage>());
                     try
                     {
-                        await _writer.WriteAsync(msgWriter, message, cancellationToken).ConfigureAwait(false);
-                        _logger.LogTrace("Sent cursor message '{requestNumber}'", message.RequestNumber);
-
+                        await _writer.WriteAsync(MsgWriter, message, cancellationToken).ConfigureAwait(false);
+                        _logger.SentCursorMessage(message.RequestNumber);
                         // var response = await new ValueTask<MongoResponseMessage>(completionSource, completionSource.Version)
                         //     .ConfigureAwait(false);
                         // completionSource.Reset();
@@ -330,14 +344,13 @@ namespace MongoDB.Client
                             }
                             else
                             {
-                                return ThrowHelper.InvalidPayloadTypeException<CursorResult<T>>(msgMessage.MsgHeader
-                                    .PayloadType);
+                                return ThrowHelper.InvalidPayloadTypeException<CursorResult<T>>(msgMessage.MsgHeader.PayloadType);
                             }
 
-                            _logger.LogTrace("Parsing msg message '{requestNumber}'", message.Header.ResponseTo);
+                            _logger.ParsingMsgMessage(message.Header.ResponseTo);
                             var result = await reader.ReadAsync(bodyReader, cancellationToken).ConfigureAwait(false);
                             reader.Advance();
-                            _logger.LogTrace("Parsing msg message '{requestNumber}' complete", message.Header.ResponseTo);
+                            _logger.ParsingMsgCompleteMessage(message.Header.ResponseTo);
                             return bodyReader.CursorResult;
                         }
 

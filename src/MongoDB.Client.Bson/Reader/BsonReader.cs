@@ -54,6 +54,15 @@ namespace MongoDB.Client.Bson.Reader
             return _input.TryReadLittleEndian(out value);
         }
 
+        public bool TryPeekInt32(out int value)
+        {
+            if (_input.TryReadLittleEndian(out value))
+            {
+                _input.Rewind(sizeof(int));
+                return true;
+            }
+            return false;
+        }
 
         public bool TryGetInt64(out long value)
         {

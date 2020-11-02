@@ -5,6 +5,7 @@ namespace MongoDB.Client.Messages
     class MongoResponseMessage
     {
         public MessageHeader Header { get; }
+        
 
         public MongoResponseMessage(in MessageHeader header)
         {

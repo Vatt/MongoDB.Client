@@ -69,13 +69,20 @@ namespace MongoDB.Client.Readers
                     if (bsonReader.TryGetByte(out _) == false) { return false; }
                     if (bsonReader.TryGetCStringAsSpan(out _) == false) { return false; }
 #endif
-
-                    if (Serializer.TryParse(ref bsonReader, out var item))
+                    if (bsonReader.TryPeekInt32(out int modelLength) && bsonReader.Remaining >= modelLength)
                     {
-                        items.Add(item);
-                        _modelsReaded += bsonReader.BytesConsumed - checkpoint;
-                        consumed = bsonReader.Position;
-                        examined = bsonReader.Position;
+                        if (Serializer.TryParse(ref bsonReader, out var item))
+                        {
+                            items.Add(item);
+                            _modelsReaded += bsonReader.BytesConsumed - checkpoint;
+                            consumed = bsonReader.Position;
+                            examined = bsonReader.Position;
+                        }
+                        else
+                        {
+                            message = default;
+                            return false;
+                        }
                     }
                     else
                     {

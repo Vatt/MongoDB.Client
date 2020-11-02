@@ -10,15 +10,15 @@ namespace MongoDB.Client
 {
     public class MongoCollection<T>
     {
-        private readonly ILogger _logger;
+        private readonly ILoggerFactory _loggerFactory;
         private readonly Channel _channel;
 
-        internal MongoCollection(MongoDatabase database, string name, ILogger logger)
+        internal MongoCollection(MongoDatabase database, string name, ILoggerFactory loggerFactory)
         {
-            _logger = logger;
+            _loggerFactory = loggerFactory;
             Database = database;
             Namespace = new CollectionNamespace(database.Name, name);
-            _channel = new Channel(database.Client.EndPoint, _logger);
+            _channel = new Channel(database.Client.EndPoint, _loggerFactory);
         }
 
         internal void BeginConnection()
@@ -34,10 +34,6 @@ namespace MongoDB.Client
         
         public async ValueTask<CursorResult<T>> GetCursorAsync(BsonDocument filter, CancellationToken cancellationToken)
         {
-            if (_channel.Init == false)
-            {
-                await _channel.InitConnectAsync(cancellationToken).ConfigureAwait(false);
-            }
             var doc = new BsonDocument
             {
                 {"find", Namespace.CollectionName },
@@ -47,6 +43,10 @@ namespace MongoDB.Client
             };
             
             var request = CreateFindRequest(Database.Name, doc);
+            if (_channel.Init == false)
+            {
+                await _channel.InitConnectAsync(cancellationToken).ConfigureAwait(false);
+            }
             return await _channel.GetCursorAsync<T>(request, cancellationToken);
         }
 

@@ -6,7 +6,7 @@ namespace MongoDB.Client
 {
     public class MongoClient
     {
-        private readonly ILogger _logger;
+        private readonly ILoggerFactory _loggerFactory;
         public EndPoint EndPoint { get; }
 
         public MongoClient()
@@ -27,12 +27,12 @@ namespace MongoDB.Client
         public MongoClient(EndPoint endPoint, ILoggerFactory loggerFactory)
         {
             EndPoint = endPoint;
-            _logger = loggerFactory.CreateLogger($"MongoClient:{EndPoint.ToString()}");
+            _loggerFactory = loggerFactory;
         }
 
         public MongoDatabase GetDatabase(string name)
         {
-            return new MongoDatabase(this, name, _logger);
+            return new MongoDatabase(this, name, _loggerFactory);
         }
     }
 }
