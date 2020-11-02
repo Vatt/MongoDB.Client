@@ -49,11 +49,6 @@ namespace MongoDB.Client.Readers
                 var items = CursorResult.Cursor.Items;
                 while (_modelsReaded < _modelsLength - 1)
                 {
-                    if (items.Count == 100)
-                    {
-                        Debugger.Break();
-                    }
-
                     var checkpoint = bsonReader.BytesConsumed;
 #if DEBUG
                     if (bsonReader.TryGetByte(out var type) == false)
