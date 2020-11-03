@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Core;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.ReadWrite;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.ReadWrite;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -23,6 +24,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
             }
             TypeMap.TryGetValue(type/*MemberDecl.DeclType*/, out var readOp);
             readOp.WithVariableDeclaration(_variadleIdentifier);
+            if (readOp is ReadWithBsonType rwWithType)
+            {
+                rwWithType.SetBsonType(Basics.TryParseBsonTypeIdentifier);
+            }
             return SF.IfStatement(
                 condition: SF.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, readOp.GenerateRead(ClassSymbol, MemberDecl)),
                 statement: SF.Block(SF.ReturnStatement(SF.LiteralExpression(SyntaxKind.FalseLiteralExpression))));

@@ -2,6 +2,7 @@
 using MongoDB.Client.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace MongoDB.Client.Tests.Serialization.TestModels
@@ -16,17 +17,32 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
             public double Value1;
             public long Value2;
             public List<int> IntList;
+            public List<double> DoubleList;
+            public List<long> LongList;
+            public List<BsonObjectId> BsonObjectIdList;
+            public List<BsonDocument> BsonDocumentList;
+            //public List<DateTimeOffset> DateTimeOffsetList;
+            public List<bool> BoolList;
+            public List<string> StringList;
             public bool Equals(InnerTestData other)
             {
                 if (other == null)
                 {
                     return false;
                 }
-                return Value0 == other.Value0 && Value1 == other.Value1 && Value2 == other.Value2 && IntList.SequenceEqual(other.IntList);
+                return Value0 == other.Value0 && Value1 == other.Value1 && Value2 == other.Value2 &&
+                       IntList.SequenceEqual(other.IntList) &&
+                       DoubleList.SequenceEqual(other.DoubleList) &&
+                       LongList.SequenceEqual(other.LongList) &&
+                       BsonObjectIdList.SequenceEqual(other.BsonObjectIdList) &&
+                       BsonDocumentList.SequenceEqual(other.BsonDocumentList) &&
+                       //DateTimeOffsetList.SequenceEqual(other.DateTimeOffsetList, EqualityComparer<DateTimeOffset>.Default) &&
+                       BoolList.SequenceEqual(other.BoolList) &&
+                       StringList.SequenceEqual(other.StringList);
             }
             public override bool Equals(object? obj)
             {                
-                return obj is not null && obj is InnerTestData && Equals(obj) ;
+                return obj is not null && obj is  InnerTestData inner && Equals(inner) ;
             }
         }
 
