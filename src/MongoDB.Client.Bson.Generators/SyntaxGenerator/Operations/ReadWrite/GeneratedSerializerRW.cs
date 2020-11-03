@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Core;
+using System;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.ReadWrite
@@ -45,15 +46,28 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.ReadWrite
         }
         public override StatementSyntax GenerateWrite(INamedTypeSymbol classSym, MemberDeclarationMeta memberDecl)
         {
+            return GenerateWrite(classSym, memberDecl, Basics.SimpleMemberAccess(Basics.WriteInputInVariableIdentifierName, SF.IdentifierName(memberDecl.DeclSymbol.Name)));
+        }
+        public override StatementSyntax GenerateWrite(INamedTypeSymbol classSym, MemberDeclarationMeta memberDecl, ExpressionSyntax writableVar)
+        {
             var serializer = Basics.GlobalSerializationHelperGenerated;
-            var writeMethod = SF.IdentifierName(Basics.GenerateSerializerNameStaticField(memberDecl.DeclType));
+            IdentifierNameSyntax writeMethod;
+            if (memberDecl.IsGenericList)
+            {
+                writeMethod = SF.IdentifierName(Basics.GenerateSerializerNameStaticField(memberDecl.DeclType.TypeArguments[0]));
+            }
+            else
+            {
+                writeMethod = SF.IdentifierName(Basics.GenerateSerializerNameStaticField(memberDecl.DeclType));
+            }
+
             var serializerInvocation = SF.ExpressionStatement(
                                             SF.InvocationExpression(
                                                        expression: SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Basics.SimpleMemberAccess(serializer, writeMethod), SF.IdentifierName("Write")),
                                                        argumentList: SF.ArgumentList()
                                                                          .AddArguments(
                                                                              SF.Argument(default, SF.Token(SyntaxKind.RefKeyword), Basics.WriterInputVariableIdentifierName),
-                                                                             SF.Argument(Basics.SimpleMemberAccess(Basics.WriteInputInVariableIdentifierName, SF.IdentifierName(memberDecl.DeclSymbol.Name))))));
+                                                                             SF.Argument(writableVar))));
             return SF.IfStatement(
                         condition: SF.BinaryExpression(
                                         kind: SyntaxKind.EqualsExpression,
@@ -69,12 +83,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.ReadWrite
                                                                             SF.Argument(SF.IdentifierName(Basics.GenerateReadOnlySpanName(classSym, memberDecl))))),
                                         serializerInvocation),
                             @else: SF.ElseClause(
-                                    SF.ExpressionStatement(
-                                        Basics.InvocationExpression(Basics.WriterInputVariableIdentifierName,
-                                            SF.IdentifierName("WriteBsonNull"),
-                                            SF.Argument(Basics.GenerateReadOnlySpanNameIdentifier(classSym, memberDecl))))));
+                                    SF.Block(
+                                        SF.ExpressionStatement(
+                                            Basics.InvocationExpression(Basics.WriterInputVariableIdentifierName,
+                                                SF.IdentifierName("WriteBsonNull"),
+                                                SF.Argument(Basics.GenerateReadOnlySpanNameIdentifier(classSym, memberDecl)))))));
         }
-
-
+        public override StatementSyntax GenerateWrite(INamedTypeSymbol classSym, ExpressionSyntax nameExpr, ExpressionSyntax writableVar)
+        {
+            throw new NotSupportedException();
+        }
     }
 }

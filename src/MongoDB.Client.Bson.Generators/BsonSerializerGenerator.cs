@@ -131,7 +131,7 @@ namespace MongoDB.Client.Bson.Generators
         }
         private bool IsIgnore(ISymbol sym)
         {
-            foreach(var attr in sym.GetAttributes())
+            foreach (var attr in sym.GetAttributes())
             {
                 if (attr.AttributeClass is null)
                 {

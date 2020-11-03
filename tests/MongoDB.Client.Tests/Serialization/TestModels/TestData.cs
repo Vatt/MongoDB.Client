@@ -7,12 +7,31 @@ using System.Linq;
 
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
+
     [BsonSerializable]
     public class TestData : IEquatable<TestData>
     {
+
         [BsonSerializable]
         public class InnerTestData
         {
+
+            [BsonSerializable]
+            public class ListItem
+            {
+                public int a;
+                public int b;
+                public int c;
+                public bool Equals(ListItem other) => (a == other.a) && (b == other.b) && (c == other.c);
+                public override bool Equals(object obj)
+                {
+                    if (obj == null)
+                    {
+                        return false;
+                    }
+                    return obj is ListItem item && item.Equals(item);
+                }
+            }
             public int Value0;
             public double Value1;
             public long Value2;
@@ -24,6 +43,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
             //public List<DateTimeOffset> DateTimeOffsetList;
             public List<bool> BoolList;
             public List<string> StringList;
+            public List<ListItem> ItemList;
             public bool Equals(InnerTestData other)
             {
                 if (other == null)
@@ -38,7 +58,8 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
                        BsonDocumentList.SequenceEqual(other.BsonDocumentList) &&
                        //DateTimeOffsetList.SequenceEqual(other.DateTimeOffsetList, EqualityComparer<DateTimeOffset>.Default) &&
                        BoolList.SequenceEqual(other.BoolList) &&
-                       StringList.SequenceEqual(other.StringList);
+                       StringList.SequenceEqual(other.StringList) &&
+                       ItemList.SequenceEqual(other.ItemList);
             }
             public override bool Equals(object? obj)
             {                

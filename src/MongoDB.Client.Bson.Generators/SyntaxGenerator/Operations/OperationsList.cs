@@ -45,7 +45,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
                 {
                     operations.Add(new SimpleWriteOperation(classSymbol, member));
                 }
-                
+
 
             }
             return new OperationsList(operations);

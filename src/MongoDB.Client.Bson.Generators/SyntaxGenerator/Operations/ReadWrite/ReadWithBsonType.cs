@@ -21,7 +21,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.ReadWrite
         {
             if (_assignExpr != null)
             {
-                var args =  SF.ArgumentList(new SeparatedSyntaxList<ArgumentSyntax>()
+                var args = SF.ArgumentList(new SeparatedSyntaxList<ArgumentSyntax>()
                                 .Add(SF.Argument(_typeId/*Basics.TryParseBsonTypeIdentifier*/))
                                 .Add(SF.Argument(default, SF.Token(SyntaxKind.OutKeyword), _assignExpr)));
                 _typeId = null;
@@ -29,7 +29,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.ReadWrite
             }
             else if (_variableDecl != null)
             {
-                var args =  SF.ArgumentList(new SeparatedSyntaxList<ArgumentSyntax>()
+                var args = SF.ArgumentList(new SeparatedSyntaxList<ArgumentSyntax>()
                                 .Add(SF.Argument(_typeId/*Basics.TryParseBsonTypeIdentifier*/))
                                 .Add(SF.Argument(default, SF.Token(SyntaxKind.OutKeyword), _variableDecl)));
                 _typeId = null;

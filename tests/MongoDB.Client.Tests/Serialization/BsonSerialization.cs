@@ -81,6 +81,7 @@ namespace MongoDB.Client.Tests.Serialization
                     BoolList = new List<bool>() { true, false, true },
                     BsonDocumentList = new List<BsonDocument>() { new BsonDocument { { "int", 42 }, { "bool", true }, { "string1", "string" }, { "string2", "" }, { "string3", default(string) }}},
                     BsonObjectIdList = new List<BsonObjectId>() { new BsonObjectId("5f987814bf344ec7cc57294b"), new BsonObjectId("5f987814bf342ec7cc57294b") },
+                    ItemList = new List<TestData.InnerTestData.ListItem>() { new TestData.InnerTestData.ListItem { a = 1, b = 2, c = 3 }, new TestData.InnerTestData.ListItem { a = 3, b = 4, c = 5 } }
                     //DateTimeOffsetList = new List<DateTimeOffset>() { DateTimeOffset.UtcNow, DateTimeOffset.UtcNow }
                 }
             };

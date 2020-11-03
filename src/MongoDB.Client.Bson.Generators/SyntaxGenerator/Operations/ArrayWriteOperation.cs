@@ -1,5 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Core;
@@ -35,11 +34,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
         private BlockSyntax SimpleForBlock(ReadWriteBase writeOp)
         {
 
-            var toString = Basics.InvocationExpression0(ForIndexId, SF.IdentifierName("ToString"));
             var elementAccess = SF.ElementAccessExpression(
                                                     Basics.SimpleMemberAccess(Basics.WriteInputInVariableIdentifierName, SF.IdentifierName(MemberDecl.DeclSymbol.Name)),
                                                     SF.BracketedArgumentList().AddArguments(SF.Argument(ForIndexId)));
-            return SF.Block( writeOp.GenerateWrite(ClassSymbol, ForIndexId, elementAccess) );
+            return SF.Block(writeOp.GenerateWrite(ClassSymbol, ForIndexId, elementAccess));
+        }
+        private BlockSyntax GeneratedSerializerForBlock(GeneratedSerializerRW writeOp)
+        {
+            var elementAccess = SF.ElementAccessExpression(
+                                                    Basics.SimpleMemberAccess(Basics.WriteInputInVariableIdentifierName, SF.IdentifierName(MemberDecl.DeclSymbol.Name)),
+                                                    SF.BracketedArgumentList().AddArguments(SF.Argument(ForIndexId)));
+            return SF.Block(writeOp.GenerateWrite(ClassSymbol, MemberDecl, elementAccess));
         }
         private ForStatementSyntax GenerateFor()
         {
@@ -56,11 +61,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
             BlockSyntax forBody;
             if (writeOp is GeneratedSerializerRW generatedOp)
             {
-                return default;
+                forBody = GeneratedSerializerForBlock(generatedOp);
             }
             else
             {
-                forBody =  SimpleForBlock(writeOp);
+                forBody = SimpleForBlock(writeOp);
             }
             var indexForDeclare = SF.VariableDeclaration(
                                     SF.PredefinedType(SF.Token(SyntaxKind.IntKeyword)),
@@ -77,10 +82,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
                                                                      SF.IdentifierName("Count")));
             var incrementExpr = SF.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, ForIndexId);
             return SF.ForStatement(
-                    declaration: indexForDeclare, 
+                    declaration: indexForDeclare,
                     initializers: new SeparatedSyntaxList<ExpressionSyntax>(),
                     condition: forCondition,
-                    incrementors: SF.SingletonSeparatedList<ExpressionSyntax>(incrementExpr), 
+                    incrementors: SF.SingletonSeparatedList<ExpressionSyntax>(incrementExpr),
                     statement: forBody);
         }
 
@@ -154,19 +159,19 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
             return SF.Block(
                         GenerateWrite_Type_Name(),
                         GenerateCheckpoint(),
-                        GenerateReserve(),                                                
+                        GenerateReserve(),
                         GenerateFor(),
                         GenerateWriteEndMarker(),
                         GenerateDocLenDeclareAndAssign(),
                         GenerateSizeSpanStackalloc(),
-                        SF.ExpressionStatement(Basics.InvocationExpression(SF.IdentifierName("BinaryPrimitives"), 
-                                                                           SF.IdentifierName("WriteInt32LittleEndian"), 
-                                                                           SF.Argument(GetSizeSpanNameId()), 
+                        SF.ExpressionStatement(Basics.InvocationExpression(SF.IdentifierName("BinaryPrimitives"),
+                                                                           SF.IdentifierName("WriteInt32LittleEndian"),
+                                                                           SF.Argument(GetSizeSpanNameId()),
                                                                            SF.Argument(GetDocLengthId()))),
                         SF.ExpressionStatement(Basics.InvocationExpression(GetReservedId(), SF.IdentifierName("Write"), SF.Argument(GetSizeSpanNameId()))),
                         SF.ExpressionStatement(Basics.InvocationExpression0(Basics.WriterInputVariableIdentifierName, SF.IdentifierName("Commit")))
 
-                );          
+                );
         }
     }
 }
