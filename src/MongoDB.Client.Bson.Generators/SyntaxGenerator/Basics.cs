@@ -38,7 +38,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         {
             return SF.IdentifierName(GenerateSerializerName(classSymbol));
         }
-        public static string GenerateSerializerNameStaticField(INamedTypeSymbol classSymbol)
+        public static string GenerateSerializerNameStaticField(ISymbol classSymbol)
         {
             return $"{GenerateSerializerName(classSymbol)}StaticField";
         }
@@ -62,6 +62,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         public static MemberAccessExpressionSyntax SimpleMemberAccess(IdentifierNameSyntax source, IdentifierNameSyntax member)
         {
             return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member);
+        }
+        public static MemberAccessExpressionSyntax SimpleMemberAccess(IdentifierNameSyntax source, IdentifierNameSyntax member1, IdentifierNameSyntax member2)
+        {
+            var mae1 = SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member1);
+            return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, mae1, member2);
         }
         public static InvocationExpressionSyntax InvocationExpression1(IdentifierNameSyntax source, IdentifierNameSyntax member, ArgumentSyntax arg)
         {

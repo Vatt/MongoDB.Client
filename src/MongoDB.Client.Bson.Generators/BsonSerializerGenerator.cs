@@ -3,7 +3,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator;
-using MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.Reads;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.ReadWrite;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.ReadWrite;
 using System.Collections.Generic;
 using System.Text;
 
@@ -30,9 +31,9 @@ namespace MongoDB.Client.Bson.Generators
             context.AddSource($"{Basics.GlobalSerializationHelperGeneratedString}.cs", SourceText.From(GenerateGlobalHelperStaticClass(), Encoding.UTF8));
             foreach (var item in meta)
             {
-                if (!ReadsMap.SimpleOperations.ContainsKey(item.ClassSymbol.Name))
+                if (!TypeMap.SimpleOperations.ContainsKey(item.ClassSymbol.Name))
                 {
-                    ReadsMap.SimpleOperations.Add(item.ClassSymbol.Name, new GeneratedSerializerRead(item.ClassSymbol, Basics.TryParseBsonNameIdentifier));
+                    TypeMap.SimpleOperations.Add(item.ClassSymbol.Name, new GeneratedSerializerRW(item.ClassSymbol));
                 }
 
             }
@@ -130,7 +131,7 @@ namespace MongoDB.Client.Bson.Generators
         }
         private bool IsIgnore(ISymbol sym)
         {
-            foreach(var attr in sym.GetAttributes())
+            foreach (var attr in sym.GetAttributes())
             {
                 if (attr.AttributeClass is null)
                 {

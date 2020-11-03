@@ -56,7 +56,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
                                 reservedToken,
                                 default,
                                 SF.EqualsValueClause(
-                                    Basics.InvocationExpression1(
+                                    Basics.InvocationExpression(
                                         Basics.WriterInputVariableIdentifierName,
                                         SF.IdentifierName("Reserve"),
                                         SF.Argument(default, default, reservedSizeExpr)))))));
@@ -98,7 +98,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
         }
         StatementSyntax GenerateReservedWriteIntoSizeSpan()
         {
-            return SF.ExpressionStatement(Basics.InvocationExpression1(reservedId, SF.IdentifierName("Write"), SF.Argument(sizeSpanNameId)));
+            return SF.ExpressionStatement(Basics.InvocationExpression(reservedId, SF.IdentifierName("Write"), SF.Argument(sizeSpanNameId)));
         }
         StatementSyntax GenerateWriterCommit()
         {

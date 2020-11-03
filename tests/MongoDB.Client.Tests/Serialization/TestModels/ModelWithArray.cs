@@ -9,7 +9,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
     {
         public string Name { get; set; }
         
-        [BsonIgnore] //TODO: Remove when the lists are done
+
         public List<int> Values { get; set; }
 
         public bool Equals(ModelWithArray other)

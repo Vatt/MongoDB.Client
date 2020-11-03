@@ -46,7 +46,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.ClassDeclarations
         {
             throw new System.NotImplementedException();
         }
-        public override ClassDeclarationSyntax Build()
+        public override ClassDeclarationSyntax Generate()
         {
             var decl = SF.ClassDeclaration(Basics.GenerateSerializerName(ClassSymbol));
             decl = decl.WithTypeParameterList(GetTypeParametersList());

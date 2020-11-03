@@ -2,7 +2,7 @@
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Core;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
+namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.ClassDeclarations
 {
     internal class SimpleClassDeclaration : ClassDeclarationBase
     {
@@ -30,7 +30,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         {
             return SF.ParseTypeName(ClassSymbol.ToString());
         }
-        public override ClassDeclarationSyntax Build()
+        public override ClassDeclarationSyntax Generate()
         {
             var decl = SF.ClassDeclaration(Basics.GenerateSerializerName(ClassSymbol));
             return decl.WithBaseList(SF.BaseList(GetBaseList()))
