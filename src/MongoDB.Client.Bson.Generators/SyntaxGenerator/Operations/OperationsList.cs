@@ -17,6 +17,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
             var operations = new List<OperationBase>();
             foreach (var member in members)
             {
+                if (classSymbol.TypeKind == TypeKind.Enum)
+                {
+                    operations.Add(new EnumReadOperation(classSymbol, member));
+                    continue;
+                }
                 if (member.IsGenericList)
                 {
                     operations.Add(new InLoopArrayReadOperation(classSymbol, member));
