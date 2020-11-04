@@ -88,7 +88,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
                     incrementors: SF.SingletonSeparatedList<ExpressionSyntax>(incrementExpr),
                     statement: forBody);
         }
-
         StatementSyntax GenerateReserve()
         {
             return SF.LocalDeclarationStatement(
@@ -156,22 +155,33 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
         }
         public override StatementSyntax Generate()
         {
-            return SF.Block(
-                        GenerateWrite_Type_Name(),
-                        GenerateCheckpoint(),
-                        GenerateReserve(),
-                        GenerateFor(),
-                        GenerateWriteEndMarker(),
-                        GenerateDocLenDeclareAndAssign(),
-                        GenerateSizeSpanStackalloc(),
-                        SF.ExpressionStatement(Basics.InvocationExpression(SF.IdentifierName("BinaryPrimitives"),
-                                                                           SF.IdentifierName("WriteInt32LittleEndian"),
-                                                                           SF.Argument(GetSizeSpanNameId()),
-                                                                           SF.Argument(GetDocLengthId()))),
-                        SF.ExpressionStatement(Basics.InvocationExpression(GetReservedId(), SF.IdentifierName("Write"), SF.Argument(GetSizeSpanNameId()))),
-                        SF.ExpressionStatement(Basics.InvocationExpression0(Basics.WriterInputVariableIdentifierName, SF.IdentifierName("Commit")))
-
-                );
+            return SF.IfStatement(
+                        condition: SF.BinaryExpression(
+                                        kind: SyntaxKind.EqualsExpression,
+                                        left: Basics.SimpleMemberAccess(Basics.WriteInputInVariableIdentifierName,
+                                                                        SF.IdentifierName(MemberDecl.DeclSymbol.Name)),
+                                        operatorToken: SF.Token(SyntaxKind.ExclamationEqualsToken),
+                                        right: SF.LiteralExpression(SyntaxKind.NullLiteralExpression, SF.Token(SyntaxKind.NullKeyword))),
+                        statement: SF.Block(
+                                        GenerateWrite_Type_Name(),
+                                        GenerateCheckpoint(),
+                                        GenerateReserve(),
+                                        GenerateFor(),
+                                        GenerateWriteEndMarker(),
+                                        GenerateDocLenDeclareAndAssign(),
+                                        GenerateSizeSpanStackalloc(),
+                                        SF.ExpressionStatement(Basics.InvocationExpression(SF.IdentifierName("BinaryPrimitives"),
+                                                                                           SF.IdentifierName("WriteInt32LittleEndian"),
+                                                                                           SF.Argument(GetSizeSpanNameId()),
+                                                                                           SF.Argument(GetDocLengthId()))),
+                                        SF.ExpressionStatement(Basics.InvocationExpression(GetReservedId(), SF.IdentifierName("Write"), SF.Argument(GetSizeSpanNameId()))),
+                                        SF.ExpressionStatement(Basics.InvocationExpression0(Basics.WriterInputVariableIdentifierName, SF.IdentifierName("Commit")))),
+                            @else: SF.ElseClause(
+                                    SF.Block(
+                                        SF.ExpressionStatement(
+                                            Basics.InvocationExpression(Basics.WriterInputVariableIdentifierName,
+                                                SF.IdentifierName("WriteBsonNull"),
+                                                SF.Argument(Basics.GenerateReadOnlySpanNameIdentifier(ClassSymbol, MemberDecl)))))));
         }
     }
 }
