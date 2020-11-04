@@ -23,6 +23,7 @@ namespace MongoDB.Client.Protocol.Readers
             reader.TryReadLittleEndian(out int requestId);
             reader.TryReadLittleEndian(out int responseTo);
             reader.TryReadLittleEndian(out int opcode);
+
             message = new MessageHeader(messageLength, requestId, responseTo, opcode);
             consumed = reader.Position;
             examined = reader.Position;

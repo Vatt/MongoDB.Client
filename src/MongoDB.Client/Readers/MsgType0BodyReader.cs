@@ -3,8 +3,8 @@ using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
 using System;
 using System.Buffers;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 
 namespace MongoDB.Client.Readers
 {
@@ -14,12 +14,14 @@ namespace MongoDB.Client.Readers
         private long _payloadLength;
         private long _modelsLength;
         private long _docLength;
+
         private ParserState _state;
+
 
         public MsgType0BodyReader(IGenericBsonSerializer<T> serializer, ResponseMsgMessage message)
             : base(serializer, message)
         {
-            _payloadLength = message.Header.MessageLength - 21; // message header + msg flags + payloadType
+            _payloadLength = message.Header.MessageLength;
             _state = ParserState.Initial;
         }
 
@@ -30,12 +32,14 @@ namespace MongoDB.Client.Readers
 
             if (_state == ParserState.Initial)
             {
+                var checkpoint = bsonReader.BytesConsumed;
                 if (TryReadCursorStart(ref bsonReader, out var modelsLength, out var docLength, out var hasBatch) ==
                     false)
                 {
                     return false;
                 }
 
+                _readed += bsonReader.BytesConsumed - checkpoint;
                 _modelsLength = modelsLength - 4;
                 _docLength = docLength;
                 consumed = bsonReader.Position;
@@ -69,6 +73,7 @@ namespace MongoDB.Client.Readers
                         {
                             items.Add(item);
                             _modelsReaded += bsonReader.BytesConsumed - checkpoint;
+                            _readed += bsonReader.BytesConsumed - checkpoint;
                             consumed = bsonReader.Position;
                             examined = bsonReader.Position;
                         }
@@ -95,6 +100,7 @@ namespace MongoDB.Client.Readers
                     return false;
                 }
 
+                _readed += 1;
                 consumed = bsonReader.Position;
                 examined = bsonReader.Position;
                 _state = ParserState.Cursor;
@@ -102,15 +108,20 @@ namespace MongoDB.Client.Readers
 
             if (_state == ParserState.Cursor)
             {
+                var checkpoint = bsonReader.BytesConsumed;
                 if (TryReadCursorEnd(ref bsonReader) == false)
                 {
                     return false;
                 }
 
+                _readed += bsonReader.BytesConsumed - checkpoint;
                 consumed = bsonReader.Position;
                 examined = bsonReader.Position;
                 _state = ParserState.Complete;
             }
+
+            Debug.Assert(_docLength == _readed);
+            Debug.Assert(_readed == _payloadLength - 21); // message header + msg flags + payloadType;
 
             Complete = _state == ParserState.Complete;
 
@@ -536,7 +547,7 @@ namespace MongoDB.Client.Readers
                 }
             }
 
-            return ThrowHelper.UnknownCursorFieldException<bool>(Encoding.UTF8.GetString(name));
+            return ThrowHelper.UnknownCursorFieldException<bool>(System.Text.Encoding.UTF8.GetString(name));
         }
 #endif
 
