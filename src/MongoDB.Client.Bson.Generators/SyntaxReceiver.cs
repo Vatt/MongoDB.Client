@@ -7,7 +7,8 @@ namespace MongoDB.Client.Bson.Generators
     class SyntaxReceiver : ISyntaxReceiver
     {
         public List<TypeDeclarationSyntax> Candidates { get; } = new List<TypeDeclarationSyntax>();
-        public void AddIfhaveBsonAttribute(TypeDeclarationSyntax decl)
+        public List<EnumDeclarationSyntax> Enums { get; } = new List<EnumDeclarationSyntax>();
+        public void AddIfhaveBsonAttribute(BaseTypeDeclarationSyntax decl)
         {
             if (decl.AttributeLists == null)
             {
@@ -21,7 +22,15 @@ namespace MongoDB.Client.Bson.Generators
                     {
                         if (identifier.Identifier.Text.Equals("BsonSerializable"))
                         {
-                            Candidates.Add(decl);
+                            if (decl is EnumDeclarationSyntax enumdecl)
+                            {
+                                Enums.Add(enumdecl);
+                            }
+                            else
+                            {
+                                Candidates.Add(decl as TypeDeclarationSyntax);
+                            }
+                            
                         }
                     }
 
@@ -43,7 +52,11 @@ namespace MongoDB.Client.Bson.Generators
                         AddIfhaveBsonAttribute(structdecl);
                         break;
                     }
-
+                case EnumDeclarationSyntax enumDecl:
+                {
+                    AddIfhaveBsonAttribute(enumDecl);
+                    break; 
+                }
                     //case RecordDeclarationSyntax recorddecl:
                     //    {
                     //        AddIfhaveBsonAttribute(recorddecl);

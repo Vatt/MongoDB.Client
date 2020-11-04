@@ -13,9 +13,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             {
                 classdecl = new GenericClassDeclaration(classmeta);
             }
-            else
+            else if(!classmeta.IsEnum)
             {
                 classdecl = new SimpleClassDeclaration(classmeta);
+            }
+            else
+            {
+                classdecl = new EnumClassDeclaration(classmeta);
             }
             return classdecl.Generate();
         }

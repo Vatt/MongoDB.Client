@@ -20,7 +20,7 @@ namespace MongoDB.Client.Bson.Generators
         public void Execute(GeneratorExecutionContext context)
         {
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver)) { return; }
-            //System.Diagnostics.Debugger.Launch();
+            System.Diagnostics.Debugger.Launch();
             if (receiver.Candidates.Count == 0)
             {
                 return;
@@ -28,6 +28,7 @@ namespace MongoDB.Client.Bson.Generators
             _context = context;
 
             ProcessCandidates(receiver.Candidates);
+            ProcessEnums(receiver.Enums);
             context.AddSource($"{Basics.GlobalSerializationHelperGeneratedString}.cs", SourceText.From(GenerateGlobalHelperStaticClass(), Encoding.UTF8));
             foreach (var item in meta)
             {
@@ -51,6 +52,33 @@ namespace MongoDB.Client.Bson.Generators
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
         }
 
+        private void ProcessEnums(List<EnumDeclarationSyntax> enums)
+        {
+            foreach (var item in  enums)
+            {
+
+                SemanticModel classModel = _context.Compilation.GetSemanticModel(item.SyntaxTree);
+                var symbol = classModel.GetDeclaredSymbol(item);
+                var declmeta = new ClassDeclMeta(symbol);
+                foreach (var member in item.Members)
+                {
+                    SemanticModel memberModel = _context.Compilation.GetSemanticModel(member.SyntaxTree);
+                    ISymbol enumMember = memberModel.GetDeclaredSymbol(member);
+                    if (IsIgnore(enumMember))
+                    {
+                        continue;
+                    }
+                    if (enumMember.DeclaredAccessibility == Accessibility.Public)
+                    {
+                        declmeta.MemberDeclarations.Add(new MemberDeclarationMeta(enumMember));
+                    }
+                }
+                if (declmeta.MemberDeclarations.Count > 0)
+                {
+                    meta.Add(declmeta);
+                }
+            }
+        }
         private void ProcessCandidates(List<TypeDeclarationSyntax> candidates)
         {
             foreach (var candidate in candidates)
