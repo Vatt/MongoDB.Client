@@ -61,35 +61,6 @@ namespace MongoDB.Client.Tests.Serialization
 
             Assert.Equal(doc, result);
         }
-        //[Fact]
-        //public async Task SerializationDeserializationGenerated()
-        //{
-        //    TestData doc = new TestData
-        //    {
-        //        Age = 42,
-        //        Id = new BsonObjectId("5f987814bf344ec7cc57294b"),
-        //        Name = "DATA_TEST_STRING_NAME",
-        //        InnerData = new TestData.InnerTestData
-        //        {
-        //            Value0 = 42,
-        //            Value1 = 42,
-        //            Value2 = 42,
-        //            IntList = new List<int>() { 1024, 1025, 1026, 1027, 1028, 1029 },
-        //            LongList = new List<long>() { 1024, 1025, 1026, 1027, 1028, 1029 },
-        //            DoubleList = new List<double>() { 42.42, 425.42, 42.42 },
-        //            StringList = new List<string>() { "42", "42", "42" },
-        //            BoolList = new List<bool>() { true, false, true },
-        //            BsonDocumentList = new List<BsonDocument>() { new BsonDocument { { "int", 42 }, { "bool", true }, { "string1", "string" }, { "string2", "" }, { "string3", default(string) } } },
-        //            BsonObjectIdList = new List<BsonObjectId>() { new BsonObjectId("5f987814bf344ec7cc57294b"), new BsonObjectId("5f987814bf342ec7cc57294b") },
-        //            ItemList = new List<TestData.InnerTestData.ListItem>() { new TestData.InnerTestData.ListItem { a = 1, b = 2, c = 3 }, new TestData.InnerTestData.ListItem { a = 3, b = 4, c = 5 } }
-        //            //DateTimeOffsetList = new List<DateTimeOffset>() { DateTimeOffset.UtcNow, DateTimeOffset.UtcNow }
-        //        }
-        //    };
-        //    SerializersMap.TryGetSerializer<TestData>(out var serializer);
-        //    var result = await RoundTripAsync(doc, serializer);
-        //    Assert.Equal(doc, result);
-        //}
-
         [Fact]
         public void ObjectIdSerializationDeserialization()
         {
