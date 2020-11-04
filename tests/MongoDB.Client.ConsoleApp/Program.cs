@@ -1,7 +1,9 @@
 using MongoDB.Client.Bson.Document;
 using System;
+using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
@@ -18,7 +20,7 @@ namespace MongoDB.Client.ConsoleApp
                     .SetMinimumLevel(LogLevel.Information)
                     .AddConsole();
             });
-
+            
             var client = new MongoClient( /*new DnsEndPoint("centos0.mshome.net", 27017),*/ loggerFactory);
             // var client = new MongoClient( /*new DnsEndPoint("centos0.mshome.net", 27017),*/ );
 
@@ -42,12 +44,18 @@ namespace MongoDB.Client.ConsoleApp
             // Console.WriteLine(result0.Cursor.Items.Count);
             // Console.WriteLine(result1.Cursor.Items.Count);
             // Console.WriteLine(result2.Cursor.Items.Count);
-            await Warmup(collection1, filter);
+           // await Warmup(collection1, filter);
 
-            var count = 40;
-           // await Concurrent(collection1, count, filter);
+            var count =  100;
             await Sequential(collection1, count, filter);
-            // await Concurrent(collection1, count, filter);
+             // await Concurrent(collection1, count, filter);
+             // await Concurrent(collection1, count, filter);
+             // await Concurrent(collection1, count, filter);
+            await Sequential(collection1, count, filter);
+            await Sequential(collection1, count, filter);
+            await Sequential(collection1, count, filter);
+            await Sequential(collection1, count, filter);
+            await Concurrent(collection1, count, filter);
             // await Concurrent(collection1, count, filter);
             // await Concurrent(collection1, count, filter);
             // await Concurrent(collection1, count, filter);
@@ -62,6 +70,8 @@ namespace MongoDB.Client.ConsoleApp
             // await Sequential(collection1, count, filter);
             // await Concurrent(collection1, count, filter);
             // await Sequential(collection1, count, filter);
+            await Task.Delay(TimeSpan.FromSeconds(5));
+            Console.WriteLine("Done");
         }
 
         private static async Task Concurrent<T>(MongoCollection<T> collection, int count, BsonDocument filter)

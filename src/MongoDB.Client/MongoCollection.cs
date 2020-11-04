@@ -12,7 +12,6 @@ namespace MongoDB.Client
     {
         private readonly ChannelsPool _channelsPool;
         private readonly ILoggerFactory _loggerFactory;
-        private readonly Channel _channel;
 
         internal MongoCollection(MongoDatabase database, string name, ChannelsPool channelsPool,
             ILoggerFactory loggerFactory)
@@ -21,7 +20,6 @@ namespace MongoDB.Client
             _loggerFactory = loggerFactory;
             Database = database;
             Namespace = new CollectionNamespace(database.Name, name);
-            _channel = new Channel(database.Client.EndPoint, _loggerFactory);
         }
         
         public MongoDatabase Database { get; }
@@ -38,16 +36,18 @@ namespace MongoDB.Client
                 {"$db", Database.Name},
                 {"lsid", new BsonDocument("id", BsonBinaryData.Create(Guid.NewGuid())) }
             };
-            
-            var request = CreateFindRequest(Database.Name, doc);
             var channel = await _channelsPool.GetChannelAsync(cancellationToken).ConfigureAwait(false);
-            return await channel.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
+            var requestNum = channel.GetNextRequestNumber();
+            var request = CreateFindRequest(Database.Name, doc, requestNum);
+            
+            var result = await channel.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
+            await Task.Yield();
+            return result;
         }
 
-        private MsgMessage CreateFindRequest(string database, BsonDocument document)
+        private MsgMessage CreateFindRequest(string database, BsonDocument document, int requestNum)
         {
-            var requestNumber = _channel.GetNextRequestNumber();
-            return new MsgMessage(requestNumber, database, document);
+            return new MsgMessage(requestNum, database, document);
         }
     }
 }

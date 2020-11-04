@@ -9,6 +9,9 @@ namespace MongoDB.Client.Messages
         public ReplyMessage(in MessageHeader header, in ReplyMessageHeader replyHeader) : base(header)
         {
             ReplyHeader = replyHeader;
+#if DEBUG
+            Consumed += 20;
+#endif
         }
     }
 }
