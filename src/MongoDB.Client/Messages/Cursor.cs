@@ -2,7 +2,7 @@
 
 namespace MongoDB.Client.Messages
 {
-    public class CursorResult<T>
+    public class CursorResult<T> : IParserResult
     {
         public Cursor<T> Cursor { get; set; }
 

@@ -17,7 +17,7 @@ namespace MongoDB.Client.ConsoleApp
             var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder
-                    .SetMinimumLevel(LogLevel.Information)
+                    .SetMinimumLevel(LogLevel.Error)
                     .AddConsole();
             });
             
@@ -26,15 +26,16 @@ namespace MongoDB.Client.ConsoleApp
 
             var db = client.GetDatabase("TestDb");
             var collection1 = db.GetCollection<GeoIp>("TestCollection2");
-            //var collection3 = db.GetCollection<BsonDocument>("TestCollection2");
+            // var collection3 = db.GetCollection<BsonDocument>("TestCollection2");
             // var collection2 = db.GetCollection<GeoIp>("TestCollection3");
-            var filter = new BsonDocument();
-
+            // var filter = new BsonDocument();
+            var filter = new BsonDocument("_id", new BsonObjectId("5fa29b6db27162107ffbe7db"));
+            
             // var result0 = await collection1.GetCursorAsync(filter, default);
             // var result1 = await collection2.GetCursorAsync(filter, default);
             //
             //
-            // var filter2 = new BsonDocument("_id", new BsonObjectId("5f987814bf344ec7cc57294b"));
+            // var filter2 = new BsonDocument("_id", new BsonObjectId("5fa29b6db27162107ffbe7db"));
             // var filter3 = new BsonDocument("_id", new BsonObjectId("5f987814bf344ec7cc57294a"));
             // var filter4 = new BsonDocument("_id", new BsonObjectId("5f987814bf344ec7cc57295c"));
             // var result2 = await collection1.GetCursorAsync(filter2, default);
@@ -46,32 +47,20 @@ namespace MongoDB.Client.ConsoleApp
             // Console.WriteLine(result2.Cursor.Items.Count);
            // await Warmup(collection1, filter);
 
-            var count =  100;
-            await Sequential(collection1, count, filter);
-             // await Concurrent(collection1, count, filter);
-             // await Concurrent(collection1, count, filter);
-             // await Concurrent(collection1, count, filter);
-            await Sequential(collection1, count, filter);
-            await Sequential(collection1, count, filter);
-            await Sequential(collection1, count, filter);
+
+            var count = 100;
+            await Concurrent(collection1, count, filter);
             await Sequential(collection1, count, filter);
             await Concurrent(collection1, count, filter);
-            // await Concurrent(collection1, count, filter);
-            // await Concurrent(collection1, count, filter);
-            // await Concurrent(collection1, count, filter);
-            // await Concurrent(collection1, count, filter);
-            // await Concurrent(collection1, count, filter);
-            // await Sequential(collection1, count, filter);
+            await Sequential(collection1, count, filter);
+            await Concurrent(collection1, count, filter);
+            await Sequential(collection1, count, filter);
             // await Concurrent(collection1, count, filter);
             // await Sequential(collection1, count, filter);
             // await Concurrent(collection1, count, filter);
             // await Sequential(collection1, count, filter);
             // await Concurrent(collection1, count, filter);
             // await Sequential(collection1, count, filter);
-            // await Concurrent(collection1, count, filter);
-            // await Sequential(collection1, count, filter);
-            await Task.Delay(TimeSpan.FromSeconds(5));
-            Console.WriteLine("Done");
         }
 
         private static async Task Concurrent<T>(MongoCollection<T> collection, int count, BsonDocument filter)
@@ -97,7 +86,7 @@ namespace MongoDB.Client.ConsoleApp
                 // {
                 //     try
                 //     {
-                var result = await collection.GetCursorAsync(filter);
+                var result = await collection.GetCursorAsync(filter, default);
                 //     }
                 //     catch (Exception e)
                 //     {

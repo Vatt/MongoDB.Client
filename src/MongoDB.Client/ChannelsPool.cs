@@ -9,7 +9,7 @@ namespace MongoDB.Client
 {
     internal class ChannelsPool
     {
-        public int MaxChannels = Environment.ProcessorCount;
+        private readonly int _maxChannels = Environment.ProcessorCount;
         private static readonly Random Random = new Random();
         
         private readonly EndPoint _endPoint;
@@ -37,9 +37,9 @@ namespace MongoDB.Client
                 }
             }
 
-            if (_channels.Count == MaxChannels)
+            if (_channels.Count == _maxChannels)
             {
-                var idx = Random.Next(MaxChannels);
+                var idx = Random.Next(_maxChannels);
                 return new ValueTask<Channel>(_channels[idx]);
             }
             return AllocateNewChannel(cancellationToken);
@@ -60,9 +60,9 @@ namespace MongoDB.Client
                     }
                 }
                 
-                if (_channels.Count == MaxChannels)
+                if (_channels.Count == _maxChannels)
                 {
-                    var idx = Random.Next(MaxChannels);
+                    var idx = Random.Next(_maxChannels);
                     return _channels[idx];
                 }
                 
