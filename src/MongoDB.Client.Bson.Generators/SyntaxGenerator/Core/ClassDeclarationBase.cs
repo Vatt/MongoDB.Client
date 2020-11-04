@@ -88,6 +88,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
             }
             return list;
         }
-        public abstract ClassDeclarationSyntax Build();
+        public abstract ClassDeclarationSyntax Generate();
     }
 }

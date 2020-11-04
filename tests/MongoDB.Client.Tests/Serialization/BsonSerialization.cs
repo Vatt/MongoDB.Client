@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
@@ -60,7 +61,6 @@ namespace MongoDB.Client.Tests.Serialization
 
             Assert.Equal(doc, result);
         }
-
         [Fact]
         public void ObjectIdSerializationDeserialization()
         {

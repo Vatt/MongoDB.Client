@@ -17,7 +17,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             {
                 classdecl = new SimpleClassDeclaration(classmeta);
             }
-            return classdecl.Build();
+            return classdecl.Generate();
         }
     }
 }

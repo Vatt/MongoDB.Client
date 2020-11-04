@@ -7,7 +7,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
 {
     internal class OperationsList
     {
-        public static List<string> SimpleOperations = new() { "Double", "String", "BsonDocument", "BsonObjectId", "Boolean", "Int32", "Int64", "Guid", "DateTimeOffset" };
         private List<OperationBase> _operations;
         private OperationsList(List<OperationBase> operations)
         {
@@ -38,14 +37,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
             var operations = new List<OperationBase>();
             foreach (var member in members)
             {
-                if (SimpleOperations.Contains(member.DeclType.Name))
+                if (member.IsGenericList)
                 {
-                    operations.Add(new SimpleWriteOperation(classSymbol, member));
+                    operations.Add(new ArrayWriteOperation(classSymbol, member));
                 }
                 else
                 {
-                    operations.Add(new GeneratedSerializerWriteOperation(classSymbol, member));
+                    operations.Add(new SimpleWriteOperation(classSymbol, member));
                 }
+
 
             }
             return new OperationsList(operations);
