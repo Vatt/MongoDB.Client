@@ -7,7 +7,7 @@ namespace MongoDB.Client
     {
         private CancellationToken _cancellationToken;
 
-        public TaskCompletionSourceWithCancellation() : base()
+        public TaskCompletionSourceWithCancellation() : base(TaskCreationOptions.RunContinuationsAsynchronously)
         {
         }
 

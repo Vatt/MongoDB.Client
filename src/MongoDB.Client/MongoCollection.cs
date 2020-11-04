@@ -40,9 +40,7 @@ namespace MongoDB.Client
             var requestNum = channel.GetNextRequestNumber();
             var request = CreateFindRequest(Database.Name, doc, requestNum);
             
-            var result = await channel.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
-            await Task.Yield();
-            return result;
+            return await channel.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
         }
 
         private MsgMessage CreateFindRequest(string database, BsonDocument document, int requestNum)
