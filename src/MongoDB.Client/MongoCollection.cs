@@ -39,10 +39,14 @@ namespace MongoDB.Client
             var channel = await _channelsPool.GetChannelAsync(cancellationToken).ConfigureAwait(false);
             var requestNum = channel.GetNextRequestNumber();
             var request = CreateFindRequest(Database.Name, doc, requestNum);
-            
             return await channel.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
         }
 
+        public Cursor<T> Find(BsonDocument filter)
+        {
+            return new Cursor<T>(_channelsPool, filter, Namespace);
+        }
+        
         private MsgMessage CreateFindRequest(string database, BsonDocument document, int requestNum)
         {
             return new MsgMessage(requestNum, database, document);

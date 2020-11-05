@@ -25,7 +25,7 @@ namespace MongoDB.Client.Readers
             Message = message;
             CursorResult = new CursorResult<T>
             {
-                Cursor = new Cursor<T>
+                MongoCursor = new MongoCursor<T>
                 {
                     Items = new List<T>()
                 }

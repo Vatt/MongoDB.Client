@@ -28,10 +28,13 @@ namespace MongoDB.Client.ConsoleApp
             var collection1 = db.GetCollection<GeoIp>("TestCollection2");
             // var collection3 = db.GetCollection<BsonDocument>("TestCollection2");
             // var collection2 = db.GetCollection<GeoIp>("TestCollection3");
-            // var filter = new BsonDocument();
-            var filter = new BsonDocument("_id", new BsonObjectId("5fa29b6db27162107ffbe7db"));
-            
-            // var result0 = await collection1.GetCursorAsync(filter, default);
+             var filter = new BsonDocument();
+          //  var filter = new BsonDocument("_id", new BsonObjectId("5fa29b6db27162107ffbe7db"));
+
+          var result0 = await collection1.Find(filter).ToListAsync();
+          var result1 = await collection1.Find(filter).FirstOrDefaultAsync();
+
+          Console.WriteLine();
             // var result1 = await collection2.GetCursorAsync(filter, default);
             //
             //
@@ -49,7 +52,7 @@ namespace MongoDB.Client.ConsoleApp
 
 
             var count = 100;
-            await Concurrent(collection1, count, filter);
+            // await Concurrent(collection1, count, filter);
             await Sequential(collection1, count, filter);
             await Concurrent(collection1, count, filter);
             await Sequential(collection1, count, filter);
@@ -87,6 +90,8 @@ namespace MongoDB.Client.ConsoleApp
                 //     try
                 //     {
                 var result = await collection.GetCursorAsync(filter, default);
+                Console.WriteLine();
+                
                 //     }
                 //     catch (Exception e)
                 //     {
