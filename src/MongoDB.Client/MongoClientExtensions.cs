@@ -10,18 +10,18 @@ namespace MongoDB.Client
         public static async ValueTask<List<T>> ToListAsync<T>(this ValueTask<CursorResult<T>> cursorTask)
         {
             var cursorResult = await cursorTask.ConfigureAwait(false);
-            return cursorResult.Cursor.ToList();
+            return cursorResult.MongoCursor.ToList();
         }
 
         public static async ValueTask<T> FirstOrDefaultAsync<T>(this ValueTask<CursorResult<T>> cursorTask)
         {
             var cursorResult = await cursorTask.ConfigureAwait(false);
-            return cursorResult.Cursor.Items.FirstOrDefault();
+            return cursorResult.MongoCursor.Items.FirstOrDefault();
         }
         
-        public static List<T> ToList<T>(this Cursor<T> cursor)
+        public static List<T> ToList<T>(this MongoCursor<T> mongoCursor)
         {
-            return cursor.Items;
+            return mongoCursor.Items;
         }
     }
 }

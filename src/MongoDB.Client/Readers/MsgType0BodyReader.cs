@@ -49,7 +49,7 @@ namespace MongoDB.Client.Readers
 
             if (_state == ParserState.Models)
             {
-                var items = CursorResult.Cursor.Items;
+                var items = CursorResult.MongoCursor.Items;
                 while (_modelsReaded < _modelsLength - 1)
                 {
                     var checkpoint = bsonReader.BytesConsumed;
@@ -346,7 +346,7 @@ namespace MongoDB.Client.Readers
                     return false;
                 }
 
-                CursorResult.Cursor.Id = idValue;
+                CursorResult.MongoCursor.Id = idValue;
                 return true;
             }
 
@@ -357,7 +357,7 @@ namespace MongoDB.Client.Readers
                     return false;
                 }
 
-                CursorResult.Cursor.Namespace = nsValue;
+                CursorResult.MongoCursor.Namespace = nsValue;
                 return true;
             }
 
@@ -372,7 +372,7 @@ namespace MongoDB.Client.Readers
                 return true;
             }
 
-            if (name == "firstBatch")
+            if (name == "firstBatch" || name == "nextBatch")
             {
                 if (!reader.TryGetInt32(out modelsLength))
                 {
