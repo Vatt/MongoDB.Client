@@ -3,8 +3,8 @@ using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using MongoDB.Client.Utils;
 
 namespace MongoDB.Client.Readers
 {
@@ -27,7 +27,7 @@ namespace MongoDB.Client.Readers
             {
                 MongoCursor = new MongoCursor<T>
                 {
-                    Items = new List<T>()
+                    Items = CursorItemsPool<T>.Pool.Get()
                 }
             };
         }

@@ -1,9 +1,8 @@
 using MongoDB.Client.Bson.Document;
 using System;
-using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
@@ -20,12 +19,13 @@ namespace MongoDB.Client.ConsoleApp
                     .SetMinimumLevel(LogLevel.Error)
                     .AddConsole();
             });
-            
+
+
             var client = new MongoClient( /*new DnsEndPoint("centos0.mshome.net", 27017),*/ loggerFactory);
             // var client = new MongoClient( /*new DnsEndPoint("centos0.mshome.net", 27017),*/ );
 
             var db = client.GetDatabase("TestDb");
-            var collection1 = db.GetCollection<GeoIp>("TestCollection2");
+            var collection1 = db.GetCollection<GeoIp>("TestCollection4");
             // var collection3 = db.GetCollection<BsonDocument>("TestCollection2");
             // var collection2 = db.GetCollection<GeoIp>("TestCollection3");
              var filter = new BsonDocument();
@@ -51,8 +51,8 @@ namespace MongoDB.Client.ConsoleApp
            // await Warmup(collection1, filter);
 
 
-            var count = 100;
-            // await Concurrent(collection1, count, filter);
+            var count = 1000;
+            await Concurrent(collection1, count, filter);
             await Sequential(collection1, count, filter);
             await Concurrent(collection1, count, filter);
             await Sequential(collection1, count, filter);
@@ -68,14 +68,21 @@ namespace MongoDB.Client.ConsoleApp
 
         private static async Task Concurrent<T>(MongoCollection<T> collection, int count, BsonDocument filter)
         {
-            var list = new List<Task>(count);
+            var list = new List<Task<List<T>>>(count);
             var sw = Stopwatch.StartNew();
             for (int i = 0; i < count; i++)
             {
-                list.Add(collection.GetCursorAsync(filter).AsTask());
+                list.Add(collection.Find(filter).ToListAsync().AsTask());
             }
 
-            await Task.WhenAll(list);
+            var results = await Task.WhenAll(list);
+            foreach (var result in results)
+            {
+                if (result.Count != 1100)
+                {
+                    Console.WriteLine("Result length: " + result.Count);
+                }
+            }
             sw.Stop();
             Console.WriteLine("Concurrent: " + sw.Elapsed);
         }
@@ -89,9 +96,11 @@ namespace MongoDB.Client.ConsoleApp
                 // {
                 //     try
                 //     {
-                var result = await collection.GetCursorAsync(filter, default);
-                Console.WriteLine();
-                
+                var result = await collection.Find(filter).ToListAsync();
+                if (result.Count != 1100)
+                {
+                    Console.WriteLine("Result length: " + result.Count);
+                }
                 //     }
                 //     catch (Exception e)
                 //     {
@@ -115,7 +124,7 @@ namespace MongoDB.Client.ConsoleApp
                 // {
                 //     try
                 //     {
-                var result = await collection.GetCursorAsync(filter);
+                var result = await collection.Find(filter).ToListAsync();
                 //     }
                 //     catch (Exception e)
                 //     {

@@ -28,7 +28,7 @@ namespace MongoDB.Client.Benchmarks
         [Benchmark]
         public async Task<int> NewClient()
         {
-            var result = await _collection.GetCursorAsync(new BsonDocument("_id", new BsonObjectId("5f987814bf344ec7cc57294b")), default).ToListAsync();
+            var result = await _collection.Find(new BsonDocument("_id", new BsonObjectId("5f987814bf344ec7cc57294b"))).ToListAsync();
             return result.Count;
         }
         

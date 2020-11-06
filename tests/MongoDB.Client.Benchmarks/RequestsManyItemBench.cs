@@ -16,20 +16,24 @@ namespace MongoDB.Client.Benchmarks
         [GlobalSetup]
         public void Setup()
         {
+            var dbName = "TestDb";
+            var collectionName = "TestCollection4";
+            
             var client = new MongoClient();
-            var db = client.GetDatabase("TestDb");
-            _collection = db.GetCollection<GeoIp>("TestCollection2");
+            var db = client.GetDatabase(dbName);
+            _collection = db.GetCollection<GeoIp>(collectionName);
 
             var oldClient = new MongoDB.Driver.MongoClient("mongodb://localhost:27017");
-            var oldDb = oldClient.GetDatabase("TestDb");
-            _oldCollection = oldDb.GetCollection<GeoIp>("TestCollection2");
+            var oldDb = oldClient.GetDatabase(dbName);
+            _oldCollection = oldDb.GetCollection<GeoIp>(collectionName);
         }
 
         private static readonly BsonDocument EmptyFilter = new BsonDocument();
+        
         [Benchmark]
         public async Task<int> NewClient()
         {
-            var result = await _collection.GetCursorAsync(EmptyFilter, default).ToListAsync();
+            var result = await _collection.Find(EmptyFilter).ToListAsync();
             return result.Count;
         }
         

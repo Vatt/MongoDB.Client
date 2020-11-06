@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Protocol.Messages;
+using MongoDB.Client.Utils;
 
 namespace MongoDB.Client
 {
@@ -15,11 +16,17 @@ namespace MongoDB.Client
         private int _limit;
 
         internal Cursor(ChannelsPool channelPool, BsonDocument filter, CollectionNamespace collectionNamespace)
+            : this(channelPool, filter, collectionNamespace, Guid.NewGuid())
+        {
+        }
+
+        internal Cursor(ChannelsPool channelPool, BsonDocument filter, CollectionNamespace collectionNamespace,
+            Guid sessionId)
         {
             _channelPool = channelPool;
             _filter = filter;
             _collectionNamespace = collectionNamespace;
-            _sessionId = new BsonDocument("id", BsonBinaryData.Create(Guid.NewGuid()));
+            _sessionId = new BsonDocument("id", BsonBinaryData.Create(sessionId));
         }
 
         internal void AddLimit(int limit)
@@ -34,12 +41,13 @@ namespace MongoDB.Client
             var requestDocument = CreateFindRequest(_filter);
             var request = new MsgMessage(requestNum, _collectionNamespace.FullName, requestDocument);
             var result = await channel.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
-            
+
             foreach (var item in result.MongoCursor.Items)
             {
                 yield return item;
             }
 
+            CursorItemsPool<T>.Pool.Return(result.MongoCursor.Items);
             long cursorId = result.MongoCursor.Id;
             while (cursorId != 0)
             {
@@ -52,6 +60,7 @@ namespace MongoDB.Client
                 {
                     yield return item;
                 }
+                CursorItemsPool<T>.Pool.Return(getMoreResult.MongoCursor.Items);
             }
         }
 
@@ -59,14 +68,14 @@ namespace MongoDB.Client
         {
             return new BsonDocument
             {
-                {"find", _collectionNamespace.CollectionName },
-                {"filter", filter },
+                {"find", _collectionNamespace.CollectionName},
+                {"filter", filter},
                 {"limit", _limit, _limit > 0},
                 {"$db", _collectionNamespace.DatabaseName},
-                {"lsid", _sessionId }
+                {"lsid", _sessionId}
             };
         }
-        
+
         private BsonDocument CreateGetMoreRequest(long cursorId)
         {
             return new BsonDocument
@@ -74,7 +83,7 @@ namespace MongoDB.Client
                 {"getMore", cursorId},
                 {"collection", _collectionNamespace.CollectionName},
                 {"$db", _collectionNamespace.DatabaseName},
-                {"lsid", _sessionId }
+                {"lsid", _sessionId}
             };
         }
     }
