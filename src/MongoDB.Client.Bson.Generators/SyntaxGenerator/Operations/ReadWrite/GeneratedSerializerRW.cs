@@ -31,7 +31,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.ReadWrite
             }
             else if (_assignExpr != null)
             {
-                return SF.ArgumentList(new SeparatedSyntaxList<ArgumentSyntax>().Add(SF.Argument(default, SF.Token(SyntaxKind.OutKeyword), _assignExpr)));
+                return SF.ArgumentList(new SeparatedSyntaxList<ArgumentSyntax>()
+                        .Add(SF.Argument(default, SF.Token(SyntaxKind.RefKeyword), Basics.ReaderInputVariableIdentifier))
+                        .Add(SF.Argument(default, SF.Token(SyntaxKind.OutKeyword), _assignExpr)));
             }
             return default;
         }
@@ -47,6 +49,18 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.ReadWrite
         public override StatementSyntax GenerateWrite(INamedTypeSymbol classSym, MemberDeclarationMeta memberDecl)
         {
             return GenerateWrite(classSym, memberDecl, Basics.SimpleMemberAccess(Basics.WriteInputInVariableIdentifierName, SF.IdentifierName(memberDecl.DeclSymbol.Name)));
+        }
+
+        public LiteralExpressionSyntax GenerateBsonType(INamedTypeSymbol sym)
+        {
+            if (sym.TypeKind == TypeKind.Enum)
+            {
+                return Basics.NumberLiteral(2);
+            }
+            else
+            {
+                return Basics.NumberLiteral(3);
+            }
         }
         public override StatementSyntax GenerateWrite(INamedTypeSymbol classSym, MemberDeclarationMeta memberDecl, ExpressionSyntax writableVar)
         {
@@ -79,15 +93,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.ReadWrite
                                         SF.ExpressionStatement(
                                             Basics.InvocationExpression(Basics.WriterInputVariableIdentifierName,
                                                                             SF.IdentifierName("Write_Type_Name"),
-                                                                            SF.Argument(Basics.NumberLiteral(3)),
+                                                                            SF.Argument(GenerateBsonType(memberDecl.DeclType)),
                                                                             SF.Argument(SF.IdentifierName(Basics.GenerateReadOnlySpanName(classSym, memberDecl))))),
                                         serializerInvocation),
-                            @else: SF.ElseClause(
-                                    SF.Block(
-                                        SF.ExpressionStatement(
-                                            Basics.InvocationExpression(Basics.WriterInputVariableIdentifierName,
-                                                SF.IdentifierName("WriteBsonNull"),
-                                                SF.Argument(Basics.GenerateReadOnlySpanNameIdentifier(classSym, memberDecl)))))));
+                        @else: SF.ElseClause(
+                            SF.Block(
+                            SF.ExpressionStatement(
+                                Basics.InvocationExpression(Basics.WriterInputVariableIdentifierName,
+                                    SF.IdentifierName("WriteBsonNull"),
+                                    SF.Argument(Basics.GenerateReadOnlySpanNameIdentifier(classSym, memberDecl)))))));
         }
         public override StatementSyntax GenerateWrite(INamedTypeSymbol classSym, ExpressionSyntax nameExpr, ExpressionSyntax writableVar)
         {

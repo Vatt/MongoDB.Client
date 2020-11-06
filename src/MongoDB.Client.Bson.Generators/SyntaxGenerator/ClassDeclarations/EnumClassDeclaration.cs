@@ -12,5 +12,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.ClassDeclarations
         {
             return new EnumTryParseMethodDeclaration(this).DeclareMethod();
         }
+
+        public override MethodDeclarationSyntax DeclareWriteMethod()
+        {
+            return new EnumWriteMethodDeclaration(this).DeclareMethod();
+        }
     }
 }

@@ -35,7 +35,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
                        SF.TypeArgumentList(new SeparatedSyntaxList<TypeSyntax>().Add(SF.ParseTypeName(ClassSymbol.ToString())))),
                    SF.Token(SyntaxKind.DotToken));
         }
-        StatementSyntax GenerateCheckpoint()
+        protected virtual StatementSyntax GenerateCheckpoint()
         {
             return SF.LocalDeclarationStatement(
                     SF.VariableDeclaration(
@@ -46,7 +46,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
                                 default,
                                 SF.EqualsValueClause(Basics.SimpleMemberAccess(Basics.WriterInputVariableIdentifierName, SF.IdentifierName("Written")))))));
         }
-        StatementSyntax GenerateReserve()
+        protected virtual StatementSyntax GenerateReserve()
         {
             return SF.LocalDeclarationStatement(
                     SF.VariableDeclaration(
@@ -61,7 +61,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
                                         SF.IdentifierName("Reserve"),
                                         SF.Argument(default, default, reservedSizeExpr)))))));
         }
-        StatementSyntax GenerateWriteEndMarker()
+        protected virtual StatementSyntax GenerateWriteEndMarker()
         {
             var endMarkerLiteral = SF.LiteralExpression(SyntaxKind.NumericLiteralExpression, SF.Literal((byte)'\x00'));
 
@@ -70,7 +70,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
                                             SF.ArgumentList().AddArguments(SF.Argument(endMarkerLiteral))));
 
         }
-        StatementSyntax GenerateDocLenDeclareAndAssign()
+        protected virtual StatementSyntax GenerateDocLenDeclareAndAssign()
         {
             var binaryExpr = SF.BinaryExpression(
                 kind: SyntaxKind.SubtractExpression,
@@ -81,7 +81,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
                         Basics.VarTypeIdentifier,
                         SF.SingletonSeparatedList(SF.VariableDeclarator(docLengthToken, default, SF.EqualsValueClause(binaryExpr)))));
         }
-        StatementSyntax GenerateSizeSpanStackalloc()
+        protected virtual StatementSyntax GenerateSizeSpanStackalloc()
         {
             var spanGeneticName = SF.GenericName(SF.Identifier("Span"),
                                                  SF.TypeArgumentList(new SeparatedSyntaxList<TypeSyntax>().Add(SF.PredefinedType(SF.Token(SyntaxKind.ByteKeyword)))));
@@ -92,15 +92,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
                                                 SF.SingletonList(SF.ArrayRankSpecifier().AddSizes(Basics.NumberLiteral(4))))));
             return SF.LocalDeclarationStatement(SF.VariableDeclaration(spanGeneticName, SF.SingletonSeparatedList(SF.VariableDeclarator(sizeSpanNameToken, default, equalsValueClause))));
         }
-        StatementSyntax GenerateWriteSizeIntoLocalSpan()
+        protected virtual StatementSyntax GenerateWriteSizeIntoLocalSpan()
         {
             return SF.ExpressionStatement(Basics.InvocationExpression(SF.IdentifierName("BinaryPrimitives"), SF.IdentifierName("WriteInt32LittleEndian"), SF.Argument(sizeSpanNameId), SF.Argument(docLengthId)));
         }
-        StatementSyntax GenerateReservedWriteIntoSizeSpan()
+        protected virtual StatementSyntax GenerateReservedWriteIntoSizeSpan()
         {
             return SF.ExpressionStatement(Basics.InvocationExpression(reservedId, SF.IdentifierName("Write"), SF.Argument(sizeSpanNameId)));
         }
-        StatementSyntax GenerateWriterCommit()
+        protected virtual StatementSyntax GenerateWriterCommit()
         {
             return SF.ExpressionStatement(Basics.InvocationExpression0(Basics.WriterInputVariableIdentifierName, commitId));
         }

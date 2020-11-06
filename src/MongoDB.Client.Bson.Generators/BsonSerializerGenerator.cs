@@ -20,7 +20,7 @@ namespace MongoDB.Client.Bson.Generators
         public void Execute(GeneratorExecutionContext context)
         {
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver)) { return; }
-            System.Diagnostics.Debugger.Launch();
+            //System.Diagnostics.Debugger.Launch();
             if (receiver.Candidates.Count == 0)
             {
                 return;
@@ -32,9 +32,9 @@ namespace MongoDB.Client.Bson.Generators
             context.AddSource($"{Basics.GlobalSerializationHelperGeneratedString}.cs", SourceText.From(GenerateGlobalHelperStaticClass(), Encoding.UTF8));
             foreach (var item in meta)
             {
-                if (!TypeMap.SimpleOperations.ContainsKey(item.ClassSymbol.Name))
+                if (!TypeMap.BaseOperations.ContainsKey(item.ClassSymbol.Name))
                 {
-                    TypeMap.SimpleOperations.Add(item.ClassSymbol.Name, new GeneratedSerializerRW(item.ClassSymbol));
+                    TypeMap.BaseOperations.Add(item.ClassSymbol.Name, new GeneratedSerializerRW(item.ClassSymbol));
                 }
 
             }

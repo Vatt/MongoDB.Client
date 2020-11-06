@@ -23,4 +23,15 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         [BsonIgnore]
         Ignoring,
     }
+    
+    [BsonSerializable]
+    public class PlanetModel
+    {
+        public string Name { get; set; }
+        public AtmosphereType Type;
+        public override bool Equals(object obj)
+        {
+            return obj is not null && obj is PlanetModel other && Name.Equals(other.Name) && Type == other.Type; 
+        }
+    }
 }
