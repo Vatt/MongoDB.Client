@@ -9,18 +9,18 @@ namespace MongoDB.Client
 {
     public class Cursor<T> : IAsyncEnumerable<T>
     {
-        private readonly ChannelsPool _channelPool;
+        private readonly IChannelsPool _channelPool;
         private readonly BsonDocument _filter;
         private readonly CollectionNamespace _collectionNamespace;
         private readonly BsonDocument _sessionId;
         private int _limit;
 
-        internal Cursor(ChannelsPool channelPool, BsonDocument filter, CollectionNamespace collectionNamespace)
+        internal Cursor(IChannelsPool channelPool, BsonDocument filter, CollectionNamespace collectionNamespace)
             : this(channelPool, filter, collectionNamespace, Guid.NewGuid())
         {
         }
 
-        internal Cursor(ChannelsPool channelPool, BsonDocument filter, CollectionNamespace collectionNamespace,
+        internal Cursor(IChannelsPool channelPool, BsonDocument filter, CollectionNamespace collectionNamespace,
             Guid sessionId)
         {
             _channelPool = channelPool;

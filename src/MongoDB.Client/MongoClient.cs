@@ -7,7 +7,7 @@ namespace MongoDB.Client
     public class MongoClient
     {
         public EndPoint EndPoint { get; }
-        private readonly ChannelsPool _channelsPool;
+        private readonly IChannelsPool _channelsPool;
 
         public MongoClient()
          : this(new IPEndPoint(IPAddress.Loopback, 27017), new NullLoggerFactory())
@@ -27,7 +27,7 @@ namespace MongoDB.Client
         public MongoClient(EndPoint endPoint, ILoggerFactory loggerFactory)
         {
             EndPoint = endPoint;
-            _channelsPool = new ChannelsPool(endPoint, loggerFactory);
+            _channelsPool = new ChannelsPool2(endPoint, loggerFactory);
         }
 
         public MongoDatabase GetDatabase(string name)

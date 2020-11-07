@@ -4,9 +4,9 @@ namespace MongoDB.Client
 {
     public class MongoCollection<T>
     {
-        private readonly ChannelsPool _channelsPool;
+        private readonly IChannelsPool _channelsPool;
 
-        internal MongoCollection(MongoDatabase database, string name, ChannelsPool channelsPool)
+        internal MongoCollection(MongoDatabase database, string name, IChannelsPool channelsPool)
         {
             _channelsPool = channelsPool;
             Database = database;
