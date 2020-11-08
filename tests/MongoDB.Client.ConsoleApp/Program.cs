@@ -36,6 +36,8 @@ namespace MongoDB.Client.ConsoleApp
             var result0 = await collection1.Find(filter).ToListAsync();
             var result1 = await collection1.Find(filter).FirstOrDefaultAsync();
 
+            await collection1.InsertAsync(new GeoIp());
+            
             Console.WriteLine();
             // var result1 = await collection2.GetCursorAsync(filter, default);
             //

@@ -2,16 +2,24 @@
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Messages;
 
 namespace MongoDB.Client.Protocol.Writers
 {
-    public class InsertMessageWriter : IMessageWriter<FindMessage>
+    public class InsertMessageWriter<T> : IMessageWriter<InsertMessage<T>>
     {
-        public void WriteMessage(FindMessage message, IBufferWriter<byte> output)
+        private readonly IGenericBsonSerializer<T> _serializer;
+
+        public InsertMessageWriter(IGenericBsonSerializer<T> serializer)
         {
-            var span = output.GetSpan();
+            _serializer = serializer;
+        }
+
+        public void WriteMessage(InsertMessage<T> message, IBufferWriter<byte> output)
+        {
+            var firstSpan = output.GetSpan();
             var writer = new BsonWriter(output);
 
             writer.WriteInt32(0); // size
@@ -21,15 +29,29 @@ namespace MongoDB.Client.Protocol.Writers
             
             writer.WriteInt32((int)CreateFlags(message));
             
-            writer.WriteByte((byte)message.Type);
+            writer.WriteByte((byte)PayloadType.Type0);
             writer.WriteDocument(message.Document);
+            
+            writer.WriteByte((byte)PayloadType.Type1);
             writer.Commit();
-            BinaryPrimitives.WriteInt32LittleEndian(span, writer.Written);
+            var checkpoint = writer.Written;
+            var secondSpan = output.GetSpan();
+            writer.WriteInt32(0); // size
+            writer.WriteCString("document");
+
+            foreach (var item in message.Items)
+            {
+                _serializer.Write(ref writer, item);
+            }
+            
+            writer.Commit();
+            BinaryPrimitives.WriteInt32LittleEndian(secondSpan, writer.Written - checkpoint);
+            BinaryPrimitives.WriteInt32LittleEndian(firstSpan, writer.Written);
         }
 
 
 
-        private OpMsgFlags CreateFlags(FindMessage message)
+        private OpMsgFlags CreateFlags(InsertMessage<T> message)
         {
             var flags = (OpMsgFlags)0;
             if (message.MoreToCome)
@@ -41,15 +63,6 @@ namespace MongoDB.Client.Protocol.Writers
                 flags |= OpMsgFlags.ExhaustAllowed;
             }
             return flags;
-        }
-
-        [Flags]
-        internal enum OpMsgFlags
-        {
-            ChecksumPresent = 1 << 0,
-            MoreToCome = 1 << 1,
-            ExhaustAllowed = 1 << 16,
-            All = ChecksumPresent | MoreToCome | ExhaustAllowed
         }
     }
 }

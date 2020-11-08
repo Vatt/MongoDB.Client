@@ -7,7 +7,7 @@ namespace MongoDB.Client
 {
     public static class CursorExtensions
     {
-        public static async ValueTask<List<T>> ToListAsync<T>(this Cursor<T> cursor, CancellationToken token = default)
+        public static async ValueTask<List<T>> ToListAsync<T>(this IAsyncEnumerable<T> cursor, CancellationToken token = default)
         {
             var list = new List<T>();
             await foreach (var item in cursor.WithCancellation(token))
@@ -28,7 +28,7 @@ namespace MongoDB.Client
 
             return default;
         }
-        
+
         public static async ValueTask<T?> SingleOrDefaultAsync<T>(this Cursor<T> cursor, CancellationToken token = default)
         {
             cursor.AddLimit(2);

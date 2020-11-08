@@ -1,5 +1,4 @@
 ﻿using MongoDB.Client.Bson.Writer;
-using System;
 using System.Buffers;
 using System.Buffers.Binary;
 using MongoDB.Client.Protocol.Core;
@@ -41,15 +40,6 @@ namespace MongoDB.Client.Protocol.Writers
                 flags |= OpMsgFlags.ExhaustAllowed;
             }
             return flags;
-        }
-
-        [Flags]
-        internal enum OpMsgFlags
-        {
-            ChecksumPresent = 1 << 0,
-            MoreToCome = 1 << 1,
-            ExhaustAllowed = 1 << 16,
-            All = ChecksumPresent | MoreToCome | ExhaustAllowed
         }
     }
 }

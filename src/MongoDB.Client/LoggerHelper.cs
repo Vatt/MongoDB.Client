@@ -62,6 +62,14 @@ namespace MongoDB.Client
             _sentCursorMessage(logger, requestNum, default!);
         }
 
+        private static readonly Action<ILogger, int, Exception> _sentInsertMessage =
+            LoggerMessage.Define<int>(LogLevel.Trace, new EventId(1, nameof(Channel)),
+                "Sent insert message '{requestNumber}'");
+
+        public static void SentInsertMessage(this ILogger logger, int requestNum)
+        {
+            _sentInsertMessage(logger, requestNum, default!);
+        }
 
         private static readonly Action<ILogger, int, Exception> _parsingMsgMessage =
             LoggerMessage.Define<int>(LogLevel.Trace, new EventId(1, nameof(Channel)),
