@@ -49,7 +49,7 @@ namespace MongoDB.Client.Readers
 
             if (_state == ParserState.Models)
             {
-                var items = CursorResult.Cursor.Items;
+                var items = CursorResult.MongoCursor.Items;
                 while (_modelsReaded < _modelsLength - 1)
                 {
                     var checkpoint = bsonReader.BytesConsumed;
@@ -346,7 +346,7 @@ namespace MongoDB.Client.Readers
                     return false;
                 }
 
-                CursorResult.Cursor.Id = idValue;
+                CursorResult.MongoCursor.Id = idValue;
                 return true;
             }
 
@@ -357,7 +357,7 @@ namespace MongoDB.Client.Readers
                     return false;
                 }
 
-                CursorResult.Cursor.Namespace = nsValue;
+                CursorResult.MongoCursor.Namespace = nsValue;
                 return true;
             }
 
@@ -372,7 +372,7 @@ namespace MongoDB.Client.Readers
                 return true;
             }
 
-            if (name == "firstBatch")
+            if (name == "firstBatch" || name == "nextBatch")
             {
                 if (!reader.TryGetInt32(out modelsLength))
                 {
@@ -517,13 +517,13 @@ namespace MongoDB.Client.Readers
             if (name.SequenceEqual(IdSpan))
             {
                 if (!reader.TryGetInt64(out var idValue)) { return false; }
-                CursorResult.Cursor.Id = idValue;
+                CursorResult.MongoCursor.Id = idValue;
                 return true;
             }
             if (name.SequenceEqual(NsSpan))
             {
                 if (!reader.TryGetString(out var nsValue)) { return false; }
-                CursorResult.Cursor.Namespace = nsValue;
+                CursorResult.MongoCursor.Namespace = nsValue;
                 return true;
             }
             if (name.SequenceEqual(OkSpan))
@@ -532,7 +532,7 @@ namespace MongoDB.Client.Readers
                 CursorResult.Ok = okValue;
                 return true;
             }
-            if (name.SequenceEqual(FirstBatchSpan))
+            if (name.SequenceEqual(FirstBatchSpan) || name.SequenceEqual(NextBatchSpan))
             {
                 if (!reader.TryGetInt32(out modelsLength)) { return false; }
                 if (modelsLength == 5)
@@ -557,6 +557,9 @@ namespace MongoDB.Client.Readers
         private static ReadOnlySpan<byte> FirstBatchSpan =>
             new byte[] {102, 105, 114, 115, 116, 66, 97, 116, 99, 104}; // firstBatch
 
+        private static ReadOnlySpan<byte> NextBatchSpan =>
+            new byte[] {110, 101, 120, 116, 66, 97, 116, 99, 104}; // nextBatch
+        
         private static ReadOnlySpan<byte> IdSpan => new byte[] {105, 100}; // id
         private static ReadOnlySpan<byte> NsSpan => new byte[] {110, 115}; // ns
         private static ReadOnlySpan<byte> OkSpan => new byte[] {111, 107}; // ok

@@ -17,7 +17,9 @@ namespace MongoDB.Client.Protocol.Writers
             writer.WriteInt32(0); // size
             writer.WriteInt32(message.RequestNumber); 
             writer.WriteInt32(0); // responseTo
-            writer.WriteInt32((int)message.Opcode); 
+            writer.WriteInt32((int)message.Opcode);
+            
+            
             writer.WriteInt32((int)CreateFlags(message));
             writer.WriteByte((byte)message.Type);
             writer.WriteDocument(message.Document);

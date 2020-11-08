@@ -1,7 +1,10 @@
 ﻿using System.IO.Pipelines;
+using System.Linq;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
+using MongoDB.Client.Protocol.Readers;
 using MongoDB.Client.Readers;
 using MongoDB.Client.Writers;
 
@@ -22,10 +25,10 @@ namespace MongoDB.Client.Tests.Serialization
         {
             var reader = new ProtocolReader(input);
 
-            var messageReader = new ReplyBodyReader<T>(serializer);
+            var messageReader =  new ReplyBodyReader<T>(serializer, new ReplyMessage(default, new ReplyMessageHeader(default, default, default, 1)));
             var result = await reader.ReadAsync(messageReader).ConfigureAwait(false);
             reader.Advance();
-            return result.Message;
+            return messageReader.Result.FirstOrDefault();
         }
 
 

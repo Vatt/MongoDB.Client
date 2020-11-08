@@ -13,6 +13,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.9" />
+		<PackageReference Include="Microsoft.Extensions.ObjectPool" Version="3.1.9" />
 		<PackageReference Include="System.IO.Pipelines" Version="5.0.0-rc.2.20475.5" />
 	</ItemGroup>
 
@@ -21,5 +22,15 @@
 		<ProjectReference Include="..\MongoDB.Client.Protocol\MongoDB.Client.Protocol.csproj" />
 		<ProjectReference Include="..\System.Net.Connections\src\System.Net.Connections.csproj" />
 	</ItemGroup>
+
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>MongoDB.Client.Benchmarks</_Parameter1>
+		</AssemblyAttribute>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>MongoDB.Client.Tests</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
+
 
 </Project>

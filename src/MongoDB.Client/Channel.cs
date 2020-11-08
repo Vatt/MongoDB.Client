@@ -9,7 +9,6 @@ using MongoDB.Client.Protocol.Writers;
 using MongoDB.Client.Readers;
 using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,6 +35,7 @@ namespace MongoDB.Client
         // private static readonly ReadOnlyMemoryWriter memoryWriter = new ReadOnlyMemoryWriter();
         private readonly QueryMessageWriter QueryWriter = new QueryMessageWriter();
         private readonly MsgMessageWriter MsgWriter = new MsgMessageWriter();
+        private readonly GetMoreMessageWriter GetMoreWriter = new GetMoreMessageWriter();
 
         // private readonly ConcurrentDictionary<int, TaskCompletionSourceWithCancellation<MongoResponseMessage>>
         //     _completionMap =
@@ -53,7 +53,7 @@ namespace MongoDB.Client
         private readonly SemaphoreSlim _initSemaphore = new SemaphoreSlim(1);
         private Task<ConnectionInfo>? _initTask;
         public bool Init { get; private set; }
-        public bool IsBusy => _completionMap.Count > Environment.ProcessorCount;
+        public int RequestsInProgress => _completionMap.Count;
 
         private readonly int _channelNum;
 
@@ -118,7 +118,7 @@ namespace MongoDB.Client
                 var configMessage = await SendQueryAsync<BsonDocument>(connectRequest, ct).ConfigureAwait(false);
                 QueryMessage? buildInfoRequest = CreateQueryRequest(new BsonDocument("buildInfo", 1));
                 var hell = await SendQueryAsync<BsonDocument>(buildInfoRequest, ct).ConfigureAwait(false);
-                _connectionInfo = new ConnectionInfo(configMessage, hell);
+                _connectionInfo = new ConnectionInfo(configMessage[0], hell[0]);
                 Init = true;
                 return _connectionInfo;
             }
@@ -141,13 +141,13 @@ namespace MongoDB.Client
         private QueryMessage CreateQueryRequest(BsonDocument document)
         {
             var doc = CreateWrapperDocument(document);
-            return CreateRequest("admin.$cmd", Opcode.Query, doc);
+            return CreateQueryRequest("admin.$cmd", doc);
         }
 
-        private QueryMessage CreateRequest(string database, Opcode opcode, BsonDocument document)
+        private QueryMessage CreateQueryRequest(string database, BsonDocument document)
         {
             var num = GetNextRequestNumber();
-            return new QueryMessage(num, database, opcode, document);
+            return new QueryMessage(num, database, document);
         }
 
         private BsonDocument CreateWrapperDocument(BsonDocument document)
@@ -200,7 +200,6 @@ namespace MongoDB.Client
                             message = new ReplyMessage(headerResult.Message, replyResult.Message);
                             break;
                         case Opcode.OpMsg:
-
                             _logger.GotMsgMessage(headerResult.Message.ResponseTo);
                             var msgResult = await _reader.ReadAsync(MsgMessageReader, _shutdownToken.Token)
                                 .ConfigureAwait(false);
@@ -245,16 +244,17 @@ namespace MongoDB.Client
             }
         }
 
-        public async ValueTask<TResp> SendQueryAsync<TResp>(QueryMessage message, CancellationToken cancellationToken)
+        public async ValueTask<QueryResult<TResp>> SendQueryAsync<TResp>(QueryMessage message, CancellationToken cancellationToken)
         {
             if (_shutdownToken.IsCancellationRequested == false)
             {
                 if (_writer is not null)
                 {
                     var completion = _completionMap.GetOrAdd(message.RequestNumber,
-                        i => new ParserCompletion(new TaskCompletionSourceWithCancellation<IParserResult>(), response => ParseAsync<TResp>(response)));
-                    
-                    
+                        i => new ParserCompletion(new TaskCompletionSourceWithCancellation<IParserResult>(),
+                            response => ParseAsync<TResp>(response)));
+
+
                     try
                     {
                         await _writer.WriteAsync(QueryWriter, message, cancellationToken).ConfigureAwait(false);
@@ -264,10 +264,10 @@ namespace MongoDB.Client
                         // completionSource.Reset();
                         var result = await completion.CompletionSource.WaitWithCancellationAsync(cancellationToken)
                             .ConfigureAwait(false);
-                        
+
                         if (result is QueryResult<TResp> queryResult)
                         {
-                            return queryResult.Result;
+                            return queryResult;
                         }
 
                         return default!;
@@ -279,10 +279,10 @@ namespace MongoDB.Client
                     }
                 }
 
-                return ThrowHelper.ConnectionException<TResp>(_endpoint);
+                return ThrowHelper.ConnectionException<QueryResult<TResp>>(_endpoint);
             }
 
-            return ThrowHelper.ObjectDisposedException<TResp>(nameof(Channel));
+            return ThrowHelper.ObjectDisposedException<QueryResult<TResp>>(nameof(Channel));
 
 
             async ValueTask<IParserResult> ParseAsync<T>(MongoResponseMessage mongoResponse)
@@ -293,11 +293,11 @@ namespace MongoDB.Client
                     case ReplyMessage replyMessage:
                         if (SerializersMap.TryGetSerializer<T>(out var replySerializer))
                         {
-                            var bodyReader = new ReplyBodyReader<T>(replySerializer);
+                            var bodyReader = new ReplyBodyReader<T>(replySerializer, replyMessage);
                             var bodyResult = await reader.ReadAsync(bodyReader, _shutdownToken.Token)
                                 .ConfigureAwait(false);
                             reader.Advance();
-                            return new QueryResult<T>(bodyResult.Message);
+                            return bodyReader.Result;
                         }
 
                         return ThrowHelper.UnsupportedTypeException<QueryResult<T>>(typeof(T));
@@ -316,9 +316,10 @@ namespace MongoDB.Client
                 {
                     // var completion = _completionMap.GetOrAdd(message.RequestNumber,
                     //     i => new TaskCompletionSourceWithCancellation<MongoResponseMessage>());
-                    
+
                     var completion = _completionMap.GetOrAdd(message.RequestNumber,
-                        i => new ParserCompletion(new TaskCompletionSourceWithCancellation<IParserResult>(), response => ParseAsync<TResp>(response)));
+                        i => new ParserCompletion(new TaskCompletionSourceWithCancellation<IParserResult>(),
+                            response => ParseAsync<TResp>(response)));
                     try
                     {
                         await _writer.WriteAsync(MsgWriter, message, cancellationToken).ConfigureAwait(false);
@@ -376,7 +377,7 @@ namespace MongoDB.Client
                             reader.Advance();
 #if DEBUG
                             msgMessage.Consumed += bodyReader.Readed;
-                            Debug.Assert(msgMessage.Consumed == msgMessage.Header.MessageLength);
+                            System.Diagnostics.Debug.Assert(msgMessage.Consumed == msgMessage.Header.MessageLength);
 #endif
                             _logger.ParsingMsgCompleteMessage(mongoResponse.Header.ResponseTo);
                             return bodyReader.CursorResult;
@@ -388,6 +389,73 @@ namespace MongoDB.Client
                 }
             }
         }
+
+
+        public async ValueTask<QueryResult<TResp>> GetMoreAsync<TResp>(GetMoreMessage message,
+            CancellationToken cancellationToken)
+        {
+            if (_shutdownToken.IsCancellationRequested == false)
+            {
+                if (_writer is not null)
+                {
+                    // var completion = _completionMap.GetOrAdd(message.RequestNumber,
+                    //     i => new TaskCompletionSourceWithCancellation<MongoResponseMessage>());
+
+                    var completion = _completionMap.GetOrAdd(message.RequestNumber,
+                        i => new ParserCompletion(new TaskCompletionSourceWithCancellation<IParserResult>(),
+                            response => ParseAsync<TResp>(response)));
+                    try
+                    {
+                        await _writer.WriteAsync(GetMoreWriter, message, cancellationToken).ConfigureAwait(false);
+                        // Debug.WriteLine($"Sent query message '{message.RequestNumber}'");
+                        // var response = await new ValueTask<MongoResponseMessage>(completionSource, completionSource.Version)
+                        //     .ConfigureAwait(false);
+                        // completionSource.Reset();
+                        var result = await completion.CompletionSource.WaitWithCancellationAsync(cancellationToken)
+                            .ConfigureAwait(false);
+
+                        if (result is QueryResult<TResp> queryResult)
+                        {
+                            return queryResult;
+                        }
+
+                        return default!;
+                        // return await ParseAsync<TResp>(response).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        _completionMap.TryRemove(message.RequestNumber, out _);
+                    }
+                }
+
+                return ThrowHelper.ConnectionException<QueryResult<TResp>>(_endpoint);
+            }
+
+            return ThrowHelper.ObjectDisposedException<QueryResult<TResp>>(nameof(Channel));
+
+
+            async ValueTask<IParserResult> ParseAsync<T>(MongoResponseMessage mongoResponse)
+            {
+                var reader = _reader!;
+                switch (mongoResponse)
+                {
+                    case ReplyMessage replyMessage:
+                        if (SerializersMap.TryGetSerializer<T>(out var replySerializer))
+                        {
+                            var bodyReader = new ReplyBodyReader<T>(replySerializer, replyMessage);
+                            var bodyResult = await reader.ReadAsync(bodyReader, _shutdownToken.Token)
+                                .ConfigureAwait(false);
+                            reader.Advance();
+                            return bodyReader.Result;
+                        }
+
+                        return ThrowHelper.UnsupportedTypeException<QueryResult<T>>(typeof(T));
+                    default:
+                        return ThrowHelper.UnsupportedTypeException<QueryResult<T>>(typeof(T));
+                }
+            }
+        }
+
 
         public async ValueTask DisposeAsync()
         {
