@@ -53,7 +53,7 @@ namespace MongoDB.Client
         private readonly SemaphoreSlim _initSemaphore = new SemaphoreSlim(1);
         private Task<ConnectionInfo>? _initTask;
         public bool Init { get; private set; }
-        public bool IsBusy => _completionMap.Count > Environment.ProcessorCount;
+        public int RequestsInProgress => _completionMap.Count;
 
         private readonly int _channelNum;
 

@@ -2,11 +2,11 @@
 {
     public class MongoDatabase
     {
-        private readonly ChannelsPool _channelsPool;
+        private readonly IChannelsPool _channelsPool;
         public MongoClient Client { get; }
         public string Name { get; }
 
-        internal MongoDatabase(MongoClient client, string name, ChannelsPool channelsPool)
+        internal MongoDatabase(MongoClient client, string name, IChannelsPool channelsPool)
         {
             _channelsPool = channelsPool;
             Client = client;

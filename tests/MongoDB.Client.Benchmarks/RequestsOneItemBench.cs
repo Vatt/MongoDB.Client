@@ -16,27 +16,55 @@ namespace MongoDB.Client.Benchmarks
         [GlobalSetup]
         public void Setup()
         {
+            var dbName = "BenchmarkDb";
+            var collectionName = "OneItemBench";
+            
             var client = new MongoClient();
-            var db = client.GetDatabase("TestDb");
-            _collection = db.GetCollection<GeoIp>("TestCollection2");
+            var db = client.GetDatabase(dbName);
+            _collection = db.GetCollection<GeoIp>(collectionName);
 
             var oldClient = new MongoDB.Driver.MongoClient("mongodb://localhost:27017");
-            var oldDb = oldClient.GetDatabase("TestDb");
-            _oldCollection = oldDb.GetCollection<GeoIp>("TestCollection2");
+            var oldDb = oldClient.GetDatabase(dbName);
+            _oldCollection = oldDb.GetCollection<GeoIp>(collectionName);
+            
+            var item = new GeoIp
+            {
+                city = "St Petersburg",
+                country = "Russia",
+                countryCode = "RU",
+                isp = "NevalinkRoute",
+                lat = 59.8944f,
+                lon = 30.2642f,
+                org = "Nevalink Ltd.",
+                query = "31.134.191.87",
+                region = "SPE",
+                regionName = "St.-Petersburg",
+                status = "success",
+                timezone = "Europe/Moscow",
+                zip = 190000
+            };
+            _oldCollection.InsertOne(item);
         }
 
-        [Benchmark]
-        public async Task<int> NewClient()
+        [GlobalCleanup]
+        public void Clean()
         {
-            var result = await _collection.Find(new BsonDocument("_id", new BsonObjectId("5f987814bf344ec7cc57294b"))).ToListAsync();
-            return result.Count;
+            _oldCollection.DeleteMany(FilterDefinition<GeoIp>.Empty);
+        }
+        
+        private static readonly BsonDocument Empty = new BsonDocument();
+        [Benchmark]
+        public async Task<GeoIp> NewClientFirstOrDefault()
+        {
+            var result = await _collection.Find(Empty).FirstOrDefaultAsync();
+            return result;
         }
         
         [Benchmark]
-        public async Task<int> OldClient()
+        public async Task<GeoIp> OldClientFirstOrDefault()
         {
-            var result232 = await _oldCollection.Find(g => g.OldId == new ObjectId("5f987814bf344ec7cc57294b")).ToListAsync();
-            return result232.Count;
+            var result = await _oldCollection.Find(FilterDefinition<GeoIp>.Empty).FirstOrDefaultAsync();
+            return result;
         }
     }
 }
