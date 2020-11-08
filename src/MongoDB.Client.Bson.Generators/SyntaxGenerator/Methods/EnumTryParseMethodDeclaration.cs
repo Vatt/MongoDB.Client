@@ -42,12 +42,21 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
                                 Basics.ReaderInputVariableIdentifier,
                                 MethodId,
                                 SF.Argument(default, SF.Token(SyntaxKind.OutKeyword), SF.DeclarationExpression(SF.PredefinedType(castType), SF.SingleVariableDesignation(SF.Identifier("enumValue")))));
-            var assign = SF.AssignmentExpression(
+                                //SF.Argument(default, SF.Token(SyntaxKind.OutKeyword), castExpr));
+            var defaultAssign = SF.AssignmentExpression(
                                         SyntaxKind.SimpleAssignmentExpression,
                                         Basics.TryParseOutVariableIdentifier,
-                                        castExpr);
+                                        SF.LiteralExpression(SyntaxKind.DefaultLiteralExpression));
+            var assign = SF.AssignmentExpression(
+                            SyntaxKind.SimpleAssignmentExpression,
+                            Basics.TryParseOutVariableIdentifier,
+                            castExpr);
+            var readOp = SF.IfStatement(
+                            condition: SF.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, invocation),
+                            statement: SF.Block(SF.ReturnStatement(SF.LiteralExpression(SyntaxKind.FalseLiteralExpression))));
             return SF.Block(
-                    SF.ExpressionStatement(invocation),
+                    SF.ExpressionStatement(defaultAssign),
+                    readOp,
                     SF.ExpressionStatement(assign),
                     SF.ReturnStatement(SF.LiteralExpression(SyntaxKind.TrueLiteralExpression))); 
         }
