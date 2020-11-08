@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Net;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -16,14 +18,15 @@ namespace MongoDB.Client.Benchmarks
         [GlobalSetup]
         public void Setup()
         {
+            var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
             var dbName = "BenchmarkDb";
             var collectionName = "OneItemBench";
             
-            var client = new MongoClient();
+            var client = new MongoClient(new DnsEndPoint(host, 27017));
             var db = client.GetDatabase(dbName);
             _collection = db.GetCollection<GeoIp>(collectionName);
 
-            var oldClient = new MongoDB.Driver.MongoClient("mongodb://localhost:27017");
+            var oldClient = new MongoDB.Driver.MongoClient($"mongodb://{host}:27017");
             var oldDb = oldClient.GetDatabase(dbName);
             _oldCollection = oldDb.GetCollection<GeoIp>(collectionName);
             
