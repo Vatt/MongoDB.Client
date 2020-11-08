@@ -21,5 +21,19 @@ namespace MongoDB.Client.Tests.Serialization
 
             Assert.Equal(somePlanet, result);
         }
+        [Fact]
+        public async Task NumericEnumSerializationDeserialization()
+        {
+            var somePlanet = new NumericEnumsModel
+            {
+                Name = "HUYADES SECTOR 33-4-12",
+                Int32EnumValue = Int32Enum.EnumInt32Value3,
+                Int64EnumValue = Int64Enum.EnumInt64Value1,
+            };
+            SerializersMap.TryGetSerializer<NumericEnumsModel>(out var serializer);
+            var result = await RoundTripAsync(somePlanet, serializer);
+
+            Assert.Equal(somePlanet, result);
+        }
     }
 }

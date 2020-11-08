@@ -2,7 +2,7 @@
 
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
-    [BsonSerializable]
+    [BsonEnumSerializable(EnumRepresentation.String)]
     public enum AtmosphereType
     {
         [BsonElementField(ElementName = "No atmosphere")]

@@ -17,9 +17,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
 
         public override StatementSyntax Generate()
         {
-            var a = 10;
-            var b = 11;
-            if (a == b) { }
             return SF.IfStatement(
                 condition: SF.BinaryExpression(SyntaxKind.EqualsExpression, Basics.WriteInputInVariableIdentifierName, SF.IdentifierName(MemberDecl.DeclSymbol.ToString())),
                 statement: SF.Block(
