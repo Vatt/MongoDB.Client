@@ -41,7 +41,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
             var whileStatement = new SyntaxList<StatementSyntax>()
                         .Add(SF.ParseStatement("if (!reader.TryGetByte(out var arrayType)) { return false; }"))
                         .Add(SF.ParseStatement("if (!reader.TryGetCStringAsSpan(out var index)) { return false; }"))
-                        .Add(SF.ParseStatement($"if(arrayType == 10) {{ continue; }}"))
+                        .Add(SF.ParseStatement($"if(arrayType == 10) {{ message.{MemberDecl.DeclSymbol.Name}.Add(default); }}"))
                         .Add(GenerateRead())
                         .Add(SF.ParseStatement($"message.{MemberDecl.DeclSymbol.Name}.Add(value);"));
             return SF.IfStatement(

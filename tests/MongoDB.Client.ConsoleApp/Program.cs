@@ -2,6 +2,7 @@ using MongoDB.Client.Bson.Document;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -13,6 +14,8 @@ namespace MongoDB.Client.ConsoleApp
     {
         static async Task Main(string[] args)
         {
+            var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
+
             var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder
@@ -21,8 +24,7 @@ namespace MongoDB.Client.ConsoleApp
             });
 
 
-            var client = new MongoClient( /*new DnsEndPoint("centos0.mshome.net", 27017),*/ loggerFactory);
-            // var client = new MongoClient( /*new DnsEndPoint("centos0.mshome.net", 27017),*/ );
+            var client = new MongoClient(new DnsEndPoint(host, 27017), loggerFactory);
 
             var db = client.GetDatabase("TestDb");
             var collection1 = db.GetCollection<GeoIp>("TestCollection4");

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
@@ -75,7 +76,8 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
                 public int A;
                 public int B;
                 public int C;
-
+                public PlanetModel PlanetModel;
+                public NumericEnumsModel NumericModel;
                 public InnerItem()
                 {
                 }
@@ -85,13 +87,26 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
                     A = a;
                     B = b;
                     C = c;
+                    PlanetModel = new PlanetModel
+                    {
+                        Name = "Some planet",
+                        Type = AtmosphereType.NoAtmosphere,
+                    };
+                    NumericModel = new NumericEnumsModel
+                    {
+                        Name = "NumericEnumsModel Test",
+                        Int32EnumValue = Int32Enum.EnumInt32Value4,
+                        Int64EnumValue = Int64Enum.EnumInt64Value4,
+                    };
                 }
 
                 public bool Equals(InnerItem other)
                 {
                     if (ReferenceEquals(null, other)) return false;
                     if (ReferenceEquals(this, other)) return true;
-                    return A == other.A && B == other.B && C == other.C;
+                    return A == other.A && B == other.B && C == other.C && 
+                           PlanetModel.Equals(other.PlanetModel) &&
+                           NumericModel.Equals(other.NumericModel);
                 }
 
                 public override bool Equals(object obj)

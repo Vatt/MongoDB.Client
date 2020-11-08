@@ -9,6 +9,7 @@ namespace MongoDB.Client.Bson.Generators
         public string StringNamespace => ClassSymbol.ContainingNamespace.ToString();
         public List<MemberDeclarationMeta> MemberDeclarations { get; set; }
         public string FullName => ClassSymbol.ToString();
+        public bool IsEnum => ClassSymbol.TypeKind == TypeKind.Enum;
         public ClassDeclMeta(INamedTypeSymbol classSymbol)
         {
             MemberDeclarations = new List<MemberDeclarationMeta>();
