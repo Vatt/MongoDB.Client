@@ -11,6 +11,31 @@ namespace MongoDB.Client.Bson.Writer
     public ref partial struct BsonWriter
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void WriteString(ReadOnlySpan<byte> value)
+        {
+            var count = value.Length;
+            WriteInt32(count + 1);
+            if (count <= _span.Length)
+            {
+                value.CopyTo(_span);
+                Advance(count);
+                WriteByte(EndMarker);
+                return;
+            }
+
+            SlowWriteString(value);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void SlowWriteString(ReadOnlySpan<byte> value)
+        {
+            Commit();
+            _output.Write(value);;
+            Advance(value.Length);
+            GetNextSpanWithoutCommit();
+            WriteByte(EndMarker);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteCString(ReadOnlySpan<byte> value)
         {
             Commit();

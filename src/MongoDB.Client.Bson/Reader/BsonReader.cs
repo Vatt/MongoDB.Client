@@ -181,7 +181,6 @@ namespace MongoDB.Client.Bson.Reader
             }
 
             var result = new byte[length - 1];
-
             if (_input.TryCopyTo(result))
             {
                 _input.Advance(length);
