@@ -29,5 +29,10 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         public string Name;
         public Int32Enum Int32EnumValue;
         public Int64Enum Int64EnumValue;
+        public override bool Equals(object? obj)
+        {
+            return obj is not null &&  obj is NumericEnumsModel other && Name.Equals(other.Name) && 
+                   Int32EnumValue == other.Int32EnumValue && Int64EnumValue == other.Int64EnumValue;
+        }
     }
 }

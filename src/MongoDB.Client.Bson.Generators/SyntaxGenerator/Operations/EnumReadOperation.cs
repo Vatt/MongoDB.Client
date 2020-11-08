@@ -26,8 +26,5 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
                     SF.ExpressionStatement(assigmentIfTrue),
                     SF.ReturnStatement(SF.LiteralExpression(SyntaxKind.TrueLiteralExpression))));
         }
-
-
-
     }
 }
