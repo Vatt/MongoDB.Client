@@ -44,7 +44,7 @@ namespace MongoDB.Client
             var channel = await _channelPool.GetChannelAsync(cancellationToken).ConfigureAwait(false);
             var requestNum = channel.GetNextRequestNumber();
             var requestDocument = CreateFindRequest(_filter);
-            var request = new MsgMessage(requestNum, _collectionNamespace.FullName, requestDocument);
+            var request = new FindMessage(requestNum, requestDocument);
             var result = await channel.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
 
             foreach (var item in result.MongoCursor.Items)
@@ -52,20 +52,20 @@ namespace MongoDB.Client
                 yield return item;
             }
 
-            CursorItemsPool<T>.Pool.Return(result.MongoCursor.Items);
+            ListsPool<T>.Pool.Return(result.MongoCursor.Items);
             long cursorId = result.MongoCursor.Id;
             while (cursorId != 0)
             {
                 requestNum = channel.GetNextRequestNumber();
                 requestDocument = CreateGetMoreRequest(cursorId);
-                request = new MsgMessage(requestNum, _collectionNamespace.FullName, requestDocument);
+                request = new FindMessage(requestNum, requestDocument);
                 var getMoreResult = await channel.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
                 cursorId = getMoreResult.MongoCursor.Id;
                 foreach (var item in getMoreResult.MongoCursor.Items)
                 {
                     yield return item;
                 }
-                CursorItemsPool<T>.Pool.Return(getMoreResult.MongoCursor.Items);
+                ListsPool<T>.Pool.Return(getMoreResult.MongoCursor.Items);
             }
         }
 

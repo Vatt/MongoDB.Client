@@ -27,7 +27,7 @@ namespace MongoDB.Client.Readers
             {
                 MongoCursor = new MongoCursor<T>
                 {
-                    Items = CursorItemsPool<T>.Pool.Get()
+                    Items = ListsPool<T>.Pool.Get()
                 }
             };
         }

@@ -28,13 +28,13 @@ namespace MongoDB.Client.ConsoleApp
             var collection1 = db.GetCollection<GeoIp>("TestCollection4");
             // var collection3 = db.GetCollection<BsonDocument>("TestCollection2");
             // var collection2 = db.GetCollection<GeoIp>("TestCollection3");
-             var filter = new BsonDocument();
-          //  var filter = new BsonDocument("_id", new BsonObjectId("5fa29b6db27162107ffbe7db"));
+            var filter = new BsonDocument();
+            //  var filter = new BsonDocument("_id", new BsonObjectId("5fa29b6db27162107ffbe7db"));
 
-          var result0 = await collection1.Find(filter).ToListAsync();
-          var result1 = await collection1.Find(filter).FirstOrDefaultAsync();
+            var result0 = await collection1.Find(filter).ToListAsync();
+            var result1 = await collection1.Find(filter).FirstOrDefaultAsync();
 
-          Console.WriteLine();
+            Console.WriteLine();
             // var result1 = await collection2.GetCursorAsync(filter, default);
             //
             //
@@ -48,7 +48,7 @@ namespace MongoDB.Client.ConsoleApp
             // Console.WriteLine(result0.Cursor.Items.Count);
             // Console.WriteLine(result1.Cursor.Items.Count);
             // Console.WriteLine(result2.Cursor.Items.Count);
-           // await Warmup(collection1, filter);
+            // await Warmup(collection1, filter);
 
 
             var count = 1000;
@@ -83,6 +83,7 @@ namespace MongoDB.Client.ConsoleApp
                     Console.WriteLine("Result length: " + result.Count);
                 }
             }
+
             sw.Stop();
             Console.WriteLine("Concurrent: " + sw.Elapsed);
         }
@@ -101,6 +102,7 @@ namespace MongoDB.Client.ConsoleApp
                 {
                     Console.WriteLine("Result length: " + result.Count);
                 }
+
                 //     }
                 //     catch (Exception e)
                 //     {
