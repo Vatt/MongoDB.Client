@@ -14,19 +14,24 @@ namespace MongoDB.Client
         private readonly CollectionNamespace _collectionNamespace;
         private readonly BsonDocument _sessionId;
         private int _limit;
-
+        private static readonly BsonDocument SharedSessionId = new BsonDocument("id", BsonBinaryData.Create(Guid.NewGuid()));
         internal Cursor(IChannelsPool channelPool, BsonDocument filter, CollectionNamespace collectionNamespace)
-            : this(channelPool, filter, collectionNamespace, Guid.NewGuid())
+            : this(channelPool, filter, collectionNamespace, SharedSessionId)
         {
         }
 
+        internal Cursor(IChannelsPool channelPool, BsonDocument filter, CollectionNamespace collectionNamespace, Guid sessionId)
+            : this(channelPool, filter, collectionNamespace, new BsonDocument("id", BsonBinaryData.Create(sessionId)))
+        {
+        }
+        
         internal Cursor(IChannelsPool channelPool, BsonDocument filter, CollectionNamespace collectionNamespace,
-            Guid sessionId)
+            BsonDocument sessionId)
         {
             _channelPool = channelPool;
             _filter = filter;
             _collectionNamespace = collectionNamespace;
-            _sessionId = new BsonDocument("id", BsonBinaryData.Create(sessionId));
+            _sessionId = sessionId;
         }
 
         internal void AddLimit(int limit)

@@ -27,7 +27,7 @@ namespace MongoDB.Client
         public MongoClient(EndPoint endPoint, ILoggerFactory loggerFactory)
         {
             EndPoint = endPoint;
-            _channelsPool = new ChannelsPool2(endPoint, loggerFactory);
+            _channelsPool = new ChannelsPool(endPoint, loggerFactory);
         }
 
         public MongoDatabase GetDatabase(string name)

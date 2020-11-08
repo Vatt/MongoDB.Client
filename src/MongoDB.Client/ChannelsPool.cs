@@ -9,7 +9,7 @@ namespace MongoDB.Client
 {
     internal class ChannelsPool : IChannelsPool
     {
-        private readonly int _maxChannels = Environment.ProcessorCount * 2;
+        private static readonly int _maxChannels = Environment.ProcessorCount * 2;
         private const int Trashhold = 5; 
         private static readonly Random Random = new Random();
         
@@ -18,7 +18,8 @@ namespace MongoDB.Client
         private readonly ILogger<ChannelsPool> _logger;
         private ImmutableList<Channel> _channels = ImmutableList<Channel>.Empty;
         private readonly SemaphoreSlim _channelAllocateLock = new SemaphoreSlim(1);
-        private static int _channelCounter;
+        private int _channelNumber;
+        private int _channelCounter;
 
         public ChannelsPool(EndPoint endPoint, ILoggerFactory loggerFactory)
         {
@@ -29,9 +30,12 @@ namespace MongoDB.Client
 
         public ValueTask<Channel> GetChannelAsync(CancellationToken cancellationToken)
         {
+            var idx = Interlocked.Increment(ref _channelCounter);
+
             for (int i = 0; i < _channels.Count; i++)
             {
-                var channel = _channels[i];
+                var current = (idx + i) % _channels.Count;
+                var channel = _channels[current];
                 if (channel.RequestsInProgress < Trashhold)
                 {
                     return new ValueTask<Channel>(channel);
@@ -40,7 +44,7 @@ namespace MongoDB.Client
 
             if (_channels.Count == _maxChannels)
             {
-                var idx = Random.Next(_maxChannels);
+                idx = Random.Next(_maxChannels);
                 return new ValueTask<Channel>(_channels[idx]);
             }
             return AllocateNewChannel(cancellationToken);
@@ -68,7 +72,7 @@ namespace MongoDB.Client
                 }
                 
                 _logger.LogInformation("Allocating new channel");
-                var channelNum = Interlocked.Increment(ref _channelCounter);
+                var channelNum = Interlocked.Increment(ref _channelNumber);
                 channel = new Channel(_endPoint, _loggerFactory, channelNum);
                 _ = await channel.InitConnectAsync(cancellationToken).ConfigureAwait(false);
                 _channels = _channels.Add(channel);
