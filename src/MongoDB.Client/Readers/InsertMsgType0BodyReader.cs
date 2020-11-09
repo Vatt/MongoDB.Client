@@ -21,7 +21,10 @@ namespace MongoDB.Client.Readers
             {
                 return false;
             }
-
+            
+            consumed = bsonReader.Position;
+            examined = bsonReader.Position;
+            
             Consumed = (int)bsonReader.BytesConsumed;
 
             return true;
