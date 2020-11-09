@@ -31,7 +31,7 @@ namespace MongoDB.Client.Bson.Reader
                     {
                         return false;
                     }
-                    _input.Advance(docLength - 4);
+                    _input.Advance(docLength - sizeof(int));
                     return true;
                 }
                 case 4:
@@ -41,7 +41,7 @@ namespace MongoDB.Client.Bson.Reader
                         return false;
                     }
 
-                    _input.Advance(arrayLength - 4);
+                    _input.Advance(arrayLength - sizeof(int));
                     return true;
                 }
                 case 5:
@@ -51,7 +51,7 @@ namespace MongoDB.Client.Bson.Reader
                         return false;
                     }
 
-                    _input.Advance(binDataLength - 4);
+                    _input.Advance(binDataLength - sizeof(int));
                     return true;
                 }
                 case 7:
