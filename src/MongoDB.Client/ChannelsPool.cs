@@ -9,8 +9,8 @@ namespace MongoDB.Client
 {
     internal class ChannelsPool : IChannelsPool
     {
-        private static readonly int _maxChannels = Environment.ProcessorCount * 2;
-        private const int Trashhold = 5; 
+        private static readonly int _maxChannels = 64;//Environment.ProcessorCount * 6;
+        private const int Trashhold = 4; 
         private static readonly Random Random = new Random();
         
         private readonly EndPoint _endPoint;
