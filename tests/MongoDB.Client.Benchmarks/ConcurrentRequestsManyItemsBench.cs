@@ -75,7 +75,7 @@ namespace MongoDB.Client.Benchmarks
                 {
                     tasks[j] = _collection.Find(EmptyFilter).ToListAsync().AsTask();
                 }
-                var result = await Task.WhenAll(tasks);
+                var result = await tasks.WhenAllExt();
             }
         }
 

@@ -6,9 +6,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace MongoDB.Client.Readers
 {
-    internal class MsgType1BodyReader<T> : MsgBodyReader<T>
+    internal class FindMsgType1BodyReader<T> : MsgBodyReader<T>
     {
-        public MsgType1BodyReader(IGenericBsonSerializer<T> serializer, ResponseMsgMessage message)
+        public FindMsgType1BodyReader(IGenericBsonSerializer<T> serializer, ResponseMsgMessage message)
             : base(serializer, message)
         {
         }

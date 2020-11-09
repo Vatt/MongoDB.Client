@@ -9,6 +9,7 @@ using MongoDB.Client.Protocol.Writers;
 using MongoDB.Client.Readers;
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,7 +37,7 @@ namespace MongoDB.Client
         private readonly QueryMessageWriter _queryWriter = new QueryMessageWriter();
         private readonly FindMessageWriter _findWriter = new FindMessageWriter();
         private readonly GetMoreMessageWriter _getMoreWriter = new GetMoreMessageWriter();
-        
+
 
         // private readonly ConcurrentDictionary<int, TaskCompletionSourceWithCancellation<MongoResponseMessage>>
         //     _completionMap =
@@ -349,11 +350,11 @@ namespace MongoDB.Client
                             MsgBodyReader<T> bodyReader;
                             if (msgMessage.MsgHeader.PayloadType == 0)
                             {
-                                bodyReader = new MsgType0BodyReader<T>(msgSerializer, msgMessage);
+                                bodyReader = new FindMsgType0BodyReader<T>(msgSerializer, msgMessage);
                             }
                             else if (msgMessage.MsgHeader.PayloadType == 1)
                             {
-                                bodyReader = new MsgType1BodyReader<T>(msgSerializer, msgMessage);
+                                bodyReader = new FindMsgType1BodyReader<T>(msgSerializer, msgMessage);
                             }
                             else
                             {
@@ -395,11 +396,18 @@ namespace MongoDB.Client
                             var insertWriter = new InsertMessageWriter<T>(serializer);
                             await _writer.WriteAsync(insertWriter, message, cancellationToken).ConfigureAwait(false);
                             _logger.SentInsertMessage(message.Header.RequestNumber);
-                            var response = await completion.CompletionSource.WaitWithCancellationAsync(cancellationToken)
+                            var response = await completion.CompletionSource
+                                .WaitWithCancellationAsync(cancellationToken)
                                 .ConfigureAwait(false);
-
+                            if (response is InsertResult result)
+                            {
+                                if (result.ErrorMessage != null)
+                                {
+                                    // TODO: 
+                                    throw new Exception(result.ErrorMessage);
+                                }
+                            }
                         }
-
                     }
                     finally
                     {
@@ -419,33 +427,33 @@ namespace MongoDB.Client
                 switch (mongoResponse)
                 {
                     case ResponseMsgMessage msgMessage:
-                        if (SerializersMap.TryGetSerializer<TResp>(out var msgSerializer))
-                        {
-                            MsgBodyReader<TResp> bodyReader;
-                            if (msgMessage.MsgHeader.PayloadType == 0)
-                            {
-                                bodyReader = new MsgType0BodyReader<TResp>(msgSerializer, msgMessage);
-                            }
-                            else if (msgMessage.MsgHeader.PayloadType == 1)
-                            {
-                                bodyReader = new MsgType1BodyReader<TResp>(msgSerializer, msgMessage);
-                            }
-                            else
-                            {
-                                return ThrowHelper.InvalidPayloadTypeException<CursorResult<TResp>>(msgMessage.MsgHeader
-                                    .PayloadType);
-                            }
 
-                            _logger.ParsingMsgMessage(mongoResponse.Header.ResponseTo);
-                            var result = await reader.ReadAsync(bodyReader, default).ConfigureAwait(false);
-                            reader.Advance();
-                            _logger.ParsingMsgCompleteMessage(mongoResponse.Header.ResponseTo);
-                            return bodyReader.CursorResult;
+                        InsertMsgType0BodyReader bodyReader;
+                        if (msgMessage.MsgHeader.PayloadType == 0)
+                        {
+                            bodyReader = new InsertMsgType0BodyReader();
+                        }
+                        else if (msgMessage.MsgHeader.PayloadType == 1)
+                        {
+                            throw new NotImplementedException("PayloadType 1 in insert response");
+                        }
+                        else
+                        {
+                            return ThrowHelper.InvalidPayloadTypeException<InsertResult>(msgMessage.MsgHeader
+                                .PayloadType);
                         }
 
-                        return ThrowHelper.UnsupportedTypeException<CursorResult<TResp>>(typeof(TResp));
+                        _logger.ParsingMsgMessage(mongoResponse.Header.ResponseTo);
+                        var result = await reader.ReadAsync(bodyReader, default).ConfigureAwait(false);
+                        reader.Advance();
+                        _logger.ParsingMsgCompleteMessage(mongoResponse.Header.ResponseTo);
+                        var consumed = msgMessage.Consumed + bodyReader.Consumed;
+                        Debug.Assert(consumed == msgMessage.Header.MessageLength);
+                        return result.Message;
+
+                        return ThrowHelper.UnsupportedTypeException<InsertResult>(typeof(TResp));
                     default:
-                        return ThrowHelper.UnsupportedTypeException<CursorResult<TResp>>(typeof(TResp));
+                        return ThrowHelper.UnsupportedTypeException<InsertResult>(typeof(TResp));
                 }
             }
         }

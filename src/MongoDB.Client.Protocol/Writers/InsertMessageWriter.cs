@@ -37,7 +37,7 @@ namespace MongoDB.Client.Protocol.Writers
             var checkpoint = writer.Written;
             var secondSpan = output.GetSpan();
             writer.WriteInt32(0); // size
-            writer.WriteCString("document");
+            writer.WriteCString("documents");
 
             foreach (var item in message.Items)
             {

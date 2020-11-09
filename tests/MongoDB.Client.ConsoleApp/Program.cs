@@ -36,7 +36,9 @@ namespace MongoDB.Client.ConsoleApp
             var result0 = await collection1.Find(filter).ToListAsync();
             var result1 = await collection1.Find(filter).FirstOrDefaultAsync();
 
-            await collection1.InsertAsync(new GeoIp());
+
+            var item = CreateItem();
+            await collection1.InsertAsync(item);
             
             Console.WriteLine();
             // var result1 = await collection2.GetCursorAsync(filter, default);
@@ -68,6 +70,28 @@ namespace MongoDB.Client.ConsoleApp
             // await Sequential(collection1, count, filter);
             // await Concurrent(collection1, count, filter);
             // await Sequential(collection1, count, filter);
+        }
+
+        private static GeoIp CreateItem()
+        {
+            var geoIp = new GeoIp
+            {
+                Id = BsonObjectId.NewObjectId(),
+                city = "St Petersburg",
+                country = "Russia",
+                countryCode = "RU",
+                isp = "NevalinkRoute",
+                lat = 59.8944f,
+                lon = 30.2642f,
+                org = "Nevalink Ltd.",
+                query = "31.134.191.87",
+                region = "SPE",
+                regionName = "St.-Petersburg",
+                status = "success",
+                timezone = "Europe/Moscow",
+                zip = 190000
+            };
+            return geoIp;
         }
 
         private static async Task Concurrent<T>(MongoCollection<T> collection, int count, BsonDocument filter)

@@ -8,7 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace MongoDB.Client.Readers
 {
-    internal class MsgType0BodyReader<T> : MsgBodyReader<T>
+    internal class FindMsgType0BodyReader<T> : MsgBodyReader<T>
     {
         private long _modelsReaded;
         private long _payloadLength;
@@ -18,7 +18,7 @@ namespace MongoDB.Client.Readers
         private ParserState _state;
 
 
-        public MsgType0BodyReader(IGenericBsonSerializer<T> serializer, ResponseMsgMessage message)
+        public FindMsgType0BodyReader(IGenericBsonSerializer<T> serializer, ResponseMsgMessage message)
             : base(serializer, message)
         {
             _payloadLength = message.Header.MessageLength;

@@ -44,7 +44,7 @@ namespace MongoDB.Client
         
         public async ValueTask InsertAsync(IEnumerable<T> items, CancellationToken cancellationToken = default)
         {
-            var channel = await _channelsPool.GetChannelAsync(cancellationToken);
+            var channel = await _channelsPool.GetChannelAsync(cancellationToken).ConfigureAwait(false);
             var requestNumber = channel.GetNextRequestNumber();
             var document = new BsonDocument
             {
@@ -54,7 +54,7 @@ namespace MongoDB.Client
                 {"lsid", SharedSessionId}
             };
             var request = new InsertMessage<T>(requestNumber, document, items);
-            channel.
+            await channel.InsertAsync(request, cancellationToken).ConfigureAwait(false);
         }
         
         private static readonly BsonDocument SharedSessionId = new BsonDocument("id", BsonBinaryData.Create(Guid.NewGuid()));
