@@ -39,6 +39,7 @@ namespace MongoDB.Client.ConsoleApp
 
             var item = CreateItem();
             await collection1.InsertAsync(item);
+            await collection1.InsertAsync(item);
             
             Console.WriteLine();
             // var result1 = await collection2.GetCursorAsync(filter, default);

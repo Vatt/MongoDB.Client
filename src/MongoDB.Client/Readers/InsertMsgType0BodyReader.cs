@@ -36,6 +36,16 @@ namespace MongoDB.Client.Readers
             string name;
             byte endMarker;
             var checkpoint = reader.BytesConsumed;
+
+            if (reader.TryParseDocument(out var doc) == false)
+            {
+                return false;
+            }
+
+            return true;
+            
+            
+            
             if (!reader.TryGetInt32(out var docLength))
             {
                 return false;
@@ -57,6 +67,7 @@ namespace MongoDB.Client.Readers
                     }
 
                     _result.Ok = okValue;
+                    continue;
                 }
 
                 if (name == "n")
@@ -67,7 +78,22 @@ namespace MongoDB.Client.Readers
                     }
 
                     _result.N = okValue;
+                    continue;
                 }
+                
+                if (name == "writeErrors")
+                {
+                    if (!reader.TryGetInt32(out var okValue))
+                    {
+                        return false;
+                    }
+
+                    _result.N = okValue;
+                    continue;
+                }
+                
+                
+                
                 
                 if (name == "errmsg")
                 {
@@ -77,6 +103,7 @@ namespace MongoDB.Client.Readers
                     }
 
                     _result.ErrorMessage = errorValue;
+                    continue;
                 }
 
                 if (name == "code")
@@ -87,6 +114,7 @@ namespace MongoDB.Client.Readers
                     }
 
                     _result.Code = codeValue;
+                    continue;
                 }
 
                 if (name == "codeName")
@@ -97,6 +125,7 @@ namespace MongoDB.Client.Readers
                     }
 
                     _result.CodeName = codeNameValue;
+                    continue;
                 }
             } while (reader.BytesConsumed - checkpoint < docLength - 1);
 
