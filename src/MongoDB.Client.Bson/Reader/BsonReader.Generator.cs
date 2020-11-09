@@ -26,11 +26,12 @@ namespace MongoDB.Client.Bson.Reader
                 }
                 case 3:
                 {
+                    
                     if (!TryGetInt32(out var docLength))
                     {
                         return false;
                     }
-                    _input.Advance(docLength);
+                    _input.Advance(docLength - 4);
                     return true;
                 }
                 case 4:
@@ -40,7 +41,7 @@ namespace MongoDB.Client.Bson.Reader
                         return false;
                     }
 
-                    _input.Advance(arrayLength);
+                    _input.Advance(arrayLength - 4);
                     return true;
                 }
                 case 5:
@@ -50,7 +51,7 @@ namespace MongoDB.Client.Bson.Reader
                         return false;
                     }
 
-                    _input.Advance(binDataLength);
+                    _input.Advance(binDataLength - 4);
                     return true;
                 }
                 case 7:

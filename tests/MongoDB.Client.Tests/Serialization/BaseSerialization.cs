@@ -20,7 +20,13 @@ namespace MongoDB.Client.Tests.Serialization
             await WriteAsync(pipe.Writer, message, serializer);
             return await ReadAsync(pipe.Reader, serializer);
         }
+        public static async Task<T1> RoundTripAsync<T0, T1>(T0 message, IGenericBsonSerializer<T0> writer, IGenericBsonSerializer<T1> reader)
+        {
+            var pipe = new Pipe();
 
+            await WriteAsync(pipe.Writer, message, writer);
+            return await ReadAsync(pipe.Reader, reader);
+        }
         public static async Task<T> ReadAsync<T>(PipeReader input, IGenericBsonSerializer<T> serializer)
         {
             var reader = new ProtocolReader(input);
