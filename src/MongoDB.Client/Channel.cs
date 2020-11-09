@@ -401,11 +401,12 @@ namespace MongoDB.Client
                                 .ConfigureAwait(false);
                             if (response is InsertResult result)
                             {
-                                if (result.ErrorMessage != null)
+                                if (result.ErrorMessage is null)
                                 {
-                                    // TODO: 
-                                    throw new Exception(result.ErrorMessage);
+                                    return;
                                 }
+                                // TODO: 
+                                throw new Exception(result.ErrorMessage);
                             }
                         }
                     }
