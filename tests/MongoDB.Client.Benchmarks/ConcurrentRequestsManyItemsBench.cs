@@ -14,8 +14,8 @@ namespace MongoDB.Client.Benchmarks
         private MongoCollection<GeoIp> _collection;
         private IMongoCollection<GeoIp> _oldCollection;
 
-        private const int RequestsCount = 64;
-        [Params(1, 4, 8, 16, 32)] public int Parallelism { get; set; }
+        private const int RequestsCount = 256;
+        [Params(1, 4, 8, 16, 32, 64, 128)] public int Parallelism { get; set; }
 
         [GlobalSetup]
         public void Setup()
@@ -75,7 +75,7 @@ namespace MongoDB.Client.Benchmarks
                 {
                     tasks[j] = _collection.Find(EmptyFilter).ToListAsync().AsTask();
                 }
-                var result = await tasks.WhenAllExt();
+                await tasks.WhenAllExt();
             }
         }
 
@@ -90,7 +90,7 @@ namespace MongoDB.Client.Benchmarks
                 {
                     tasks[j] = _oldCollection.Find(FilterDefinition<GeoIp>.Empty).ToListAsync();
                 }
-                var result = await Task.WhenAll(tasks);
+                await tasks.WhenAllExt();
             }
         }
     }
