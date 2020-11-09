@@ -3,7 +3,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace MongoDB.Client.Utils
 {
-    public static class CursorItemsPool<TPool>
+    public static class ListsPool<TPool>
     {
         public static readonly ObjectPool<List<TPool>> Pool =
             new DefaultObjectPool<List<TPool>>(new PooledListPolicy<TPool>());

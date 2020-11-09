@@ -1,12 +1,30 @@
 ﻿using System;
 using System.Buffers.Binary;
 using System.Globalization;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Threading;
 using MongoDB.Client.Bson.Utils;
 
 namespace MongoDB.Client.Bson.Document
 {
     public readonly struct BsonObjectId : IEquatable<BsonObjectId>
     {
+        private static int _increment;
+        private static readonly long _random;
+
+        static BsonObjectId()
+        {
+            using (var rand = RandomNumberGenerator.Create())
+            {
+                Span<byte> buffer = stackalloc byte[8];
+                rand.GetBytes(buffer);
+                _increment = MemoryMarshal.Read<int>(buffer);
+                rand.GetNonZeroBytes(buffer);
+                _random = MemoryMarshal.Read<long>(buffer);
+            }
+        }
+
         public readonly int Part1 { get; }
         public readonly int Part2 { get; }
         public readonly int Part3 { get; }
@@ -24,6 +42,7 @@ namespace MongoDB.Client.Bson.Document
             {
                 ThrowHelper.ObjectIdParseException();
             }
+
             Part1 = BinaryPrimitives.ReadInt32BigEndian(span);
             Part2 = BinaryPrimitives.ReadInt32BigEndian(span.Slice(4));
             Part3 = BinaryPrimitives.ReadInt32BigEndian(span.Slice(8));
@@ -35,14 +54,17 @@ namespace MongoDB.Client.Bson.Document
             {
                 ThrowHelper.ObjectIdParseException();
             }
+
             if (int.TryParse(value.Slice(0, 8), NumberStyles.AllowHexSpecifier, null, out int part1) == false)
             {
                 ThrowHelper.ObjectIdParseException();
             }
+
             if (int.TryParse(value.Slice(8, 8), NumberStyles.AllowHexSpecifier, null, out int part2) == false)
             {
                 ThrowHelper.ObjectIdParseException();
             }
+
             if (int.TryParse(value.Slice(16, 8), NumberStyles.AllowHexSpecifier, null, out int part3) == false)
             {
                 ThrowHelper.ObjectIdParseException();
@@ -53,6 +75,15 @@ namespace MongoDB.Client.Bson.Document
             Part3 = part3;
         }
 
+        public static BsonObjectId NewObjectId()
+        {
+            var timestamp = (int) DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var increment = Interlocked.Increment(ref _increment);
+            var a = timestamp;
+            var b = (int)(_random >> 8); // first 4 bytes of random
+            var c = (int)(_random << 24) | increment; // 5th byte of random and 3 byte increment
+            return new BsonObjectId(a, b, c);
+        }
 
         public override string ToString()
         {
@@ -93,6 +124,7 @@ namespace MongoDB.Client.Bson.Document
                 BinaryPrimitives.WriteInt32BigEndian(destination.Slice(8), Part3);
                 return true;
             }
+
             return false;
         }
 
@@ -104,7 +136,7 @@ namespace MongoDB.Client.Bson.Document
         /// <returns>The hex character.</returns>
         private static char ToHexChar(int value)
         {
-            return (char)(value + (value < 10 ? '0' : 'a' - 10));
+            return (char) (value + (value < 10 ? '0' : 'a' - 10));
         }
 
         public bool Equals(BsonObjectId other)
