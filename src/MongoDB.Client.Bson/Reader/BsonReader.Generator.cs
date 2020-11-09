@@ -3,40 +3,40 @@ using System.Runtime.CompilerServices;
 
 namespace MongoDB.Client.Bson.Reader
 {
-    public static class MongoDBBsonReaderExt
+    public ref partial struct BsonReader
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool TryGetGuidWithBsonType(this ref BsonReader reader, int bsonType, out Guid value)
+        public bool TryGetGuidWithBsonType(int bsonType, out Guid value)
         {
             value = default;
             
             if (bsonType == 5)
             {
-                return reader.TryGetBinaryDataGuid(out value);
+                return TryGetBinaryDataGuid(out value);
             }
             if (bsonType == 2)
             {
-                return reader.TryGetGuidFromString(out value);                
+                return TryGetGuidFromString(out value);                
             }
             throw new ArgumentException("Unsupported Guid type");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool TryGetDateTimeWithBsonType(this ref BsonReader reader, int bsonType, out DateTimeOffset value)
+        public bool TryGetDateTimeWithBsonType(int bsonType, out DateTimeOffset value)
         {
             value = default;
 
             if (bsonType == 3)
             {
-                return reader.TryGetDatetimeFromDocument(out value);
+                return TryGetDatetimeFromDocument(out value);
             }
             if (bsonType == 9)
             {
-                return reader.TryGetUtcDatetime(out value);
+                return TryGetUtcDatetime(out value);
             }
             if (bsonType == 18)
             {
-                return reader.TryGetUtcDatetime(out value);
+                return TryGetUtcDatetime(out value);
             }
             throw new ArgumentException("Unsupported DateTime type");
         }
