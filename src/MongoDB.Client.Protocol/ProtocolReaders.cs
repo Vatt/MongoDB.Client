@@ -7,5 +7,6 @@ namespace MongoDB.Client.Protocol
     {
         public static readonly MessageHeaderReader MessageHeaderReader = new MessageHeaderReader();
         public static readonly ReplyMessageReader ReplyMessageReader = new ReplyMessageReader();
+        public static readonly MsgMessageReader MsgMessageReader = new MsgMessageReader();
     }
 }

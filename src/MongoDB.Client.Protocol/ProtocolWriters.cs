@@ -5,6 +5,8 @@ namespace MongoDB.Client.Protocol
 {
     public static class ProtocolWriters
     {
-        public static readonly ReadOnlyMemoryWriter ReadOnlyMemoryWriter = new ReadOnlyMemoryWriter();
+        public static readonly QueryMessageWriter QueryMessageWriter = new QueryMessageWriter();
+        public static readonly FindMessageWriter FindMessageWriter = new FindMessageWriter();
+        public static readonly GetMoreMessageWriter GetMoreMessageWriter = new GetMoreMessageWriter();
     }
 }
