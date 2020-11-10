@@ -5,11 +5,19 @@ using System.Buffers.Binary;
 using System.Buffers.Text;
 using System.Runtime.CompilerServices;
 using System.Text;
+using MongoDB.Client.Bson.Utils;
 
 namespace MongoDB.Client.Bson.Writer
 {
     public ref partial struct BsonWriter
     {
+        private void WriteGuidAsBinaryData(Guid value)
+        {
+            const int guidSize = 16;
+            WriteInt32(guidSize);
+            WriteByte((byte)BsonBinaryDataType.UUID);
+            WriteGuidAsBytes(value);
+        }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteString(ReadOnlySpan<byte> value)
         {
@@ -213,13 +221,13 @@ namespace MongoDB.Client.Bson.Writer
             }
         }
 
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        //public void Write_Type_Name_Value(ReadOnlySpan<byte> name, Guid value)
-        //{
-        //    WriteByte(5);
-        //    WriteCString(name);
-        //    WriteGuidAsBytes(value);
-        //}
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write_Type_Name_Value(ReadOnlySpan<byte> name, Guid value)
+        {
+            WriteByte(5);
+            WriteCString(name);
+            WriteGuidAsBinaryData(value);
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, DateTimeOffset value)

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Tests.Serialization.TestModels;
@@ -83,6 +84,7 @@ namespace MongoDB.Client.Tests.Serialization
                 BsonObjectIdValue =  new BsonObjectId("5f987814bf342ec7cc57294b"),
                 IntValue = 479341564,
                 LongValue =  9713984265,
+                GuidValue = Guid.NewGuid(),
                 List = lstModel,
             };
             SerializersMap.TryGetSerializer<ModelForGenerated>(out var serializer);

@@ -51,7 +51,7 @@ namespace MongoDB.Client.Bson.Reader
                         return false;
                     }
 
-                    _input.Advance(binDataLength - sizeof(int));
+                    _input.Advance(binDataLength + 1);
                     return true;
                 }
                 case 7:

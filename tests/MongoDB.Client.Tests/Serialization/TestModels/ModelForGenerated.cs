@@ -164,7 +164,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         public bool BooleanValue;
 
         //public DateTimeOffset DateTimeOffsetValue { get; set; }
-        //public Guid GuidValue { get; set; }
+        public Guid GuidValue { get; set; }
         public int IntValue { get; set; }
         public long LongValue { get; set; }
 
@@ -180,7 +180,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
                    StringValue == other.StringValue && 
                    BsonDocumentValue.Equals(other.BsonDocumentValue) &&
                    //DateTimeOffsetValue.Equals(other.DateTimeOffsetValue) && 
-                   //GuidValue.Equals(other.GuidValue) && 
+                   GuidValue.Equals(other.GuidValue) && 
                    IntValue == other.IntValue && 
                    LongValue == other.LongValue && 
                    List.Equals(other.List);
@@ -203,7 +203,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
             hashCode.Add(StringValue);
             hashCode.Add(BsonDocumentValue);
             //hashCode.Add(DateTimeOffsetValue);
-            //hashCode.Add(GuidValue);
+            hashCode.Add(GuidValue);
             hashCode.Add(IntValue);
             hashCode.Add(LongValue);
             hashCode.Add(List);
