@@ -50,7 +50,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
                             }
                         }
                     }
-
+                    shit = SF.ParenthesizedExpression(shit);
                     return true;
                 }
             }

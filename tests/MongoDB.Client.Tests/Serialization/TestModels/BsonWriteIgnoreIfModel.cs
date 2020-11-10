@@ -12,7 +12,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
     {
         public int Field { get; set; }
 
-        [BsonWriteIgnoreIf("(Field==42)")]
+        [BsonWriteIgnoreIf("Field==42")]
         public string IgnoredField0{ get; set; }
 
         [BsonWriteIgnoreIf(@"IgnoredField0.Equals(""lol0"")")]
