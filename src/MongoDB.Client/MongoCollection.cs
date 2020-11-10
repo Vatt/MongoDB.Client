@@ -53,6 +53,7 @@ namespace MongoDB.Client
                 {"$db", Namespace.DatabaseName},
                 {"lsid", SharedSessionId}
             };
+            
             var request = new InsertMessage<T>(requestNumber, document, items);
             await channel.InsertAsync(request, cancellationToken).ConfigureAwait(false);
         }
