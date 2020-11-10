@@ -116,12 +116,28 @@ namespace MongoDB.Client.Bson.Document
         }
 
         public BsonDocument? AsBsonDocument => (BsonDocument?)Value;
+        public string? AsString => (string?)Value;
 
         public override string ToString()
         {
-            return Name + ": " + (Value is not null ? Value.ToString() : "null");
+            return "\"" + Name + "\": " + ValueToString(Value) + "";
         }
 
+        private static string? ValueToString(object? value)
+        {
+            if (value is null)
+            {
+                return "null";
+            }
+            
+            if (value is string str)
+            {
+                return "\"" + str + "\"";
+            }
+
+            return value.ToString();
+        }
+        
         public override bool Equals(object? obj)
         {
             return obj is BsonElement element && Equals(element);

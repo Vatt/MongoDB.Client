@@ -112,7 +112,7 @@ namespace MongoDB.Client.Bson.Document
             c[21] = ToHexChar((Part3 >> 8) & 0x0f);
             c[22] = ToHexChar((Part3 >> 4) & 0x0f);
             c[23] = ToHexChar(Part3 & 0x0f);
-            return new string(c);
+            return "\"" + new string(c) + "\"";
         }
 
         public bool TryWriteBytes(Span<byte> destination)
