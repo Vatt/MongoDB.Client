@@ -32,6 +32,7 @@ namespace MongoDB.Client.Bson.Generators
                 attrName = attrName.Replace(' ', '_');
                 attrName = attrName.Replace('(', '_');
                 attrName = attrName.Replace(')', '_');
+                attrName = attrName.Replace('$', '_');
                 StringFieldNameAlias = attrName;
             }
             else
