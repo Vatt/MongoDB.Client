@@ -8,6 +8,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
 {
     internal abstract class OperationBase
     {
+        public static System.Collections.Generic.List<ClassDeclMeta> meta;
         public INamedTypeSymbol ClassSymbol { get; }
         public MemberDeclarationMeta MemberDecl { get; }
 

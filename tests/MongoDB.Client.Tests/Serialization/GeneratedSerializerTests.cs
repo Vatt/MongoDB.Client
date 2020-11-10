@@ -9,6 +9,36 @@ namespace MongoDB.Client.Tests.Serialization
     public class GeneratedSerializerTests : BaseSerialization
     {
         [Fact]
+        public async Task WriteIgnoreIfTest()
+        {
+            var doc = new BsonWriteIgnoreIfModel
+            {
+                Field = 42,
+                IgnoredField0 = "lol0",
+                IgnoredField1 = "lol1",
+
+            };
+            SerializersMap.TryGetSerializer<BsonWriteIgnoreIfModel>(out var serializer);
+
+
+            var result = await RoundTripAsync(doc, serializer);
+            Assert.Equal(doc.Field, result.Field);
+            Assert.Null(result.IgnoredField0);
+            
+            doc = new BsonWriteIgnoreIfModel
+            {
+                Field = 41,
+                IgnoredField0 = "lol0",
+                IgnoredField1 = "lol1",
+
+            };
+            result = await RoundTripAsync(doc, serializer);
+            Assert.Equal(doc.Field, result.Field);
+            Assert.Null(result.IgnoredField1);
+
+        }
+
+        [Fact]
         public async Task IgnoreTest()
         {
             var doc = new ModelWithIgnore
