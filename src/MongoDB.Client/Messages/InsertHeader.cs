@@ -4,7 +4,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 namespace MongoDB.Client.Messages
 {
     [BsonSerializable]
-    internal class InsertHeader
+    public class InsertHeader
     {
         [BsonElementField(ElementName = "insert")]
         public string Insert { get; set; }
@@ -20,7 +20,7 @@ namespace MongoDB.Client.Messages
     }
 
     [BsonSerializable]
-    internal class SessionId
+    public class SessionId
     {
         [BsonElementField(ElementName = "id")]
         public Guid Id { get; set; }
