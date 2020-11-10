@@ -448,24 +448,28 @@ namespace MongoDB.Client.Readers
                 {
                     if (!reader.TryGetDouble(out var okValue)) { return false; }
                     CursorResult.Ok = okValue;
+                    continue;
                 }
 
                 if (name.SequenceEqual(ErrmsgSpan))
                 {
                     if (!reader.TryGetString(out var errorValue)) { return false; }
                     CursorResult.ErrorMessage = errorValue;
+                    continue;
                 }
 
                 if (name.SequenceEqual(CodeSpan))
                 {
                     if (!reader.TryGetInt32(out var codeValue)) { return false; }
                     CursorResult.Code = codeValue;
+                    continue;
                 }
 
                 if (name.SequenceEqual(CodeNameSpan))
                 {
                     if (!reader.TryGetString(out var codeNameValue)) { return false; }
                     CursorResult.CodeName = codeNameValue;
+                    continue;
                 }
             }
             while (reader.BytesConsumed - checkpoint < docLength - 1);

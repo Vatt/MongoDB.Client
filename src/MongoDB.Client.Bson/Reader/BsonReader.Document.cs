@@ -8,10 +8,10 @@ namespace MongoDB.Client.Bson.Reader
 {
     public ref partial struct BsonReader
     {
-        public bool TryGetArray([NotNullWhen(true)] out BsonDocument? value)
+        public bool TryGetArray([NotNullWhen(true)] out BsonArray? value)
         {
             value = default;
-            var root = new BsonDocument();
+            var root = new BsonArray();
             if (!TryGetInt32(out var docLength)) { return false; }
             var unreaded = _input.Remaining + sizeof(int);
             while (unreaded - _input.Remaining < docLength - 1)

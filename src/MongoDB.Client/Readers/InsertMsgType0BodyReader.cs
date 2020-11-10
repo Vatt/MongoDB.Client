@@ -37,15 +37,6 @@ namespace MongoDB.Client.Readers
             byte endMarker;
             var checkpoint = reader.BytesConsumed;
 
-            if (reader.TryParseDocument(out var doc) == false)
-            {
-                return false;
-            }
-
-            return true;
-            
-            
-            
             if (!reader.TryGetInt32(out var docLength))
             {
                 return false;
@@ -83,48 +74,12 @@ namespace MongoDB.Client.Readers
                 
                 if (name == "writeErrors")
                 {
-                    if (!reader.TryGetInt32(out var okValue))
+                    if (!reader.TryGetArray(out var array))
                     {
                         return false;
                     }
 
-                    _result.N = okValue;
-                    continue;
-                }
-                
-                
-                
-                
-                if (name == "errmsg")
-                {
-                    if (!reader.TryGetString(out var errorValue))
-                    {
-                        return false;
-                    }
-
-                    _result.ErrorMessage = errorValue;
-                    continue;
-                }
-
-                if (name == "code")
-                {
-                    if (!reader.TryGetInt32(out var codeValue))
-                    {
-                        return false;
-                    }
-
-                    _result.Code = codeValue;
-                    continue;
-                }
-
-                if (name == "codeName")
-                {
-                    if (!reader.TryGetString(out var codeNameValue))
-                    {
-                        return false;
-                    }
-
-                    _result.CodeName = codeNameValue;
+                    _result.Error = array;
                     continue;
                 }
             } while (reader.BytesConsumed - checkpoint < docLength - 1);
@@ -162,7 +117,6 @@ namespace MongoDB.Client.Readers
         {
             ReadOnlySpan<byte> name;
             byte endMarker;
-            bool hasItems;
             var checkpoint = reader.BytesConsumed;
             if (!reader.TryGetInt32(out var docLength))
             {
@@ -184,6 +138,7 @@ namespace MongoDB.Client.Readers
                     }
 
                     _result.Ok = okValue;
+                    continue;
                 }
                 
                 if (name.SequenceEqual(NSpan))
@@ -194,36 +149,18 @@ namespace MongoDB.Client.Readers
                     }
 
                     _result.N = okValue;
+                    continue;
                 }
 
-                if (name.SequenceEqual(ErrmsgSpan))
+                if (name.SequenceEqual(WriteErrorsSpan))
                 {
-                    if (!reader.TryGetString(out var errorValue))
+                    if (!reader.TryGetArray(out var array))
                     {
                         return false;
                     }
 
-                    _result.ErrorMessage = errorValue;
-                }
-
-                if (name.SequenceEqual(CodeSpan))
-                {
-                    if (!reader.TryGetInt32(out var codeValue))
-                    {
-                        return false;
-                    }
-
-                    _result.Code = codeValue;
-                }
-
-                if (name.SequenceEqual(CodeNameSpan))
-                {
-                    if (!reader.TryGetString(out var codeNameValue))
-                    {
-                        return false;
-                    }
-
-                    _result.CodeName = codeNameValue;
+                    _result.Error = array;
+                    continue;
                 }
             } while (reader.BytesConsumed - checkpoint < docLength - 1);
 
@@ -259,8 +196,6 @@ namespace MongoDB.Client.Readers
         
         private static ReadOnlySpan<byte> NSpan => new byte[] {110}; // n
         private static ReadOnlySpan<byte> OkSpan => new byte[] {111, 107}; // ok
-        private static ReadOnlySpan<byte> ErrmsgSpan => new byte[] {101, 114, 114, 109, 115, 103}; // errmsg
-        private static ReadOnlySpan<byte> CodeSpan => new byte[] {99, 111, 100, 101}; // code
-        private static ReadOnlySpan<byte> CodeNameSpan => new byte[] {99, 111, 100, 101, 78, 97, 109, 101}; // codeName
+        private static ReadOnlySpan<byte> WriteErrorsSpan => new byte[] {119,114,105,116,101,69,114,114,111,114,115}; // writeErrors
     }
 }
