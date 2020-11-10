@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using MongoDB.Client.Exceptions;
 
 
 namespace MongoDB.Client.ConsoleApp
@@ -22,8 +23,8 @@ namespace MongoDB.Client.ConsoleApp
                     .SetMinimumLevel(LogLevel.Error)
                     .AddConsole();
             });
-
-
+            
+            
             var client = new MongoClient(new DnsEndPoint(host, 27017), loggerFactory);
 
             var db = client.GetDatabase("TestDb");
@@ -39,6 +40,16 @@ namespace MongoDB.Client.ConsoleApp
 
             var item = CreateItem();
             await collection1.InsertAsync(item);
+            try
+            {
+                // inserting duplicate
+                await collection1.InsertAsync(item);
+            }
+            catch (MongoException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            
             
             Console.WriteLine();
             // var result1 = await collection2.GetCursorAsync(filter, default);

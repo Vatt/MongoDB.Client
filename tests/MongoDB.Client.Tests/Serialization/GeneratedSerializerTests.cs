@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Tests.Serialization.TestModels;
@@ -8,6 +9,36 @@ namespace MongoDB.Client.Tests.Serialization
 {
     public class GeneratedSerializerTests : BaseSerialization
     {
+        [Fact]
+        public async Task WriteIgnoreIfTest()
+        {
+            var doc = new BsonWriteIgnoreIfModel
+            {
+                Field = 42,
+                IgnoredField0 = "lol0",
+                IgnoredField1 = "lol1",
+
+            };
+            SerializersMap.TryGetSerializer<BsonWriteIgnoreIfModel>(out var serializer);
+
+
+            var result = await RoundTripAsync(doc, serializer);
+            Assert.Equal(doc.Field, result.Field);
+            Assert.Null(result.IgnoredField0);
+            
+            doc = new BsonWriteIgnoreIfModel
+            {
+                Field = 41,
+                IgnoredField0 = "lol0",
+                IgnoredField1 = "lol1",
+
+            };
+            result = await RoundTripAsync(doc, serializer);
+            Assert.Equal(doc.Field, result.Field);
+            Assert.Null(result.IgnoredField1);
+
+        }
+
         [Fact]
         public async Task IgnoreTest()
         {
@@ -53,6 +84,7 @@ namespace MongoDB.Client.Tests.Serialization
                 BsonObjectIdValue =  new BsonObjectId("5f987814bf342ec7cc57294b"),
                 IntValue = 479341564,
                 LongValue =  9713984265,
+                GuidValue = Guid.NewGuid(),
                 List = lstModel,
             };
             SerializersMap.TryGetSerializer<ModelForGenerated>(out var serializer);

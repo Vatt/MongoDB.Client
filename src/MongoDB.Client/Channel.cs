@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MongoDB.Client.Connection;
+using MongoDB.Client.Exceptions;
 using MongoDB.Client.Protocol.Messages;
 
 namespace MongoDB.Client
@@ -401,12 +402,13 @@ namespace MongoDB.Client
                                 .ConfigureAwait(false);
                             if (response is InsertResult result)
                             {
-                                if (result.ErrorMessage is null)
+                                if (result.Error is null)
                                 {
                                     return;
                                 }
-                                // TODO: 
-                                throw new Exception(result.ErrorMessage);
+
+                                var errorMsg = result.Error[0].AsBsonDocument?["errmsg"].AsString;
+                                throw new MongoException(errorMsg);
                             }
                         }
                     }
