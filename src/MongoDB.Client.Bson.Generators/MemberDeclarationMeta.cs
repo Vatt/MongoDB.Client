@@ -40,7 +40,7 @@ namespace MongoDB.Client.Bson.Generators
             else
             {
                 StringFieldNameAlias = DeclSymbol.Name;
-                StringBsonAlias = DeclSymbol.Name
+                StringBsonAlias = DeclSymbol.Name;
             }
         }
         public bool TryGetOneGenericArgument(out INamedTypeSymbol genericType)
