@@ -9,6 +9,7 @@ namespace MongoDB.Client.Bson.Generators
         public ISymbol DeclSymbol { get; }
         public INamedTypeSymbol DeclType { get; }
         public string StringFieldNameAlias { get; }
+        public string StringBsonAlias { get; }
         public bool IsProperty => DeclSymbol.Kind == SymbolKind.Property;
         public bool IsGenericList => (DeclType.ToString().Contains("System.Collections.Generic.List") || DeclType.ToString().Contains("System.Collections.Generic.IList")) && DeclType.IsGenericType;
         public bool IsClassOrStruct => DeclType.TypeKind == TypeKind.Class || DeclType.TypeKind == TypeKind.Struct;
@@ -29,6 +30,7 @@ namespace MongoDB.Client.Bson.Generators
 
             if (TryGetElementNameFromBsonAttribute(out string attrName))
             {
+                StringBsonAlias = attrName;
                 attrName = attrName.Replace(' ', '_');
                 attrName = attrName.Replace('(', '_');
                 attrName = attrName.Replace(')', '_');
@@ -38,6 +40,7 @@ namespace MongoDB.Client.Bson.Generators
             else
             {
                 StringFieldNameAlias = DeclSymbol.Name;
+                StringBsonAlias = DeclSymbol.Name
             }
         }
         public bool TryGetOneGenericArgument(out INamedTypeSymbol genericType)
