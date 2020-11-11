@@ -37,8 +37,8 @@ namespace MongoDB.Client.Protocol.Writers
             writer.WriteInt32((int)CreateFlags(message));
             
             writer.WriteByte((byte)PayloadType.Type0);
-            writer.WriteDocument(message.Document);
-            //_headerSer.Write(ref writer, message.InsertHeader);
+            //writer.WriteDocument(message.Document);
+            _headerSer.Write(ref writer, message.InsertHeader);
 
 
             writer.WriteByte((byte)PayloadType.Type1);

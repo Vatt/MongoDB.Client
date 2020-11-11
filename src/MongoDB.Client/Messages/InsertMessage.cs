@@ -30,6 +30,7 @@ namespace MongoDB.Client.Protocol.Messages
             ExhaustAllowed = exhaustAllowed;
             Document = document;
             Items = items;
+            InsertHeader = insertHeader;
         }
 
         public MongoMsgHeader Header { get; }

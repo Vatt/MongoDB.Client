@@ -78,9 +78,14 @@ namespace MongoDB.Client.Tests.Serialization
                 }
             };
             SerializersMap.TryGetSerializer<InsertHeader>(out var serializer);
+
+
+
             var result = await RoundTripWithBsonAsync(doc, serializer);
 
-            Assert.Equal(1, 1);
+
+           
+            Assert.Equal("Database", result["$db"].AsString);
         }
 
 
