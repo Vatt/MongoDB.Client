@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Messages;
 using MongoDB.Client.Tests.Serialization;
 using MongoDB.Client.Tests.Serialization.TestModels;
 using Xunit;
@@ -61,6 +62,28 @@ namespace MongoDB.Client.Tests.Serialization
 
             Assert.Equal(doc, result);
         }
+
+
+        [Fact]
+        public async Task Test()
+        {
+            var doc = new InsertHeader
+            {
+                Db = "Database",
+                Insert = "Collection",
+                Ordered = true,
+                Lsid = new SessionId
+                {
+                    Id = Guid.NewGuid()
+                }
+            };
+            SerializersMap.TryGetSerializer<InsertHeader>(out var serializer);
+            var result = await RoundTripWithBsonAsync(doc, serializer);
+
+            Assert.Equal(1, 1);
+        }
+
+
         [Fact]
         public void ObjectIdSerializationDeserialization()
         {

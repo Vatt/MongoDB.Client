@@ -5,12 +5,19 @@ using System.Buffers.Binary;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Messages;
+using MongoDB.Client.Messages;
 
 namespace MongoDB.Client.Protocol.Writers
 {
     public class InsertMessageWriter<T> : IMessageWriter<InsertMessage<T>>
     {
         private readonly IGenericBsonSerializer<T> _serializer;
+        private static readonly IGenericBsonSerializer<InsertHeader> _headerSer;
+
+        static InsertMessageWriter()
+        {
+           var result =  SerializersMap.TryGetSerializer<InsertHeader>(out _headerSer);
+        }
 
         public InsertMessageWriter(IGenericBsonSerializer<T> serializer)
         {
@@ -31,7 +38,9 @@ namespace MongoDB.Client.Protocol.Writers
             
             writer.WriteByte((byte)PayloadType.Type0);
             writer.WriteDocument(message.Document);
-            
+            //_headerSer.Write(ref writer, message.InsertHeader);
+
+
             writer.WriteByte((byte)PayloadType.Type1);
             writer.Commit();
             var checkpoint = writer.Written;
