@@ -1,6 +1,7 @@
 ﻿using System.IO.Pipelines;
 using System.Linq;
 using System.Threading.Tasks;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
@@ -20,6 +21,15 @@ namespace MongoDB.Client.Tests.Serialization
             await WriteAsync(pipe.Writer, message, serializer);
             return await ReadAsync(pipe.Reader, serializer);
         }
+
+        public static async Task<BsonDocument> RoundTripWithBsonAsync<T>(T message, IGenericBsonSerializer<T> serializer)
+        {
+            var pipe = new Pipe();
+
+            await WriteAsync(pipe.Writer, message, serializer);
+            return await ReadAsync<BsonDocument>(pipe.Reader, new BsonDocumentSerializer());
+        }
+
         public static async Task<T1> RoundTripAsync<T0, T1>(T0 message, IGenericBsonSerializer<T0> writer, IGenericBsonSerializer<T1> reader)
         {
             var pipe = new Pipe();

@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Protocol.Messages;
+using System.Linq;
 
 namespace MongoDB.Client
 {
@@ -51,7 +52,7 @@ namespace MongoDB.Client
         // private readonly ManualResetValueTaskSource<MongoResponseMessage> completionSource =
         //     new ManualResetValueTaskSource<MongoResponseMessage>();
 
-        private CancellationTokenSource _shutdownToken = new CancellationTokenSource();
+        private readonly CancellationTokenSource _shutdownToken = new CancellationTokenSource();
         private Task? _readingTask;
         private readonly SemaphoreSlim _initSemaphore = new SemaphoreSlim(1);
         private Task<ConnectionInfo>? _initTask;
@@ -153,7 +154,7 @@ namespace MongoDB.Client
             return new QueryMessage(num, database, document);
         }
 
-        private BsonDocument CreateWrapperDocument(BsonDocument document)
+        private static BsonDocument CreateWrapperDocument(BsonDocument document)
         {
             BsonDocument? readPreferenceDocument = null;
             var doc = new BsonDocument
@@ -402,13 +403,12 @@ namespace MongoDB.Client
                                 .ConfigureAwait(false);
                             if (response is InsertResult result)
                             {
-                                if (result.Error is null)
+                                if (result.WriteErrors is null)
                                 {
                                     return;
                                 }
 
-                                var errorMsg = result.Error[0].AsBsonDocument?["errmsg"].AsString;
-                                throw new MongoException(errorMsg);
+                                throw new MongoInsertException(result.WriteErrors);
                             }
                         }
                     }
@@ -450,8 +450,10 @@ namespace MongoDB.Client
                         var result = await reader.ReadAsync(bodyReader, default).ConfigureAwait(false);
                         reader.Advance();
                         _logger.ParsingMsgCompleteMessage(mongoResponse.Header.ResponseTo);
+#if DEBUG
                         var consumed = msgMessage.Consumed + bodyReader.Consumed;
                         Debug.Assert(consumed == msgMessage.Header.MessageLength);
+#endif
                         return result.Message;
 
                         return ThrowHelper.UnsupportedTypeException<InsertResult>(typeof(TResp));

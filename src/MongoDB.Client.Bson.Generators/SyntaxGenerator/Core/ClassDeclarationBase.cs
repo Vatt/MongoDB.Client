@@ -45,7 +45,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
             SeparatedSyntaxList<ExpressionSyntax> ArrayInitExpr(MemberDeclarationMeta memberdecl)
             {
                 SeparatedSyntaxList<ExpressionSyntax> expr = new SeparatedSyntaxList<ExpressionSyntax>();
-                foreach (var byteItem in Encoding.UTF8.GetBytes(memberdecl.StringFieldNameAlias))
+                foreach (var byteItem in Encoding.UTF8.GetBytes(memberdecl.StringBsonAlias))
                 {
                     expr = expr.Add(Basics.NumberLiteral(byteItem));
                 }
@@ -53,7 +53,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
             }
             ArrayRankSpecifierSyntax ArrayRank(MemberDeclarationMeta memberdecl)
             {
-                return SF.ArrayRankSpecifier().AddSizes(Basics.NumberLiteral(memberdecl.StringFieldNameAlias.Length));
+                var bytes = Encoding.UTF8.GetBytes(memberdecl.StringBsonAlias);
+                return SF.ArrayRankSpecifier().AddSizes(Basics.NumberLiteral(bytes.Length));
             }
 
             return SF.ArrowExpressionClause(
