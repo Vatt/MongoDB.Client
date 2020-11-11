@@ -7,7 +7,7 @@ using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Common;
 using MongoDB.Client.Protocol.Core;
 
-namespace MongoDB.Client.Connection
+namespace MongoDB.Client.MongoConnections
 {
     public sealed partial class MongoConnection
     {

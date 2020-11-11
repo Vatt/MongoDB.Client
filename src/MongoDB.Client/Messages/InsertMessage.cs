@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
-using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Common;
+using MongoDB.Client.Protocol.Messages;
 
-namespace MongoDB.Client.Protocol.Messages
+namespace MongoDB.Client.Messages
 {
     public class InsertMessage<T>
     {

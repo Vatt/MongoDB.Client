@@ -1,4 +1,4 @@
-﻿namespace MongoDB.Client.Connection
+﻿namespace MongoDB.Client.MongoConnections
 {
     public sealed partial class MongoConnection
     {

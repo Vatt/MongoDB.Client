@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Network;
 
-namespace MongoDB.Client.Connection
+namespace MongoDB.Client.MongoConnections
 {
     public class MongoConnectionFactory
     {

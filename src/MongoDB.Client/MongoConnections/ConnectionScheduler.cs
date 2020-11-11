@@ -1,13 +1,8 @@
-﻿using MongoDB.Client.Messages;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Channels;
-using System.Threading.Tasks;
-using System.Threading.Tasks.Sources;
+using MongoDB.Client.Messages;
 
-namespace MongoDB.Client.Connection
+namespace MongoDB.Client.MongoConnections
 {
     internal class MongoReuqest 
     {

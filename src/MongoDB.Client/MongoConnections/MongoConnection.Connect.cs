@@ -1,14 +1,10 @@
-﻿using MongoDB.Client.Bson.Document;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Messages;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace MongoDB.Client.Connection
+namespace MongoDB.Client.MongoConnections
 {
     public sealed partial class MongoConnection
     {
