@@ -3,7 +3,7 @@ using System;
 namespace MongoDB.Client.Protocol.Writers
 {
     [Flags]
-    internal enum OpMsgFlags
+    public enum OpMsgFlags
     {
         ChecksumPresent = 1 << 0,
         MoreToCome = 1 << 1,

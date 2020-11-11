@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Messages;
 using MongoDB.Client.Utils;
 
@@ -46,17 +47,17 @@ namespace MongoDB.Client
         {
             var channel = await _channelsPool.GetChannelAsync(cancellationToken).ConfigureAwait(false);
             var requestNumber = channel.GetNextRequestNumber();
-            var document = new BsonDocument
+            var insertHeader = new InsertHeader
             {
-                {"insert", Namespace.CollectionName},
-                {"ordered" , true },
-                {"$db", Namespace.DatabaseName},
-                {"lsid", SharedSessionId}
+                Insert = Namespace.CollectionName,
+                Ordered = true,
+                Db = Namespace.DatabaseName,
+                Lsid = SharedSessionIdModel
             };
-            var request = new InsertMessage<T>(requestNumber, document, items);
+            var request = new InsertMessage<T>(requestNumber, insertHeader, items);
             await channel.InsertAsync(request, cancellationToken).ConfigureAwait(false);
         }
         
-        private static readonly BsonDocument SharedSessionId = new BsonDocument("id", BsonBinaryData.Create(Guid.NewGuid()));
+        private static readonly SessionId SharedSessionIdModel = new SessionId { Id = Guid.NewGuid() };
     }
 }

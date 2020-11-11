@@ -450,8 +450,10 @@ namespace MongoDB.Client
                         var result = await reader.ReadAsync(bodyReader, default).ConfigureAwait(false);
                         reader.Advance();
                         _logger.ParsingMsgCompleteMessage(mongoResponse.Header.ResponseTo);
+#if DEBUG
                         var consumed = msgMessage.Consumed + bodyReader.Consumed;
                         Debug.Assert(consumed == msgMessage.Header.MessageLength);
+#endif
                         return result.Message;
 
                         return ThrowHelper.UnsupportedTypeException<InsertResult>(typeof(TResp));
