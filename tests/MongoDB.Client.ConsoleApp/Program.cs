@@ -32,7 +32,7 @@ namespace MongoDB.Client.ConsoleApp
 
 
 
-            // await InsertItems(collection1, 1000000);
+          //  await InsertItems(collection1, 1000);
             //
             // return;
 

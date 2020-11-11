@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Messages;
 using MongoDB.Client.Utils;
 
@@ -15,6 +16,9 @@ namespace MongoDB.Client
         private readonly BsonDocument _sessionId;
         private int _limit;
         private static readonly BsonDocument SharedSessionId = new BsonDocument("id", BsonBinaryData.Create(Guid.NewGuid()));
+
+        public static readonly SessionId SharedSession = new SessionId();
+
         internal Cursor(IChannelsPool channelPool, BsonDocument filter, CollectionNamespace collectionNamespace)
             : this(channelPool, filter, collectionNamespace, SharedSessionId)
         {
@@ -69,7 +73,20 @@ namespace MongoDB.Client
             }
         }
 
-        private BsonDocument CreateFindRequest(BsonDocument filter)
+        
+        private FindRequest CreateFindRequest(BsonDocument filter)
+        {
+            return new FindRequest
+            {
+                Find = _collectionNamespace.CollectionName,
+                Filter =  filter,
+                Limit = _limit,
+                Db = _collectionNamespace.DatabaseName,
+                Lsid = SharedSession
+            };
+        }
+        
+        private BsonDocument CreateFindRequestOld(BsonDocument filter)
         {
             return new BsonDocument
             {
@@ -81,7 +98,18 @@ namespace MongoDB.Client
             };
         }
 
-        private BsonDocument CreateGetMoreRequest(long cursorId)
+        private FindRequest CreateGetMoreRequest(long cursorId)
+        {
+            return new FindRequest
+            {
+                GetMore = cursorId,
+                Collection = _collectionNamespace.CollectionName,
+                Db = _collectionNamespace.DatabaseName,
+                Lsid = SharedSession
+            };
+        }
+        
+        private BsonDocument CreateGetMoreRequestOld(long cursorId)
         {
             return new BsonDocument
             {

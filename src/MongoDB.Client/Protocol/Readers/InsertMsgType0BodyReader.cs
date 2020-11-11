@@ -15,6 +15,7 @@ namespace MongoDB.Client.Readers
         static InsertMsgType0BodyReader()
         {
             SerializersMap.TryGetSerializer(out _resultSerializer!);
+            
         }
        
        public long Consumed { get; private set; }
@@ -26,6 +27,7 @@ namespace MongoDB.Client.Readers
             [MaybeNullWhen(false)] out InsertResult message)
         {
             var bsonReader = new BsonReader(input);
+
 
             if (_resultSerializer.TryParse(ref bsonReader, out message) == false)
             {
