@@ -1,5 +1,4 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization;
+﻿using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Writer;
 using MongoDB.Client.Protocol.Core;
 using System.Buffers;

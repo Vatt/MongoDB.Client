@@ -29,6 +29,13 @@ namespace MongoDB.Client.ConsoleApp
 
             var db = client.GetDatabase("TestDb");
             var collection1 = db.GetCollection<GeoIp>("TestCollection4");
+
+
+
+            // await InsertItems(collection1, 1000000);
+            //
+            // return;
+
             // var collection3 = db.GetCollection<BsonDocument>("TestCollection2");
             // var collection2 = db.GetCollection<GeoIp>("TestCollection3");
             var filter = new BsonDocument();
@@ -68,13 +75,13 @@ namespace MongoDB.Client.ConsoleApp
             // await Warmup(collection1, filter);
 
 
-            var count = 1000;
-            await Concurrent(collection1, count, filter);
-            await Sequential(collection1, count, filter);
-            await Concurrent(collection1, count, filter);
-            await Sequential(collection1, count, filter);
-            await Concurrent(collection1, count, filter);
-            await Sequential(collection1, count, filter);
+            //var count = 1000;
+            //await Concurrent(collection1, count, filter);
+            //await Sequential(collection1, count, filter);
+            //await Concurrent(collection1, count, filter);
+            //await Sequential(collection1, count, filter);
+            //await Concurrent(collection1, count, filter);
+            //await Sequential(collection1, count, filter);
             // await Concurrent(collection1, count, filter);
             // await Sequential(collection1, count, filter);
             // await Concurrent(collection1, count, filter);
@@ -82,6 +89,17 @@ namespace MongoDB.Client.ConsoleApp
             // await Concurrent(collection1, count, filter);
             // await Sequential(collection1, count, filter);
         }
+
+
+        private static async Task InsertItems(MongoCollection<GeoIp> collection, int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                var item = CreateItem();
+                await collection.InsertAsync(item);
+            }
+        }
+
 
         private static GeoIp CreateItem()
         {

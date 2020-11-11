@@ -8,6 +8,7 @@ namespace MongoDB.Client.Bson.Generators
         private static readonly string UnsuportedTypeErrorCode = "MONGOGEN01";
         private static readonly string UnsuportedGenericTypeErrorCode = "MONGOGEN02";
         private static readonly string NullableFieldsErrorCode = "MONGOGEN03";
+        private static readonly string WARNMESSAGE = "MNGGEN04";
         public static void ReportNullableFieldsError(GeneratorExecutionContext context, ISymbol decl, ITypeSymbol type, Location? location)
         {
             var message = $"Field {decl.Name}: nullable fields not suported, try make {decl.Name} as property";
@@ -22,6 +23,12 @@ namespace MongoDB.Client.Bson.Generators
         {
             var message = $"Field or Property {decl.Name} has an unsuported generic type {type.Name}";
             context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(UnsuportedGenericTypeErrorCode, "Generation failed", message, "Generation", DiagnosticSeverity.Error, true), location));
+        }
+
+
+        public static void WriteWarn(GeneratorExecutionContext context, string message)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(WARNMESSAGE, "Generation warn", message, "Generation", DiagnosticSeverity.Warning, true), null));
         }
     }
 }

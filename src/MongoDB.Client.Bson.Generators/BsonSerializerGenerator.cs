@@ -7,6 +7,8 @@ using MongoDB.Client.Bson.Generators.SyntaxGenerator.Core;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.ReadWrite;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.ReadWrite;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text;
 
 namespace MongoDB.Client.Bson.Generators
@@ -17,6 +19,7 @@ namespace MongoDB.Client.Bson.Generators
     {
         private List<ClassDeclMeta> meta = new List<ClassDeclMeta>();
         GeneratorExecutionContext _context;
+        private readonly Stopwatch _stopwatch = new Stopwatch();
 
         public void Execute(GeneratorExecutionContext context)
         {
@@ -34,23 +37,32 @@ namespace MongoDB.Client.Bson.Generators
             context.AddSource($"{Basics.GlobalSerializationHelperGeneratedString}.cs", SourceText.From(GenerateGlobalHelperStaticClass(), Encoding.UTF8));
             foreach (var item in meta)
             {
+                if (context.CancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
                 if (!TypeMap.BaseOperations.ContainsKey(item.ClassSymbol.Name))
                 {
                     TypeMap.BaseOperations.Add(item.ClassSymbol.Name, new GeneratedSerializerRW(item.ClassSymbol));
                 }
-
             }
+
             foreach (var item in meta)
             {
+                if (context.CancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
                 var source = BsonSyntaxGenerator.Create(item)?.NormalizeWhitespace().ToFullString();
-
                 context.AddSource(Basics.GenerateSerializerName(item.ClassSymbol), SourceText.From(source, Encoding.UTF8));
-                System.Diagnostics.Debugger.Break();
             }
+            _stopwatch.Stop();
+            BsonGeneratorErrorHelper.WriteWarn(context, "Generation elapsed: " + _stopwatch.Elapsed.ToString());
         }
         public void Initialize(GeneratorInitializationContext context)
         {
             //System.Diagnostics.Debugger.Launch();
+            _stopwatch.Restart();
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
         }
 
