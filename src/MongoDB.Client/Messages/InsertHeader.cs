@@ -1,5 +1,4 @@
-﻿using System;
-using MongoDB.Client.Bson.Serialization.Attributes;
+﻿using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Messages
 {
@@ -17,12 +16,5 @@ namespace MongoDB.Client.Messages
 
         [BsonElementField(ElementName = "lsid")]
         public SessionId Lsid { get; set; }
-    }
-
-    [BsonSerializable]
-    public class SessionId
-    {
-        [BsonElementField(ElementName = "id")]
-        public Guid Id { get; set; }
     }
 }
