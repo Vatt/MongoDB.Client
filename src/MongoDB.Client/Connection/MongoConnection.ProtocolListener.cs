@@ -97,10 +97,15 @@ namespace MongoDB.Client.Connection
             public ManualResetValueTaskSource<IParserResult> ComplectionSource;
             public delegate*<MongoResponseMessage, ValueTask<IParserResult>> AsyncParser;
 
-            public void SetData(ManualResetValueTaskSource<IParserResult> completionSource, delegate*<MongoResponseMessage, ValueTask<IParserResult>> parser)
+            public void Set(ManualResetValueTaskSource<IParserResult> completionSource, delegate*<MongoResponseMessage, ValueTask<IParserResult>> parser)
             {
                 AsyncParser = parser;
                 ComplectionSource = completionSource;
+            }
+            public void Reset()
+            {
+                ComplectionSource = null;
+                AsyncParser = null;
             }
         }
     }

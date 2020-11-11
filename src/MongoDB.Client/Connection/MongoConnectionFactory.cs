@@ -31,7 +31,7 @@ namespace MongoDB.Client.Connection
                 ThrowHelper.ConnectionException<System.Net.Connections.Connection>(_endPoint);
             }
             var id = Interlocked.Increment(ref CONNECTION_ID);
-            return new MongoConnection(id, connection!, _loggerFactory.CreateLogger(String.Empty), reader);
+            return new MongoConnection(id, _loggerFactory.CreateLogger(String.Empty), reader);
         }
     }
 }

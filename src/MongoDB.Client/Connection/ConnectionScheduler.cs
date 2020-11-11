@@ -9,6 +9,14 @@ using System.Threading.Tasks.Sources;
 
 namespace MongoDB.Client.Connection
 {
+    internal class MongoReuqest 
+    {
+        internal ManualResetValueTaskSource<IParserResult> Complection { get; }
+        internal MongoReuqest(ManualResetValueTaskSource<IParserResult> complection)
+        {
+            Complection = complection;
+        }
+    }
     public class ConnectionScheduler
     {
         private int MaxConnections => 64;

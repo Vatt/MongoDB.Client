@@ -67,7 +67,7 @@ namespace MongoDB.Client
         {
             return new BsonDocument
             {
-                { "name", "my-mongo-driver" },
+                { "name", "dotnet-mongo-driver" },
                 { "version", "0.1.0.0" }
             };
         }
