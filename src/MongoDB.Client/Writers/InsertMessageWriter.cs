@@ -1,5 +1,4 @@
 ﻿using MongoDB.Client.Bson.Writer;
-using System;
 using System.Buffers;
 using System.Buffers.Binary;
 using MongoDB.Client.Bson.Serialization;
@@ -16,7 +15,7 @@ namespace MongoDB.Client.Protocol.Writers
 
         static InsertMessageWriter()
         {
-           var result =  SerializersMap.TryGetSerializer<InsertHeader>(out _headerSer);
+           SerializersMap.TryGetSerializer(out _headerSer!);
         }
 
         public InsertMessageWriter(IGenericBsonSerializer<T> serializer)
@@ -37,7 +36,7 @@ namespace MongoDB.Client.Protocol.Writers
             writer.WriteInt32((int)CreateFlags(message));
             
             writer.WriteByte((byte)PayloadType.Type0);
-            //writer.WriteDocument(message.Document);
+
             _headerSer.Write(ref writer, message.InsertHeader);
 
 

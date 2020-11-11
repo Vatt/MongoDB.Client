@@ -47,13 +47,6 @@ namespace MongoDB.Client
         {
             var channel = await _channelsPool.GetChannelAsync(cancellationToken).ConfigureAwait(false);
             var requestNumber = channel.GetNextRequestNumber();
-            //var document = new BsonDocument
-            //{
-            //    {"insert", Namespace.CollectionName},
-            //    {"ordered" , true },
-            //    {"$db", Namespace.DatabaseName},
-            //    {"lsid", SharedSessionId}
-            //};
             var insertHeader = new InsertHeader
             {
                 Insert = Namespace.CollectionName,
@@ -65,7 +58,6 @@ namespace MongoDB.Client
             await channel.InsertAsync(request, cancellationToken).ConfigureAwait(false);
         }
         
-        private static readonly BsonDocument SharedSessionId = new BsonDocument("id", BsonBinaryData.Create(Guid.NewGuid()));
         private static readonly SessionId SharedSessionIdModel = new SessionId { Id = Guid.NewGuid() };
     }
 }
