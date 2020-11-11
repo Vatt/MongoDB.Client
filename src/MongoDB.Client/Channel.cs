@@ -14,10 +14,11 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Protocol.Messages;
 using System.Linq;
+using MongoDB.Client.MongoConnections;
+using MongoDB.Client.Writers;
 
 namespace MongoDB.Client
 {

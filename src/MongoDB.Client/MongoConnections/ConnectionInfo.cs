@@ -1,6 +1,6 @@
 ﻿using MongoDB.Client.Bson.Document;
 
-namespace MongoDB.Client.Connection
+namespace MongoDB.Client.MongoConnections
 {
     public class ConnectionInfo
     {
