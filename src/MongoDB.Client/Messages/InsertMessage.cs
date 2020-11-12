@@ -25,7 +25,6 @@ namespace MongoDB.Client.Messages
         public bool MoreToCome { get; }
         public bool ExhaustAllowed { get; }
         public IEnumerable<T> Items { get; }
-        public int RequestNumber { get; }
         public InsertHeader InsertHeader { get; }
     }
 }

@@ -47,6 +47,11 @@ namespace MongoDB.Client.ConsoleApp
 
             var item = CreateItem();
             await collection1.InsertAsync(item);
+            
+            var result = await collection1.DeleteOneAsync(filter);
+
+            Console.WriteLine();
+            
             try
             {
                 // inserting duplicate

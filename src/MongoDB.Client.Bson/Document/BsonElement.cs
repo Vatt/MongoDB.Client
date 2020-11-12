@@ -20,20 +20,8 @@ namespace MongoDB.Client.Bson.Document
             Name = name;
             Value = value;
         }
-        //public unsafe T As<T>() where T: struct
-        //{
-        //    var ptr = Unsafe.AsPointer(ref _value);
-        //    var val = Unsafe.AsRef<T>(ptr);
-        //    return val;
-        //}
-        //public static BsonElement Create(BsonDocument parent, string name, byte value)
-        //{
-        //    return new BsonElement(parent, BsonElementType.Byte, name, value);
-        //}
-        //public static BsonElement Create(BsonDocument parent, string name, short value)
-        //{
-        //    return new BsonElement(parent, BsonElementType.Int16, name, value);
-        //}
+
+        
         public static BsonElement Create(BsonDocument parent, string name, int value)
         {
             return new BsonElement(parent, BsonElementType.Int32, name, value);
@@ -152,5 +140,7 @@ namespace MongoDB.Client.Bson.Document
         {
             return HashCode.Combine(Type, Name, Value);
         }
+
+        public bool IsEmpty => Name is null;
     }
 }
