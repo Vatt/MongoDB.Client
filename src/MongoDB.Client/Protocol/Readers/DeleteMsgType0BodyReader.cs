@@ -3,15 +3,14 @@ using MongoDB.Client.Messages;
 using System;
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
-using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Protocol.Core;
 
 namespace MongoDB.Client.Readers
 {
-    internal class DeleteMsgType0BodyReader : IMessageReader<BsonDocument>
+    internal class DeleteMsgType0BodyReader : IMessageReader<DeleteResult>
     {
-        private static readonly IGenericBsonSerializer<BsonDocument> _resultSerializer;
+        private static readonly IGenericBsonSerializer<DeleteResult> _resultSerializer;
 
         static DeleteMsgType0BodyReader()
         {
@@ -24,7 +23,7 @@ namespace MongoDB.Client.Readers
             in ReadOnlySequence<byte> input, 
             ref SequencePosition consumed,
             ref SequencePosition examined,
-            [MaybeNullWhen(false)] out BsonDocument message)
+            [MaybeNullWhen(false)] out DeleteResult message)
         {
             var bsonReader = new BsonReader(input);
 

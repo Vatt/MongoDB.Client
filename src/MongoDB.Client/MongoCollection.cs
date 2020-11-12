@@ -58,7 +58,7 @@ namespace MongoDB.Client
             await channel.InsertAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
-        public async ValueTask<BsonDocument> DeleteOneAsync(BsonDocument filter, CancellationToken cancellationToken = default)
+        public async ValueTask<DeleteResult> DeleteOneAsync(BsonDocument filter, CancellationToken cancellationToken = default)
         {
             var channel = await _channelsPool.GetChannelAsync(cancellationToken).ConfigureAwait(false);
             var requestNumber = channel.GetNextRequestNumber();

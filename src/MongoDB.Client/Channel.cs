@@ -463,7 +463,7 @@ namespace MongoDB.Client
             }
         }
 
-        public async ValueTask<BsonDocument> DeleteAsync(DeleteMessage message, CancellationToken cancellationToken)
+        public async ValueTask<DeleteResult> DeleteAsync(DeleteMessage message, CancellationToken cancellationToken)
         {
             if (_shutdownToken.IsCancellationRequested == false)
             {
@@ -479,12 +479,8 @@ namespace MongoDB.Client
                         var response = await completion.CompletionSource
                             .WaitWithCancellationAsync(cancellationToken)
                             .ConfigureAwait(false);
-                        if (response is DeleteResult result)
-                        {
-                            return result.Document;
-                        }
-
-                        return null;
+            
+                        return (DeleteResult) response;
                     }
                     finally
                     {
@@ -492,10 +488,10 @@ namespace MongoDB.Client
                     }
                 }
 
-                return ThrowHelper.ConnectionException<BsonDocument>(_endpoint);
+                return ThrowHelper.ConnectionException<DeleteResult>(_endpoint);
             }
 
-            return ThrowHelper.ObjectDisposedException<BsonDocument>(nameof(Channel));
+            return ThrowHelper.ObjectDisposedException<DeleteResult>(nameof(Channel));
 
 
             async ValueTask<IParserResult> ParseAsync(MongoResponseMessage mongoResponse)
@@ -528,7 +524,7 @@ namespace MongoDB.Client
                         var consumed = msgMessage.Consumed + bodyReader.Consumed;
                         Debug.Assert(consumed == msgMessage.Header.MessageLength);
 #endif
-                        return new DeleteResult { Document = result.Message };
+                        return result.Message;
                     default:
                         return ThrowHelper.UnsupportedTypeException<DeleteResult>(typeof(DeleteResult));
                 }
