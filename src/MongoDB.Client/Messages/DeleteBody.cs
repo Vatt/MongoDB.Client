@@ -14,12 +14,12 @@ namespace MongoDB.Client.Messages
 
         
         //TODO: Collation object
-        [BsonElementField(ElementName = "collation")]
-        [BsonWriteIgnoreIf("Collation is null")]
-        public string Collation { get; set; }
+        //[BsonElementField(ElementName = "collation")]
+        //[BsonWriteIgnoreIf("Collation is null")]
+        //public string Collation { get; set; }
 
-        [BsonElementField(ElementName = "hint")]
-        [BsonWriteIgnoreIf("Hint.IsEmpty")]
-        public BsonElement Hint { get; set; }
+        //[BsonElementField(ElementName = "hint")]
+        //[BsonWriteIgnoreIf("Hint.IsEmpty")]
+        //public BsonElement Hint { get; set; }
     }
 }

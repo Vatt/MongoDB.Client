@@ -505,10 +505,10 @@ namespace MongoDB.Client
                 {
                     case ResponseMsgMessage msgMessage:
 
-                        InsertMsgType0BodyReader bodyReader;
+                        DeleteMsgType0BodyReader bodyReader;
                         if (msgMessage.MsgHeader.PayloadType == 0)
                         {
-                            bodyReader = new InsertMsgType0BodyReader();
+                            bodyReader = new DeleteMsgType0BodyReader();
                         }
                         else if (msgMessage.MsgHeader.PayloadType == 1)
                         {
@@ -516,7 +516,7 @@ namespace MongoDB.Client
                         }
                         else
                         {
-                            return ThrowHelper.InvalidPayloadTypeException<InsertResult>(msgMessage.MsgHeader
+                            return ThrowHelper.InvalidPayloadTypeException<DeleteResult>(msgMessage.MsgHeader
                                 .PayloadType);
                         }
 
@@ -528,7 +528,7 @@ namespace MongoDB.Client
                         var consumed = msgMessage.Consumed + bodyReader.Consumed;
                         Debug.Assert(consumed == msgMessage.Header.MessageLength);
 #endif
-                        return result.Message;
+                        return new DeleteResult { Document = result.Message };
                     default:
                         return ThrowHelper.UnsupportedTypeException<DeleteResult>(typeof(DeleteResult));
                 }
