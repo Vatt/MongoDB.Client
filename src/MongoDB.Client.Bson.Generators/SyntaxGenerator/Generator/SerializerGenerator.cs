@@ -9,26 +9,26 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
     {
         public static ObjectCreationExpressionSyntax ObjectCreation(INamedTypeSymbol sym, params ArgumentSyntax[] args)
         {
-            return SF.ObjectCreationExpression(SF.ParseTypeName(sym.ToString()), args.Length ==0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args), default);
+            return SF.ObjectCreationExpression(SF.ParseTypeName(sym.ToString()), args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args), default);
         }
         public static MemberAccessExpressionSyntax SimpleMemberAccess(INamedTypeSymbol classSymbol, MemberDeclarationMeta memberdecl)
         {
             return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SF.IdentifierName(classSymbol.Name), SF.IdentifierName(memberdecl.DeclSymbol.Name));
         }
-        public static MemberAccessExpressionSyntax SimpleMemberAccess(IdentifierNameSyntax source, MemberDeclarationMeta memberdecl)
+        public static MemberAccessExpressionSyntax SimpleMemberAccess(ExpressionSyntax source, MemberDeclarationMeta memberdecl)
         {
             return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, SF.IdentifierName(memberdecl.DeclSymbol.Name));
         }
-        public static MemberAccessExpressionSyntax SimpleMemberAccess(IdentifierNameSyntax source, IdentifierNameSyntax member)
+        public static MemberAccessExpressionSyntax SimpleMemberAccess(ExpressionSyntax source, IdentifierNameSyntax member)
         {
             return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member);
         }
-        public static MemberAccessExpressionSyntax SimpleMemberAccess(IdentifierNameSyntax source, IdentifierNameSyntax member1, IdentifierNameSyntax member2)
+        public static MemberAccessExpressionSyntax SimpleMemberAccess(ExpressionSyntax source, IdentifierNameSyntax member1, IdentifierNameSyntax member2)
         {
             var first = SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member1);
             return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, first, member2);
         }
-        public static InvocationExpressionSyntax InvocationExpr(IdentifierNameSyntax source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
+        public static InvocationExpressionSyntax InvocationExpr(ExpressionSyntax source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
         {
             return SF.InvocationExpression(SimpleMemberAccess(source, member), args.Length ==0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args));
         }
@@ -97,6 +97,23 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static IdentifierNameSyntax IdentifierFullName(ISymbol sym)
         {
             return SF.IdentifierName(sym.ToString());
+        }
+
+        public static SyntaxToken TokenName(ISymbol sym)
+        {
+            return SF.Identifier(sym.Name);
+        }
+        public static SyntaxToken TokenFullName(ISymbol sym)
+        {
+            return SF.Identifier(sym.ToString());
+        }
+        public static TypeSyntax TypeFullName(ITypeSymbol sym)
+        {
+            return SF.ParseTypeName(sym.ToString());
+        }
+        public static TypeSyntax TypeName(ITypeSymbol sym)
+        {
+            return SF.ParseTypeName(sym.Name);
         }
         public static AssignmentExpressionSyntax SimpleAssignExpr(ExpressionSyntax left, ExpressionSyntax right)
         {

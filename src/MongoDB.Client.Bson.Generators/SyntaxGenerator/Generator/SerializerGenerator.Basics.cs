@@ -6,9 +6,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+
         public static GenericNameSyntax ReadOnlySpanByte()
         {
             return GenericName(SF.Identifier("ReadOnlySpan"), BytePredefinedType());
+        }
+        public static GenericNameSyntax SpanByte()
+        {
+            return GenericName(SF.Identifier("Span"), BytePredefinedType());
         }
         public static SyntaxToken ReadOnlySpanNameSyntaxToken(INamedTypeSymbol classSymbol, MemberDeclarationMeta memberdecl)
         {
@@ -25,6 +30,16 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static CastExpressionSyntax CastToLong(ExpressionSyntax expr)
         {
             return SF.CastExpression(LongPredefinedType(), expr);
+        }
+
+        public static IfStatementSyntax IfNotReturn(ExpressionSyntax condition, StatementSyntax returnStatement)
+        {
+            return SF.IfStatement(SF.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, condition), SF.Block(returnStatement));
+        }
+
+        public static IfStatementSyntax IfNotReturnFalse(ExpressionSyntax condition)
+        {
+            return IfNotReturn(condition, SF.ReturnStatement(FalseLiteralExpr()));
         }
     }
 }

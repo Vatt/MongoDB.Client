@@ -33,7 +33,9 @@ namespace MongoDB.Client.Bson.Generators
 
             ProcessCandidates(receiver.Candidates);
             ProcessEnums(receiver.Enums);
+            var masterContext = new MasterContext(meta, context);
             OperationBase.meta = meta;
+            var src = BsonSyntaxGenerator.Create(masterContext);
             context.AddSource($"{Basics.GlobalSerializationHelperGeneratedString}.cs", SourceText.From(GenerateGlobalHelperStaticClass(), Encoding.UTF8));
             foreach (var item in meta)
             {
@@ -55,7 +57,7 @@ namespace MongoDB.Client.Bson.Generators
                 }
                 var source = BsonSyntaxGenerator.Create(item)?.NormalizeWhitespace().ToFullString();
                 context.AddSource(Basics.GenerateSerializerName(item.ClassSymbol), SourceText.From(source, Encoding.UTF8));
-                System.Diagnostics.Debugger.Break();
+                //System.Diagnostics.Debugger.Break();
             }
             _stopwatch.Stop();
             BsonGeneratorErrorHelper.WriteWarn(context, "Generation elapsed: " + _stopwatch.Elapsed.ToString());
