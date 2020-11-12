@@ -10,10 +10,27 @@ using BsonObjectId = MongoDB.Client.Bson.Document.BsonObjectId;
 namespace MongoDB.Client.Benchmarks
 {
     [MemoryDiagnoser]
-    public class RequestsOneItemBench
+    public class InsertFindDeleteBench
     {
         private MongoCollection<GeoIp> _collection;
         private IMongoCollection<GeoIp> _oldCollection;
+
+        private GeoIp _item = new GeoIp
+        {
+            city = "St Petersburg",
+            country = "Russia",
+            countryCode = "RU",
+            isp = "NevalinkRoute",
+            lat = 59.8944f,
+            lon = 30.2642f,
+            org = "Nevalink Ltd.",
+            query = "31.134.191.87",
+            region = "SPE",
+            regionName = "St.-Petersburg",
+            status = "success",
+            timezone = "Europe/Moscow",
+            zip = 190000
+        };
 
         [GlobalSetup]
         public void Setup()
@@ -29,24 +46,6 @@ namespace MongoDB.Client.Benchmarks
             var oldClient = new MongoDB.Driver.MongoClient($"mongodb://{host}:27017");
             var oldDb = oldClient.GetDatabase(dbName);
             _oldCollection = oldDb.GetCollection<GeoIp>(collectionName);
-            
-            var item = new GeoIp
-            {
-                city = "St Petersburg",
-                country = "Russia",
-                countryCode = "RU",
-                isp = "NevalinkRoute",
-                lat = 59.8944f,
-                lon = 30.2642f,
-                org = "Nevalink Ltd.",
-                query = "31.134.191.87",
-                region = "SPE",
-                regionName = "St.-Petersburg",
-                status = "success",
-                timezone = "Europe/Moscow",
-                zip = 190000
-            };
-            _oldCollection.InsertOne(item);
         }
 
         [GlobalCleanup]
@@ -54,20 +53,25 @@ namespace MongoDB.Client.Benchmarks
         {
             _oldCollection.DeleteMany(FilterDefinition<GeoIp>.Empty);
         }
-        
+
         private static readonly BsonDocument Empty = new BsonDocument();
+
         [Benchmark]
-        public async Task<GeoIp> NewClientFirstOrDefault()
+        public async Task NewClient()
         {
+            _item.Id = BsonObjectId.NewObjectId();
+            await _collection.InsertAsync(_item);
             var result = await _collection.Find(Empty).FirstOrDefaultAsync();
-            return result;
+            var deleteResult = await _collection.DeleteOneAsync(Empty);
         }
-        
+
         [Benchmark]
-        public async Task<GeoIp> OldClientFirstOrDefault()
+        public async Task OldClient()
         {
+            _item.OldId = ObjectId.GenerateNewId();
+            await _oldCollection.InsertOneAsync(_item);
             var result = await _oldCollection.Find(FilterDefinition<GeoIp>.Empty).FirstOrDefaultAsync();
-            return result;
+            var deleteResult = await _oldCollection.DeleteOneAsync(FilterDefinition<GeoIp>.Empty);
         }
     }
 }
