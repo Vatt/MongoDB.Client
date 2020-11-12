@@ -16,7 +16,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Protocol.Messages;
-using System.Linq;
 using MongoDB.Client.MongoConnections;
 using MongoDB.Client.Writers;
 
@@ -39,7 +38,7 @@ namespace MongoDB.Client
         // private static readonly ReadOnlyMemoryWriter memoryWriter = new ReadOnlyMemoryWriter();
         private readonly QueryMessageWriter _queryWriter = new QueryMessageWriter();
         private readonly FindMessageWriter _findWriter = new FindMessageWriter();
-        private readonly GetMoreMessageWriter _getMoreWriter = new GetMoreMessageWriter();
+        private readonly DeleteMessageWriter _deleteWriter = new DeleteMessageWriter();
 
 
         // private readonly ConcurrentDictionary<int, TaskCompletionSourceWithCancellation<MongoResponseMessage>>
@@ -463,6 +462,79 @@ namespace MongoDB.Client
                 }
             }
         }
+
+        public async ValueTask<BsonDocument> DeleteAsync(DeleteMessage message, CancellationToken cancellationToken)
+        {
+            if (_shutdownToken.IsCancellationRequested == false)
+            {
+                if (_writer is not null)
+                {
+                    var completion = _completionMap.GetOrAdd(message.Header.RequestNumber,
+                        i => new ParserCompletion(new TaskCompletionSourceWithCancellation<IParserResult>(),
+                            response => ParseAsync(response)));
+                    try
+                    {
+                        await _writer.WriteAsync(_deleteWriter, message, cancellationToken).ConfigureAwait(false);
+                        _logger.SentInsertMessage(message.Header.RequestNumber);
+                        var response = await completion.CompletionSource
+                            .WaitWithCancellationAsync(cancellationToken)
+                            .ConfigureAwait(false);
+                        if (response is DeleteResult result)
+                        {
+                            return result.Document;
+                        }
+
+                        return null;
+                    }
+                    finally
+                    {
+                        _completionMap.TryRemove(message.Header.RequestNumber, out _);
+                    }
+                }
+
+                return ThrowHelper.ConnectionException<BsonDocument>(_endpoint);
+            }
+
+            return ThrowHelper.ObjectDisposedException<BsonDocument>(nameof(Channel));
+
+
+            async ValueTask<IParserResult> ParseAsync(MongoResponseMessage mongoResponse)
+            {
+                var reader = _reader!;
+                switch (mongoResponse)
+                {
+                    case ResponseMsgMessage msgMessage:
+
+                        DeleteMsgType0BodyReader bodyReader;
+                        if (msgMessage.MsgHeader.PayloadType == 0)
+                        {
+                            bodyReader = new DeleteMsgType0BodyReader();
+                        }
+                        else if (msgMessage.MsgHeader.PayloadType == 1)
+                        {
+                            throw new NotImplementedException("PayloadType 1 in insert response");
+                        }
+                        else
+                        {
+                            return ThrowHelper.InvalidPayloadTypeException<DeleteResult>(msgMessage.MsgHeader
+                                .PayloadType);
+                        }
+
+                        _logger.ParsingMsgMessage(mongoResponse.Header.ResponseTo);
+                        var result = await reader.ReadAsync(bodyReader).ConfigureAwait(false);
+                        reader.Advance();
+                        _logger.ParsingMsgCompleteMessage(mongoResponse.Header.ResponseTo);
+#if DEBUG
+                        var consumed = msgMessage.Consumed + bodyReader.Consumed;
+                        Debug.Assert(consumed == msgMessage.Header.MessageLength);
+#endif
+                        return new DeleteResult { Document = result.Message };
+                    default:
+                        return ThrowHelper.UnsupportedTypeException<DeleteResult>(typeof(DeleteResult));
+                }
+            }
+        }
+
 
         public async ValueTask DisposeAsync()
         {
