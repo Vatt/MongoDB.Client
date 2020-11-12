@@ -4,6 +4,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations;
 using System.Collections.Generic;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using SG = MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator.SerializerGenerator;
+
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
 {
     internal abstract class TryParseMethodDeclatationBase : MethodDeclarationBase
@@ -23,7 +25,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
                                     //.Add(SF.ParseStatement(@$"throw new ArgumentException($""{ClassSymbol.Name}.TryParse  with bson type number {{bsonType}} and name {{System.Text.Encoding.UTF8.GetString(bsonName)}}"");"));
                                     .Add(SF.ParseStatement(@$"if (!reader.TrySkip(bsonType)) {{ return false; }}"));
             return SF.Block(
-                SF.ExpressionStatement(SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, Basics.TryParseOutVariableIdentifier, Basics.ObjectCreationWitoutArgs(ClassSymbol))),
+                SF.ExpressionStatement(SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, Basics.TryParseOutVariableIdentifier, SG.ObjectCreation(ClassSymbol))),
                 SF.ParseStatement("if (!reader.TryGetInt32(out var docLength)) { return false; }"),
                 SF.ParseStatement("var unreaded = reader.Remaining + sizeof(int);"),
                 SF.WhileStatement(

@@ -322,7 +322,7 @@ namespace MongoDB.Client.Bson.Writer
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteUtcDateTime(DateTimeOffset datetime)
+        public void WriteUtcDateTime(in DateTimeOffset datetime)
         {
             WriteInt64(datetime.ToUnixTimeMilliseconds());
         }

@@ -60,31 +60,31 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             return SF.IdentifierName($"{classSymbol.Name}{memberdecl.StringFieldNameAlias}");
         }
 
-        public static MemberAccessExpressionSyntax SimpleMemberAccess(IdentifierNameSyntax source, IdentifierNameSyntax member)
-        {
-            return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member);
-        }
-        public static MemberAccessExpressionSyntax SimpleMemberAccess(IdentifierNameSyntax source, IdentifierNameSyntax member1, IdentifierNameSyntax member2)
-        {
-            var mae1 = SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member1);
-            return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, mae1, member2);
-        }
-        public static InvocationExpressionSyntax InvocationExpression(IdentifierNameSyntax source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
-        {
-            return SF.InvocationExpression(SimpleMemberAccess(source, member), SF.ArgumentList().AddArguments(args));
-        }
-        public static InvocationExpressionSyntax InvocationExpression0(IdentifierNameSyntax source, IdentifierNameSyntax member)
-        {
-            return SF.InvocationExpression(SimpleMemberAccess(source, member), SF.ArgumentList());
-        }
-        public static MemberAccessExpressionSyntax SimpleMemberAccess(INamedTypeSymbol classSymbol, MemberDeclarationMeta memberdecl)
-        {
-            return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SF.IdentifierName(classSymbol.Name), SF.IdentifierName(memberdecl.DeclSymbol.Name));
-        }
-        public static MemberAccessExpressionSyntax SimpleMemberAccess(IdentifierNameSyntax source, MemberDeclarationMeta memberdecl)
-        {
-            return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, SF.IdentifierName(memberdecl.DeclSymbol.Name));
-        }
+        //public static MemberAccessExpressionSyntax SimpleMemberAccess(IdentifierNameSyntax source, IdentifierNameSyntax member)
+        //{
+        //    return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member);
+        //}
+        //public static MemberAccessExpressionSyntax SimpleMemberAccess(IdentifierNameSyntax source, IdentifierNameSyntax member1, IdentifierNameSyntax member2)
+        //{
+        //    var mae1 = SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member1);
+        //    return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, mae1, member2);
+        //}
+        //public static InvocationExpressionSyntax InvocationExpression(IdentifierNameSyntax source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
+        //{
+        //    return SF.InvocationExpression(SimpleMemberAccess(source, member), SF.ArgumentList().AddArguments(args));
+        //}
+        //public static InvocationExpressionSyntax InvocationExpression0(IdentifierNameSyntax source, IdentifierNameSyntax member)
+        //{
+        //    return SF.InvocationExpression(SimpleMemberAccess(source, member), SF.ArgumentList());
+        //}
+        //public static MemberAccessExpressionSyntax SimpleMemberAccess(INamedTypeSymbol classSymbol, MemberDeclarationMeta memberdecl)
+        //{
+        //    return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SF.IdentifierName(classSymbol.Name), SF.IdentifierName(memberdecl.DeclSymbol.Name));
+        //}
+        //public static MemberAccessExpressionSyntax SimpleMemberAccess(IdentifierNameSyntax source, MemberDeclarationMeta memberdecl)
+        //{
+        //    return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, SF.IdentifierName(memberdecl.DeclSymbol.Name));
+        //}
         public static IdentifierNameSyntax IdentifierName(INamedTypeSymbol sym) => SF.IdentifierName(sym.Name);
         public static IdentifierNameSyntax IdentifierName(ISymbol sym) => SF.IdentifierName(sym.Name);
         public static ArgumentListSyntax Arguments(params IdentifierNameSyntax[] args)
@@ -92,9 +92,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 
             return SF.ArgumentList(new SeparatedSyntaxList<ArgumentSyntax>().AddRange(args.AsEnumerable().Select(arg => SF.Argument(arg))));
         }
-        public static ObjectCreationExpressionSyntax ObjectCreationWitoutArgs(INamedTypeSymbol sym)
-        {
-            return SF.ObjectCreationExpression(SF.ParseTypeName(sym.ToString()), SF.ArgumentList(), default);
-        }
+        //public static ObjectCreationExpressionSyntax ObjectCreationWitoutArgs(INamedTypeSymbol sym)
+        //{
+        //    return SF.ObjectCreationExpression(SF.ParseTypeName(sym.ToString()), SF.ArgumentList(), default);
+        //}
     }
 }

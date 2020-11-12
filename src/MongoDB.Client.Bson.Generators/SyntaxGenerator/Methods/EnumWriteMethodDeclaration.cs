@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Core;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using SG = MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator.SerializerGenerator;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
 {
@@ -32,13 +33,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
         }
         BlockSyntax NumericRepresentation(int type)
         {
-            SyntaxToken castType = type == 2 ? SF.Token(SyntaxKind.IntKeyword) : SF.Token(SyntaxKind.LongKeyword);
-            IdentifierNameSyntax MethodId = type == 2 ? SF.IdentifierName("WriteInt32") : SF.IdentifierName("WriteInt64");
-            CastExpressionSyntax castExpr = SF.CastExpression(SF.PredefinedType(castType), SF.IdentifierName("message"));
-            var invocation = Basics.InvocationExpression(
-                    Basics.WriterInputVariableIdentifierName,
-                    MethodId,
-                    SF.Argument(castExpr));
+            CastExpressionSyntax castExpr = type == 2 ? SG.CastToInt(SF.IdentifierName("message")) : SG.CastToLong(SF.IdentifierName("message"));
+            var invocation = type == 2 ? SG.WriteInt32(castExpr) : SG.WriteInt64(castExpr);
             return SF.Block(SF.ExpressionStatement(invocation));
         }
         BlockSyntax StringRepresentation()

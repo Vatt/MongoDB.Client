@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Core;
 using System;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using SG = MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator.SerializerGenerator;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.ReadWrite
 {
@@ -42,24 +43,24 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.ReadWrite
             var serializer = Basics.GlobalSerializationHelperGenerated;
             return SF.InvocationExpression(
                            expression: SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                                            Basics.SimpleMemberAccess(serializer, ReadMethodIdentifier),
+                                            SG.SimpleMemberAccess(serializer, ReadMethodIdentifier),
                                             SF.IdentifierName("TryParse")),
                            argumentList: ReadArgumentList(classSym, memberDecl));
         }
         public override StatementSyntax GenerateWrite(INamedTypeSymbol classSym, MemberDeclarationMeta memberDecl)
         {
-            return GenerateWrite(classSym, memberDecl, Basics.SimpleMemberAccess(Basics.WriteInputInVariableIdentifierName, SF.IdentifierName(memberDecl.DeclSymbol.Name)));
+            return GenerateWrite(classSym, memberDecl, SG.SimpleMemberAccess(Basics.WriteInputInVariableIdentifierName, SF.IdentifierName(memberDecl.DeclSymbol.Name)));
         }
 
-        public LiteralExpressionSyntax GenerateBsonType(INamedTypeSymbol sym)
+        public int GenerateBsonType(INamedTypeSymbol sym)
         {
             if (sym.TypeKind == TypeKind.Enum)
             {
-                return Basics.NumberLiteral(2);
+                return 2;
             }
             else
             {
-                return Basics.NumberLiteral(3);
+                return 3;
             }
         }
         public override StatementSyntax GenerateWrite(INamedTypeSymbol classSym, MemberDeclarationMeta memberDecl, ExpressionSyntax writableVar)
@@ -77,7 +78,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.ReadWrite
 
             var serializerInvocation = SF.ExpressionStatement(
                                             SF.InvocationExpression(
-                                                       expression: SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, Basics.SimpleMemberAccess(serializer, writeMethod), SF.IdentifierName("Write")),
+                                                       expression: SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SG.SimpleMemberAccess(serializer, writeMethod), SF.IdentifierName("Write")),
                                                        argumentList: SF.ArgumentList()
                                                                          .AddArguments(
                                                                              SF.Argument(default, SF.Token(SyntaxKind.RefKeyword), Basics.WriterInputVariableIdentifierName),
@@ -85,23 +86,18 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.ReadWrite
             return SF.IfStatement(
                         condition: SF.BinaryExpression(
                                         kind: SyntaxKind.EqualsExpression,
-                                        left: Basics.SimpleMemberAccess(Basics.WriteInputInVariableIdentifierName,
+                                        left: SG.SimpleMemberAccess(Basics.WriteInputInVariableIdentifierName,
                                                                         SF.IdentifierName(memberDecl.DeclSymbol.Name)),
                                         operatorToken: SF.Token(SyntaxKind.ExclamationEqualsToken),
                                         right: SF.LiteralExpression(SyntaxKind.NullLiteralExpression, SF.Token(SyntaxKind.NullKeyword))),
                         statement: SF.Block(
                                         SF.ExpressionStatement(
-                                            Basics.InvocationExpression(Basics.WriterInputVariableIdentifierName,
-                                                                            SF.IdentifierName("Write_Type_Name"),
-                                                                            SF.Argument(GenerateBsonType(memberDecl.DeclType)),
-                                                                            SF.Argument(SF.IdentifierName(Basics.GenerateReadOnlySpanName(classSym, memberDecl))))),
+                                            SG.Write_Type_Name(GenerateBsonType(memberDecl.DeclType),
+                                                               SG.ReadOnlySpanNameIdentifier(classSym, memberDecl))),
                                         serializerInvocation),
                         @else: SF.ElseClause(
-                            SF.Block(
-                            SF.ExpressionStatement(
-                                Basics.InvocationExpression(Basics.WriterInputVariableIdentifierName,
-                                    SF.IdentifierName("WriteBsonNull"),
-                                    SF.Argument(Basics.GenerateReadOnlySpanNameIdentifier(classSym, memberDecl)))))));
+                            SF.Block(SF.ExpressionStatement(
+                                     SG.WriteBsonNull(Basics.GenerateReadOnlySpanNameIdentifier(classSym, memberDecl))))));
         }
         public override StatementSyntax GenerateWrite(INamedTypeSymbol classSym, ExpressionSyntax nameExpr, ExpressionSyntax writableVar)
         {

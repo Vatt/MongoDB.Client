@@ -55,6 +55,7 @@ namespace MongoDB.Client.Bson.Generators
                 }
                 var source = BsonSyntaxGenerator.Create(item)?.NormalizeWhitespace().ToFullString();
                 context.AddSource(Basics.GenerateSerializerName(item.ClassSymbol), SourceText.From(source, Encoding.UTF8));
+                System.Diagnostics.Debugger.Break();
             }
             _stopwatch.Stop();
             BsonGeneratorErrorHelper.WriteWarn(context, "Generation elapsed: " + _stopwatch.Elapsed.ToString());

@@ -4,9 +4,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Core;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.ReadWrite;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using SG = MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator.SerializerGenerator;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
 {
     internal class EnumTryParseMethodDeclaration : SimpleTryParseMethodDeclaration
@@ -38,15 +40,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
             SyntaxToken castType = type == 2 ? SF.Token(SyntaxKind.IntKeyword) : SF.Token(SyntaxKind.LongKeyword);
             IdentifierNameSyntax MethodId = type == 2 ? SF.IdentifierName("TryGetInt32") : SF.IdentifierName("TryGetInt64");
             CastExpressionSyntax castExpr = SF.CastExpression(SF.IdentifierName(SF.Identifier(ClassSymbol.ToString())), SF.IdentifierName("enumValue"));
-            var invocation = Basics.InvocationExpression(
+            var invocation = SG.InvocationExpr(
                                 Basics.ReaderInputVariableIdentifier,
                                 MethodId,
                                 SF.Argument(default, SF.Token(SyntaxKind.OutKeyword), SF.DeclarationExpression(SF.PredefinedType(castType), SF.SingleVariableDesignation(SF.Identifier("enumValue")))));
                                 //SF.Argument(default, SF.Token(SyntaxKind.OutKeyword), castExpr));
-            var defaultAssign = SF.AssignmentExpression(
-                                        SyntaxKind.SimpleAssignmentExpression,
-                                        Basics.TryParseOutVariableIdentifier,
-                                        SF.LiteralExpression(SyntaxKind.DefaultLiteralExpression));
+            var defaultAssign = SG.SimpleAssignExpr(Basics.TryParseOutVariableIdentifier, SG.DefaultLiteralExpr());
             var assign = SF.AssignmentExpression(
                             SyntaxKind.SimpleAssignmentExpression,
                             Basics.TryParseOutVariableIdentifier,
@@ -62,15 +61,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
         }
         public BlockSyntax StringRepresentation()
         {
-            var variableDecl = SF.DeclarationExpression(SF.IdentifierName("ReadOnlySpan<byte>"), SF.SingleVariableDesignation(VarToken));
-            var invocation = Basics.InvocationExpression(
-                                    Basics.ReaderInputVariableIdentifier,
-                                    SF.IdentifierName("TryGetStringAsSpan"),
-                                    SF.Argument(default, SF.Token(SyntaxKind.OutKeyword), variableDecl));
-            var defaultAssigment = SF.AssignmentExpression(
-                                        SyntaxKind.SimpleAssignmentExpression,
-                                        Basics.TryParseOutVariableIdentifier,
-                                        SF.LiteralExpression(SyntaxKind.DefaultLiteralExpression));
+            var variableDecl = SF.DeclarationExpression(SG.ReadOnlySpanByte(), SF.SingleVariableDesignation(VarToken));
+            //var invocation = SG.InvocationExpr(Basics.ReaderInputVariableIdentifier,SF.IdentifierName("TryGetStringAsSpan"),SF.Argument(default, SF.Token(SyntaxKind.OutKeyword), variableDecl));
+            var invocation = SG.TryGetStringAsSpan(variableDecl);
+            var defaultAssigment = SG.SimpleAssignExpr(Basics.TryParseOutVariableIdentifier, SG.DefaultLiteralExpr());
             return SF.Block(
                       SF.ExpressionStatement(defaultAssigment),
                       SF.ExpressionStatement(invocation))

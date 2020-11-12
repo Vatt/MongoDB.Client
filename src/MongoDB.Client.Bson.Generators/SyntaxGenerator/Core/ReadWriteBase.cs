@@ -3,6 +3,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Diagnostics;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using SG = MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator.SerializerGenerator;
+
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
 {
     internal abstract class ReadWriteBase
@@ -26,7 +28,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
         }
         public void WithMemberAssign(IdentifierNameSyntax source, IdentifierNameSyntax member)
         {
-            _assignExpr = Basics.SimpleMemberAccess(source, member);
+            _assignExpr = SG.SimpleMemberAccess(source, member);
         }
         public virtual ArgumentListSyntax ReadArgumentList(INamedTypeSymbol classSym, MemberDeclarationMeta memberDecl)
         {
@@ -45,7 +47,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
         {
 
             var expr = SF.InvocationExpression(
-                               expression: Basics.SimpleMemberAccess(Basics.ReaderInputVariableIdentifier, ReadMethodIdentifier),
+                               expression: SG.SimpleMemberAccess(Basics.ReaderInputVariableIdentifier, ReadMethodIdentifier),
                                argumentList: ReadArgumentList(classSym, memberDecl));
             _variableDecl = null;
             _assignExpr = null;
@@ -56,12 +58,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
         {
             return SF.ExpressionStatement(
                     SF.InvocationExpression(
-                        Basics.SimpleMemberAccess(Basics.ReaderInputVariableIdentifier, ReadMethodIdentifier),
+                        SG.SimpleMemberAccess(Basics.ReaderInputVariableIdentifier, ReadMethodIdentifier),
                         SF.ArgumentList().AddArguments(SF.Argument(default, SF.Token(SyntaxKind.OutKeyword), outVarExpr))));
         }
         public virtual StatementSyntax GenerateWrite(INamedTypeSymbol classSym, MemberDeclarationMeta memberDecl)
         {
-            return GenerateWrite(classSym, memberDecl, Basics.SimpleMemberAccess(Basics.WriteInputInVariableIdentifierName, SF.IdentifierName(memberDecl.DeclSymbol.Name)));
+            return GenerateWrite(classSym, memberDecl, SG.SimpleMemberAccess(Basics.WriteInputInVariableIdentifierName, SF.IdentifierName(memberDecl.DeclSymbol.Name)));
         }
         public virtual StatementSyntax GenerateWrite(INamedTypeSymbol classSym, MemberDeclarationMeta memberDecl, ExpressionSyntax writableVar)
         {
@@ -71,7 +73,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
         {
             return SF.ExpressionStatement(
                     SF.InvocationExpression(
-                        Basics.SimpleMemberAccess(Basics.WriterInputVariableIdentifierName, WriteMethodIdentifier),
+                        SG.SimpleMemberAccess(Basics.WriterInputVariableIdentifierName, WriteMethodIdentifier),
                         SF.ArgumentList()
                             .AddArguments(
                                 SF.Argument(nameExpr),

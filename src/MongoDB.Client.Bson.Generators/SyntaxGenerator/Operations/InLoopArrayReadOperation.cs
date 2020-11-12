@@ -5,6 +5,7 @@ using MongoDB.Client.Bson.Generators.SyntaxGenerator.Core;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations.ReadWrite;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.ReadWrite;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using SG = MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator.SerializerGenerator;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
 {
@@ -46,7 +47,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
                         .Add(SF.ParseStatement($"message.{MemberDecl.DeclSymbol.Name}.Add(value);"));
             return SF.IfStatement(
                     condition: SF.InvocationExpression(
-                                    expression: Basics.SimpleMemberAccess(Basics.TryParseBsonNameIdentifier, SF.IdentifierName("SequenceEqual")),
+                                    expression: SG.SimpleMemberAccess(Basics.TryParseBsonNameIdentifier, SF.IdentifierName("SequenceEqual")),
                                     argumentList: Basics.Arguments(Basics.GenerateReadOnlySpanNameIdentifier(ClassSymbol, MemberDecl))),
                     statement: SF.Block(GenerateIfBsonTypeNull(),
                                         SF.ParseStatement($"message.{MemberDecl.DeclSymbol.Name} = new List<{MemberDecl.GenericType.ToString()}>();"),

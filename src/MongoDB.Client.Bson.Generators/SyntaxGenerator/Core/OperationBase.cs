@@ -2,7 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-
+using SG = MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator.SerializerGenerator;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
 {
@@ -24,14 +24,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
                             SyntaxKind.EqualsExpression,
                             Basics.TryParseBsonTypeIdentifier,
                             SF.Token(SyntaxKind.EqualsEqualsToken),
-                            Basics.NumberLiteral(10)
+                            SG.NumerictLiteralExpr(10)
                         ),
                     statement: SF.Block(
                         SF.ExpressionStatement(
                             SF.AssignmentExpression(
                                 kind: SyntaxKind.SimpleAssignmentExpression,
-                                left: Basics.SimpleMemberAccess(Basics.TryParseOutVariableIdentifier, Basics.IdentifierName(MemberDecl.DeclSymbol)),
-                                right: SF.LiteralExpression(SyntaxKind.DefaultLiteralExpression))
+                                left: SG.SimpleMemberAccess(Basics.TryParseOutVariableIdentifier, Basics.IdentifierName(MemberDecl.DeclSymbol)),
+                                right: SG.DefaultLiteralExpr())
                             ),
                         SF.ContinueStatement())
                     );
