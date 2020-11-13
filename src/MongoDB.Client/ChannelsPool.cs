@@ -11,13 +11,13 @@ namespace MongoDB.Client
     {
         private static readonly int _maxChannels = 64;//Environment.ProcessorCount * 6;
         private const int Trashhold = 2; 
-        private static readonly Random Random = new Random();
+        private static readonly Random Random = new();
         
         private readonly EndPoint _endPoint;
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<ChannelsPool> _logger;
         private ImmutableList<Channel> _channels = ImmutableList<Channel>.Empty;
-        private readonly SemaphoreSlim _channelAllocateLock = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _channelAllocateLock = new(1);
         private int _channelNumber;
         private int _channelCounter;
 

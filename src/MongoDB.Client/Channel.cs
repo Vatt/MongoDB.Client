@@ -6,7 +6,6 @@ using MongoDB.Client.Protocol.Common;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
 using MongoDB.Client.Protocol.Writers;
-using MongoDB.Client.Readers;
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -17,7 +16,6 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Protocol.Messages;
 using MongoDB.Client.MongoConnections;
-using MongoDB.Client.Writers;
 
 namespace MongoDB.Client
 {

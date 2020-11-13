@@ -1,4 +1,4 @@
-﻿namespace MongoDB.Client.Readers
+﻿namespace MongoDB.Client
 {
     internal readonly struct Unit
     {

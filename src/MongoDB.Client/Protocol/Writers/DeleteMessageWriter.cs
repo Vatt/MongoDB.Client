@@ -5,9 +5,8 @@ using MongoDB.Client.Bson.Writer;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Messages;
-using MongoDB.Client.Protocol.Writers;
 
-namespace MongoDB.Client.Writers
+namespace MongoDB.Client.Protocol.Writers
 {
     public class DeleteMessageWriter : IMessageWriter<DeleteMessage>
     {

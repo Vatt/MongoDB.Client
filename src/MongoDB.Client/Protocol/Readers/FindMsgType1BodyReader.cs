@@ -1,10 +1,10 @@
-﻿using MongoDB.Client.Bson.Serialization;
-using MongoDB.Client.Messages;
-using System;
+﻿using System;
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Messages;
 
-namespace MongoDB.Client.Readers
+namespace MongoDB.Client.Protocol.Readers
 {
     internal class FindMsgType1BodyReader<T> : MsgBodyReader<T>
     {

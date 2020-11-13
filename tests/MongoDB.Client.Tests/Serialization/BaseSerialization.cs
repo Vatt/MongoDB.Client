@@ -6,8 +6,7 @@ using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
-using MongoDB.Client.Readers;
-using MongoDB.Client.Writers;
+using MongoDB.Client.Protocol.Writers;
 
 namespace MongoDB.Client.Tests.Serialization
 {

@@ -1,12 +1,12 @@
-﻿using MongoDB.Client.Bson.Reader;
-using MongoDB.Client.Messages;
-using System;
+﻿using System;
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 
-namespace MongoDB.Client.Readers
+namespace MongoDB.Client.Protocol.Readers
 {
     internal class DeleteMsgType0BodyReader : IMessageReader<DeleteResult>
     {
