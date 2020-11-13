@@ -6,8 +6,7 @@ using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
-using MongoDB.Client.Readers;
-using MongoDB.Client.Writers;
+using MongoDB.Client.Protocol.Writers;
 
 namespace MongoDB.Client.Tests.Serialization
 {
@@ -44,7 +43,7 @@ namespace MongoDB.Client.Tests.Serialization
             var messageReader =  new ReplyBodyReader<T>(serializer, new ReplyMessage(default, new ReplyMessageHeader(default, default, default, 1)));
             var result = await reader.ReadAsync(messageReader).ConfigureAwait(false);
             reader.Advance();
-            return messageReader.Result.FirstOrDefault();
+            return result.Message.FirstOrDefault();
         }
 
 

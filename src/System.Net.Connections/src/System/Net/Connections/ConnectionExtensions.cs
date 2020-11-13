@@ -59,7 +59,7 @@ namespace System.Net.Connections
                 _filter = filter;
             }
 
-            public override async ValueTask<Connection> ConnectAsync(EndPoint? endPoint, IConnectionProperties? options = null, CancellationToken cancellationToken = default)
+            public override async ValueTask<Connection?> ConnectAsync(EndPoint? endPoint, IConnectionProperties? options = null, CancellationToken cancellationToken = default)
             {
                 var con = await _baseFactory.ConnectAsync(endPoint, options, cancellationToken).ConfigureAwait(false);
                 try

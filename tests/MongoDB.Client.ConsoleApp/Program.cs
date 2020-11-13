@@ -30,9 +30,7 @@ namespace MongoDB.Client.ConsoleApp
             var db = client.GetDatabase("TestDb");
             var collection1 = db.GetCollection<GeoIp>("TestCollection4");
 
-
-
-          //  await InsertItems(collection1, 1000);
+            //  await InsertItems(collection1, 1000);
             //
             // return;
 
