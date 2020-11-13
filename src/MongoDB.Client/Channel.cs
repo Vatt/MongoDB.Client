@@ -29,32 +29,21 @@ namespace MongoDB.Client
         private ConnectionInfo? _connectionInfo;
         private ProtocolReader? _reader;
         private ProtocolWriter? _writer;
-        private readonly MessageHeaderReader _messageHeaderReader = new MessageHeaderReader();
-        private readonly ReplyMessageReader _replyMessageReader = new ReplyMessageReader();
-        private readonly MsgMessageReader _msgMessageReader = new MsgMessageReader();
+        private readonly MessageHeaderReader _messageHeaderReader = new();
+        private readonly ReplyMessageReader _replyMessageReader = new();
+        private readonly MsgMessageReader _msgMessageReader = new();
 
-        // private static readonly ReadOnlyMemoryWriter memoryWriter = new ReadOnlyMemoryWriter();
-        private readonly QueryMessageWriter _queryWriter = new QueryMessageWriter();
-        private readonly FindMessageWriter _findWriter = new FindMessageWriter();
-        private readonly DeleteMessageWriter _deleteWriter = new DeleteMessageWriter();
+        private readonly QueryMessageWriter _queryWriter = new();
+        private readonly FindMessageWriter _findWriter = new();
+        private readonly DeleteMessageWriter _deleteWriter = new();
+        
+        private readonly ConcurrentDictionary<int, ParserCompletion> _completionMap = new();
 
 
-        // private readonly ConcurrentDictionary<int, TaskCompletionSourceWithCancellation<MongoResponseMessage>>
-        //     _completionMap =
-        //         new ConcurrentDictionary<int, TaskCompletionSourceWithCancellation<MongoResponseMessage>>();
-
-        private readonly ConcurrentDictionary<int, ParserCompletion>
-            _completionMap =
-                new ConcurrentDictionary<int, ParserCompletion>();
-
-        // private readonly ManualResetValueTaskSource<MongoResponseMessage> completionSource =
-        //     new ManualResetValueTaskSource<MongoResponseMessage>();
-
-        private readonly CancellationTokenSource _shutdownToken = new CancellationTokenSource();
+        private readonly CancellationTokenSource _shutdownToken = new();
         private Task? _readingTask;
-        private readonly SemaphoreSlim _initSemaphore = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _initSemaphore = new(1);
         private Task<ConnectionInfo>? _initTask;
-        public bool Init { get; private set; }
         public int RequestsInProgress => _completionMap.Count;
 
         private readonly int _channelNum;
@@ -67,13 +56,6 @@ namespace MongoDB.Client
             _connectionFactory = new NetworkConnectionFactory();
             _initialDocument = InitHelper.CreateInitialCommand();
         }
-
-        private static readonly byte[] Hell = new byte[]
-        {
-            59, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 212, 7, 0, 0, 4, 0, 0, 0, 97, 100, 109, 105, 110, 46, 36, 99, 109, 100,
-            0, 0, 0, 0, 0, 255, 255, 255, 255, 20, 0, 0, 0, 16, 98, 117, 105, 108, 100, 73, 110, 102, 111, 0, 1, 0, 0,
-            0, 0
-        };
 
         private static int _counter;
 
@@ -121,7 +103,6 @@ namespace MongoDB.Client
                 QueryMessage? buildInfoRequest = CreateQueryRequest(new BsonDocument("buildInfo", 1));
                 var hell = await SendQueryAsync<BsonDocument>(buildInfoRequest, ct).ConfigureAwait(false);
                 _connectionInfo = new ConnectionInfo(configMessage[0], hell[0]);
-                Init = true;
                 return _connectionInfo;
             }
         }
@@ -181,7 +162,6 @@ namespace MongoDB.Client
 
             _logger.LogInformation($"Channel {_channelNum} start reading");
             MongoResponseMessage message;
-            // TaskCompletionSourceWithCancellation<MongoResponseMessage>? completion;
             ParserCompletion? completion;
             while (_shutdownToken.IsCancellationRequested == false)
             {
