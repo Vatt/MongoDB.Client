@@ -274,7 +274,7 @@ namespace MongoDB.Client
                             var bodyResult = await reader.ReadAsync(bodyReader, _shutdownToken.Token)
                                 .ConfigureAwait(false);
                             reader.Advance();
-                            return bodyReader.Result;
+                            return bodyResult.Message;
                         }
 
                         return ThrowHelper.UnsupportedTypeException<QueryResult<T>>(typeof(T));
@@ -332,10 +332,6 @@ namespace MongoDB.Client
                             {
                                 bodyReader = new FindMsgType0BodyReader<T>(msgSerializer, msgMessage);
                             }
-                            else if (msgMessage.MsgHeader.PayloadType == 1)
-                            {
-                                bodyReader = new FindMsgType1BodyReader<T>(msgSerializer, msgMessage);
-                            }
                             else
                             {
                                 return ThrowHelper.InvalidPayloadTypeException<CursorResult<T>>(msgMessage.MsgHeader
@@ -350,7 +346,7 @@ namespace MongoDB.Client
                             System.Diagnostics.Debug.Assert(msgMessage.Consumed == msgMessage.Header.MessageLength);
 #endif
                             _logger.ParsingMsgCompleteMessage(mongoResponse.Header.ResponseTo);
-                            return bodyReader.CursorResult;
+                            return result.Message;
                         }
 
                         return ThrowHelper.UnsupportedTypeException<CursorResult<T>>(typeof(T));

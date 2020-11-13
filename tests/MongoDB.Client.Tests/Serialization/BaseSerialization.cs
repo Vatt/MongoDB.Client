@@ -43,7 +43,7 @@ namespace MongoDB.Client.Tests.Serialization
             var messageReader =  new ReplyBodyReader<T>(serializer, new ReplyMessage(default, new ReplyMessageHeader(default, default, default, 1)));
             var result = await reader.ReadAsync(messageReader).ConfigureAwait(false);
             reader.Advance();
-            return messageReader.Result.FirstOrDefault();
+            return result.Message.FirstOrDefault();
         }
 
 
