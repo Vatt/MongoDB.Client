@@ -1,5 +1,4 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization.Generated;
+﻿using MongoDB.Client.Bson.Serialization.Generated;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Network;
 using MongoDB.Client.Protocol.Common;
@@ -8,7 +7,6 @@ using MongoDB.Client.Protocol.Readers;
 using MongoDB.Client.Protocol.Writers;
 using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,7 +23,6 @@ namespace MongoDB.Client
         private readonly ILogger _logger;
         private readonly NetworkConnectionFactory _connectionFactory;
         private System.Net.Connections.Connection? _connection;
-        private readonly BsonDocument _initialDocument;
         private ConnectionInfo? _connectionInfo;
         private ProtocolReader? _reader;
         private ProtocolWriter? _writer;
@@ -42,8 +39,6 @@ namespace MongoDB.Client
 
         private readonly CancellationTokenSource _shutdownToken = new();
         private Task? _readingTask;
-        private readonly SemaphoreSlim _initSemaphore = new(1);
-        private Task<ConnectionInfo>? _initTask;
         public int RequestsInProgress => _completionMap.Count;
 
         private readonly int _channelNum;
@@ -54,60 +49,16 @@ namespace MongoDB.Client
             _channelNum = channelNum;
             _logger = loggerFactory.CreateLogger($"MongoClient: {endpoint}");
             _connectionFactory = new NetworkConnectionFactory();
-            _initialDocument = InitHelper.CreateInitialCommand();
         }
 
         private static int _counter;
 
         public int GetNextRequestNumber()
         {
-            var num = Interlocked.Increment(ref _counter);
-            return _channelNum * 1000000 + num;
+            return Interlocked.Increment(ref _counter);
         }
 
-        public ValueTask<ConnectionInfo> InitConnectAsync(CancellationToken cancellationToken)
-        {
-            if (_connectionInfo is not null)
-            {
-                return new ValueTask<ConnectionInfo>(_connectionInfo);
-            }
-
-            return StartConnectAsync(cancellationToken);
-
-            async ValueTask<ConnectionInfo> StartConnectAsync(CancellationToken ct)
-            {
-                if (_initTask is null)
-                {
-                    await _initSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-                    try
-                    {
-                        if (_initTask is null)
-                        {
-                            _initTask = DoConnectAsync(ct);
-                        }
-                    }
-                    finally
-                    {
-                        _initSemaphore.Release();
-                    }
-                }
-
-                return await _initTask.ConfigureAwait(false);
-            }
-
-            async Task<ConnectionInfo> DoConnectAsync(CancellationToken ct)
-            {
-                await ConnectAsync(ct).ConfigureAwait(false);
-                QueryMessage? connectRequest = CreateQueryRequest(_initialDocument);
-                var configMessage = await SendQueryAsync<BsonDocument>(connectRequest, ct).ConfigureAwait(false);
-                QueryMessage? buildInfoRequest = CreateQueryRequest(new BsonDocument("buildInfo", 1));
-                var hell = await SendQueryAsync<BsonDocument>(buildInfoRequest, ct).ConfigureAwait(false);
-                _connectionInfo = new ConnectionInfo(configMessage[0], hell[0]);
-                return _connectionInfo;
-            }
-        }
-
-        private async Task ConnectAsync(CancellationToken cancellationToken)
+        public async Task ConnectAsync(CancellationToken cancellationToken)
         {
             _connection = await _connectionFactory.ConnectAsync(_endpoint, null, cancellationToken)
                 .ConfigureAwait(false);
@@ -120,38 +71,6 @@ namespace MongoDB.Client
             _writer = new ProtocolWriter(_connection.Pipe.Output);
             _readingTask = StartReadAsync();
         }
-
-        private QueryMessage CreateQueryRequest(BsonDocument document)
-        {
-            var doc = CreateWrapperDocument(document);
-            return CreateQueryRequest("admin.$cmd", doc);
-        }
-
-        private QueryMessage CreateQueryRequest(string database, BsonDocument document)
-        {
-            var num = GetNextRequestNumber();
-            return new QueryMessage(num, database, document);
-        }
-
-        private static BsonDocument CreateWrapperDocument(BsonDocument document)
-        {
-            BsonDocument? readPreferenceDocument = null;
-            var doc = new BsonDocument
-            {
-                {"$query", document},
-                {"$readPreference", readPreferenceDocument, readPreferenceDocument != null}
-            };
-
-            if (doc.Count == 1)
-            {
-                return doc["$query"].AsBsonDocument;
-            }
-            else
-            {
-                return doc;
-            }
-        }
-
 
         private async Task StartReadAsync()
         {
