@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
@@ -33,11 +34,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     );
         }
 
-        public static CompilationUnitSyntax Create(MasterContext context)
+        public static CompilationUnitSyntax[] Create(MasterContext context)
         {
-            return GenerateRootUnit()
-                .AddMembers(GenerateNamespace().AddMembers(SerializerGenerator.GenerateClass(context.Contexts[0])));
-
+            CompilationUnitSyntax[] units  = new CompilationUnitSyntax[context.Contexts.Count];
+            for (int index = 0; index < units.Length; index++)
+            {
+                units[index] = GenerateRootUnit().AddMembers(GenerateNamespace().AddMembers(SerializerGenerator.GenerateSerializer(context.Contexts[index]))); 
+            }
+            return units;
         }
     }
 }

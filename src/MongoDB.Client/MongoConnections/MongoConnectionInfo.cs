@@ -7,50 +7,50 @@ namespace MongoDB.Client.MongoConnections
     [BsonSerializable]
     public class MongoTopologyVersion
     {
-        [BsonElementField(ElementName = "processId")]
+        [BsonElement(ElementName = "processId")]
         public BsonObjectId ProcesssId;
 
-        [BsonElementField(ElementName = "counter")]
+        [BsonElement(ElementName = "counter")]
         public long Counter { get; set; }
     }
 
     [BsonSerializable]
     public class MongoConnectionInfo
     {
-        [BsonElementField(ElementName = "ismaster")]
+        [BsonElement(ElementName = "ismaster")]
         public bool IsMaster { get; set; }
 
-        [BsonElementField(ElementName = "topologyVersion")]
+        [BsonElement(ElementName = "topologyVersion")]
         public MongoTopologyVersion Topology { get; set; }
 
-        [BsonElementField(ElementName = "maxBsonObjectSize")]
+        [BsonElement(ElementName = "maxBsonObjectSize")]
         public int MaxBsonObjectSize { get; set; }
 
-        [BsonElementField(ElementName = "maxMessageSizeBytes")]
+        [BsonElement(ElementName = "maxMessageSizeBytes")]
         public int MaxMessageSizeBytes { get; set; }
 
-        [BsonElementField(ElementName = "maxWriteBatchSize")]
+        [BsonElement(ElementName = "maxWriteBatchSize")]
         public int MaxWriteBatchSize { get; set; }
 
-        [BsonElementField(ElementName = "localTime")]
+        [BsonElement(ElementName = "localTime")]
         public DateTimeOffset LocalTime { get; set; }
 
-        [BsonElementField(ElementName = "logicalSessionTimeoutMinutes")]
+        [BsonElement(ElementName = "logicalSessionTimeoutMinutes")]
         public int LogicalSessionTimeoutMinutes { get; set; }
 
-        [BsonElementField(ElementName = "connectionId")]
+        [BsonElement(ElementName = "connectionId")]
         public int ConnectionId { get; set; }
 
-        [BsonElementField(ElementName = "minWireVersion")]
+        [BsonElement(ElementName = "minWireVersion")]
         public int MinWireVersion { get; set; }
 
-        [BsonElementField(ElementName = "maxWireVersion")]
+        [BsonElement(ElementName = "maxWireVersion")]
         public int MaxWireVersion { get; set; }
 
-        [BsonElementField(ElementName = "readOnly")]
+        [BsonElement(ElementName = "readOnly")]
         public bool IsReadOnly { get; set; }
 
-        [BsonElementField(ElementName = "ok")]
+        [BsonElement(ElementName = "ok")]
         public double Ok { get; set; }
 
     }

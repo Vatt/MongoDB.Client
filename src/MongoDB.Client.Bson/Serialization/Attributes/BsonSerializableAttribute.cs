@@ -3,9 +3,9 @@
 namespace MongoDB.Client.Bson.Serialization.Attributes
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-    public sealed class BsonSerializable : Attribute
+    public sealed class BsonSerializableAttribute : Attribute
     {
-        public BsonSerializable()
+        public BsonSerializableAttribute()
         {
 
         }

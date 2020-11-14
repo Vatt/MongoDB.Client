@@ -62,8 +62,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
                         SF.ArrayType(
                            SF.PredefinedType(SF.Token(SyntaxKind.ByteKeyword)),
                            SF.SingletonList<ArrayRankSpecifierSyntax>(ArrayRank(memberdecl))),
-
-
                         SF.InitializerExpression(SyntaxKind.ArrayInitializerExpression, ArrayInitExpr(memberdecl))
                     )
                 );

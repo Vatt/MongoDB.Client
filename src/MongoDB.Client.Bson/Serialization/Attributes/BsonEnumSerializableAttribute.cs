@@ -9,9 +9,9 @@ namespace MongoDB.Client.Bson.Serialization.Attributes
         Int64 = 3,
     }
     [AttributeUsage(AttributeTargets.Enum)]
-    public class BsonEnumSerializable : Attribute
+    public class BsonEnumSerializableAttribute : Attribute
     {
-        public BsonEnumSerializable(EnumRepresentation representation)
+        public BsonEnumSerializableAttribute(EnumRepresentation representation)
         {
             var enumValue = 1;
             if (enumValue == (int)representation)

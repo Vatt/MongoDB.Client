@@ -4,8 +4,8 @@
 namespace MongoDB.Client.Bson.Serialization.Attributes
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class BsonWriteIgnoreIf : Attribute
+    public class BsonWriteIgnoreIfAttribute : Attribute
     {
-        public BsonWriteIgnoreIf(string condition) { }
+        public BsonWriteIgnoreIfAttribute(string condition) { }
     }
 }

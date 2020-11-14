@@ -24,7 +24,7 @@ namespace MongoDB.Client.Bson.Generators
         public void Execute(GeneratorExecutionContext context)
         {
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver)) { return; }
-            //System.Diagnostics.Debugger.Launch();
+            System.Diagnostics.Debugger.Launch();
             if (receiver.Candidates.Count == 0)
             {
                 return;
@@ -33,10 +33,11 @@ namespace MongoDB.Client.Bson.Generators
 
             ProcessCandidates(receiver.Candidates);
             ProcessEnums(receiver.Enums);
-            var masterContext = new MasterContext(meta, context);
+            var masterContext = new MasterContext(CollectSymbols(), context);
             OperationBase.meta = meta;
-            var src = BsonSyntaxGenerator.Create(masterContext);
+            var units = BsonSyntaxGenerator.Create(masterContext);
             context.AddSource($"{Basics.GlobalSerializationHelperGeneratedString}.cs", SourceText.From(GenerateGlobalHelperStaticClass(), Encoding.UTF8));
+
             foreach (var item in meta)
             {
                 if (context.CancellationToken.IsCancellationRequested)
@@ -48,16 +49,16 @@ namespace MongoDB.Client.Bson.Generators
                     TypeMap.BaseOperations.Add(item.ClassSymbol.Name, new GeneratedSerializerRW(item.ClassSymbol));
                 }
             }
-
-            foreach (var item in meta)
+            for (int index = 0; index < meta.Count; index++)
             {
                 if (context.CancellationToken.IsCancellationRequested)
                 {
                     return;
                 }
-                var source = BsonSyntaxGenerator.Create(item)?.NormalizeWhitespace().ToFullString();
-                context.AddSource(Basics.GenerateSerializerName(item.ClassSymbol), SourceText.From(source, Encoding.UTF8));
-                //System.Diagnostics.Debugger.Break();
+                var newSource = units[index].NormalizeWhitespace().ToString();
+                var source = BsonSyntaxGenerator.Create(meta[index])?.NormalizeWhitespace().ToFullString();
+                context.AddSource(Basics.GenerateSerializerName(meta[index].ClassSymbol), SourceText.From(source!, Encoding.UTF8));
+                System.Diagnostics.Debugger.Break();
             }
             _stopwatch.Stop();
             BsonGeneratorErrorHelper.WriteWarn(context, "Generation elapsed: " + _stopwatch.Elapsed.ToString());
@@ -69,6 +70,33 @@ namespace MongoDB.Client.Bson.Generators
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
         }
 
+        private List<INamedTypeSymbol> CollectSymbols()
+        {
+            List<INamedTypeSymbol> symbols = new List<INamedTypeSymbol>();
+            foreach (var tree in _context.Compilation.SyntaxTrees)
+            {
+                foreach (var node in tree.GetRoot().DescendantNodes())
+                {
+                    SemanticModel model = _context.Compilation.GetSemanticModel(node.SyntaxTree);
+                    INamedTypeSymbol? symbol = model.GetDeclaredSymbol(node) as INamedTypeSymbol;
+                    if (symbol is null)
+                    {
+                        continue;
+                    }
+
+                    foreach (var attr in symbol.GetAttributes())
+                    {
+                        if (attr.AttributeClass!.ToString().Equals("MongoDB.Client.Bson.Serialization.Attributes.BsonSerializableAttribute"))
+                        {
+                            symbols.Add(symbol);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return symbols;
+        }
         private void ProcessEnums(List<EnumDeclarationSyntax> enums)
         {
             foreach (var item in  enums)

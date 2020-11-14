@@ -12,7 +12,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static InvocationExpressionSyntax Write_Type_Name(int typeid,  IdentifierNameSyntax name, IdentifierNameSyntax writerId = default)
         {
-            return InvocationExpr(writerId ?? DefaultBsonWriterId, SF.IdentifierName("Write_Type_Name"), SF.Argument(NumerictLiteralExpr(typeid)) , SF.Argument(name));
+            return InvocationExpr(writerId ?? DefaultBsonWriterId, SF.IdentifierName("Write_Type_Name"), SF.Argument(NumericLiteralExpr(typeid)) , SF.Argument(name));
         }
         public static InvocationExpressionSyntax WriteBsonNull(IdentifierNameSyntax name, IdentifierNameSyntax writerId = default)
         {

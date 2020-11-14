@@ -1,5 +1,7 @@
 ﻿using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -11,31 +13,52 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return $"{sym.Name}SerializerGenerated";
         }
-        private static TypeArgumentListSyntax GetInterfaceParameters(GenerationContext ctx)
-        {
-            var decl = ctx.Declaration;
-            if (ctx.GenericArgs is null)
-            {
-                return SF.TypeArgumentList(SF.SingletonSeparatedList(TypeFullName(decl)));
-            }
 
-            var args = ctx.GenericArgs.Select(arg => TypeName(arg));
-            return SF.TypeArgumentList().AddArguments(GenericName(TokenName(decl), args.ToArray() ));
+        public static SyntaxToken StaticFieldNameToken(MemberContext ctx)
+        {
+            return SF.Identifier($"{ctx.NameSym.Name}{ctx.BsonElementAlias}");
         }
-        private static  TypeParameterListSyntax GetTypeParametersList(GenerationContext ctx)
+        private static BaseListSyntax BaseList(ClassContext ctx)
         {
             var decl = ctx.Declaration;
-            var paramsList = new SeparatedSyntaxList<TypeParameterSyntax>();
-            foreach (var param in decl.TypeParameters)
+            var serializer = SF.Identifier("MongoDB.Client.Bson.Serialization.IGenericBsonSerializer");
+            if (ctx.GenericArgs.HasValue && !ctx.GenericArgs.Value.IsEmpty)
             {
-                paramsList = paramsList.Add(SF.TypeParameter(param.Name));
+                return   SF.BaseList().AddTypes(SF.SimpleBaseType(GenericName(serializer, TypeFullName(decl))));
             }
-            return SF.TypeParameterList(paramsList);
+            var name = GenericName(serializer,TypeFullName(decl));
+            return SF.BaseList().AddTypes(SF.SimpleBaseType(GenericName(serializer, name)));
         }
-        public static ClassDeclarationSyntax GenerateClass(GenerationContext ctx)
+        public static ClassDeclarationSyntax GenerateSerializer(ClassContext ctx)
         {
-            return SF.ClassDeclaration(SerializerName(ctx.Declaration))
-                     .WithTypeParameterList(GetTypeParametersList(ctx));
+            var decl =  SF.ClassDeclaration(SerializerName(ctx.Declaration))
+                .AddModifiers(PublicKeyword(), SealedKeyword())
+                .WithBaseList(BaseList(ctx))
+                .WithMembers(GenerateStaticNamesSpans());
+            return ctx.GenericArgs!.Value.Length > 0
+                ? decl.AddTypeParameterListParameters(ctx.GenericArgs!.Value.Select(TypeParameter).ToArray())
+                : decl;
+            
+            SyntaxList<MemberDeclarationSyntax> GenerateStaticNamesSpans()
+            {
+                var list = new SyntaxList<MemberDeclarationSyntax>();
+                foreach (var member in ctx.Members)
+                {
+                    var bytes = Encoding.UTF8.GetBytes(member.BsonElementValue);
+                    list = list.Add(
+                        SF.PropertyDeclaration(
+                            attributeLists: default,
+                            modifiers: new(PrivateKeyword(), StaticKeyword()),
+                            type: ReadOnlySpanByte(),
+                            explicitInterfaceSpecifier: default,
+                            identifier: StaticFieldNameToken(member),
+                            accessorList: default,
+                            expressionBody: SF.ArrowExpressionClause(SingleDimensionByteArrayCreation(bytes.Length, SeparatedList(bytes.Select(NumericLiteralExpr)))),
+                            initializer: default,
+                            semicolonToken: SemicolonToken()));
+                }
+                return list;
+            }
         }
     }
 }

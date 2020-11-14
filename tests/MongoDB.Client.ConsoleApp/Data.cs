@@ -8,7 +8,7 @@ namespace MongoDB.Client.ConsoleApp
     [BsonSerializable]
     public class Data : IEquatable<Data>
     {
-        [BsonElementField(ElementName = "_id")]
+        [BsonElement(ElementName = "_id")]
         public BsonObjectId Id { get; set; }
 
         public string Name { get; set; }

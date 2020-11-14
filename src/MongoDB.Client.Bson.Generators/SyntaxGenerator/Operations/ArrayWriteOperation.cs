@@ -14,7 +14,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
     {
         private static IdentifierNameSyntax ForIndexId = SF.IdentifierName("index");
         private static SyntaxToken ForIndexToken = SF.Identifier("index");
-        private static ExpressionSyntax reservedSizeExpr = SG.NumerictLiteralExpr(4);
+        private static ExpressionSyntax reservedSizeExpr = SG.NumericLiteralExpr(4);
         private static IdentifierNameSyntax writerWritePropId = SF.IdentifierName("Written");
         private IdentifierNameSyntax GetReserveMethodId() => SF.IdentifierName("Reserve");
         private SyntaxToken GetReservedToken() => SF.Identifier($"{MemberDecl.DeclSymbol.Name}Reserved");
@@ -73,7 +73,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
                                         SF.VariableDeclarator(
                                             ForIndexToken,
                                             default,
-                                            SF.EqualsValueClause(SG.NumerictLiteralExpr(0)))));
+                                            SF.EqualsValueClause(SG.NumericLiteralExpr(0)))));
             var forCondition = SF.BinaryExpression(
                                     kind: SyntaxKind.LessThanExpression,
                                     left: ForIndexId,
@@ -138,7 +138,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Operations
         }
         StatementSyntax GenerateWriteEndMarker()
         {
-            var endMarkerLiteral = SG.NumerictLiteralExpr((byte)'\x00');
+            var endMarkerLiteral = SG.NumericLiteralExpr((byte)'\x00');
 
             return SF.ExpressionStatement(
                     SF.InvocationExpression(SG.SimpleMemberAccess(Basics.WriterInputVariableIdentifierName, SF.IdentifierName("WriteByte")),

@@ -11,7 +11,7 @@ namespace MongoDB.Client.Benchmarks
         [Bson.Serialization.Attributes.BsonIgnore]
         public ObjectId OldId { get; set; }
         
-        [BsonElementField(ElementName = "_id")]
+        [Bson.Serialization.Attributes.BsonElement(ElementName = "_id")]
         [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
         public MongoDB.Client.Bson.Document.BsonObjectId Id { get; set; }
         

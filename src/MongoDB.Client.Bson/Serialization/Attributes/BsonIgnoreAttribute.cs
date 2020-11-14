@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 namespace MongoDB.Client.Bson.Serialization.Attributes
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class BsonIgnore : Attribute
+    public class BsonIgnoreAttribute : Attribute
     {
-        public BsonIgnore() { }
+        public BsonIgnoreAttribute() { }
     }
 }

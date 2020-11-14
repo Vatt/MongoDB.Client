@@ -6,6 +6,7 @@ namespace MongoDB.Client.Bson.Generators
 {
     class SyntaxReceiver : ISyntaxReceiver
     {
+        //TODO: remove this
         public List<TypeDeclarationSyntax> Candidates { get; } = new List<TypeDeclarationSyntax>();
         public List<EnumDeclarationSyntax> Enums { get; } = new List<EnumDeclarationSyntax>();
         public void AddIfHaveBsonAttribute(BaseTypeDeclarationSyntax decl)
@@ -49,7 +50,7 @@ namespace MongoDB.Client.Bson.Generators
                 {
                     if (attr.Name is IdentifierNameSyntax identifier)
                     {
-                        if (identifier.Identifier.Text.Equals("BsonEnumSerializable"))
+                        if (identifier.Identifier.Text.Equals("BsonEnumSerializableAttribute"))
                         {
                             Enums.Add(decl);
                             

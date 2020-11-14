@@ -39,7 +39,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Methods
 
         public override BlockSyntax GenerateMethodBody()
         {
-            throw new NotImplementedException();
+            return SF.Block();
         }
     }
 }

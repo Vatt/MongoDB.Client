@@ -37,7 +37,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var typeList = SF.TypeArgumentList().AddArguments(types);
             return SF.GenericName(name, typeList);
         }
-
         public static ArgumentSyntax OutArgument(ExpressionSyntax expr, NameColonSyntax colonName = default)
         {
             return SF.Argument(colonName, SF.Token(SyntaxKind.OutKeyword), expr);
@@ -62,6 +61,22 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Token(SyntaxKind.LongKeyword);
         }
+        public static SyntaxToken PublicKeyword()
+        {
+            return SF.Token(SyntaxKind.PublicKeyword);
+        }
+        public static SyntaxToken PrivateKeyword()
+        {
+            return SF.Token(SyntaxKind.PrivateKeyword);
+        }
+        public static SyntaxToken StaticKeyword()
+        {
+            return SF.Token(SyntaxKind.StaticKeyword);
+        }
+        public static SyntaxToken SealedKeyword()
+        {
+            return SF.Token(SyntaxKind.SealedKeyword);
+        }
         public static PredefinedTypeSyntax IntPredefinedType()
         {
             return SF.PredefinedType(IntKeyword());
@@ -78,7 +93,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.LiteralExpression(SyntaxKind.DefaultLiteralExpression);
         }
-        public static LiteralExpressionSyntax NumerictLiteralExpr(int value)
+        public static LiteralExpressionSyntax NumericLiteralExpr(int value)
+        {
+            return SF.LiteralExpression(SyntaxKind.NumericLiteralExpression, SF.Literal(value));
+        }
+        public static LiteralExpressionSyntax NumericLiteralExpr(byte value)
         {
             return SF.LiteralExpression(SyntaxKind.NumericLiteralExpression, SF.Literal(value));
         }
@@ -103,6 +122,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Identifier(sym.Name);
         }
+
+        public static SyntaxToken SemicolonToken()
+        {
+            return SF.Token(SyntaxKind.SemicolonToken);
+        }
         public static SyntaxToken TokenFullName(ISymbol sym)
         {
             return SF.Identifier(sym.ToString());
@@ -115,9 +139,23 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.ParseTypeName(sym.Name);
         }
+        public static TypeParameterSyntax FullTypeParameter(ITypeSymbol sym)
+        {
+            return SF.TypeParameter(sym.ToString());
+        }
+        public static TypeParameterSyntax TypeParameter(ITypeSymbol sym)
+        {
+            return SF.TypeParameter(sym.Name);
+        }
+
         public static AssignmentExpressionSyntax SimpleAssignExpr(ExpressionSyntax left, ExpressionSyntax right)
         {
             return SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, left, right);
+        }
+        public static ArrayCreationExpressionSyntax SingleDimensionArrayCreation(TypeSyntax arrayType, int size, InitializerExpressionSyntax? initializer = default)
+        {
+            var rank = new SyntaxList<ArrayRankSpecifierSyntax>(SF.ArrayRankSpecifier().AddSizes(NumericLiteralExpr(size)));
+            return SF.ArrayCreationExpression(SF.ArrayType(arrayType, rank), initializer);
         }
     }
 }

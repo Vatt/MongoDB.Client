@@ -24,7 +24,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Core
                             SyntaxKind.EqualsExpression,
                             Basics.TryParseBsonTypeIdentifier,
                             SF.Token(SyntaxKind.EqualsEqualsToken),
-                            SG.NumerictLiteralExpr(10)
+                            SG.NumericLiteralExpr(10)
                         ),
                     statement: SF.Block(
                         SF.ExpressionStatement(
