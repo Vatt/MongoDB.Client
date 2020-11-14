@@ -13,13 +13,15 @@ namespace MongoDB.Client.Benchmarks
         private MongoCollection<GeoIp> _collection;
         private IMongoCollection<GeoIp> _oldCollection;
 
+        [Params(1000)] 
+        public int ItemsCount { get; set; }
+        
         [GlobalSetup]
         public void Setup()
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
             var dbName = "BenchmarkDb";
             var collectionName = GetType().Name;
-            var itemsCount = 1000;
             
             var client = new MongoClient(new DnsEndPoint(host, 27017));
             var db = client.GetDatabase(dbName);
@@ -29,8 +31,8 @@ namespace MongoDB.Client.Benchmarks
             var oldDb = oldClient.GetDatabase(dbName);
             _oldCollection = oldDb.GetCollection<GeoIp>(collectionName);
 
-
-            for (int i = 0; i < itemsCount; i++)
+            _oldCollection.DeleteMany(FilterDefinition<GeoIp>.Empty);
+            for (int i = 0; i < ItemsCount; i++)
             {
                 var item = new GeoIp
                 {

@@ -14,7 +14,8 @@ namespace MongoDB.Client.Benchmarks
         private MongoCollection<GeoIp> _collection;
         private IMongoCollection<GeoIp> _oldCollection;
 
-        private const int RequestsCount = 256;
+        [Params(256)] 
+        public int RequestsCount { get; set; }
         [Params(1, 4, 8, 16, 32, 64, 128)] public int Parallelism { get; set; }
 
         [GlobalSetup]

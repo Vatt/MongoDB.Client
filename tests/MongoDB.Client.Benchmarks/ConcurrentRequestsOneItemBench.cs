@@ -14,8 +14,11 @@ namespace MongoDB.Client.Benchmarks
         private MongoCollection<GeoIp> _collection;
         private IMongoCollection<GeoIp> _oldCollection;
 
-        private const int RequestsCount = 256;
-        [Params(1, 4, 8, 16, 32, 64, 128)] public int Parallelism { get; set; }
+        [Params(1, 4, 8, 16, 32, 64, 128)]
+        public int Parallelism { get; set; }
+        
+        [Params(256)] 
+        public int RequestsCount { get; set; }
 
         [GlobalSetup]
         public void Setup()
@@ -65,32 +68,54 @@ namespace MongoDB.Client.Benchmarks
         private static readonly BsonDocument EmptyFilter = new BsonDocument();
 
         [Benchmark]
-        public async Task NewClientToList()
+        public async Task NewClientFindFirstOrDefault()
         {
-            var iterations = RequestsCount / Parallelism;
-            var tasks = new Task<GeoIp>[Parallelism];
-            for (int i = 0; i < iterations; i++)
+            if (Parallelism == 1)
             {
-                for (int j = 0; j < Parallelism; j++)
+                for (int i = 0; i < RequestsCount; i++)
                 {
-                    tasks[j] = _collection.Find(EmptyFilter).FirstOrDefaultAsync().AsTask();
+                    await _collection.Find(EmptyFilter).FirstOrDefaultAsync();
                 }
-                await tasks.WhenAllExt();
+            }
+            else
+            {
+                var iterations = RequestsCount / Parallelism;
+                var tasks = new Task<GeoIp>[Parallelism];
+                for (int i = 0; i < iterations; i++)
+                {
+                    for (int j = 0; j < Parallelism; j++)
+                    {
+                        tasks[j] = _collection.Find(EmptyFilter).FirstOrDefaultAsync().AsTask();
+                    }
+
+                    await Task.WhenAll(tasks);
+                }
             }
         }
 
         [Benchmark]
-        public async Task OldClientToList()
+        public async Task OldClientFindFirstOrDefault()
         {
-            var iterations = RequestsCount / Parallelism;
-            var tasks = new Task<GeoIp>[Parallelism];
-            for (int i = 0; i < iterations; i++)
+            if (Parallelism == 1)
             {
-                for (int j = 0; j < Parallelism; j++)
+                for (int i = 0; i < RequestsCount; i++)
                 {
-                    tasks[j] = _oldCollection.Find(FilterDefinition<GeoIp>.Empty).FirstOrDefaultAsync();
+                    await _oldCollection.Find(FilterDefinition<GeoIp>.Empty).FirstOrDefaultAsync();
                 }
-                await tasks.WhenAllExt();
+            }
+            else
+            {
+                var iterations = RequestsCount / Parallelism;
+                var tasks = new Task<GeoIp>[Parallelism];
+                for (int i = 0; i < iterations; i++)
+                {
+                    for (int j = 0; j < Parallelism; j++)
+                    {
+                        tasks[j] = _oldCollection.Find(FilterDefinition<GeoIp>.Empty).FirstOrDefaultAsync();
+                    }
+
+                    await Task.WhenAll(tasks);
+                }
             }
         }
     }

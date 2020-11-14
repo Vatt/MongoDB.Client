@@ -6,28 +6,28 @@ namespace MongoDB.Client
 {
     public class MongoClient
     {
-        public EndPoint EndPoint { get; }
+        public MongoClientSettings Settings { get; }
         private readonly IChannelsPool _channelsPool;
 
         public MongoClient()
-         : this(new IPEndPoint(IPAddress.Loopback, 27017), new NullLoggerFactory())
+         : this(new MongoClientSettings(), new NullLoggerFactory())
         {
         }
 
         public MongoClient(EndPoint endPoint)
-        : this(endPoint, new NullLoggerFactory())
+        : this(new MongoClientSettings(endPoint), new NullLoggerFactory())
         {
         }
         
         public MongoClient(ILoggerFactory loggerFactory)
-            : this(new IPEndPoint(IPAddress.Loopback, 27017), loggerFactory)
+            : this(new MongoClientSettings(), loggerFactory)
         {
         }
         
-        public MongoClient(EndPoint endPoint, ILoggerFactory loggerFactory)
+        public MongoClient(MongoClientSettings settings, ILoggerFactory loggerFactory)
         {
-            EndPoint = endPoint;
-            _channelsPool = new ChannelsPool(endPoint, loggerFactory);
+            Settings = settings;
+            _channelsPool = new ChannelsPool(settings, loggerFactory);
         }
 
         public MongoDatabase GetDatabase(string name)

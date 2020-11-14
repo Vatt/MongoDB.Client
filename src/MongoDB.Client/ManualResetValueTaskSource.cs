@@ -12,7 +12,6 @@ namespace MongoDB.Client
         public void Reset() => _core.Reset();
         public void SetResult(T result) => _core.SetResult(result);
         public void SetException(Exception error) => _core.SetException(error);
-
         public T GetResult(short token) => _core.GetResult(token);
         void IValueTaskSource.GetResult(short token) => _core.GetResult(token);
         public ValueTaskSourceStatus GetStatus(short token) => _core.GetStatus(token);

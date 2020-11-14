@@ -7,23 +7,21 @@ using MongoDB.Client.Protocol.Readers;
 using MongoDB.Client.Protocol.Writers;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Protocol.Messages;
-using MongoDB.Client.MongoConnections;
 
 namespace MongoDB.Client
 {
     internal class Channel : IAsyncDisposable
     {
-        private readonly EndPoint _endpoint;
         private readonly ILogger _logger;
         private readonly NetworkConnectionFactory _connectionFactory;
         private System.Net.Connections.Connection? _connection;
-        private ConnectionInfo? _connectionInfo;
         private ProtocolReader? _reader;
         private ProtocolWriter? _writer;
         private readonly MessageHeaderReader _messageHeaderReader = new();
@@ -33,9 +31,9 @@ namespace MongoDB.Client
         private readonly QueryMessageWriter _queryWriter = new();
         private readonly FindMessageWriter _findWriter = new();
         private readonly DeleteMessageWriter _deleteWriter = new();
-        
-        private readonly ConcurrentDictionary<int, ParserCompletion> _completionMap = new();
 
+        private readonly ConcurrentDictionary<int, ParserCompletion> _completionMap = new();
+        private readonly ConcurrentQueue<ManualResetValueTaskSource<IParserResult>> _queue = new();
 
         private readonly CancellationTokenSource _shutdownToken = new();
         private Task? _readingTask;
@@ -43,9 +41,8 @@ namespace MongoDB.Client
 
         private readonly int _channelNum;
 
-        public Channel(EndPoint endpoint, ILoggerFactory loggerFactory, int channelNum)
+        public Channel(ILoggerFactory loggerFactory, int channelNum)
         {
-            _endpoint = endpoint ?? throw new ArgumentNullException(nameof(endpoint));
             _channelNum = channelNum;
             _logger = loggerFactory.CreateLogger($"MongoClient: {endpoint}");
             _connectionFactory = new NetworkConnectionFactory();
@@ -58,13 +55,13 @@ namespace MongoDB.Client
             return Interlocked.Increment(ref _counter);
         }
 
-        public async Task ConnectAsync(CancellationToken cancellationToken)
+        public async Task ConnectAsync(EndPoint endPoint, CancellationToken cancellationToken)
         {
-            _connection = await _connectionFactory.ConnectAsync(_endpoint, null, cancellationToken)
+            _connection = await _connectionFactory.ConnectAsync(endPoint, null, cancellationToken)
                 .ConfigureAwait(false);
             if (_connection is null)
             {
-                ThrowHelper.ConnectionException<bool>(_endpoint);
+                ThrowHelper.ConnectionException<bool>(endPoint);
             }
 
             _reader = new ProtocolReader(_connection.Pipe.Input);
@@ -74,14 +71,9 @@ namespace MongoDB.Client
 
         private async Task StartReadAsync()
         {
-            if (_reader is null)
-            {
-                ThrowHelper.ConnectionException<bool>(_endpoint);
-            }
-
             _logger.LogInformation($"Channel {_channelNum} start reading");
             MongoResponseMessage message;
-            ParserCompletion? completion;
+            ParserCompletion completion;
             while (_shutdownToken.IsCancellationRequested == false)
             {
                 try
@@ -119,7 +111,7 @@ namespace MongoDB.Client
                             _logger.UnknownOpcodeMessage(headerResult.Message);
                             if (_completionMap.TryGetValue(headerResult.Message.ResponseTo, out completion))
                             {
-                                completion.CompletionSource.TrySetException(
+                                completion.CompletionSource.SetException(
                                     new NotSupportedException($"Opcode '{headerResult.Message.Opcode}' not supported"));
                             }
 
@@ -148,37 +140,35 @@ namespace MongoDB.Client
         public async ValueTask<QueryResult<TResp>> SendQueryAsync<TResp>(QueryMessage message,
             CancellationToken cancellationToken)
         {
-            if (_shutdownToken.IsCancellationRequested == false)
+            ManualResetValueTaskSource<IParserResult> taskSource;
+            if (_queue.TryDequeue(out taskSource) == false)
             {
-                if (_writer is not null)
-                {
-                    var completion = _completionMap.GetOrAdd(message.RequestNumber,
-                        i => new ParserCompletion(new TaskCompletionSourceWithCancellation<IParserResult>(),
-                            response => ParseAsync<TResp>(response)));
-
-                    try
-                    {
-                        await _writer.WriteAsync(_queryWriter, message, cancellationToken).ConfigureAwait(false);
-                        var result = await completion.CompletionSource.WaitWithCancellationAsync(cancellationToken)
-                            .ConfigureAwait(false);
-
-                        if (result is QueryResult<TResp> queryResult)
-                        {
-                            return queryResult;
-                        }
-
-                        return default!;
-                    }
-                    finally
-                    {
-                        _completionMap.TryRemove(message.RequestNumber, out _);
-                    }
-                }
-
-                return ThrowHelper.ConnectionException<QueryResult<TResp>>(_endpoint);
+                taskSource = new ManualResetValueTaskSource<IParserResult>();
             }
 
-            return ThrowHelper.ObjectDisposedException<QueryResult<TResp>>(nameof(Channel));
+            var completion = _completionMap.GetOrAdd(message.RequestNumber,
+                i => new ParserCompletion(taskSource, response => ParseAsync<TResp>(response)));
+
+            try
+            {
+                await _writer.WriteAsync(_queryWriter, message, cancellationToken).ConfigureAwait(false);
+                var response =
+                    await new ValueTask<IParserResult>(completion.CompletionSource, completion.CompletionSource.Version)
+                        .ConfigureAwait(false);
+
+                if (response is QueryResult<TResp> queryResult)
+                {
+                    return queryResult;
+                }
+
+                return default!;
+            }
+            finally
+            {
+                _completionMap.TryRemove(message.RequestNumber, out _);
+                taskSource.Reset();
+                _queue.Enqueue(taskSource);
+            }
 
 
             async ValueTask<IParserResult> ParseAsync<T>(MongoResponseMessage mongoResponse)
@@ -206,36 +196,34 @@ namespace MongoDB.Client
         public async ValueTask<CursorResult<TResp>> GetCursorAsync<TResp>(FindMessage message,
             CancellationToken cancellationToken)
         {
-            if (_shutdownToken.IsCancellationRequested == false)
+            ManualResetValueTaskSource<IParserResult> taskSource;
+            if (_queue.TryDequeue(out taskSource) == false)
             {
-                if (_writer is not null)
-                {
-                    var completion = _completionMap.GetOrAdd(message.Header.RequestNumber,
-                        i => new ParserCompletion(new TaskCompletionSourceWithCancellation<IParserResult>(),
-                            response => ParseAsync<TResp>(response)));
-                    try
-                    {
-                        await _writer.WriteAsync(_findWriter, message, cancellationToken).ConfigureAwait(false);
-                        _logger.SentCursorMessage(message.Header.RequestNumber);
-                        var response = await completion.CompletionSource.WaitWithCancellationAsync(cancellationToken)
-                            .ConfigureAwait(false);
-                        if (response is CursorResult<TResp> cursor)
-                        {
-                            return cursor;
-                        }
-
-                        return default!;
-                    }
-                    finally
-                    {
-                        _completionMap.TryRemove(message.Header.RequestNumber, out _);
-                    }
-                }
-
-                return ThrowHelper.ConnectionException<CursorResult<TResp>>(_endpoint);
+                taskSource = new ManualResetValueTaskSource<IParserResult>();
             }
 
-            return ThrowHelper.ObjectDisposedException<CursorResult<TResp>>(nameof(Channel));
+            var completion = _completionMap.GetOrAdd(message.Header.RequestNumber,
+                i => new ParserCompletion(taskSource, response => ParseAsync<TResp>(response)));
+            try
+            {
+                await _writer.WriteAsync(_findWriter, message, cancellationToken).ConfigureAwait(false);
+                _logger.SentCursorMessage(message.Header.RequestNumber);
+                var response =
+                    await new ValueTask<IParserResult>(completion.CompletionSource,
+                        completion.CompletionSource.Version).ConfigureAwait(false);
+                if (response is CursorResult<TResp> cursor)
+                {
+                    return cursor;
+                }
+
+                return default!;
+            }
+            finally
+            {
+                _completionMap.TryRemove(message.Header.RequestNumber, out _);
+                taskSource.Reset();
+                _queue.Enqueue(taskSource);
+            }
 
 
             async ValueTask<IParserResult> ParseAsync<T>(MongoResponseMessage mongoResponse)
@@ -277,44 +265,41 @@ namespace MongoDB.Client
 
         public async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken cancellationToken)
         {
-            if (_shutdownToken.IsCancellationRequested == false)
+            ManualResetValueTaskSource<IParserResult> taskSource;
+            if (_queue.TryDequeue(out taskSource) == false)
             {
-                if (_writer is not null)
-                {
-                    var completion = _completionMap.GetOrAdd(message.Header.RequestNumber,
-                        i => new ParserCompletion(new TaskCompletionSourceWithCancellation<IParserResult>(),
-                            response => ParseAsync<T>(response)));
-                    try
-                    {
-                        if (SerializersMap.TryGetSerializer<T>(out var serializer))
-                        {
-                            var insertWriter = new InsertMessageWriter<T>(serializer);
-                            await _writer.WriteAsync(insertWriter, message, cancellationToken).ConfigureAwait(false);
-                            _logger.SentInsertMessage(message.Header.RequestNumber);
-                            var response = await completion.CompletionSource
-                                .WaitWithCancellationAsync(cancellationToken)
-                                .ConfigureAwait(false);
-                            if (response is InsertResult result)
-                            {
-                                if (result.WriteErrors is null)
-                                {
-                                    return;
-                                }
-
-                                throw new MongoInsertException(result.WriteErrors);
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        _completionMap.TryRemove(message.Header.RequestNumber, out _);
-                    }
-                }
-
-                ThrowHelper.ConnectionException<Unit>(_endpoint);
+                taskSource = new ManualResetValueTaskSource<IParserResult>();
             }
 
-            ThrowHelper.ObjectDisposedException<Unit>(nameof(Channel));
+            var completion = _completionMap.GetOrAdd(message.Header.RequestNumber,
+                i => new ParserCompletion(taskSource, response => ParseAsync<T>(response)));
+            try
+            {
+                if (SerializersMap.TryGetSerializer<T>(out var serializer))
+                {
+                    var insertWriter = new InsertMessageWriter<T>(serializer);
+                    await _writer.WriteAsync(insertWriter, message, cancellationToken).ConfigureAwait(false);
+                    _logger.SentInsertMessage(message.Header.RequestNumber);
+                    var response =
+                        await new ValueTask<IParserResult>(completion.CompletionSource,
+                            completion.CompletionSource.Version).ConfigureAwait(false);
+                    if (response is InsertResult result)
+                    {
+                        if (result.WriteErrors is null)
+                        {
+                            return;
+                        }
+
+                        throw new MongoInsertException(result.WriteErrors);
+                    }
+                }
+            }
+            finally
+            {
+                _completionMap.TryRemove(message.Header.RequestNumber, out _);
+                taskSource.Reset();
+                _queue.Enqueue(taskSource);
+            }
 
 
             async ValueTask<IParserResult> ParseAsync<TResp>(MongoResponseMessage mongoResponse)
@@ -328,10 +313,6 @@ namespace MongoDB.Client
                         if (msgMessage.MsgHeader.PayloadType == 0)
                         {
                             bodyReader = new InsertMsgType0BodyReader();
-                        }
-                        else if (msgMessage.MsgHeader.PayloadType == 1)
-                        {
-                            throw new NotImplementedException("PayloadType 1 in insert response");
                         }
                         else
                         {
@@ -358,34 +339,30 @@ namespace MongoDB.Client
 
         public async ValueTask<DeleteResult> DeleteAsync(DeleteMessage message, CancellationToken cancellationToken)
         {
-            if (_shutdownToken.IsCancellationRequested == false)
+            ManualResetValueTaskSource<IParserResult> taskSource;
+            if (_queue.TryDequeue(out taskSource) == false)
             {
-                if (_writer is not null)
-                {
-                    var completion = _completionMap.GetOrAdd(message.Header.RequestNumber,
-                        i => new ParserCompletion(new TaskCompletionSourceWithCancellation<IParserResult>(),
-                            response => ParseAsync(response)));
-                    try
-                    {
-                        await _writer.WriteAsync(_deleteWriter, message, cancellationToken).ConfigureAwait(false);
-                        _logger.SentInsertMessage(message.Header.RequestNumber);
-                        var response = await completion.CompletionSource
-                            .WaitWithCancellationAsync(cancellationToken)
-                            .ConfigureAwait(false);
-            
-                        return (DeleteResult) response;
-                    }
-                    finally
-                    {
-                        _completionMap.TryRemove(message.Header.RequestNumber, out _);
-                    }
-                }
-
-                return ThrowHelper.ConnectionException<DeleteResult>(_endpoint);
+                taskSource = new ManualResetValueTaskSource<IParserResult>();
             }
 
-            return ThrowHelper.ObjectDisposedException<DeleteResult>(nameof(Channel));
+            var completion = _completionMap.GetOrAdd(message.Header.RequestNumber,
+                i => new ParserCompletion(taskSource, response => ParseAsync(response)));
+            try
+            {
+                await _writer.WriteAsync(_deleteWriter, message, cancellationToken).ConfigureAwait(false);
+                _logger.SentInsertMessage(message.Header.RequestNumber);
+                var response =
+                    await new ValueTask<IParserResult>(completion.CompletionSource,
+                        completion.CompletionSource.Version).ConfigureAwait(false);
 
+                return (DeleteResult) response;
+            }
+            finally
+            {
+                _completionMap.TryRemove(message.Header.RequestNumber, out _);
+                taskSource.Reset();
+                _queue.Enqueue(taskSource);
+            }
 
             async ValueTask<IParserResult> ParseAsync(MongoResponseMessage mongoResponse)
             {
@@ -398,10 +375,6 @@ namespace MongoDB.Client
                         if (msgMessage.MsgHeader.PayloadType == 0)
                         {
                             bodyReader = new DeleteMsgType0BodyReader();
-                        }
-                        else if (msgMessage.MsgHeader.PayloadType == 1)
-                        {
-                            throw new NotImplementedException("PayloadType 1 in insert response");
                         }
                         else
                         {
@@ -440,16 +413,16 @@ namespace MongoDB.Client
             }
         }
 
-        private class ParserCompletion
+        private readonly struct ParserCompletion
         {
-            public ParserCompletion(TaskCompletionSourceWithCancellation<IParserResult> completionSource,
+            public ParserCompletion(ManualResetValueTaskSource<IParserResult> completionSource,
                 Func<MongoResponseMessage, ValueTask<IParserResult>> parseAsync)
             {
                 CompletionSource = completionSource;
                 ParseAsync = parseAsync;
             }
 
-            public TaskCompletionSourceWithCancellation<IParserResult> CompletionSource { get; }
+            public ManualResetValueTaskSource<IParserResult> CompletionSource { get; }
             public Func<MongoResponseMessage, ValueTask<IParserResult>> ParseAsync { get; }
         }
     }
