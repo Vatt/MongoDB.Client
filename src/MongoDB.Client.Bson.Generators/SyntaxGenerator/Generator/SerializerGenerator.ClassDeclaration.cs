@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -9,14 +10,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        public static string SerializerName(ISymbol sym)
+        public static string SerializerName(ClassContext ctx)
         {
-            return $"{sym.Name}SerializerGenerated";
+            string generics = ctx.GenericArgs.HasValue && ctx.GenericArgs.Value.Length > 0
+                ? string.Join(String.Empty, ctx.GenericArgs.Value)
+                : String.Empty;
+            return $"{ctx.Declaration.ContainingNamespace.ToString().Replace('.', '_')}{ctx.Declaration.Name}{generics}SerializerGenerated";
         }
 
         public static SyntaxToken StaticFieldNameToken(MemberContext ctx)
         {
-            return SF.Identifier($"{ctx.NameSym.Name}{ctx.BsonElementAlias}");
+            return SF.Identifier($"{ctx.Root.Declaration.Name}{ctx.BsonElementAlias}");
         }
         private static BaseListSyntax BaseList(ClassContext ctx)
         {
@@ -31,7 +35,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static ClassDeclarationSyntax GenerateSerializer(ClassContext ctx)
         {
-            var decl =  SF.ClassDeclaration(SerializerName(ctx.Declaration))
+            var decl =  SF.ClassDeclaration(SerializerName(ctx))
                 .AddModifiers(PublicKeyword(), SealedKeyword())
                 .WithBaseList(BaseList(ctx))
                 .WithMembers(GenerateStaticNamesSpans());
