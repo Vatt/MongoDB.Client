@@ -7,7 +7,6 @@ using MongoDB.Client.Protocol.Readers;
 using MongoDB.Client.Protocol.Writers;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Immutable;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,7 +43,7 @@ namespace MongoDB.Client
         public Channel(ILoggerFactory loggerFactory, int channelNum)
         {
             _channelNum = channelNum;
-            _logger = loggerFactory.CreateLogger($"MongoClient: {endpoint}");
+            _logger = loggerFactory.CreateLogger($"Channel: {channelNum}");
             _connectionFactory = new NetworkConnectionFactory();
         }
 

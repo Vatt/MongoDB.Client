@@ -27,7 +27,7 @@ namespace MongoDB.Client
         public MongoClient(MongoClientSettings settings, ILoggerFactory loggerFactory)
         {
             Settings = settings;
-            _channelsPool = new ChannelsPool(settings, loggerFactory);
+            _channelsPool = new NodeChannelsPool(settings, loggerFactory);
         }
 
         public MongoDatabase GetDatabase(string name)

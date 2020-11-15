@@ -10,23 +10,25 @@ using MongoDB.Client.Protocol.Messages;
 
 namespace MongoDB.Client
 {
-    internal class ChannelsPool : IChannelsPool
+    internal class NodeChannelsPool : IChannelsPool
     {
         private static readonly Random Random = new();
         
         private readonly MongoClientSettings _settings;
+        private readonly EndPoint _endPoint;
         private readonly ILoggerFactory _loggerFactory;
-        private readonly ILogger<ChannelsPool> _logger;
+        private readonly ILogger<NodeChannelsPool> _logger;
         private ImmutableArray<Channel> _channels = ImmutableArray<Channel>.Empty;
         private readonly SemaphoreSlim _channelAllocateLock = new(1);
         private int _channelNumber;
         private int _channelCounter;
 
-        public ChannelsPool(MongoClientSettings settings, ILoggerFactory loggerFactory)
+        public NodeChannelsPool(MongoClientSettings settings, EndPoint endPoint, ILoggerFactory loggerFactory)
         {
             _settings = settings;
+            _endPoint = endPoint;
             _loggerFactory = loggerFactory;
-            _logger = loggerFactory.CreateLogger<ChannelsPool>();
+            _logger = loggerFactory.CreateLogger<NodeChannelsPool>();
             _initialDocument = InitHelper.CreateInitialCommand();
         }
 
@@ -91,8 +93,8 @@ namespace MongoDB.Client
         {
             _logger.LogInformation("Allocating new channel");
             var channelNum = Interlocked.Increment(ref _channelNumber);
-            var channel = new Channel(_settings, _loggerFactory, channelNum);
-            await channel.ConnectAsync(token).ConfigureAwait(false);
+            var channel = new Channel(_loggerFactory, channelNum);
+            await channel.ConnectAsync(_endPoint, token).ConfigureAwait(false);
             var result = await OpenChannelAsync(channel,token);
             return channel;
         }
