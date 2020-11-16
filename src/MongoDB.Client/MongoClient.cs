@@ -24,10 +24,15 @@ namespace MongoDB.Client
         {
         }
         
+        public MongoClient(EndPoint endPoint, ILoggerFactory loggerFactory)
+            : this(new MongoClientSettings(endPoint), loggerFactory)
+        {
+        }
+        
         public MongoClient(MongoClientSettings settings, ILoggerFactory loggerFactory)
         {
             Settings = settings;
-            _channelsPool = new NodeChannelsPool(settings, loggerFactory);
+            _channelsPool = new NodeChannelsPool(settings, settings.Endpoints[0], loggerFactory);
         }
 
         public MongoDatabase GetDatabase(string name)
