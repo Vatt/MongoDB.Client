@@ -7,6 +7,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        public static ObjectCreationExpressionSyntax ObjectCreation(TypeSyntax type, params ArgumentSyntax[] args)
+        {
+            return SF.ObjectCreationExpression(type, args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args), default);
+        }
         public static ObjectCreationExpressionSyntax ObjectCreation(INamedTypeSymbol sym, params ArgumentSyntax[] args)
         {
             return SF.ObjectCreationExpression(SF.ParseTypeName(sym.ToString()), args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args), default);
@@ -32,6 +36,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.InvocationExpression(SimpleMemberAccess(source, member), args.Length ==0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args));
         }
+        public static InvocationExpressionSyntax InvocationExpr(IdentifierNameSyntax member, params ArgumentSyntax[] args)
+        {
+            return SF.InvocationExpression(member, args.Length ==0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args));
+        }
         public static GenericNameSyntax GenericName(SyntaxToken name, params TypeSyntax[] types)
         {
             var typeList = SF.TypeArgumentList().AddArguments(types);
@@ -49,9 +57,45 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Argument(colonName, SF.Token(SyntaxKind.RefKeyword), expr);
         }
+        public static ParameterSyntax OutParameter(TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax? @default = default)
+        {
+            return SF.Parameter(
+                attributeLists: default,
+                modifiers: SyntaxTokenList(SF.Token(SyntaxKind.OutKeyword)),
+                identifier: identifier,
+                type: type,
+                @default: @default);
+        }
+        public static ParameterSyntax InParameter(TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax? @default = default)
+        {
+            return SF.Parameter(
+                attributeLists: default,
+                modifiers: SyntaxTokenList(SF.Token(SyntaxKind.InKeyword)),
+                identifier: identifier,
+                type: type,
+                @default: @default);
+        }
+        public static ParameterSyntax RefParameter(TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax? @default = default)
+        {
+            return SF.Parameter(
+                attributeLists: default,
+                modifiers: SyntaxTokenList(SF.Token(SyntaxKind.RefKeyword)),
+                identifier: identifier,
+                type: type,
+                @default: @default);
+        }
+
+        public static ParameterListSyntax ParameterList(params ParameterSyntax[] parameters)
+        {
+            return SF.ParameterList().AddParameters(parameters);
+        }
         public static SyntaxToken ByteKeyword()
         {
             return SF.Token(SyntaxKind.ByteKeyword);
+        }
+        public static SyntaxToken BoolKeyword()
+        {
+            return SF.Token(SyntaxKind.BoolKeyword);
         }
         public static SyntaxToken IntKeyword()
         {
@@ -89,6 +133,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.PredefinedType(ByteKeyword());
         }
+        public static PredefinedTypeSyntax BoolPredefinedType()
+        {
+            return SF.PredefinedType(BoolKeyword());
+        }
         public static LiteralExpressionSyntax DefaultLiteralExpr()
         {
             return SF.LiteralExpression(SyntaxKind.DefaultLiteralExpression);
@@ -101,6 +149,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.LiteralExpression(SyntaxKind.NumericLiteralExpression, SF.Literal(value));
         }
+        public static LiteralExpressionSyntax CharacterLiteralExpr(char value)
+        {
+            return SF.LiteralExpression(SyntaxKind.CharacterLiteralExpression, SF.Literal(value));
+        }
         public static LiteralExpressionSyntax TrueLiteralExpr()
         {
             return SF.LiteralExpression(SyntaxKind.TrueLiteralExpression);
@@ -108,6 +160,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static LiteralExpressionSyntax FalseLiteralExpr()
         {
             return SF.LiteralExpression(SyntaxKind.FalseLiteralExpression);
+        }
+        public static IdentifierNameSyntax IdentifierName(SyntaxToken token)
+        {
+            return SF.IdentifierName(token);
+        }
+        public static IdentifierNameSyntax IdentifierName(string name)
+        {
+            return SF.IdentifierName(name);
         }
         public static IdentifierNameSyntax IdentifierName(ISymbol sym)
         {

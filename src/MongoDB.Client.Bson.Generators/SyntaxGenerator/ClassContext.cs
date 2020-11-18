@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -23,24 +24,41 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
     }
     internal class ClassContext
     {
-        internal IdentifierNameSyntax BsonReaderId => SF.IdentifierName("reader");
-        internal IdentifierNameSyntax BsonWriterId => SF.IdentifierName("writer");
-        internal IdentifierNameSyntax TryParseOutVar => SF.IdentifierName("message");
+        internal SyntaxToken BsonReaderToken => SF.Identifier("reader");
+        internal IdentifierNameSyntax BsonReaderId => SF.IdentifierName(BsonReaderToken);
+        internal TypeSyntax BsonReaderType => SF.ParseTypeName("MongoDB.Client.Bson.Reader.BsonReader");
+        internal SyntaxToken BsonWriterToken => SF.Identifier("writer");
+        internal IdentifierNameSyntax BsonWriterId => SF.IdentifierName(BsonWriterToken);
+        internal TypeSyntax BsonWriterType => SF.ParseTypeName("MongoDB.Client.Bson.Reader.BsonWriter");
+        internal SyntaxToken TryParseOutVarToken => SF.Identifier("message");
+        internal IdentifierNameSyntax TryParseOutVar => SF.IdentifierName(TryParseOutVarToken);
         internal IdentifierNameSyntax WriterInputVar => SF.IdentifierName("message");
         
         internal readonly MasterContext Root;
         internal readonly INamedTypeSymbol Declaration;
         internal readonly List<MemberContext> Members;
-
         internal readonly ImmutableArray<ITypeSymbol>? GenericArgs;
         internal readonly ImmutableArray<IParameterSymbol>? ConstructorParams;
+
+        internal bool HavePrimaryConstructor => ConstructorParams.HasValue;
+        internal bool HaveAnyConstructor => Declaration.Constructors.Any( method => !method.Parameters.IsEmpty);
         
+        public bool ConstructorContains(string name)
+        {
+            if (ConstructorParams.HasValue)
+            {
+                _ = ConstructorParams.Value.First(type => type.Name.Equals(name));
+                return true;
+            }
+
+            return false;
+        }
         public ClassContext(MasterContext root, INamedTypeSymbol symbol)
         {
             Root = root;
             Declaration = symbol;
             Members = new List<MemberContext>();
-            GenericArgs = !Declaration.TypeArguments.IsEmpty ? Declaration.TypeArguments : ImmutableArray<ITypeSymbol>.Empty;
+            GenericArgs = !Declaration.TypeArguments.IsEmpty ? Declaration.TypeArguments : null;
             if (AttributeHelper.TryFindPrimaryConstructor(Declaration, out var constructor))
             {
                 if (constructor!.Arity != 0)
@@ -64,7 +82,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 
                     foreach (var param in ConstructorParams)
                     {
-                        //TODO: Сомтреть флов аргумента вместо проверки на имя
+                        //TODO: Смотреть флов аргумента вместо проверки на имя
                         if (param.Name.Equals(member.Name))
                         {
                             Members.Add(new MemberContext(this, member));
@@ -72,8 +90,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                         }
                     }
                     continue;
-                } 
-                Members.Add(new MemberContext(this, member));
+                }
+                //TODO: допустимо только без гетера, если нет сетера проверить есть ли он в конструкторе
+                if ( (member is IPropertySymbol {SetMethod: { }, GetMethod: { }, IsReadOnly: false}) ||
+                     (member is IFieldSymbol {IsReadOnly: false}) )
+                {
+                    Members.Add(new MemberContext(this, member));
+                }
             }
         }
     }
@@ -85,7 +108,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         internal readonly string BsonElementAlias;
         internal readonly string BsonElementValue;
         internal readonly ImmutableArray<ITypeSymbol>? TypeGenericArgs;
-
+        internal SyntaxToken AssignedVariable;
+        
+        internal bool IsGenericType => Root.GenericArgs?.FirstOrDefault( sym => sym.Name.Equals(TypeSym.Name)) != default;
         public MemberContext(ClassContext root, ISymbol memberSym)
         {
             Root = root;
@@ -104,7 +129,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 
             if (TypeSym is INamedTypeSymbol namedType)
             {
-                TypeGenericArgs = !namedType.TypeArguments.IsEmpty ? namedType.TypeArguments : ImmutableArray<ITypeSymbol>.Empty;
+                TypeGenericArgs = !namedType.TypeArguments.IsEmpty ? namedType.TypeArguments : null;
             }
 
             (BsonElementValue, BsonElementAlias) = AttributeHelper.GetMemberAlias(NameSym);

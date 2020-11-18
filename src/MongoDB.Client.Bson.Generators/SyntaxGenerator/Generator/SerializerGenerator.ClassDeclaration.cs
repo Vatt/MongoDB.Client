@@ -10,14 +10,20 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        private static readonly SyntaxToken SerializerToken = SF.Identifier("MongoDB.Client.Bson.Serialization.IGenericBsonSerializer");
         public static string SerializerName(ClassContext ctx)
         {
             string generics = ctx.GenericArgs.HasValue && ctx.GenericArgs.Value.Length > 0
                 ? string.Join(String.Empty, ctx.GenericArgs.Value)
                 : String.Empty;
-            return $"{ctx.Declaration.ContainingNamespace.ToString().Replace('.', '_')}{ctx.Declaration.Name}{generics}SerializerGenerated";
+            return $"{ctx.Declaration.ContainingNamespace.ToString().Replace(".", String.Empty)}{ctx.Declaration.Name}{generics}SerializerGenerated";
         }
 
+        public static InvocationExpressionSyntax GeneratedSerializerTryParse(ClassContext ctx, ExpressionSyntax reader, ExpressionSyntax variable)
+        {
+            var serializer = SF.IdentifierName($"{SerializerName(ctx)}StaticField");
+            return InvocationExpr(serializer, IdentifierName("TryParse"), RefArgument(reader), OutArgument(variable));
+        }
         public static SyntaxToken StaticFieldNameToken(MemberContext ctx)
         {
             return SF.Identifier($"{ctx.Root.Declaration.Name}{ctx.BsonElementAlias}");
@@ -25,21 +31,22 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static BaseListSyntax BaseList(ClassContext ctx)
         {
             var decl = ctx.Declaration;
-            var serializer = SF.Identifier("MongoDB.Client.Bson.Serialization.IGenericBsonSerializer");
-            if (ctx.GenericArgs.HasValue && !ctx.GenericArgs.Value.IsEmpty)
+            if (ctx.GenericArgs.HasValue && ctx.GenericArgs.Value.Length > 0)
             {
-                return   SF.BaseList().AddTypes(SF.SimpleBaseType(GenericName(serializer, TypeFullName(decl))));
+                return   SF.BaseList().AddTypes(SF.SimpleBaseType(GenericName(SerializerToken, TypeFullName(decl))));
             }
-            var name = GenericName(serializer,TypeFullName(decl));
-            return SF.BaseList().AddTypes(SF.SimpleBaseType(GenericName(serializer, name)));
+            var name = GenericName(SerializerToken,TypeFullName(decl));
+            return SF.BaseList().AddTypes(SF.SimpleBaseType(GenericName(SerializerToken, name)));
         }
         public static ClassDeclarationSyntax GenerateSerializer(ClassContext ctx)
         {
-            var decl =  SF.ClassDeclaration(SerializerName(ctx))
+            var decl = SF.ClassDeclaration(SerializerName(ctx))
                 .AddModifiers(PublicKeyword(), SealedKeyword())
                 .WithBaseList(BaseList(ctx))
-                .WithMembers(GenerateStaticNamesSpans());
-            return ctx.GenericArgs!.Value.Length > 0
+                .WithMembers(GenerateStaticNamesSpans())
+                .AddMembers(TryParseMethod(ctx))
+                .AddMembers(GenerateReadArrayMethods(ctx));
+            return ctx.GenericArgs.HasValue && ctx.GenericArgs!.Value.Length > 0
                 ? decl.AddTypeParameterListParameters(ctx.GenericArgs!.Value.Select(TypeParameter).ToArray())
                 : decl;
             

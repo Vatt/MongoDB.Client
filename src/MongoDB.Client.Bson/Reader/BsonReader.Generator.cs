@@ -6,6 +6,33 @@ namespace MongoDB.Client.Bson.Reader
 {
     public ref partial struct BsonReader
     {
+        public bool? TryReadGeneric<T>(byte bsonType, out T genericValue)
+        {
+            genericValue = default;
+            object temp;
+            switch (genericValue)
+            {
+                case double value:
+                    if (!TryGetDouble(out value)){ return false; }
+                    temp = value;
+                    genericValue = (T)temp;
+                    return true;
+                case int value:
+                    if (!TryGetInt32(out value)){ return false; }
+                    temp = value;
+                    genericValue = (T)temp;
+                    return true;
+                case long value:
+                    if (!TryGetInt64(out value)){ return false; }
+                    temp = value;
+                    genericValue = (T)temp;
+                    return true;
+
+                
+            }
+            return null;
+        }
+        
         public bool TrySkip(int bsonType)
         {
             switch (bsonType)

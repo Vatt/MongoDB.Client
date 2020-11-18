@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16,6 +17,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static GenericNameSyntax SpanByte()
         {
             return GenericName(SF.Identifier("Span"), BytePredefinedType());
+        }
+
+        public static InvocationExpressionSyntax SpanSequenceEqual(ExpressionSyntax spanName, ExpressionSyntax otherSpanName)
+        {
+            return InvocationExpr(spanName, SF.IdentifierName("SequenceEqual"), SF.Argument(otherSpanName));
         }
         //TODO: delete this
         public static SyntaxToken ReadOnlySpanNameSyntaxToken(INamedTypeSymbol classSymbol, MemberDeclarationMeta memberdecl)
@@ -40,6 +46,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.SeparatedList(source);
         }
+        public static SeparatedSyntaxList<SyntaxNode> SeparatedList<T>(T source) where T: SyntaxNode
+        {
+            return SF.SeparatedList(new []{source});
+        }
 
         public static SyntaxTokenList SyntaxTokenList(params SyntaxToken[] tokens)
         {
@@ -54,7 +64,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return IfNotReturn(condition, SF.ReturnStatement(FalseLiteralExpr()));
         }
-
+        public static IfStatementSyntax IfContinue(ExpressionSyntax condition)
+        {
+            return SF.IfStatement(condition, SF.Block(SF.ContinueStatement()));
+        }
         public static ArrayCreationExpressionSyntax SingleDimensionByteArrayCreation(int size, SeparatedSyntaxList<ExpressionSyntax>? expressions = default)
         {
             var rank = new SyntaxList<ArrayRankSpecifierSyntax>(SF.ArrayRankSpecifier().AddSizes(NumericLiteralExpr(size)));
@@ -67,6 +80,53 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 return SF.ArrayCreationExpression(SF.ArrayType(BytePredefinedType(), rank), SF.InitializerExpression(SyntaxKind.ArrayInitializerExpression));
             }
             
+        }
+        public static SizeOfExpressionSyntax SizeOf(TypeSyntax type)
+        {
+            return SF.SizeOfExpression(type);
+        }
+        public static InvocationExpressionSyntax NameOf(ExpressionSyntax expr)
+        {
+            return SF.InvocationExpression(SF.IdentifierName("nameof"), SF.ArgumentList().AddArguments(SF.Argument(expr)));
+        }
+        public static SizeOfExpressionSyntax SizeOfInt()
+        {
+            return SizeOf(IntPredefinedType());
+        }
+        public static BinaryExpressionSyntax BinaryExprMinus(ExpressionSyntax left, ExpressionSyntax right)
+        {
+            return SF.BinaryExpression(SyntaxKind.SubtractExpression, left, right);
+        }
+        public static BinaryExpressionSyntax BinaryExprLessThan(ExpressionSyntax left, ExpressionSyntax right)
+        {
+            return SF.BinaryExpression(SyntaxKind.LessThanExpression, left, right);
+        }
+        public static BinaryExpressionSyntax BinaryExprPlus(ExpressionSyntax left, ExpressionSyntax right)
+        {
+            return SF.BinaryExpression(SyntaxKind.AddExpression, left, right);
+        }
+        public static BinaryExpressionSyntax BinaryExprNotEquals(ExpressionSyntax left, ExpressionSyntax right)
+        {
+            return SF.BinaryExpression(SyntaxKind.NotEqualsExpression, left, right);
+        }
+        public static BinaryExpressionSyntax BinaryExprEqualsEquals(ExpressionSyntax left, ExpressionSyntax right)
+        {
+            return SF.BinaryExpression(SyntaxKind.EqualsExpression, left, right);
+        }
+        public static DeclarationExpressionSyntax VarVariableDeclarationExpr(SyntaxToken varId)
+        {
+            return SF.DeclarationExpression(SF.IdentifierName("var"), SF.SingleVariableDesignation(varId));
+        }
+
+        public static LocalDeclarationStatementSyntax VarLocalDeclarationStatement(SyntaxToken variable, ExpressionSyntax expression)
+        {
+            var declarator = SF.VariableDeclarator(variable, default, SF.EqualsValueClause(expression));
+            return SF.LocalDeclarationStatement(SF.VariableDeclaration(SF.IdentifierName("var"), SeparatedList(declarator)));
+        }
+        public static LocalDeclarationStatementSyntax DefaultLocalDeclarationStatement(TypeSyntax type,  SyntaxToken variable)
+        {
+            var declarator = SF.VariableDeclarator(variable, default, SF.EqualsValueClause(DefaultLiteralExpr()));
+            return SF.LocalDeclarationStatement(SF.VariableDeclaration(type, SeparatedList(declarator)));
         }
     }
 }

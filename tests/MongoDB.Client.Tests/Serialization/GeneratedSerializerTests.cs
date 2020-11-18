@@ -59,6 +59,13 @@ namespace MongoDB.Client.Tests.Serialization
         [Fact]
         public async Task SerializationDeserializationGenerated()
         {
+            var enmarker = 1;
+            if (enmarker != '\x00') { }
+            var str = nameof(enmarker);
+            while(true)
+            {
+                continue;
+            }
             var lstModel = new ModelForGenerated.ListModel()
             {
                 Strings = new List<string>(){"StringValue1" , "StringValue2", "StringValue3"},
