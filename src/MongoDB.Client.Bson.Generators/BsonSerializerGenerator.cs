@@ -24,7 +24,7 @@ namespace MongoDB.Client.Bson.Generators
         public void Execute(GeneratorExecutionContext context)
         {
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver)) { return; }
-            System.Diagnostics.Debugger.Launch();
+            //System.Diagnostics.Debugger.Launch();
             if (receiver.Candidates.Count == 0)
             {
                 return;
@@ -57,7 +57,7 @@ namespace MongoDB.Client.Bson.Generators
                 }
                 var newSource = units[index].NormalizeWhitespace().ToString();
                 var source = BsonSyntaxGenerator.Create(meta[index])?.NormalizeWhitespace().ToFullString();
-                context.AddSource(Basics.GenerateSerializerName(meta[index].ClassSymbol), SourceText.From(source!, Encoding.UTF8));
+                context.AddSource(Basics.GenerateSerializerName(meta[index].ClassSymbol), SourceText.From(newSource!, Encoding.UTF8));
                 System.Diagnostics.Debugger.Break();
             }
             _stopwatch.Stop();
@@ -86,7 +86,8 @@ namespace MongoDB.Client.Bson.Generators
 
                     foreach (var attr in symbol.GetAttributes())
                     {
-                        if (attr.AttributeClass!.ToString().Equals("MongoDB.Client.Bson.Serialization.Attributes.BsonSerializableAttribute"))
+                        if (attr.AttributeClass!.ToString().Equals("MongoDB.Client.Bson.Serialization.Attributes.BsonSerializableAttribute") ||
+                            attr.AttributeClass!.ToString().Equals("MongoDB.Client.Bson.Serialization.Attributes.BsonEnumSerializableAttribute"))
                         {
                             symbols.Add(symbol);
                             break;

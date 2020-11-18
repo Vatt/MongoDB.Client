@@ -64,6 +64,21 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return IfNotReturn(condition, SF.ReturnStatement(FalseLiteralExpr()));
         }
+        public static IfStatementSyntax IfNotReturnFalseElse(ExpressionSyntax condition, ExpressionSyntax elseClause)
+        {
+            return SF.IfStatement(
+                SF.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, condition),
+                SF.Block(SF.ReturnStatement(FalseLiteralExpr())),
+                SF.ElseClause(SF.Block(SF.ExpressionStatement(elseClause))));
+        }
+        public static IfStatementSyntax IfNotReturnFalseElse(ExpressionSyntax condition, BlockSyntax @else)
+        {
+            //return IfNotReturn(condition, SF.ReturnStatement(FalseLiteralExpr()));
+            return SF.IfStatement(
+                SF.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, condition),
+                SF.Block(SF.ReturnStatement(FalseLiteralExpr())),
+                SF.ElseClause(@else));
+        }
         public static IfStatementSyntax IfContinue(ExpressionSyntax condition)
         {
             return SF.IfStatement(condition, SF.Block(SF.ContinueStatement()));

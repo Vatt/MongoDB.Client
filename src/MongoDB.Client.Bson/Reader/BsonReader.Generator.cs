@@ -32,7 +32,16 @@ namespace MongoDB.Client.Bson.Reader
             }
             return null;
         }
-        
+
+        public bool TrySkipCString()
+        {
+            if (!_input.TryAdvanceTo(EndMarker))
+            {
+                return false;
+            }
+
+            return true;
+        }
         public bool TrySkip(int bsonType)
         {
             switch (bsonType)

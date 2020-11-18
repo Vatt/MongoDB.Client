@@ -45,6 +45,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 .WithBaseList(BaseList(ctx))
                 .WithMembers(GenerateStaticNamesSpans())
                 .AddMembers(TryParseMethod(ctx))
+                .AddMembers(WriteMethod(ctx))
                 .AddMembers(GenerateReadArrayMethods(ctx));
             return ctx.GenericArgs.HasValue && ctx.GenericArgs!.Value.Length > 0
                 ? decl.AddTypeParameterListParameters(ctx.GenericArgs!.Value.Select(TypeParameter).ToArray())

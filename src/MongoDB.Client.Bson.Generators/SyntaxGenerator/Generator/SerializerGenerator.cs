@@ -49,6 +49,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Argument(colonName, SF.Token(SyntaxKind.OutKeyword), expr);
         }
+        public static ArgumentSyntax Argument(SyntaxToken token, NameColonSyntax colonName = default)
+        {
+            return SF.Argument(colonName, default, IdentifierName(token));
+        }
         public static ArgumentSyntax InArgument(ExpressionSyntax expr, NameColonSyntax colonName = default)
         {
             return SF.Argument(colonName, SF.Token(SyntaxKind.InKeyword), expr);
