@@ -33,7 +33,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         internal SyntaxToken TryParseOutVarToken => SF.Identifier("message");
         internal IdentifierNameSyntax TryParseOutVar => SF.IdentifierName(TryParseOutVarToken);
         internal IdentifierNameSyntax WriterInputVar => SF.IdentifierName("message");
-        
+        internal SyntaxToken WriterInputVarToken => SF.Identifier("message");
         internal readonly MasterContext Root;
         internal readonly INamedTypeSymbol Declaration;
         internal readonly List<MemberContext> Members;

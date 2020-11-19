@@ -127,7 +127,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var endMarkerToken = SF.Identifier("endMarker");
             var bsonTypeToken = SF.Identifier("bsonType");
             var bsonNameToken = SF.Identifier("bsonName");
-            var body = ctx.Declaration.TypeKind == TypeKind.Enum ? TryParseEnumBody(ctx) : TryParseDefaultBody(ctx, docLenToken, unreadedToken, bsonTypeToken, bsonNameToken, endMarkerToken);
+            var body = ctx.Declaration.TypeKind == TypeKind.Enum ? 
+                TryParseEnumBody(ctx) : 
+                TryParseDefaultBody(ctx, docLenToken, unreadedToken, bsonTypeToken, bsonNameToken, endMarkerToken);
             return SF.MethodDeclaration(
                     attributeLists: default,
                     modifiers: default,
@@ -195,7 +197,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Block(
                     SimpleAssignExprStatement(ctx.TryParseOutVar, DefaultLiteralExpr()))
-                .AddStatements(DeclareTempVariables(ctx)).AddStatements(
+                    .AddStatements(DeclareTempVariables(ctx)).AddStatements(
                     IfNotReturnFalse(TryGetInt32(VarVariableDeclarationExpr(docLenToken))),
                     VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemaining(), SizeOfInt())),
                     SF.WhileStatement(
@@ -336,11 +338,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             expr = default;
             switch (typeSymbol.ToString())
             {
-                //case "System.Double":
                 case "double":
                     expr = TryGetDouble(variable);
                     return true;
-                //case "System.String":
                 case "string":
                     expr = TryGetString(variable);
                     return true;
@@ -350,15 +350,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 case "MongoDB.Client.Bson.Document.BsonObjectId":
                     expr = TryGetObjectId(variable);
                     return true;
-                //case "System.Boolean":
                 case "bool":
                     expr = TryGetBoolean(variable);
                     return true;
-                //case "System.Int32":
                 case "int":
                     expr = TryGetInt32(variable);
                     return true;
-                //case "System.Int64":
                 case "long":
                     expr = TryGetInt64(variable);
                     return true;

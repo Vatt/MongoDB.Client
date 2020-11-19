@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.CodeAnalysis;
-
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Core;
+using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
     internal static  class AttributeHelper
@@ -12,7 +15,48 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         public static string BsonElementAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonElementAttribute";
         public static string BsonIdAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonIdAttribute";
         public static string BsonWriteIgnoreIfAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonWriteIgnoreIfAttribute";
-
+        public static bool TryGetBsonWriteIgnoreIfAttr(MemberContext ctx, out ExpressionSyntax expr)
+        {
+            expr = default;
+            if (ctx.NameSym.GetAttributes().Length == 0)
+            {
+                return false;
+            }
+            foreach(var attr in ctx.NameSym.GetAttributes())
+            {
+                if (attr.AttributeClass.ToString().Equals(BsonWriteIgnoreIfAttr))
+                {
+                    expr = SF.ParseExpression((string)attr.ConstructorArguments[0].Value);
+                    
+                    foreach (var meta in ctx.Root.Root.Contexts.Where(classСtx => classСtx.Declaration.ToString().Equals(ctx.NameSym.ToString())))
+                    {
+                        foreach (var member in ctx.Root.Root.Contexts)
+                        {
+                            var id = SF.IdentifierName(member.Declaration.Name);
+                            var newid = SF.IdentifierName($"{ctx.Root.WriterInputVar.Identifier.Text}.{member.Declaration.Name}");
+                            foreach (var node in expr.DescendantNodes())
+                            {
+                                if (node.ToString().Equals(member.Declaration.Name))
+                                {
+                                    if (node is ArgumentSyntax arg)
+                                    {
+                                        var newarg = SF.Argument(newid);
+                                        expr = expr.ReplaceNode(node, newarg);
+                                    }
+                                    else
+                                    {
+                                        expr = expr.ReplaceNode(node, newid);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    expr = SF.ParenthesizedExpression(expr);
+                    return true;
+                }
+            }
+            return false;
+        }
         public static int GetEnumRepresentation(ISymbol symbol)
         {
             foreach (var attr in symbol.GetAttributes())

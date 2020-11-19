@@ -26,6 +26,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var sma = SimpleMemberAccess(generatedHelperId, serializer);
             return InvocationExpr(sma, IdentifierName("TryParse") , RefArgument(reader), OutArgument(variable));
         }
+        public static InvocationExpressionSyntax GeneratedSerializerWrite(ClassContext ctx, ExpressionSyntax writer, ExpressionSyntax variable)
+        {
+            var generatedHelperId = SF.IdentifierName("GlobalSerializationHelperGenerated");
+            var serializer = SF.IdentifierName($"{SerializerName(ctx)}StaticField");
+            var sma = SimpleMemberAccess(generatedHelperId, serializer);
+            return InvocationExpr(sma, IdentifierName("Write") , RefArgument(writer), InArgument(variable));
+        }
         public static SyntaxToken StaticFieldNameToken(MemberContext ctx)
         {
             return SF.Identifier($"{ctx.Root.Declaration.Name}{ctx.BsonElementAlias}");
@@ -48,7 +55,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 .WithMembers(GenerateStaticNamesSpans())
                 .AddMembers(TryParseMethod(ctx))
                 .AddMembers(WriteMethod(ctx))
-                .AddMembers(GenerateReadArrayMethods(ctx));
+                .AddMembers(GenerateReadArrayMethods(ctx))
+                .AddMembers(GenerateWriteArrayMethods(ctx));
             return ctx.GenericArgs.HasValue && ctx.GenericArgs!.Value.Length > 0
                 ? decl.AddTypeParameterListParameters(ctx.GenericArgs!.Value.Select(TypeParameter).ToArray())
                 : decl;

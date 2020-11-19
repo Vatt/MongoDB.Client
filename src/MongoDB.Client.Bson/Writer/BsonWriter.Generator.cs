@@ -5,12 +5,40 @@ using System.Buffers.Binary;
 using System.Buffers.Text;
 using System.Runtime.CompilerServices;
 using System.Text;
+using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Bson.Serialization.Exceptions;
 using MongoDB.Client.Bson.Utils;
 
 namespace MongoDB.Client.Bson.Writer
 {
     public ref partial struct BsonWriter
     {
+        private static void ThrowSerializerNotFound(string typeName)
+        {
+            throw new SerializerNotFound(typeName);
+        }
+        public void WriteGeneric<T>(in T genericValue)
+        {
+            switch (genericValue)
+            {
+                case double value:
+                    WriteDouble(value);
+                    return;
+                case int value:
+                    WriteInt32(value);
+                    return;
+                case long value:
+                    WriteInt64(value);
+                    return;
+            }
+
+            if (!SerializersMap.TryGetSerializer<T>(out var serializer))
+            {
+                ThrowSerializerNotFound(typeof(T).Name);
+            }
+
+            serializer.Write(ref this, genericValue);
+        }
         private void WriteGuidAsBinaryData(Guid value)
         {
             const int guidSize = 16;

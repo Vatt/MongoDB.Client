@@ -7,6 +7,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        public static StatementSyntax Statement(ExpressionSyntax expr)
+        {
+            return SF.ExpressionStatement(expr);
+        }
         public static ObjectCreationExpressionSyntax ObjectCreation(TypeSyntax type, params ArgumentSyntax[] args)
         {
             return SF.ObjectCreationExpression(type, args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args), default);
@@ -37,6 +41,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.ExpressionStatement(InvocationExpr(source, member, args));
         }
+        public static ExpressionStatementSyntax InvocationExprStatement(IdentifierNameSyntax member, params ArgumentSyntax[] args)
+        {
+            return SF.ExpressionStatement(InvocationExpr(member, args));
+        }
         public static InvocationExpressionSyntax InvocationExpr(ExpressionSyntax source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
         {
             return SF.InvocationExpression(SimpleMemberAccess(source, member), args.Length ==0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args));
@@ -66,6 +74,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Argument(colonName, SF.Token(SyntaxKind.InKeyword), expr);
         }
+        public static ArgumentSyntax InArgument(SyntaxToken expr, NameColonSyntax colonName = default)
+        {
+            return SF.Argument(colonName, SF.Token(SyntaxKind.InKeyword), IdentifierName(expr));
+        }
+        public static ArgumentSyntax RefArgument(SyntaxToken token, NameColonSyntax colonName = default)
+        {
+            return SF.Argument(colonName, SF.Token(SyntaxKind.RefKeyword), IdentifierName(token));
+        }
         public static ArgumentSyntax RefArgument(ExpressionSyntax expr, NameColonSyntax colonName = default)
         {
             return SF.Argument(colonName, SF.Token(SyntaxKind.RefKeyword), expr);
@@ -75,6 +91,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return SF.Parameter(
                 attributeLists: default,
                 modifiers: SyntaxTokenList(SF.Token(SyntaxKind.OutKeyword)),
+                identifier: identifier,
+                type: type,
+                @default: @default);
+        }
+        public static ParameterSyntax Parameter(TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax? @default = default)
+        {
+            return SF.Parameter(
+                attributeLists: default,
+                modifiers: default,
                 identifier: identifier,
                 type: type,
                 @default: @default);
@@ -242,6 +267,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             var rank = new SyntaxList<ArrayRankSpecifierSyntax>(SF.ArrayRankSpecifier().AddSizes(NumericLiteralExpr(size)));
             return SF.ArrayCreationExpression(SF.ArrayType(arrayType, rank), initializer);
+        }
+
+        public static StackAllocArrayCreationExpressionSyntax StackAllocByteArray(int size)
+        {
+            var rank = new SyntaxList<ArrayRankSpecifierSyntax>(SF.ArrayRankSpecifier().AddSizes(NumericLiteralExpr(size)));
+            return SF.StackAllocArrayCreationExpression(SF.ArrayType(BytePredefinedType(), rank));
         }
     }
 }

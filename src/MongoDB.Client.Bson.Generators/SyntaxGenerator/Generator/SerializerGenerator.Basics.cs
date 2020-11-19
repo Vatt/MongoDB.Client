@@ -84,6 +84,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 SF.Block(SF.ReturnStatement(FalseLiteralExpr())),
                 SF.ElseClause(@else));
         }
+        public static IfStatementSyntax IfNot(ExpressionSyntax condition, ExpressionSyntax statement)
+        {
+            return SF.IfStatement(
+                SF.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, condition),
+                SF.Block(SF.ExpressionStatement(statement)));
+        }
         public static IfStatementSyntax IfContinue(ExpressionSyntax condition)
         {
             return SF.IfStatement(condition, SF.Block(SF.ContinueStatement()));
@@ -137,11 +143,40 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.DeclarationExpression(SF.IdentifierName("var"), SF.SingleVariableDesignation(varId));
         }
+        public static VariableDeclarationSyntax VarVariableDeclaration(SyntaxToken variable, ExpressionSyntax expression)
+        {
+            var declarator = SF.VariableDeclarator(variable, default, SF.EqualsValueClause(expression));
+            return SF.VariableDeclaration(SF.IdentifierName("var"), SeparatedList(declarator));
+        }
 
+        public static ForStatementSyntax ForStatement(SyntaxToken indexVar, ExpressionSyntax condition, ExpressionSyntax incrementor, BlockSyntax body)
+        {
+            return SF.ForStatement(
+                declaration: VarVariableDeclaration(indexVar, NumericLiteralExpr(0)),
+                initializers: new SeparatedSyntaxList<ExpressionSyntax>(),
+                condition: condition,
+                incrementors: SeparatedList(incrementor),
+                statement: body
+            );
+        }
+
+        public static ElementAccessExpressionSyntax ElementAccessExpr(ExpressionSyntax target, SyntaxToken index)
+        {
+            return SF.ElementAccessExpression(target, SF.BracketedArgumentList(SeparatedList(SF.Argument(IdentifierName(index)))));
+        }
+        public static PostfixUnaryExpressionSyntax PostfixUnaryExpr(SyntaxToken variable)
+        {
+            return SF.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, IdentifierName(variable));
+        }
         public static LocalDeclarationStatementSyntax VarLocalDeclarationStatement(SyntaxToken variable, ExpressionSyntax expression)
         {
             var declarator = SF.VariableDeclarator(variable, default, SF.EqualsValueClause(expression));
             return SF.LocalDeclarationStatement(SF.VariableDeclaration(SF.IdentifierName("var"), SeparatedList(declarator)));
+        }
+        public static LocalDeclarationStatementSyntax LocalDeclarationStatement(TypeSyntax type, SyntaxToken variable, ExpressionSyntax expression)
+        {
+            var declarator = SF.VariableDeclarator(variable, default, SF.EqualsValueClause(expression));
+            return SF.LocalDeclarationStatement(SF.VariableDeclaration(type, SeparatedList(declarator)));
         }
         public static LocalDeclarationStatementSyntax DefaultLocalDeclarationStatement(TypeSyntax type,  SyntaxToken variable)
         {
