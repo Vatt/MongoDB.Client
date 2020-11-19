@@ -24,7 +24,7 @@ namespace MongoDB.Client.Bson.Generators
                         [ModuleInitializerAttribute]
                         public static void MapInit()
                         {{
-                            SerializersMap.RegisterSerializers(GetGeneratedSerializers()) ;
+                            MongoDB.Client.Bson.Serialization.SerializersMap.RegisterSerializers(GetGeneratedSerializers()) ;
                         }}
                     }}
                 }}");

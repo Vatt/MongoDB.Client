@@ -245,21 +245,23 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static ExpressionSyntax ReadOperation(ClassContext ctx, ISymbol nameSym, ITypeSymbol typeSym, ExpressionSyntax readerId, 
                                                       ExpressionSyntax readTarget, SyntaxToken bsonType, SyntaxToken bsonName)
         {
-            if (TryGetSimpleReadOperation(typeSym, IdentifierName(bsonType), readTarget, out var simpleOperation))
+            ITypeSymbol trueType = typeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol) typeSym).TypeParameters[0] : typeSym;
+           
+            if (TryGetSimpleReadOperation(trueType, IdentifierName(bsonType), readTarget, out var simpleOperation))
             {
                 return simpleOperation;
             }
 
-            if ( ctx.GenericArgs?.FirstOrDefault( sym => sym.Name.Equals(typeSym.Name)) != default )
+            if ( ctx.GenericArgs?.FirstOrDefault( sym => sym.Name.Equals(trueType.Name)) != default )
             {
                 //TODO: generic read
             }
-            if (typeSym is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)
+            if (trueType is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)
             {
                 if (namedType.ToString().Contains("System.Collections.Generic.List") ||
                     namedType.ToString().Contains("System.Collections.Generic.IList"))
                 {
-                    return InvocationExpr(IdentifierName(ReadArrayMethodName(nameSym, typeSym)), RefArgument(readerId), OutArgument(readTarget));
+                    return InvocationExpr(IdentifierName(ReadArrayMethodName(nameSym, trueType)), RefArgument(readerId), OutArgument(readTarget));
                 }
             }
             else
@@ -267,7 +269,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 foreach (var context in ctx.Root.Contexts)
                 {
                     //TODO: если сериализатор не из ЭТОЙ сборки, добавить ветку с мапой с проверкой на нуль
-                    if (context.Declaration.ToString().Equals(typeSym.ToString()))
+                    if (context.Declaration.ToString().Equals(trueType.ToString()))
                     {
                         return GeneratedSerializerTryParse(context, readerId, readTarget);
                     }

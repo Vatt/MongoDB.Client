@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace MongoDB.Client
+namespace MongoDB.Client.Bson.Serialization
 {
     public static class SerializersMap
     {

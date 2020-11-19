@@ -1,5 +1,4 @@
 ﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization.Generated;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Network;
 using MongoDB.Client.Protocol.Common;
@@ -14,9 +13,9 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Protocol.Messages;
-using System.Linq;
 using MongoDB.Client.MongoConnections;
 using MongoDB.Client.Writers;
 

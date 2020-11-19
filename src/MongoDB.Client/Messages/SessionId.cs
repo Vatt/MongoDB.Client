@@ -16,7 +16,7 @@ namespace MongoDB.Client.Messages
         {
         }
         
-        [BsonElement(ElementName = "id")]
+        [BsonElement("id")]
         public Guid Id { get; set; }
     }
 }

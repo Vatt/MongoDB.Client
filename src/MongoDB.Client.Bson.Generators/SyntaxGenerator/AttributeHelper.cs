@@ -58,7 +58,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     }
                     var data = (string)attr.ConstructorArguments[0].Value!;
                     data = data.Replace('(', '_').Replace(')', '_').Replace('$', '_').Replace(' ', '_');
-                    return ("_id", data!);
+                    return ((string)attr.ConstructorArguments[0].Value!, data!);
                 }
             }
             return (memberSym.Name, memberSym.Name);

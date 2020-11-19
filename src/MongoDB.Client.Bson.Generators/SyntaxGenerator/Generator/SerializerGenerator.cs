@@ -13,7 +13,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static ObjectCreationExpressionSyntax ObjectCreation(INamedTypeSymbol sym, params ArgumentSyntax[] args)
         {
-            return SF.ObjectCreationExpression(SF.ParseTypeName(sym.ToString()), args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args), default);
+            ITypeSymbol trueType = sym.Name.Equals("Nullable") ? sym.TypeParameters[0] : sym;
+            return SF.ObjectCreationExpression(SF.ParseTypeName(trueType.ToString()), args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args), default);
         }
         public static MemberAccessExpressionSyntax SimpleMemberAccess(INamedTypeSymbol classSymbol, MemberDeclarationMeta memberdecl)
         {
@@ -213,11 +214,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static TypeSyntax TypeFullName(ITypeSymbol sym)
         {
-            return SF.ParseTypeName(sym.ToString());
+            ITypeSymbol trueType = sym.Name.Equals("Nullable") ? ((INamedTypeSymbol)sym).TypeParameters[0] : sym;
+            return SF.ParseTypeName(trueType.ToString());
         }
         public static TypeSyntax TypeName(ITypeSymbol sym)
         {
-            return SF.ParseTypeName(sym.Name);
+            ITypeSymbol trueType = sym.Name.Equals("Nullable") ? ((INamedTypeSymbol)sym).TypeParameters[0] : sym;
+            return SF.ParseTypeName(trueType.Name);
         }
         public static TypeParameterSyntax FullTypeParameter(ITypeSymbol sym)
         {

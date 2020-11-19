@@ -7,50 +7,50 @@ namespace MongoDB.Client.MongoConnections
     [BsonSerializable]
     public class MongoTopologyVersion
     {
-        [BsonElement(ElementName = "processId")]
+        [BsonElement("processId")]
         public BsonObjectId ProcesssId;
 
-        [BsonElement(ElementName = "counter")]
+        [BsonElement("counter")]
         public long Counter { get; set; }
     }
 
     [BsonSerializable]
     public class MongoConnectionInfo
     {
-        [BsonElement(ElementName = "ismaster")]
+        [BsonElement("ismaster")]
         public bool IsMaster { get; set; }
 
-        [BsonElement(ElementName = "topologyVersion")]
+        [BsonElement("topologyVersion")]
         public MongoTopologyVersion Topology { get; set; }
 
-        [BsonElement(ElementName = "maxBsonObjectSize")]
+        [BsonElement("maxBsonObjectSize")]
         public int MaxBsonObjectSize { get; set; }
 
-        [BsonElement(ElementName = "maxMessageSizeBytes")]
+        [BsonElement("maxMessageSizeBytes")]
         public int MaxMessageSizeBytes { get; set; }
 
-        [BsonElement(ElementName = "maxWriteBatchSize")]
+        [BsonElement("maxWriteBatchSize")]
         public int MaxWriteBatchSize { get; set; }
 
-        [BsonElement(ElementName = "localTime")]
+        [BsonElement("localTime")]
         public DateTimeOffset LocalTime { get; set; }
 
-        [BsonElement(ElementName = "logicalSessionTimeoutMinutes")]
+        [BsonElement("logicalSessionTimeoutMinutes")]
         public int LogicalSessionTimeoutMinutes { get; set; }
 
-        [BsonElement(ElementName = "connectionId")]
+        [BsonElement("connectionId")]
         public int ConnectionId { get; set; }
 
-        [BsonElement(ElementName = "minWireVersion")]
+        [BsonElement("minWireVersion")]
         public int MinWireVersion { get; set; }
 
-        [BsonElement(ElementName = "maxWireVersion")]
+        [BsonElement("maxWireVersion")]
         public int MaxWireVersion { get; set; }
 
-        [BsonElement(ElementName = "readOnly")]
+        [BsonElement("readOnly")]
         public bool IsReadOnly { get; set; }
 
-        [BsonElement(ElementName = "ok")]
+        [BsonElement("ok")]
         public double Ok { get; set; }
 
     }
