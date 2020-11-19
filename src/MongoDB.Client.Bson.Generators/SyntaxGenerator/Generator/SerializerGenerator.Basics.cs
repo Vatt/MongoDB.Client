@@ -37,6 +37,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.CastExpression(IntPredefinedType(), expr);
         }
+
+        public static CastExpressionSyntax Cast(ITypeSymbol type, ExpressionSyntax expr)
+        {
+            return SF.CastExpression(TypeFullName(type), expr);
+        }
         public static CastExpressionSyntax CastToLong(ExpressionSyntax expr)
         {
             return SF.CastExpression(LongPredefinedType(), expr);

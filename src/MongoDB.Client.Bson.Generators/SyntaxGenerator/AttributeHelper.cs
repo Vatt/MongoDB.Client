@@ -5,13 +5,27 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
     internal static  class AttributeHelper
     {
-        public static string BsonSerializableAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonSerializable";
-        public static string BsonEnumSerializableAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonEnumSerializable";
+        public static string BsonSerializableAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonSerializableAttribute";
+        public static string BsonEnumSerializableAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonEnumSerializableAttribute";
         public static string BsonConstructorAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonConstructorAttribute";
         public static string IgnoreAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonIgnoreAttribute";
         public static string BsonElementAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonElementAttribute";
         public static string BsonIdAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonIdAttribute";
         public static string BsonWriteIgnoreIfAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonWriteIgnoreIfAttribute";
+
+        public static int GetEnumRepresentation(ISymbol symbol)
+        {
+            foreach (var attr in symbol.GetAttributes())
+            {
+                if (attr.AttributeClass!.ToString().Equals(BsonEnumSerializableAttr))
+                {
+                    return (int) attr.ConstructorArguments[0].Value;
+                }
+            }
+
+            return -1;
+        }
+        
         public static bool TryFindPrimaryConstructor(INamedTypeSymbol symbol, out IMethodSymbol? constructor)
         {
             constructor = default;

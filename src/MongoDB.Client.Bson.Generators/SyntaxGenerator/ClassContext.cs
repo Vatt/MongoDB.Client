@@ -68,7 +68,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             }
             foreach (var member in Declaration.GetMembers())
             {
-                if (member.IsStatic || member.IsAbstract || AttributeHelper.IsIgnore(member) ||
+                if ( (member.IsStatic && Declaration.TypeKind != TypeKind.Enum) || member.IsAbstract || AttributeHelper.IsIgnore(member) ||
                      (member.Kind != SymbolKind.Property && member.Kind != SymbolKind.Field))
                 {
                     continue;

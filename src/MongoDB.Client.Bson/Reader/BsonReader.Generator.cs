@@ -1,12 +1,18 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Bson.Serialization.Exceptions;
 using MongoDB.Client.Bson.Utils;
 
 namespace MongoDB.Client.Bson.Reader
 {
     public ref partial struct BsonReader
     {
-        public bool? TryReadGeneric<T>(byte bsonType, out T genericValue)
+        private static void ThrowSerializerNotFound(string typeName)
+        {
+            throw new SerializerNotFound(typeName);
+        }
+        public bool TryReadGeneric<T>(out T genericValue)
         {
             genericValue = default;
             object temp;
@@ -30,7 +36,13 @@ namespace MongoDB.Client.Bson.Reader
 
                 
             }
-            return null;
+
+            if (!SerializersMap.TryGetSerializer<T>(out var serializer))
+            {
+                ThrowSerializerNotFound(typeof(T).Name);
+            }
+
+            return serializer.TryParse(ref this, out genericValue);
         }
 
         public bool TrySkipCString()
