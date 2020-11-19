@@ -32,6 +32,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var first = SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member1);
             return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, first, member2);
         }
+        public static ExpressionStatementSyntax InvocationExprStatement(ExpressionSyntax source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
+        {
+            return SF.ExpressionStatement(InvocationExpr(source, member, args));
+        }
         public static InvocationExpressionSyntax InvocationExpr(ExpressionSyntax source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
         {
             return SF.InvocationExpression(SimpleMemberAccess(source, member), args.Length ==0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args));
@@ -52,6 +56,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static ArgumentSyntax Argument(SyntaxToken token, NameColonSyntax colonName = default)
         {
             return SF.Argument(colonName, default, IdentifierName(token));
+        }
+        public static ArgumentSyntax Argument(ExpressionSyntax expr, NameColonSyntax colonName = default)
+        {
+            return SF.Argument(colonName, default, expr);
         }
         public static ArgumentSyntax InArgument(ExpressionSyntax expr, NameColonSyntax colonName = default)
         {
@@ -101,6 +109,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Token(SyntaxKind.BoolKeyword);
         }
+        public static SyntaxToken VoidKeyword()
+        {
+            return SF.Token(SyntaxKind.VoidKeyword);
+        }
         public static SyntaxToken IntKeyword()
         {
             return SF.Token(SyntaxKind.IntKeyword);
@@ -140,6 +152,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static PredefinedTypeSyntax BoolPredefinedType()
         {
             return SF.PredefinedType(BoolKeyword());
+        }
+        public static PredefinedTypeSyntax VoidPredefinedType()
+        {
+            return SF.PredefinedType(VoidKeyword());
         }
         public static LiteralExpressionSyntax DefaultLiteralExpr()
         {
@@ -211,7 +227,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.TypeParameter(sym.Name);
         }
-
+        public static ExpressionStatementSyntax SimpleAssignExprStatement(ExpressionSyntax left, ExpressionSyntax right)
+        {
+            return SF.ExpressionStatement(SimpleAssignExpr(left, right));
+        }
         public static AssignmentExpressionSyntax SimpleAssignExpr(ExpressionSyntax left, ExpressionSyntax right)
         {
             return SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, left, right);

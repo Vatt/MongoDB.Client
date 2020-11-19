@@ -1,11 +1,12 @@
 ﻿using MongoDB.Client.Bson.Generators.SyntaxGenerator;
 using System.Text;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
 
 namespace MongoDB.Client.Bson.Generators
 {
     partial class BsonSerializerGenerator
     {
-        public string GenerateGlobalHelperStaticClass()
+        public string GenerateGlobalHelperStaticClass(MasterContext ctx)
         {
             StringBuilder builder = new StringBuilder();
             builder.Append($@"
@@ -16,7 +17,7 @@ namespace MongoDB.Client.Bson.Generators
                 using System.Runtime.CompilerServices;
 
                 namespace MongoDB.Client.Bson.Serialization.Generated{{
-                    public static class {Basics.GlobalSerializationHelperGeneratedString}{{
+                    public static class GlobalSerializationHelperGenerated{{
                         {GenerateFields()}
                         {GenerateGetSeriazlizersMethod()}
 
@@ -31,9 +32,9 @@ namespace MongoDB.Client.Bson.Generators
             string GenerateFields()
             {
                 var builder = new StringBuilder();
-                foreach (var info in meta)
+                foreach (var context in ctx.Contexts)
                 {
-                    builder.Append($"\n\t\tpublic static readonly  IGenericBsonSerializer<{info.ClassSymbol.ToString()}>  {Basics.GenerateSerializerNameStaticField(info.ClassSymbol)} = new {Basics.GenerateSerializerName(info.ClassSymbol)}();");
+                    builder.Append($"\n\t\tpublic static readonly  IGenericBsonSerializer<{context.Declaration.ToString()}>  {SerializerGenerator.SerializerName(context)}StaticField = new {SerializerGenerator.SerializerName(context)}();");
                 }
                 return builder.ToString();
             }
@@ -43,14 +44,14 @@ namespace MongoDB.Client.Bson.Generators
                 builder.Append($@"
                 public static KeyValuePair<Type, IBsonSerializer>[]  GetGeneratedSerializers()
                 {{
-                    var pairs = new KeyValuePair<Type, IBsonSerializer>[{meta.Count}];                    
+                    var pairs = new KeyValuePair<Type, IBsonSerializer>[{ctx.Contexts.Count}];                    
                 ");
                 int index = 0;
-                foreach (var decl in meta)
+                foreach (var context in ctx.Contexts)
                 {
 
                     builder.Append($@"
-                    pairs[{index}] = KeyValuePair.Create<Type, IBsonSerializer>(typeof({decl.ClassSymbol.ToString()}), {Basics.GenerateSerializerNameStaticField(decl.ClassSymbol)});
+                    pairs[{index}] = KeyValuePair.Create<Type, IBsonSerializer>(typeof({context.Declaration.ToString()}), {SerializerGenerator.SerializerName(context)}StaticField);
                     ");
                     index++;
                 }

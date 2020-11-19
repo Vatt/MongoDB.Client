@@ -16,14 +16,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             var decl = ctx.Declaration;            
             
-            var parameters = ParameterList(RefParameter(ctx.BsonReaderType, ctx.BsonReaderToken ),
-                                           OutParameter(TypeFullName(ctx.Declaration), ctx.TryParseOutVarToken));
+            var parameters = ParameterList(RefParameter(ctx.BsonWriterType, ctx.BsonWriterToken ),
+                                           InParameter(TypeFullName(ctx.Declaration), ctx.TryParseOutVarToken));
  
             return SF.MethodDeclaration(
                     attributeLists: default,
                     modifiers: default,
-                    explicitInterfaceSpecifier: SF.ExplicitInterfaceSpecifier(GenericName(SerializerToken, TypeFullName(decl))),
-                    returnType: BoolPredefinedType(),
+                    explicitInterfaceSpecifier: SF.ExplicitInterfaceSpecifier(GenericName(SerializerInterfaceToken, TypeFullName(decl))),
+                    returnType: VoidPredefinedType(),
                     identifier: SF.Identifier("Write"),
                     parameterList: parameters,
                     body: default,

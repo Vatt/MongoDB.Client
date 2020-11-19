@@ -9,11 +9,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        public static ThrowExpressionSyntax SerializerEndMarkerException(ExpressionSyntax serializer, ExpressionSyntax endMarker)
+        public static ThrowExpressionSyntax SerializerEndMarkerException(ISymbol symbol, ExpressionSyntax endMarker)
         {
             
             var exception = SF.ParseTypeName("MongoDB.Client.Bson.Serialization.Exceptions.SerializerEndMarkerException");
-            return SF.ThrowExpression(ObjectCreation(exception, SF.Argument(NameOf(serializer)), SF.Argument(endMarker)));
+            return SF.ThrowExpression(ObjectCreation(exception, SF.Argument(NameOf(IdentifierName(symbol.ToString()))), SF.Argument(endMarker)));
         }
     }
 }

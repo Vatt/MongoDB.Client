@@ -29,7 +29,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         internal TypeSyntax BsonReaderType => SF.ParseTypeName("MongoDB.Client.Bson.Reader.BsonReader");
         internal SyntaxToken BsonWriterToken => SF.Identifier("writer");
         internal IdentifierNameSyntax BsonWriterId => SF.IdentifierName(BsonWriterToken);
-        internal TypeSyntax BsonWriterType => SF.ParseTypeName("MongoDB.Client.Bson.Reader.BsonWriter");
+        internal TypeSyntax BsonWriterType => SF.ParseTypeName("MongoDB.Client.Bson.Writer.BsonWriter");
         internal SyntaxToken TryParseOutVarToken => SF.Identifier("message");
         internal IdentifierNameSyntax TryParseOutVar => SF.IdentifierName(TryParseOutVarToken);
         internal IdentifierNameSyntax WriterInputVar => SF.IdentifierName("message");
@@ -61,7 +61,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             GenericArgs = !Declaration.TypeArguments.IsEmpty ? Declaration.TypeArguments : null;
             if (AttributeHelper.TryFindPrimaryConstructor(Declaration, out var constructor))
             {
-                if (constructor!.Arity != 0)
+                if (constructor!.Parameters.Length != 0)
                 {
                     ConstructorParams = constructor.Parameters;
                 }

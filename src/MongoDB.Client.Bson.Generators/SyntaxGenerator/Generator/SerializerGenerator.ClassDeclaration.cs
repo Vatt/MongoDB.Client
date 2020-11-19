@@ -10,7 +10,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        private static readonly SyntaxToken SerializerToken = SF.Identifier("MongoDB.Client.Bson.Serialization.IGenericBsonSerializer");
+        private static readonly SyntaxToken SerializerInterfaceToken = SF.Identifier("MongoDB.Client.Bson.Serialization.IGenericBsonSerializer");
         public static string SerializerName(ClassContext ctx)
         {
             string generics = ctx.GenericArgs.HasValue && ctx.GenericArgs.Value.Length > 0
@@ -21,8 +21,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
         public static InvocationExpressionSyntax GeneratedSerializerTryParse(ClassContext ctx, ExpressionSyntax reader, ExpressionSyntax variable)
         {
+            var generatedHelperId = SF.IdentifierName("GlobalSerializationHelperGenerated");
             var serializer = SF.IdentifierName($"{SerializerName(ctx)}StaticField");
-            return InvocationExpr(serializer, IdentifierName("TryParse"), RefArgument(reader), OutArgument(variable));
+            var sma = SimpleMemberAccess(generatedHelperId, serializer);
+            return InvocationExpr(sma, IdentifierName("TryParse") , RefArgument(reader), OutArgument(variable));
         }
         public static SyntaxToken StaticFieldNameToken(MemberContext ctx)
         {
@@ -33,10 +35,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var decl = ctx.Declaration;
             if (ctx.GenericArgs.HasValue && ctx.GenericArgs.Value.Length > 0)
             {
-                return   SF.BaseList().AddTypes(SF.SimpleBaseType(GenericName(SerializerToken, TypeFullName(decl))));
+                return   SF.BaseList().AddTypes(SF.SimpleBaseType(GenericName(SerializerInterfaceToken, TypeFullName(decl))));
             }
-            var name = GenericName(SerializerToken,TypeFullName(decl));
-            return SF.BaseList().AddTypes(SF.SimpleBaseType(GenericName(SerializerToken, name)));
+            var name = GenericName(SerializerInterfaceToken,TypeFullName(decl));
+            return SF.BaseList().AddTypes(SF.SimpleBaseType(name));
         }
         public static ClassDeclarationSyntax GenerateSerializer(ClassContext ctx)
         {
