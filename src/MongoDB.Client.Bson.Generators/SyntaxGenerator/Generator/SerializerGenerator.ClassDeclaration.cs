@@ -31,7 +31,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var generatedHelperId = SF.IdentifierName("GlobalSerializationHelperGenerated");
             var serializer = SF.IdentifierName($"{SerializerName(ctx)}StaticField");
             var sma = SimpleMemberAccess(generatedHelperId, serializer);
-            return InvocationExpr(sma, IdentifierName("Write") , RefArgument(writer), InArgument(variable));
+            return InvocationExpr(sma, IdentifierName("Write") , RefArgument(writer), Argument(variable));
         }
         public static SyntaxToken StaticFieldNameToken(MemberContext ctx)
         {

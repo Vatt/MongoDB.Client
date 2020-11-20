@@ -28,25 +28,21 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                 {
                     expr = SF.ParseExpression((string)attr.ConstructorArguments[0].Value);
                     
-                    foreach (var meta in ctx.Root.Root.Contexts.Where(classСtx => classСtx.Declaration.ToString().Equals(ctx.NameSym.ToString())))
+                    foreach (var member in ctx.Root.Members)
                     {
-                        foreach (var member in ctx.Root.Root.Contexts)
+                        var newid = SF.IdentifierName($"{ctx.Root.WriterInputVar.Identifier.Text}.{member.NameSym.Name}");
+                        foreach (var node in expr.DescendantNodes())
                         {
-                            var id = SF.IdentifierName(member.Declaration.Name);
-                            var newid = SF.IdentifierName($"{ctx.Root.WriterInputVar.Identifier.Text}.{member.Declaration.Name}");
-                            foreach (var node in expr.DescendantNodes())
+                            if (node.ToString().Equals(member.NameSym.Name))
                             {
-                                if (node.ToString().Equals(member.Declaration.Name))
+                                if (node is ArgumentSyntax arg)
                                 {
-                                    if (node is ArgumentSyntax arg)
-                                    {
-                                        var newarg = SF.Argument(newid);
-                                        expr = expr.ReplaceNode(node, newarg);
-                                    }
-                                    else
-                                    {
-                                        expr = expr.ReplaceNode(node, newid);
-                                    }
+                                    var newarg = SF.Argument(newid);
+                                    expr = expr.ReplaceNode(node, newarg);
+                                }
+                                else
+                                {
+                                    expr = expr.ReplaceNode(node, newid);
                                 }
                             }
                         }

@@ -103,8 +103,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static MethodDeclarationSyntax WriteMethod(ClassContext ctx)
         {
             var decl = ctx.Declaration;
- 
- 
+
+            var body = ctx.Declaration.TypeKind == TypeKind.Enum ? WriteEnumBody(ctx) : WriteDefaultBody(ctx);
             return SF.MethodDeclaration(
                     attributeLists: default,
                     modifiers: default,
@@ -119,9 +119,47 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     expressionBody: default,
                     typeParameterList: default,
                     semicolonToken: default)
-                .WithBody(WriteDefaultBody(ctx));
+                .WithBody(body);
         }
 
+        private static BlockSyntax WriteEnumBody(ClassContext ctx)
+        {
+            var repr = AttributeHelper.GetEnumRepresentation(ctx.Declaration);
+            return (repr) switch
+            {
+                1 => StringRepresentation(ctx),
+                2 => Int32Representation(ctx),
+                3 => Int64Representation(ctx)
+            };
+            static BlockSyntax StringRepresentation(ClassContext ctx)
+            {
+                List<StatementSyntax> statements = new();
+                foreach (var member in ctx.Members)
+                {
+                    var sma = SimpleMemberAccess(IdentifierFullName(member.TypeSym), IdentifierName(member.NameSym));
+                    statements.Add(
+                        SF.IfStatement(
+                            condition: BinaryExprEqualsEquals(ctx.WriterInputVar, sma),
+                            statement: SF.Block( Statement(WriteString(StaticFieldNameToken(member))) )
+                        ));
+                }
+                return SF.Block(statements.ToArray());
+            }
+            static BlockSyntax Int32Representation(ClassContext ctx)
+            {
+                return SF.Block
+                (
+                    Statement(WriteInt32(CastToInt(ctx.WriterInputVar)))
+                );
+            }
+            static BlockSyntax Int64Representation(ClassContext ctx)
+            {
+                return SF.Block
+                (
+                    Statement(WriteInt64(CastToLong(ctx.WriterInputVar)))
+                );
+            }
+        }
         private static BlockSyntax WriteDefaultBody(ClassContext ctx)
         {
             var checkpoint = SF.Identifier("checkpoint");
@@ -210,7 +248,18 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         {
                             return IfNot(condition, GeneratedSerializerWrite(context, writerId, writeTarget));
                         }
-                        return Statement(GeneratedSerializerWrite(context, writerId, writeTarget));
+                        /*
+                         * Строковые, чисельные репрезентации записывают тип сами
+                         */
+                        if (ctx.TypeSym.TypeKind == TypeKind.Enum)
+                        {
+                            return SF.Block(
+                                Statement(Write_Type_Name(2, IdentifierName(StaticFieldNameToken(ctx)))),
+                                Statement(GeneratedSerializerWrite(context, writerId, writeTarget)));
+                        } 
+                        return SF.Block(
+                            Statement(Write_Type_Name(3, IdentifierName(StaticFieldNameToken(ctx)))),
+                            Statement(GeneratedSerializerWrite(context, writerId, writeTarget)));
                     }
                 }
             }

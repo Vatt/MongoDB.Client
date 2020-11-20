@@ -44,7 +44,7 @@ namespace MongoDB.Client.Bson.Generators
                 }
                 var newSource = units[index].NormalizeWhitespace().ToString();
                 context.AddSource(SerializerGenerator.SerializerName(masterContext.Contexts[index]), SourceText.From(newSource!, Encoding.UTF8));
-                System.Diagnostics.Debugger.Break();
+                //System.Diagnostics.Debugger.Break();
             }
             _stopwatch.Stop();
             BsonGeneratorErrorHelper.WriteWarn(context, "Generation elapsed: " + _stopwatch.Elapsed.ToString());
