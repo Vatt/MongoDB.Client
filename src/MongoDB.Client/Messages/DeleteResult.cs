@@ -6,10 +6,10 @@ namespace MongoDB.Client.Messages
     [BsonSerializable]
     public class DeleteResult : IParserResult
     {
-        [BsonElementField(ElementName = "n")]
+        [BsonElement("n")]
         public int N { get; set; }
         
-        [BsonElementField(ElementName = "ok")]
+        [BsonElement("ok")]
         public double Ok { get; set; }
     }
 }

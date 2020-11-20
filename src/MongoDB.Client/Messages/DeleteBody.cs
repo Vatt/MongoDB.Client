@@ -6,10 +6,10 @@ namespace MongoDB.Client.Messages
     [BsonSerializable]
     public class DeleteBody
     {
-        [BsonElementField(ElementName = "q")]
+        [BsonElement("q")]
         public BsonDocument Filter { get; set; }
 
-        [BsonElementField(ElementName = "limit")]
+        [BsonElement("limit")]
         public int Limit { get; set; }
 
         
