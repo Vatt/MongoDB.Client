@@ -13,7 +13,7 @@ namespace MongoDB.Client.Benchmarks
         private MongoCollection<GeoIp> _collection;
         private IMongoCollection<GeoIp> _oldCollection;
 
-        [Params(1000)] 
+        [Params(1, 10, 100, 1000, 10000)]
         public int ItemsCount { get; set; }
         
         [GlobalSetup]
@@ -68,7 +68,14 @@ namespace MongoDB.Client.Benchmarks
             var result = await _collection.Find(EmptyFilter).ToListAsync();
             return result.Count;
         }
-        
+
+        [Benchmark]
+        public async Task<int> NewClientToList2()
+        {
+            var result = await _collection.Find(EmptyFilter).ToListAsync2();
+            return result.Count;
+        }
+
         [Benchmark]
         public async Task<int> OldClientToList()
         {

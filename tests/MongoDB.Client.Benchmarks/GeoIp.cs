@@ -22,7 +22,7 @@ namespace MongoDB.Client.Benchmarks
         public string region { get; set; }
         public string regionName { get; set; }
         public string city { get; set; }
-        public long zip { get; set; }
+        public int zip { get; set; }
         public double lat { get; set; }
         public double lon { get; set; }
         public string timezone { get; set; }
