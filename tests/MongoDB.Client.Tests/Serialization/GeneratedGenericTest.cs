@@ -1,5 +1,7 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Tests.Serialization.TestModels;
 using Xunit;
 
@@ -10,12 +12,15 @@ namespace MongoDB.Client.Tests.Serialization
         [Fact]
         public async Task GenericTest()
         {
+            SerializersMap.RegisterSerializers(KeyValuePair.Create(typeof(GenericModel<long>), new MongoDB.Client.Bson.Serialization.Generated.MongoDBClientTestsSerializationTestModelsGenericModelTSerializerGenerated<long>() as IBsonSerializer));
+            SerializersMap.RegisterSerializers(KeyValuePair.Create(typeof(GenericModel<NonGenericModel>), new MongoDB.Client.Bson.Serialization.Generated.MongoDBClientTestsSerializationTestModelsGenericModelTSerializerGenerated<NonGenericModel>() as IBsonSerializer));
             var simpleModel = new GenericModel<long>()
             {
                 GenericValue = long.MaxValue,
                 GenericList = new System.Collections.Generic.List<long>() { 1, 2, 3, 4, 5},
             };
-            var simpleserializer = new MongoDB.Client.Bson.Serialization.Generated.MongoDBClientTestsSerializationTestModelsGenericModelTSerializerGenerated<long>();
+
+            SerializersMap.TryGetSerializer<GenericModel<long>>(out var simpleserializer);
             var result = await RoundTripAsync<GenericModel<long>>(simpleModel, simpleserializer);
 
             var nongeneric = new NonGenericModel()
@@ -34,7 +39,7 @@ namespace MongoDB.Client.Tests.Serialization
                 },
                 GenericList = new System.Collections.Generic.List<NonGenericModel>() { nongeneric, nongeneric, nongeneric, nongeneric },
             };
-            var docserializer = new MongoDB.Client.Bson.Serialization.Generated.MongoDBClientTestsSerializationTestModelsGenericModelTSerializerGenerated<NonGenericModel>();
+            SerializersMap.TryGetSerializer<GenericModel<NonGenericModel>> (out var docserializer);
             var docresult = await RoundTripAsync<GenericModel<NonGenericModel>>(docgeneric, docserializer);
         }
     }
