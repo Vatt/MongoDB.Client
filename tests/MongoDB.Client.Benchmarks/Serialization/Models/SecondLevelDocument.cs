@@ -9,7 +9,7 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
     public class SecondLevelDocument
     {
         public string TextField { get; set; }
-        public float FloatField { get; set; }
+        public int IntField { get; set; }
         public List<ThirdLevelDocument> InnerDocuments { get; set; }
     }
 }

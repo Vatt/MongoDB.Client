@@ -72,7 +72,7 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
         {
             return new SecondLevelDocument
             {
-                FloatField = i,
+                IntField = i,
                 TextField = $"**{i}**"
             };
         }
