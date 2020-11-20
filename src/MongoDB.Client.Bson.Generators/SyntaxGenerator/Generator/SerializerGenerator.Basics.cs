@@ -90,6 +90,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 SF.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, condition),
                 SF.Block(SF.ExpressionStatement(statement)));
         }
+        public static IfStatementSyntax IfNot(ExpressionSyntax condition, params StatementSyntax[] statement)
+        {
+            return SF.IfStatement(
+                SF.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, condition),
+                SF.Block(statement));
+        }
         public static IfStatementSyntax IfContinue(ExpressionSyntax condition)
         {
             return SF.IfStatement(condition, SF.Block(SF.ContinueStatement()));
