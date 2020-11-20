@@ -19,7 +19,7 @@ namespace MongoDB.Client
             Database = database;
             Namespace = new CollectionNamespace(database.Name, name);
         }
-        
+
         public MongoDatabase Database { get; }
 
         public CollectionNamespace Namespace { get; }
@@ -42,7 +42,7 @@ namespace MongoDB.Client
                 ListsPool<T>.Pool.Return(list);
             }
         }
-        
+
         public async ValueTask InsertAsync(IEnumerable<T> items, CancellationToken cancellationToken = default)
         {
             var channel = await _channelsPool.GetChannelAsync(cancellationToken).ConfigureAwait(false);
@@ -57,7 +57,29 @@ namespace MongoDB.Client
             var request = new InsertMessage<T>(requestNumber, insertHeader, items);
             await channel.InsertAsync(request, cancellationToken).ConfigureAwait(false);
         }
-        
-        private static readonly SessionId SharedSessionIdModel = new SessionId { Id = Guid.NewGuid() };
+
+        public async ValueTask<DeleteResult> DeleteOneAsync(BsonDocument filter, CancellationToken cancellationToken = default)
+        {
+            var channel = await _channelsPool.GetChannelAsync(cancellationToken).ConfigureAwait(false);
+            var requestNumber = channel.GetNextRequestNumber();
+            var deleteHeader = new DeleteHeader
+            {
+                Delete = Namespace.CollectionName,
+                Ordered = true,
+                Db = Namespace.DatabaseName,
+                Lsid = SharedSessionIdModel
+            };
+
+            var deleteBody = new DeleteBody
+            {
+                Filter = filter,
+                Limit = 1
+            };
+
+            var request = new DeleteMessage(requestNumber, deleteHeader, deleteBody);
+            return await channel.DeleteAsync(request, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static readonly SessionId SharedSessionIdModel = new SessionId {Id = Guid.NewGuid()};
     }
 }

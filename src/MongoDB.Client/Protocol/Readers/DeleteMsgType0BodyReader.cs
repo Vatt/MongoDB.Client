@@ -8,14 +8,13 @@ using MongoDB.Client.Protocol.Core;
 
 namespace MongoDB.Client.Protocol.Readers
 {
-    internal class InsertMsgType0BodyReader : IMessageReader<InsertResult>
+    internal class DeleteMsgType0BodyReader : IMessageReader<DeleteResult>
     {
-        private static readonly IGenericBsonSerializer<InsertResult> _resultSerializer;
+        private static readonly IGenericBsonSerializer<DeleteResult> _resultSerializer;
 
-        static InsertMsgType0BodyReader()
+        static DeleteMsgType0BodyReader()
         {
             SerializersMap.TryGetSerializer(out _resultSerializer!);
-            
         }
        
        public long Consumed { get; private set; }
@@ -24,7 +23,7 @@ namespace MongoDB.Client.Protocol.Readers
             in ReadOnlySequence<byte> input, 
             ref SequencePosition consumed,
             ref SequencePosition examined,
-            [MaybeNullWhen(false)] out InsertResult message)
+            [MaybeNullWhen(false)] out DeleteResult message)
         {
             var bsonReader = new BsonReader(input);
 

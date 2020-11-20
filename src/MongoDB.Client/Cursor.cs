@@ -85,18 +85,6 @@ namespace MongoDB.Client
                 Lsid = SharedSession
             };
         }
-        
-        private BsonDocument CreateFindRequestOld(BsonDocument filter)
-        {
-            return new BsonDocument
-            {
-                {"find", _collectionNamespace.CollectionName},
-                {"filter", filter},
-                {"limit", _limit, _limit > 0},
-                {"$db", _collectionNamespace.DatabaseName},
-                {"lsid", _sessionId}
-            };
-        }
 
         private FindRequest CreateGetMoreRequest(long cursorId)
         {
@@ -106,17 +94,6 @@ namespace MongoDB.Client
                 Collection = _collectionNamespace.CollectionName,
                 Db = _collectionNamespace.DatabaseName,
                 Lsid = SharedSession
-            };
-        }
-        
-        private BsonDocument CreateGetMoreRequestOld(long cursorId)
-        {
-            return new BsonDocument
-            {
-                {"getMore", cursorId},
-                {"collection", _collectionNamespace.CollectionName},
-                {"$db", _collectionNamespace.DatabaseName},
-                {"lsid", _sessionId}
             };
         }
     }

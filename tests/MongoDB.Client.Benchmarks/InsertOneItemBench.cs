@@ -37,7 +37,7 @@ namespace MongoDB.Client.Benchmarks
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
             var dbName = "BenchmarkDb";
-            var collectionName = "OneItemBench";
+            var collectionName = GetType().Name;
 
             var client = new MongoClient(new DnsEndPoint(host, 27017));
             var db = client.GetDatabase(dbName);

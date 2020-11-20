@@ -30,9 +30,7 @@ namespace MongoDB.Client.ConsoleApp
             var db = client.GetDatabase("TestDb");
             var collection1 = db.GetCollection<GeoIp>("TestCollection4");
 
-
-
-          //  await InsertItems(collection1, 1000);
+            //  await InsertItems(collection1, 1000);
             //
             // return;
 
@@ -41,21 +39,26 @@ namespace MongoDB.Client.ConsoleApp
             var filter = new BsonDocument();
             //  var filter = new BsonDocument("_id", new BsonObjectId("5fa29b6db27162107ffbe7db"));
 
-            var result0 = await collection1.Find(filter).ToListAsync();
-            var result1 = await collection1.Find(filter).FirstOrDefaultAsync();
+            //var result0 = await collection1.Find(filter).ToListAsync();
+            //var result1 = await collection1.Find(filter).FirstOrDefaultAsync();
 
 
-            var item = CreateItem();
-            await collection1.InsertAsync(item);
-            try
-            {
-                // inserting duplicate
-                await collection1.InsertAsync(item);
-            }
-            catch (MongoException e)
-            {
-                Console.WriteLine(e.Message);
-            }
+            //var item = CreateItem();
+            //await collection1.InsertAsync(item);
+            
+            var result = await collection1.DeleteOneAsync(filter);
+
+            Console.WriteLine();
+            
+            //try
+            //{
+            //    // inserting duplicate
+            //    await collection1.InsertAsync(item);
+            //}
+            //catch (MongoException e)
+            //{
+            //    Console.WriteLine(e.Message);
+            //}
             
             
             Console.WriteLine();

@@ -1,20 +1,18 @@
-﻿using MongoDB.Client.Bson.Reader;
-using MongoDB.Client.Bson.Serialization;
-using MongoDB.Client.Protocol.Core;
-using System;
+﻿using System;
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using MongoDB.Client.Bson.Reader;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
+using MongoDB.Client.Protocol.Core;
 
-namespace MongoDB.Client.Readers
+namespace MongoDB.Client.Protocol.Readers
 {
-    internal class ReplyBodyReader<T> : IMessageReader<T>
+    internal class ReplyBodyReader<T> : IMessageReader<QueryResult<T>>
     {
         private readonly IGenericBsonSerializer<T> _serializer;
         private readonly ReplyMessage _replyMessage;
         private readonly QueryResult<T> _result;
-
-        public QueryResult<T> Result => _result;
 
         public ReplyBodyReader(IGenericBsonSerializer<T> serializer, ReplyMessage replyMessage)
         {
@@ -23,14 +21,15 @@ namespace MongoDB.Client.Readers
             _result = new QueryResult<T>(_replyMessage.ReplyHeader.CursorId);
         }
 
-        public bool TryParseMessage(in ReadOnlySequence<byte> input, ref SequencePosition consumed, ref SequencePosition examined, [MaybeNullWhen(false)] out T message)
+        public bool TryParseMessage(in ReadOnlySequence<byte> input, ref SequencePosition consumed, ref SequencePosition examined, [MaybeNullWhen(false)] out QueryResult<T> message)
         {
+            message = _result;
             var bsonReader = new BsonReader(input);
-            for (int i = 0; i < _replyMessage.ReplyHeader.NumberReturned; i++)
+            while (_result.Count < _replyMessage.ReplyHeader.NumberReturned)
             {
-                if (_serializer.TryParse(ref bsonReader, out message))
+                if (_serializer.TryParse(ref bsonReader, out var item))
                 {
-                    _result.Add(message);
+                    _result.Add(item);
                     consumed = bsonReader.Position;
                     examined = bsonReader.Position;
                 }
@@ -39,8 +38,7 @@ namespace MongoDB.Client.Readers
                     return false;
                 }
             }
-
-            message = default!;
+            
             return true;
         }
     }
