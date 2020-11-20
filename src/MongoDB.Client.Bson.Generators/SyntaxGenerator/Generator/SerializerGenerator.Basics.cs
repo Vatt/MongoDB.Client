@@ -149,6 +149,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.DeclarationExpression(SF.IdentifierName("var"), SF.SingleVariableDesignation(varId));
         }
+        public static DeclarationExpressionSyntax TypedVariableDeclarationExpr(TypeSyntax type, SyntaxToken varId)
+        {
+            return SF.DeclarationExpression(type, SF.SingleVariableDesignation(varId));
+        }
         public static VariableDeclarationSyntax VarVariableDeclaration(SyntaxToken variable, ExpressionSyntax expression)
         {
             var declarator = SF.VariableDeclarator(variable, default, SF.EqualsValueClause(expression));

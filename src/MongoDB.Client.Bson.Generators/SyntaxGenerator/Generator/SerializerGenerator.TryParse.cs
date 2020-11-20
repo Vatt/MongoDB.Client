@@ -76,7 +76,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             var typeArg = (type as INamedTypeSymbol).TypeArguments[0];
 
-            var operation = ReadOperation(ctx.Root, ctx.NameSym, typeArg, ctx.Root.BsonReaderId, VarVariableDeclarationExpr(tempArrayRead), bsonTypeToken, bsonNameToken);
+            var operation = ReadOperation(ctx.Root, ctx.NameSym, typeArg, ctx.Root.BsonReaderId, 
+                TypedVariableDeclarationExpr(TypeFullName(typeArg), tempArrayRead), bsonTypeToken, bsonNameToken);
             return SF.MethodDeclaration(
                     attributeLists: default,
                     modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()), 

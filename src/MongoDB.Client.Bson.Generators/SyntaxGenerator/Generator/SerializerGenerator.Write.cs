@@ -220,10 +220,16 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 if (condition != default)
                 {
-                    return IfNot(condition, WriteGeneric(writeTarget));
+                    return SF.Block(
+                        VarLocalDeclarationStatement(SF.Identifier("genericReserved"), WriterReserve(1)),
+                        Statement(WriteCString(SimpleAssignExpr(ctx.Root.WriterInputVar, IdentifierName(ctx.NameSym)))),
+                        IfNot(condition, WriteGeneric(writeTarget, SF.IdentifierName("genericReserved"))) );
                 }
 
-                return Statement(WriteGeneric(writeTarget));
+                return SF.Block(
+                    VarLocalDeclarationStatement(SF.Identifier("genericReserved"), WriterReserve(1)),
+                    Statement(WriteCString(StaticFieldNameToken(ctx))),
+                    Statement(WriteGeneric(writeTarget, SF.IdentifierName("genericReserved"))));
             }
             if (trueType is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)
             {

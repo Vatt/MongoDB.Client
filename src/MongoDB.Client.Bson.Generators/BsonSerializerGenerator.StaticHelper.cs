@@ -34,6 +34,10 @@ namespace MongoDB.Client.Bson.Generators
                 var builder = new StringBuilder();
                 foreach (var context in ctx.Contexts)
                 {
+                    if (context.GenericArgs.HasValue)
+                    {
+                        continue;
+                    }
                     builder.Append($"\n\t\tpublic static readonly  IGenericBsonSerializer<{context.Declaration.ToString()}>  {SerializerGenerator.SerializerName(context)}StaticField = new {SerializerGenerator.SerializerName(context)}();");
                 }
                 return builder.ToString();
@@ -44,19 +48,22 @@ namespace MongoDB.Client.Bson.Generators
                 builder.Append($@"
                 public static KeyValuePair<Type, IBsonSerializer>[]  GetGeneratedSerializers()
                 {{
-                    var pairs = new KeyValuePair<Type, IBsonSerializer>[{ctx.Contexts.Count}];                    
+                    var pairs = new List<KeyValuePair<Type, IBsonSerializer>>();                    
                 ");
                 int index = 0;
                 foreach (var context in ctx.Contexts)
                 {
-
+                    if (context.GenericArgs.HasValue)
+                    {
+                        continue;
+                    }
                     builder.Append($@"
-                    pairs[{index}] = KeyValuePair.Create<Type, IBsonSerializer>(typeof({context.Declaration.ToString()}), {SerializerGenerator.SerializerName(context)}StaticField);
+                    pairs.Add(KeyValuePair.Create<Type, IBsonSerializer>(typeof({context.Declaration.ToString()}), {SerializerGenerator.SerializerName(context)}StaticField));
                     ");
                     index++;
                 }
                 builder.Append(@"
-                    return pairs;
+                    return pairs.ToArray();
                 }
                 ");
                 return builder.ToString();

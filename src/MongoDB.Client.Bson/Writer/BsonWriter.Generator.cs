@@ -17,18 +17,21 @@ namespace MongoDB.Client.Bson.Writer
         {
             throw new SerializerNotFound(typeName);
         }
-        public void WriteGeneric<T>(in T genericValue)
+        public void WriteGeneric<T>(T genericValue, Reserved typeReserved)
         {
             switch (genericValue)
             {
                 case double value:
                     WriteDouble(value);
+                    typeReserved.Write(1);
                     return;
                 case int value:
                     WriteInt32(value);
+                    typeReserved.Write(16);
                     return;
                 case long value:
                     WriteInt64(value);
+                    typeReserved.Write(18);
                     return;
             }
 

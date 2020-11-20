@@ -43,9 +43,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return InvocationExpr(writerId ?? DefaultBsonWriterId, SF.IdentifierName("WriteCString"), SF.Argument(IdentifierName(name)));
         }
-        public static InvocationExpressionSyntax WriteGeneric(ExpressionSyntax name, IdentifierNameSyntax writerId = default)
+        public static InvocationExpressionSyntax WriteGeneric(ExpressionSyntax name, ExpressionSyntax reserved, IdentifierNameSyntax writerId = default)
         {
-            return InvocationExpr(writerId ?? DefaultBsonWriterId, SF.IdentifierName("WriteGeneric"), SF.Argument(name));
+            return InvocationExpr(writerId ?? DefaultBsonWriterId, SF.IdentifierName("WriteGeneric"), SF.Argument(name), SF.Argument(reserved));
         }
         public static MemberAccessExpressionSyntax WriterWritten(IdentifierNameSyntax writerId = default)
         {
