@@ -330,10 +330,7 @@ namespace MongoDB.Client
                     var result = await reader.ReadAsync(InsertBodyReader, default).ConfigureAwait(false);
                     reader.Advance();
                     // _logger.ParsingMsgCompleteMessage(mongoResponse.Header.ResponseTo);
-#if DEBUG
-                        var consumed = msgMessage.Consumed + bodyReader.Consumed;
-                        Debug.Assert(consumed == msgMessage.Header.MessageLength);
-#endif
+
                     return result.Message;
 
                     return ThrowHelper.UnsupportedTypeException<InsertResult>(typeof(TResp));
@@ -390,11 +387,7 @@ namespace MongoDB.Client
                         _logger.ParsingMsgMessage(mongoResponse.Header.ResponseTo);
                         var result = await reader.ReadAsync(bodyReader).ConfigureAwait(false);
                         reader.Advance();
-                        _logger.ParsingMsgCompleteMessage(mongoResponse.Header.ResponseTo);
-#if DEBUG
-                        var consumed = msgMessage.Consumed + bodyReader.Consumed;
-                        Debug.Assert(consumed == msgMessage.Header.MessageLength);
-#endif
+
                         return result.Message;
                     default:
                         return ThrowHelper.UnsupportedTypeException<DeleteResult>(typeof(DeleteResult));

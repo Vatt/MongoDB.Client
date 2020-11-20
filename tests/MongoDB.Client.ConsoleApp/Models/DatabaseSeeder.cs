@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using MongoDB.Client.Bson.Document;
 
-namespace MongoDB.Client.Benchmarks.Serialization.Models
+namespace MongoDB.Client.ConsoleApp.Models
 {
     public class DatabaseSeeder
     {
@@ -13,6 +12,7 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
             const int innerDocumentOneCount = 50;
             const int innerDocumentTwoCount = 25;
             const int innerDocumentThreeCount = 5;
+
             for (var i = 0; i < count; i++)
             {
                 var complexDocument = CreateTestComplexDocument(i);
@@ -48,7 +48,6 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
         {
             return new RootDocument
             {
-                Id = BsonObjectId.NewObjectId(),
                 DoubleField = i,
                 IntField = i,
                 TextFieldOne = $"{i}_{i}_{i}",
