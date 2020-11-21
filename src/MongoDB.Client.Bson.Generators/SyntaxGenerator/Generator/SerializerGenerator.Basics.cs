@@ -1,9 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
@@ -23,16 +21,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return InvocationExpr(spanName, SF.IdentifierName("SequenceEqual"), SF.Argument(otherSpanName));
         }
-        //TODO: delete this
-        public static SyntaxToken ReadOnlySpanNameSyntaxToken(INamedTypeSymbol classSymbol, MemberDeclarationMeta memberdecl)
-        {
-            return SF.Identifier($"{classSymbol.Name}{memberdecl.StringFieldNameAlias}");
-        }
-        //TODO: delete this
-        public static IdentifierNameSyntax ReadOnlySpanNameIdentifier(INamedTypeSymbol classSymbol, MemberDeclarationMeta memberdecl)
-        {
-            return SF.IdentifierName($"{classSymbol.Name}{memberdecl.StringFieldNameAlias}");
-        }
         public static CastExpressionSyntax CastToInt(ExpressionSyntax expr)
         {
             return SF.CastExpression(IntPredefinedType(), expr);
@@ -47,13 +35,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return SF.CastExpression(LongPredefinedType(), expr);
         }
 
-        public static SeparatedSyntaxList<SyntaxNode> SeparatedList<T>(IEnumerable<T> source) where T: SyntaxNode
+        public static SeparatedSyntaxList<SyntaxNode> SeparatedList<T>(IEnumerable<T> source) where T : SyntaxNode
         {
             return SF.SeparatedList(source);
         }
-        public static SeparatedSyntaxList<SyntaxNode> SeparatedList<T>(T source) where T: SyntaxNode
+        public static SeparatedSyntaxList<SyntaxNode> SeparatedList<T>(T source) where T : SyntaxNode
         {
-            return SF.SeparatedList(new []{source});
+            return SF.SeparatedList(new[] { source });
         }
 
         public static SyntaxTokenList SyntaxTokenList(params SyntaxToken[] tokens)
@@ -105,13 +93,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var rank = new SyntaxList<ArrayRankSpecifierSyntax>(SF.ArrayRankSpecifier().AddSizes(NumericLiteralExpr(size)));
             if (expressions.HasValue)
             {
-                return SF.ArrayCreationExpression(SF.ArrayType(BytePredefinedType(), rank), SF.InitializerExpression(SyntaxKind.ArrayInitializerExpression, expressions.Value)); 
+                return SF.ArrayCreationExpression(SF.ArrayType(BytePredefinedType(), rank), SF.InitializerExpression(SyntaxKind.ArrayInitializerExpression, expressions.Value));
             }
             else
             {
                 return SF.ArrayCreationExpression(SF.ArrayType(BytePredefinedType(), rank), SF.InitializerExpression(SyntaxKind.ArrayInitializerExpression));
             }
-            
+
         }
         public static SizeOfExpressionSyntax SizeOf(TypeSyntax type)
         {
@@ -188,7 +176,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var declarator = SF.VariableDeclarator(variable, default, SF.EqualsValueClause(expression));
             return SF.LocalDeclarationStatement(SF.VariableDeclaration(type, SeparatedList(declarator)));
         }
-        public static LocalDeclarationStatementSyntax DefaultLocalDeclarationStatement(TypeSyntax type,  SyntaxToken variable)
+        public static LocalDeclarationStatementSyntax DefaultLocalDeclarationStatement(TypeSyntax type, SyntaxToken variable)
         {
             var declarator = SF.VariableDeclarator(variable, default, SF.EqualsValueClause(DefaultLiteralExpr()));
             return SF.LocalDeclarationStatement(SF.VariableDeclaration(type, SeparatedList(declarator)));

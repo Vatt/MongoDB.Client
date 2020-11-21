@@ -1,6 +1,6 @@
 ﻿using MongoDB.Client.Bson.Generators.SyntaxGenerator;
-using System.Text;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
+using System.Text;
 
 namespace MongoDB.Client.Bson.Generators
 {

@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
@@ -41,8 +40,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         internal readonly ImmutableArray<IParameterSymbol>? ConstructorParams;
 
         internal bool HavePrimaryConstructor => ConstructorParams.HasValue;
-        internal bool HaveAnyConstructor => Declaration.Constructors.Any( method => !method.Parameters.IsEmpty);
-        
+        internal bool HaveAnyConstructor => Declaration.Constructors.Any(method => !method.Parameters.IsEmpty);
+
         public bool ConstructorContains(string name)
         {
             if (ConstructorParams.HasValue)
@@ -68,7 +67,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             }
             foreach (var member in Declaration.GetMembers())
             {
-                if ( (member.IsStatic && Declaration.TypeKind != TypeKind.Enum) || member.IsAbstract || AttributeHelper.IsIgnore(member) ||
+                if ((member.IsStatic && Declaration.TypeKind != TypeKind.Enum) || member.IsAbstract || AttributeHelper.IsIgnore(member) ||
                      (member.Kind != SymbolKind.Property && member.Kind != SymbolKind.Field))
                 {
                     continue;
@@ -92,8 +91,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     continue;
                 }
                 //TODO: допустимо только без гетера, если нет сетера проверить есть ли он в конструкторе
-                if ( (member is IPropertySymbol {SetMethod: { }, GetMethod: { }, IsReadOnly: false}) ||
-                     (member is IFieldSymbol {IsReadOnly: false}) )
+                if ((member is IPropertySymbol { SetMethod: { }, GetMethod: { }, IsReadOnly: false }) ||
+                     (member is IFieldSymbol { IsReadOnly: false }))
                 {
                     Members.Add(new MemberContext(this, member));
                 }
@@ -109,13 +108,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         internal readonly string BsonElementValue;
         internal readonly ImmutableArray<ITypeSymbol>? TypeGenericArgs;
         internal SyntaxToken AssignedVariable;
-        
-        internal bool IsGenericType => Root.GenericArgs?.FirstOrDefault( sym => sym.Name.Equals(TypeSym.Name)) != default;
+
+        internal bool IsGenericType => Root.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(TypeSym.Name)) != default;
         public MemberContext(ClassContext root, ISymbol memberSym)
         {
             Root = root;
             NameSym = memberSym;
-            
+
             switch (NameSym)
             {
                 case IFieldSymbol field:

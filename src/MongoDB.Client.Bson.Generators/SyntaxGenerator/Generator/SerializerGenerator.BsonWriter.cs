@@ -11,9 +11,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return InvocationExpr(writerId ?? DefaultBsonWriterId, SF.IdentifierName("Write_Type_Name_Value"), SF.Argument(name), SF.Argument(value));
         }
-        public static InvocationExpressionSyntax Write_Type_Name(int typeid,  IdentifierNameSyntax name, IdentifierNameSyntax writerId = default)
+        public static InvocationExpressionSyntax Write_Type_Name(int typeid, IdentifierNameSyntax name, IdentifierNameSyntax writerId = default)
         {
-            return InvocationExpr(writerId ?? DefaultBsonWriterId, SF.IdentifierName("Write_Type_Name"), SF.Argument(NumericLiteralExpr(typeid)) , SF.Argument(name));
+            return InvocationExpr(writerId ?? DefaultBsonWriterId, SF.IdentifierName("Write_Type_Name"), SF.Argument(NumericLiteralExpr(typeid)), SF.Argument(name));
         }
         public static InvocationExpressionSyntax WriteBsonNull(IdentifierNameSyntax name, IdentifierNameSyntax writerId = default)
         {
@@ -77,7 +77,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static ExpressionStatementSyntax WriteByteStatement(byte value, IdentifierNameSyntax writerId = default)
         {
-            return  SF.ExpressionStatement(InvocationExpr(writerId ?? DefaultBsonWriterId, SF.IdentifierName("WriteByte"), SF.Argument(NumericLiteralExpr(value))));
+            return SF.ExpressionStatement(InvocationExpr(writerId ?? DefaultBsonWriterId, SF.IdentifierName("WriteByte"), SF.Argument(NumericLiteralExpr(value))));
         }
         public static ExpressionStatementSyntax WriteByteStatement(ExpressionSyntax value, IdentifierNameSyntax writerId = default)
         {

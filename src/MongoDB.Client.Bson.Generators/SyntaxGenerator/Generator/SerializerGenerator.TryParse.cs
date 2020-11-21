@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
+using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
@@ -14,7 +10,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
     {
         private static SyntaxToken ReadArrayMethodName(ISymbol nameSym, ITypeSymbol typeSymbol)
         {
-            var name =  $"TryParse{nameSym.Name}{typeSymbol.Name}";/*{typeSymbol.GetTypeMembers()[0].Name}*/
+            var name = $"TryParse{nameSym.Name}{typeSymbol.Name}";/*{typeSymbol.GetTypeMembers()[0].Name}*/
             var type = typeSymbol as INamedTypeSymbol;
 
             while (true)
@@ -31,8 +27,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
         private static MethodDeclarationSyntax[] GenerateReadArrayMethods(ClassContext ctx)
         {
-            List<MethodDeclarationSyntax> methods = new ();
-            
+            List<MethodDeclarationSyntax> methods = new();
+
             foreach (var member in ctx.Members)
             {
                 if (member.TypeSym.ToString().Contains("System.Collections.Generic.List") ||
@@ -76,15 +72,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             var typeArg = (type as INamedTypeSymbol).TypeArguments[0];
 
-            var operation = ReadOperation(ctx.Root, ctx.NameSym, typeArg, ctx.Root.BsonReaderId, 
+            var operation = ReadOperation(ctx.Root, ctx.NameSym, typeArg, ctx.Root.BsonReaderId,
                 TypedVariableDeclarationExpr(TypeFullName(typeArg), tempArrayRead), bsonTypeToken, bsonNameToken);
             return SF.MethodDeclaration(
                     attributeLists: default,
-                    modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()), 
+                    modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()),
                     explicitInterfaceSpecifier: default,
                     returnType: BoolPredefinedType(),
                     identifier: ReadArrayMethodName(ctx.NameSym, type),
-                    parameterList: ParameterList(RefParameter(ctx.Root.BsonReaderType, ctx.Root.BsonReaderToken ),
+                    parameterList: ParameterList(RefParameter(ctx.Root.BsonReaderType, ctx.Root.BsonReaderToken),
                                                  OutParameter(IdentifierName(type.ToString()), outMessage)),
                     body: default,
                     constraintClauses: default,
@@ -101,7 +97,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                 BinaryExprLessThan(
                                     BinaryExprMinus(IdentifierName(unreadedToken), ReaderRemaining()),
                                     BinaryExprMinus(IdentifierName(docLenToken), NumericLiteralExpr(1))),
-                            statement: 
+                            statement:
                                 SF.Block(
                                     IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(bsonTypeToken))),
                                     IfNotReturnFalse(TrySkipCString()),
@@ -112,7 +108,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                             SF.ContinueStatement()
                                             )),
                                     IfNotReturnFalseElse(
-                                        condition: operation, 
+                                        condition: operation,
                                         @else:
                                             SF.Block(
                                                 InvocationExprStatement(IdentifierName(outMessage), IdentifierName("Add"), Argument(tempArrayRead)),
@@ -123,18 +119,18 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                             SF.Block(SF.ExpressionStatement(SerializerEndMarkerException(ctx.Root.Declaration, IdentifierName(endMarkerToken))))),
                         SF.ReturnStatement(TrueLiteralExpr())
                         ));
-            
+
         }
         private static MethodDeclarationSyntax TryParseMethod(ClassContext ctx)
         {
-            var decl = ctx.Declaration;            
+            var decl = ctx.Declaration;
             var docLenToken = SF.Identifier("docLength");
             var unreadedToken = SF.Identifier("unreaded");
             var endMarkerToken = SF.Identifier("endMarker");
             var bsonTypeToken = SF.Identifier("bsonType");
             var bsonNameToken = SF.Identifier("bsonName");
-            var body = ctx.Declaration.TypeKind == TypeKind.Enum ? 
-                TryParseEnumBody(ctx) : 
+            var body = ctx.Declaration.TypeKind == TypeKind.Enum ?
+                TryParseEnumBody(ctx) :
                 TryParseDefaultBody(ctx, docLenToken, unreadedToken, bsonTypeToken, bsonNameToken, endMarkerToken);
             return SF.MethodDeclaration(
                     attributeLists: default,
@@ -142,7 +138,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     explicitInterfaceSpecifier: SF.ExplicitInterfaceSpecifier(GenericName(SerializerInterfaceToken, TypeFullName(decl))),
                     returnType: BoolPredefinedType(),
                     identifier: SF.Identifier("TryParse"),
-                    parameterList: ParameterList(RefParameter(ctx.BsonReaderType, ctx.BsonReaderToken ),
+                    parameterList: ParameterList(RefParameter(ctx.BsonReaderType, ctx.BsonReaderToken),
                                                  OutParameter(TypeFullName(ctx.Declaration), ctx.TryParseOutVarToken)),
                     body: default,
                     constraintClauses: default,
@@ -161,7 +157,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             static StatementSyntax[] StringRepresentation(ClassContext ctx)
             {
-                
+
                 var stringData = SF.Identifier("stringData");
                 List<StatementSyntax> statements = new()
                 {
@@ -173,8 +169,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     statements.Add(
                         SF.IfStatement(
                             condition: SpanSequenceEqual(IdentifierName(stringData), IdentifierName(StaticFieldNameToken(member))),
-                            statement:SF.Block(
-                                SimpleAssignExprStatement(ctx.TryParseOutVar,IdentifierFullName(member.NameSym)),
+                            statement: SF.Block(
+                                SimpleAssignExprStatement(ctx.TryParseOutVar, IdentifierFullName(member.NameSym)),
                                 SF.ReturnStatement(TrueLiteralExpr())
                                 )));
                 }
@@ -195,11 +191,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     SimpleAssignExprStatement(ctx.TryParseOutVar, Cast(ctx.Declaration, IdentifierName(numericData))),
                     SF.ReturnStatement(TrueLiteralExpr())
                 }.ToArray();
-                
+
             }
         }
-        private static BlockSyntax TryParseDefaultBody(ClassContext ctx, SyntaxToken docLenToken, 
-            SyntaxToken unreadedToken,SyntaxToken bsonTypeToken, SyntaxToken bsonNameToken, SyntaxToken endMarkerToken)
+        private static BlockSyntax TryParseDefaultBody(ClassContext ctx, SyntaxToken docLenToken,
+            SyntaxToken unreadedToken, SyntaxToken bsonTypeToken, SyntaxToken bsonNameToken, SyntaxToken endMarkerToken)
         {
             return SF.Block(
                     SimpleAssignExprStatement(ctx.TryParseOutVar, DefaultLiteralExpr()))
@@ -215,7 +211,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
                     SF.IfStatement(
                         condition: BinaryExprNotEquals(IdentifierName(endMarkerToken),
-                            NumericLiteralExpr((byte) '\x00')),
+                            NumericLiteralExpr((byte)'\x00')),
                         statement: SF.Block(SF.ExpressionStatement(
                             SerializerEndMarkerException(ctx.Declaration, IdentifierName(endMarkerToken))))))
                 .AddStatements(CreateMessage(ctx))
@@ -240,8 +236,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     {
                         assignments.Add(
                             SimpleAssignExprStatement(
-                                SimpleMemberAccess(ctx.TryParseOutVar, IdentifierName(member.NameSym.Name)), 
-                                IdentifierName(member.AssignedVariable )));
+                                SimpleMemberAccess(ctx.TryParseOutVar, IdentifierName(member.NameSym.Name)),
+                                IdentifierName(member.AssignedVariable)));
                     }
                 }
 
@@ -256,8 +252,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     result.Add(
                         SimpleAssignExprStatement(
-                            SimpleMemberAccess(ctx.TryParseOutVar, IdentifierName(member.NameSym.Name)), 
-                            IdentifierName(member.AssignedVariable )));
+                            SimpleMemberAccess(ctx.TryParseOutVar, IdentifierName(member.NameSym.Name)),
+                            IdentifierName(member.AssignedVariable)));
                 }
             }
             return result.ToArray();
@@ -267,15 +263,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             List<StatementSyntax> variables = new();
             foreach (var member in ctx.Members)
             {
-                member.AssignedVariable =  SF.Identifier($"{member.TypeSym.Name}{member.NameSym.Name}");
+                member.AssignedVariable = SF.Identifier($"{member.TypeSym.Name}{member.NameSym.Name}");
                 variables.Add(DefaultLocalDeclarationStatement(SF.ParseTypeName(member.TypeSym.ToString()), member.AssignedVariable));
             }
 
             return variables.ToArray();
         }
-        private static BlockSyntax TryParseWhileStatements(ClassContext ctx, SyntaxToken bsonType,SyntaxToken bsonName)
+        private static BlockSyntax TryParseWhileStatements(ClassContext ctx, SyntaxToken bsonType, SyntaxToken bsonName)
         {
-            return 
+            return
                 SF.Block(
                     IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(bsonType))),
                     IfNotReturnFalse(TryGetCStringAsSpan(VarVariableDeclarationExpr(bsonName))))
@@ -288,32 +284,32 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var decl = ctx.Declaration;
             var members = ctx.Members;
             List<StatementSyntax> statements = new();
-            
+
             foreach (var member in members)
             {
                 var operation = ReadOperation(ctx, member.NameSym, member.TypeSym, ctx.BsonReaderId, IdentifierName(member.AssignedVariable), bsonType, bsonName);
                 statements.Add(
                     SF.IfStatement(
                         condition: SpanSequenceEqual(IdentifierName(bsonName), IdentifierName(StaticFieldNameToken(member))),
-                        statement:SF.Block(
+                        statement: SF.Block(
                                 IfContinue(BinaryExprEqualsEquals(IdentifierName(bsonType), NumericLiteralExpr(10))),
-                                IfNotReturnFalse(operation), 
+                                IfNotReturnFalse(operation),
                                 SF.ContinueStatement())));
             }
             return statements.ToArray();
         }
 
-        private static ExpressionSyntax ReadOperation(ClassContext ctx, ISymbol nameSym, ITypeSymbol typeSym, ExpressionSyntax readerId, 
+        private static ExpressionSyntax ReadOperation(ClassContext ctx, ISymbol nameSym, ITypeSymbol typeSym, ExpressionSyntax readerId,
                                                       ExpressionSyntax readTarget, SyntaxToken bsonType, SyntaxToken bsonName)
         {
-            ITypeSymbol trueType = typeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol) typeSym).TypeParameters[0] : typeSym;
-           
+            ITypeSymbol trueType = typeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol)typeSym).TypeParameters[0] : typeSym;
+
             if (TryGetSimpleReadOperation(trueType, IdentifierName(bsonType), readTarget, out var simpleOperation))
             {
                 return simpleOperation;
             }
 
-            if ( ctx.GenericArgs?.FirstOrDefault( sym => sym.Name.Equals(trueType.Name)) != default )
+            if (ctx.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(trueType.Name)) != default)
             {
                 return TryReadGeneric(bsonType, readTarget);
             }

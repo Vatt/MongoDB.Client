@@ -1,12 +1,9 @@
-﻿using System;
-using System.Linq;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using MongoDB.Client.Bson.Generators.SyntaxGenerator.Core;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
-    internal static  class AttributeHelper
+    internal static class AttributeHelper
     {
         public static string BsonSerializableAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonSerializableAttribute";
         public static string BsonEnumSerializableAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonEnumSerializableAttribute";
@@ -22,12 +19,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             {
                 return false;
             }
-            foreach(var attr in ctx.NameSym.GetAttributes())
+            foreach (var attr in ctx.NameSym.GetAttributes())
             {
                 if (attr.AttributeClass.ToString().Equals(BsonWriteIgnoreIfAttr))
                 {
                     expr = SF.ParseExpression((string)attr.ConstructorArguments[0].Value);
-                    
+
                     foreach (var member in ctx.Root.Members)
                     {
                         var newid = SF.IdentifierName($"{ctx.Root.WriterInputVar.Identifier.Text}.{member.NameSym.Name}");
@@ -59,13 +56,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             {
                 if (attr.AttributeClass!.ToString().Equals(BsonEnumSerializableAttr))
                 {
-                    return (int) attr.ConstructorArguments[0].Value;
+                    return (int)attr.ConstructorArguments[0].Value;
                 }
             }
 
             return -1;
         }
-        
+
         public static bool TryFindPrimaryConstructor(INamedTypeSymbol symbol, out IMethodSymbol? constructor)
         {
             constructor = default;
@@ -106,7 +103,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             {
                 if (attr.AttributeClass!.ToString().Equals(BsonElementAttr))
                 {
-                    if (attr.ConstructorArguments.IsEmpty) 
+                    if (attr.ConstructorArguments.IsEmpty)
                     {
                         return (memberSym.Name, memberSym.Name);
                     }

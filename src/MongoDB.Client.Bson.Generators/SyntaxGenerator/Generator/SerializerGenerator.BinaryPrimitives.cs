@@ -1,5 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
@@ -13,9 +12,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static InvocationExpressionSyntax BinaryPrimitivesWriteInt32LittleEndian(SyntaxToken destination, SyntaxToken value)
         {
             return InvocationExpr(
-                SF.IdentifierName("BinaryPrimitives"), 
-                SF.IdentifierName("WriteInt32LittleEndian"), 
-                SF.Argument(IdentifierName(destination)), 
+                SF.IdentifierName("BinaryPrimitives"),
+                SF.IdentifierName("WriteInt32LittleEndian"),
+                SF.Argument(IdentifierName(destination)),
                 SF.Argument(IdentifierName(value)));
         }
     }

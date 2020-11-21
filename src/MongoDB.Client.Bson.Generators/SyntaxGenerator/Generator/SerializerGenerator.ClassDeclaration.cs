@@ -1,9 +1,8 @@
-﻿using System;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
@@ -24,14 +23,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var generatedHelperId = SF.IdentifierName("GlobalSerializationHelperGenerated");
             var serializer = SF.IdentifierName($"{SerializerName(ctx)}StaticField");
             var sma = SimpleMemberAccess(generatedHelperId, serializer);
-            return InvocationExpr(sma, IdentifierName("TryParse") , RefArgument(reader), OutArgument(variable));
+            return InvocationExpr(sma, IdentifierName("TryParse"), RefArgument(reader), OutArgument(variable));
         }
         public static InvocationExpressionSyntax GeneratedSerializerWrite(ClassContext ctx, ExpressionSyntax writer, ExpressionSyntax variable)
         {
             var generatedHelperId = SF.IdentifierName("GlobalSerializationHelperGenerated");
             var serializer = SF.IdentifierName($"{SerializerName(ctx)}StaticField");
             var sma = SimpleMemberAccess(generatedHelperId, serializer);
-            return InvocationExpr(sma, IdentifierName("Write") , RefArgument(writer), Argument(variable));
+            return InvocationExpr(sma, IdentifierName("Write"), RefArgument(writer), Argument(variable));
         }
         public static SyntaxToken StaticFieldNameToken(MemberContext ctx)
         {
@@ -42,9 +41,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var decl = ctx.Declaration;
             if (ctx.GenericArgs.HasValue && ctx.GenericArgs.Value.Length > 0)
             {
-                return   SF.BaseList().AddTypes(SF.SimpleBaseType(GenericName(SerializerInterfaceToken, TypeFullName(decl))));
+                return SF.BaseList().AddTypes(SF.SimpleBaseType(GenericName(SerializerInterfaceToken, TypeFullName(decl))));
             }
-            var name = GenericName(SerializerInterfaceToken,TypeFullName(decl));
+            var name = GenericName(SerializerInterfaceToken, TypeFullName(decl));
             return SF.BaseList().AddTypes(SF.SimpleBaseType(name));
         }
         public static ClassDeclarationSyntax GenerateSerializer(ClassContext ctx)
@@ -60,7 +59,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return ctx.GenericArgs.HasValue && ctx.GenericArgs!.Value.Length > 0
                 ? decl.AddTypeParameterListParameters(ctx.GenericArgs!.Value.Select(TypeParameter).ToArray())
                 : decl;
-            
+
             SyntaxList<MemberDeclarationSyntax> GenerateStaticNamesSpans()
             {
                 var list = new SyntaxList<MemberDeclarationSyntax>();
