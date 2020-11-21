@@ -14,7 +14,7 @@ namespace MongoDB.Client.Benchmarks
         private MongoCollection<RootDocument> _collection;
         private IMongoCollection<RootDocument> _oldCollection;
 
-        [Params( 30000)]
+        [Params(1, 100, 500, 1000)]
         public int ItemsCount { get; set; }
         
         [GlobalSetup]
@@ -52,15 +52,37 @@ namespace MongoDB.Client.Benchmarks
         [Benchmark]
         public async Task<int> NewClientToList()
         {
-            var result = await _collection.Find(EmptyFilter).ToListAsync();
-            return result.Count;
+            var cursor = _collection.Find(EmptyFilter);
+            var counter = 0;
+            await foreach (var item in cursor)
+            {
+                counter += item.IntField;
+            }
+
+            return counter;
         }
 
-        [Benchmark]
+        [Benchmark(Baseline = true)]
         public async Task<int> OldClientToList()
         {
-            var result = await _oldCollection.Find(FilterDefinition<RootDocument>.Empty).ToListAsync();
-            return result.Count;
+            var source = await _oldCollection.FindAsync(FilterDefinition<RootDocument>.Empty);
+            var counter = 0;
+            using (source)
+            {
+                while (true)
+                {
+                    if (await source.MoveNextAsync(default).ConfigureAwait(false))
+                    {
+                        foreach (var item in source.Current)
+                        {
+                            counter += item.IntField;
+                        }
+                    }
+                    else
+                        break;
+                }
+            }
+            return counter;
         }
     }
 }
