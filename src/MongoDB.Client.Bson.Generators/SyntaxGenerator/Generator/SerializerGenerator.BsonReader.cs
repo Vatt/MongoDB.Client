@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
@@ -53,9 +54,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return InvocationExpr(readerId ?? DefaultBsonReaderId, SF.IdentifierName("TryGetByte"), OutArgument(assignOrDecl));
         }
-        public static InvocationExpressionSyntax TryReadGeneric(ExpressionSyntax assignOrDecl, IdentifierNameSyntax? readerId = default)
+        public static InvocationExpressionSyntax TryReadGeneric(SyntaxToken bsonType, ExpressionSyntax assignOrDecl, IdentifierNameSyntax? readerId = default)
         {
-            return InvocationExpr(readerId ?? DefaultBsonReaderId, SF.IdentifierName("TryReadGeneric"), OutArgument(assignOrDecl));
+            return InvocationExpr(readerId ?? DefaultBsonReaderId, SF.IdentifierName("TryReadGeneric"), Argument(bsonType), OutArgument(assignOrDecl));
         }
         public static InvocationExpressionSyntax TrySkipCString(IdentifierNameSyntax? readerId = default)
         {

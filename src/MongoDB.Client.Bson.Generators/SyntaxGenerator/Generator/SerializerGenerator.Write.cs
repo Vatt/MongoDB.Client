@@ -320,6 +320,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 case "MongoDB.Client.Bson.Document.BsonDocument":
                     expr = Write_Type_Name_Value(bsonName, writeTarget);
                     return true;
+                case "MongoDB.Client.Bson.Document.BsonArray":
+                    expr = Write_Type_Name_Value(bsonName, writeTarget);
+                    return true;
                 case "MongoDB.Client.Bson.Document.BsonObjectId":
                     expr = Write_Type_Name_Value(bsonName, writeTarget);
                     return true;

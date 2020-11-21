@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Exceptions;
 using MongoDB.Client.Bson.Utils;
@@ -10,28 +11,57 @@ namespace MongoDB.Client.Bson.Reader
     {
         private static void ThrowSerializerNotFound(string typeName)
         {
-            throw new SerializerNotFound(typeName);
+            throw new SerializerNotFoundException(typeName);
         }
-        public bool TryReadGeneric<T>(out T genericValue)
+        private static void ThrowSerializerIsNull(string typeName)
+        {
+            throw new SerializerIsNullException(typeName);
+        }
+        public bool TryReadGeneric<T>(int bsonType, out T genericValue)
         {
             genericValue = default;
-            object temp;
             switch (genericValue)
             {
                 case double value:
                     if (!TryGetDouble(out value)){ return false; }
-                    temp = value;
-                    genericValue = (T)temp;
+                    genericValue = (T)(object)value;
+                    return true;
+                case string value:
+                    if (!TryGetString(out value)){ return false; }
+                    genericValue = (T)(object)value;
+                    return true;
+                case BsonArray value:
+                    BsonDocument tempArray = value;
+                    if (!TryParseDocument(out tempArray)){ return false; }
+                    genericValue = (T)(object)tempArray;
+                    return true;
+                case BsonDocument value:
+                    if (!TryParseDocument(out value)){ return false; }
+                    genericValue = (T)(object)value;
+                    return true;
+                case Guid value:
+                    if (!TryGetGuidWithBsonType(bsonType, out value)){ return false; }
+                    genericValue = (T)(object)value;
+                    return true;
+                case BsonObjectId value:
+                    if (!TryGetObjectId(out value)){ return false; }
+                    genericValue = (T)(object)value;
+                    return true;
+                case bool value:
+                    if (!TryGetBoolean(out value)){ return false; }
+                    genericValue = (T)(object)value;
+                    return true;
+                case DateTimeOffset value:
+                    if (!TryGetDateTimeWithBsonType(bsonType, out value)){ return false; }
+                    genericValue = (T)(object)value;
                     return true;
                 case int value:
                     if (!TryGetInt32(out value)){ return false; }
-                    temp = value;
-                    genericValue = (T)temp;
+                    genericValue = (T)(object)value;
                     return true;
                 case long value:
                     if (!TryGetInt64(out value)){ return false; }
-                    temp = value;
-                    genericValue = (T)temp;
+                    genericValue = (T)(object)value;
                     return true;
 
                 
@@ -42,6 +72,10 @@ namespace MongoDB.Client.Bson.Reader
                 ThrowSerializerNotFound(typeof(T).Name);
             }
 
+            if (serializer is null)
+            {
+                ThrowSerializerIsNull(typeof(T).Name);
+            }
             return serializer.TryParse(ref this, out genericValue);
         }
 

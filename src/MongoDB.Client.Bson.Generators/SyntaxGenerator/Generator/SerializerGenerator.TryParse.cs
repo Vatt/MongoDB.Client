@@ -105,7 +105,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                 SF.Block(
                                     IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(bsonTypeToken))),
                                     IfNotReturnFalse(TrySkipCString()),
-                                    //IfContinue(BinaryExprEqualsEquals(IdentifierName(bsonTypeToken), NumericLiteralExpr(10))),
                                     SF.IfStatement(
                                         condition: BinaryExprEqualsEquals(IdentifierName(bsonTypeToken), NumericLiteralExpr(10)),
                                         statement: SF.Block(
@@ -316,7 +315,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             if ( ctx.GenericArgs?.FirstOrDefault( sym => sym.Name.Equals(trueType.Name)) != default )
             {
-                return TryReadGeneric(readTarget);
+                return TryReadGeneric(bsonType, readTarget);
             }
             if (trueType is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)
             {
@@ -352,6 +351,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     expr = TryGetString(variable);
                     return true;
                 case "MongoDB.Client.Bson.Document.BsonDocument":
+                    expr = TryParseDocument(variable);
+                    return true;
+                case "MongoDB.Client.Bson.Document.BsonArray":
                     expr = TryParseDocument(variable);
                     return true;
                 case "MongoDB.Client.Bson.Document.BsonObjectId":
