@@ -105,7 +105,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                 SF.Block(
                                     IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(bsonTypeToken))),
                                     IfNotReturnFalse(TrySkipCString()),
-                                    IfContinue(BinaryExprEqualsEquals(IdentifierName(bsonTypeToken), NumericLiteralExpr(10))),
+                                    //IfContinue(BinaryExprEqualsEquals(IdentifierName(bsonTypeToken), NumericLiteralExpr(10))),
+                                    SF.IfStatement(
+                                        condition: BinaryExprEqualsEquals(IdentifierName(bsonTypeToken), NumericLiteralExpr(10)),
+                                        statement: SF.Block(
+                                            InvocationExprStatement(IdentifierName(outMessage), IdentifierName("Add"), Argument(DefaultLiteralExpr())),
+                                            SF.ContinueStatement()
+                                            )),
                                     IfNotReturnFalseElse(
                                         condition: operation, 
                                         @else:
