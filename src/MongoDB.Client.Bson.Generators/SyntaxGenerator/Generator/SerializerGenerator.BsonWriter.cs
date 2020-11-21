@@ -49,7 +49,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static InvocationExpressionSyntax WriteGeneric(ExpressionSyntax name, ExpressionSyntax reserved, IdentifierNameSyntax writerId = default)
         {
-            return InvocationExpr(writerId ?? DefaultBsonWriterId, SF.IdentifierName("WriteGeneric"), SF.Argument(name), SF.Argument(reserved));
+            return InvocationExpr(writerId ?? DefaultBsonWriterId, SF.IdentifierName("WriteGeneric"), SF.Argument(name), RefArgument(reserved));
         }
         public static MemberAccessExpressionSyntax WriterWritten(IdentifierNameSyntax writerId = default)
         {

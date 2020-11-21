@@ -31,13 +31,13 @@ namespace MongoDB.Client.Tests.Serialization
             };
             var docgeneric = new GenericModel<NonGenericModel>()
             {
-                GenericValue = new NonGenericModel 
+                GenericValue = new NonGenericModel
                 {
                     A = 42,
                     B = 42,
                     C = 42,
                 },
-                GenericList = new System.Collections.Generic.List<NonGenericModel>() { nongeneric, nongeneric, nongeneric, nongeneric },
+                GenericList = new System.Collections.Generic.List<NonGenericModel>() { nongeneric, null, nongeneric, nongeneric },
             };
             SerializersMap.TryGetSerializer<GenericModel<NonGenericModel>> (out var docserializer);
             var docresult = await RoundTripAsync<GenericModel<NonGenericModel>>(docgeneric, docserializer);

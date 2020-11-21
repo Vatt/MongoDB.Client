@@ -74,7 +74,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 writeOperation = 
                     SF.IfStatement(
-                        condition: BinaryExprEqualsEquals(IdentifierName(index), NullLiteralExpr()),
+                        condition: BinaryExprEqualsEquals(ElementAccessExpr(IdentifierName(array), index), NullLiteralExpr()),
                         statement: SF.Block(Statement(WriteBsonNull(index))),
                         @else:SF.ElseClause(SF.Block(WriteOperation(ctx, index, typeArg, classCtx.BsonWriterId, ElementAccessExpr(IdentifierName(array), index)))));
             }

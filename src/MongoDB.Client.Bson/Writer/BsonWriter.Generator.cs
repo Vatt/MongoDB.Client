@@ -17,8 +17,13 @@ namespace MongoDB.Client.Bson.Writer
         {
             throw new SerializerNotFound(typeName);
         }
-        public void WriteGeneric<T>(T genericValue, Reserved typeReserved)
+        public void WriteGeneric<T>(T genericValue, ref Reserved typeReserved)
         {
+            if (genericValue == null)
+            {
+                typeReserved.Write(10);
+                return;
+            }
             switch (genericValue)
             {
                 case double value:
@@ -39,7 +44,7 @@ namespace MongoDB.Client.Bson.Writer
             {
                 ThrowSerializerNotFound(typeof(T).Name);
             }
-
+            typeReserved.Write(3);
             serializer.Write(ref this, genericValue);
         }
         private void WriteGuidAsBinaryData(Guid value)
