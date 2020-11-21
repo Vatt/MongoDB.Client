@@ -69,6 +69,19 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var index = SF.Identifier("index");
             var array = SF.Identifier("array");
             var typeArg = (trueType as INamedTypeSymbol).TypeArguments[0];
+            StatementSyntax writeOperation = default;
+            if (typeArg.IsReferenceType)
+            {
+                writeOperation = 
+                    SF.IfStatement(
+                        condition: BinaryExprEqualsEquals(IdentifierName(index), NullLiteralExpr()),
+                        statement: SF.Block(Statement(WriteBsonNull(index))),
+                        @else:SF.ElseClause(SF.Block(WriteOperation(ctx, index, typeArg, classCtx.BsonWriterId, ElementAccessExpr(IdentifierName(array), index)))));
+            }
+            else
+            {
+                writeOperation = WriteOperation(ctx, index, typeArg, classCtx.BsonWriterId, ElementAccessExpr(IdentifierName(array), index));
+            }
             return SF.MethodDeclaration(
                     attributeLists: default,
                     modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()),
@@ -90,9 +103,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         indexVar:index, 
                         condition: BinaryExprLessThan(IdentifierName(index), SimpleMemberAccess(IdentifierName(array), IdentifierName("Count"))),
                         incrementor:PostfixUnaryExpr(index),
-                        body: SF.Block(
-                            WriteOperation(ctx, index, typeArg, classCtx.BsonWriterId,ElementAccessExpr(IdentifierName(array), index), out var bsonType)
-                            )),
+                        body: SF.Block(writeOperation!)),
                     WriteByteStatement((byte) '\x00'),
                     VarLocalDeclarationStatement(docLength, BinaryExprMinus(WriterWritten(), IdentifierName(checkpoint))),
                     LocalDeclarationStatement(SpanByte(), sizeSpan, StackAllocByteArray(4)),
@@ -184,7 +195,25 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
                 }
 
-                statements.Add(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget, out _));
+                // statements.Add(
+                //     SF.IfStatement(
+                //         condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
+                //         statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
+                //         @else:SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget)))));
+                if (member.TypeSym.IsReferenceType)
+                {
+                    statements.Add(
+                        SF.IfStatement(
+                            condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
+                            statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
+                            @else:SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget)))));
+                }
+                else
+                {
+                    statements.Add(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget));
+                }
+
+
             }
 
             return SF.Block(
@@ -203,11 +232,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
 
         public static StatementSyntax WriteOperation(MemberContext ctx, SyntaxToken name, ITypeSymbol typeSym,
-            ExpressionSyntax writerId, ExpressionSyntax writeTarget, out byte bsonType)
+            ExpressionSyntax writerId, ExpressionSyntax writeTarget)
         {
             ITypeSymbol trueType = typeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol) typeSym).TypeParameters[0] : typeSym;
             _ = AttributeHelper.TryGetBsonWriteIgnoreIfAttr(ctx, out var condition);
-            if (TryGetSimpleWriteOperation(trueType, name, writeTarget, out var expr, out bsonType))
+            if (TryGetSimpleWriteOperation(trueType, name, writeTarget, out var expr))
             {
                 if(condition != default)
                 {
@@ -259,11 +288,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         {
                             return IfNot(condition, GeneratedSerializerWrite(context, writerId, writeTarget));
                         }
-                        /*
-                         * Строковые, чисельные репрезентации записывают тип сами
-                         */
+                        
                         if (ctx.TypeSym.TypeKind == TypeKind.Enum)
                         {
+                            //TODO: Удалить чисельные репрезентаци, оставить только строковые
                             return SF.Block(
                                 Statement(Write_Type_Name(2, IdentifierName(StaticFieldNameToken(ctx)))),
                                 Statement(GeneratedSerializerWrite(context, writerId, writeTarget)));
@@ -277,48 +305,38 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return SF.ReturnStatement();
         }
         private static bool TryGetSimpleWriteOperation(ITypeSymbol typeSymbol, SyntaxToken bsonNameToken, 
-            ExpressionSyntax writeTarget, out InvocationExpressionSyntax expr, out byte bsonType)
+            ExpressionSyntax writeTarget, out InvocationExpressionSyntax expr)
         {
             expr = default;
-            bsonType = default;
             var bsonName = IdentifierName(bsonNameToken);
             switch (typeSymbol.ToString())
             {
                 case "double":
                     expr = Write_Type_Name_Value(bsonName, writeTarget);
-                    bsonType = 1;
                     return true;
                 case "string":
                     expr = Write_Type_Name_Value(bsonName, writeTarget);
-                    bsonType = 2;
                     return true;
                 case "MongoDB.Client.Bson.Document.BsonDocument":
                     expr = Write_Type_Name_Value(bsonName, writeTarget);
-                    bsonType = 3;
                     return true;
                 case "MongoDB.Client.Bson.Document.BsonObjectId":
                     expr = Write_Type_Name_Value(bsonName, writeTarget);
-                    bsonType = 7;
                     return true;
                 case "bool":
                     expr = Write_Type_Name_Value(bsonName, writeTarget);
-                    bsonType = 8;
                     return true;
                 case "int":
                     expr = Write_Type_Name_Value(bsonName, writeTarget);
-                    bsonType = 16;
                     return true;
                 case "long":
                     expr = Write_Type_Name_Value(bsonName, writeTarget);
-                    bsonType = 18;
                     return true;
                 case "System.Guid":
                     expr = Write_Type_Name_Value(bsonName, writeTarget);
-                    bsonType = 5;
                     return true;
                 case "System.DateTimeOffset":
                     expr = Write_Type_Name_Value(bsonName, writeTarget);
-                    bsonType = 9;
                     return true;
                 default:
                     return false;

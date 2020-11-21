@@ -187,6 +187,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.LiteralExpression(SyntaxKind.DefaultLiteralExpression);
         }
+        public static LiteralExpressionSyntax NullLiteralExpr()
+        {
+            return SF.LiteralExpression(SyntaxKind.NullLiteralExpression);
+        }
         public static LiteralExpressionSyntax NumericLiteralExpr(int value)
         {
             return SF.LiteralExpression(SyntaxKind.NumericLiteralExpression, SF.Literal(value));
