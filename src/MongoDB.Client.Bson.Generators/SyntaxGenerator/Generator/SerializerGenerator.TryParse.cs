@@ -339,6 +339,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 SF.Block(
                     IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(bsonType))),
                     IfNotReturnFalse(TryGetCStringAsSpan(VarVariableDeclarationExpr(bsonName))))
+                    .AddStatements(IfContinue(BinaryExprEqualsEquals(IdentifierName(bsonType), NumericLiteralExpr(10))))
                     .AddStatements(Operations(ctx, bsonType, bsonName))
                     .AddStatements(IfNotReturnFalse(TrySkip(IdentifierName(bsonType))));
         }
@@ -363,7 +364,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                           SF.IfStatement(
                               condition: SpanSequenceEqual(IdentifierName(bsonName), IdentifierName(StaticFieldNameToken(member))),
                               statement: SF.Block(
-                                  IfContinue(BinaryExprEqualsEquals(IdentifierName(bsonType), NumericLiteralExpr(10))),
                                   repr == 2 ?
                                     LocalDeclarationStatement(IntPredefinedType(), localReadEnumVar, DefaultLiteralExpr()) :
                                     LocalDeclarationStatement(LongPredefinedType(), localReadEnumVar, DefaultLiteralExpr()),
@@ -380,7 +380,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                             SF.IfStatement(
                                 condition: SpanSequenceEqual(IdentifierName(bsonName), IdentifierName(StaticFieldNameToken(member))),
                                 statement: SF.Block(
-                                    IfContinue(BinaryExprEqualsEquals(IdentifierName(bsonType), NumericLiteralExpr(10))),
                                     IfNotReturnFalse(InvocationExpr(readMethod, RefArgument(ctx.BsonReaderToken), OutArgument(IdentifierName(member.AssignedVariable)))),
                                     SF.ContinueStatement()
                                 )));
@@ -393,7 +392,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         SF.IfStatement(
                             condition: SpanSequenceEqual(IdentifierName(bsonName), IdentifierName(StaticFieldNameToken(member))),
                             statement: SF.Block(
-                                    IfContinue(BinaryExprEqualsEquals(IdentifierName(bsonType), NumericLiteralExpr(10))),
                                     IfNotReturnFalse(operation),
                                     SF.ContinueStatement())));
                 }
