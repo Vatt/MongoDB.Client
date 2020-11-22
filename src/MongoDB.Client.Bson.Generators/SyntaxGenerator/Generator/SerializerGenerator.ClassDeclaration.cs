@@ -37,9 +37,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Identifier($"{ctx.Root.Declaration.Name}{ctx.BsonElementAlias}");
         }
-        public static SyntaxToken StaticEnumFieldNameToken(ClassContext ctx, ISymbol enumTypeName, string alias)
+        public static SyntaxToken StaticEnumFieldNameToken(ISymbol enumTypeName, string alias)
         {
-            return SF.Identifier($"{ctx.Declaration.Name}{enumTypeName.Name}{alias}");
+            return SF.Identifier($"{enumTypeName.Name}{alias}");
         }
         private static BaseListSyntax BaseList(ClassContext ctx)
         {
@@ -117,7 +117,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                     modifiers: new(PrivateKeyword(), StaticKeyword()),
                                     type: ReadOnlySpanByte(),
                                     explicitInterfaceSpecifier: default,
-                                    identifier: StaticEnumFieldNameToken(ctx, typedMetadata, bsonAlias),
+                                    identifier: StaticEnumFieldNameToken(typedMetadata, bsonAlias),
                                     accessorList: default,
                                     expressionBody: SF.ArrowExpressionClause(SingleDimensionByteArrayCreation(bytes.Length, SeparatedList(bytes.Select(NumericLiteralExpr)))),
                                     initializer: default,

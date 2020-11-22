@@ -11,28 +11,28 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static SyntaxToken ReadStringEnumMethodName(ClassContext ctx, ISymbol enumTypeName, ISymbol fieldOrPropertyName)
         {
             var (_, alias) = AttributeHelper.GetMemberAlias(fieldOrPropertyName);
-            return SF.Identifier($"TryParse{StaticEnumFieldNameToken(ctx, enumTypeName, alias)}");
+            return SF.Identifier($"TryParse{enumTypeName.Name}");
         }
 
         private static MethodDeclarationSyntax[] GenerateReadStringEnumMethods(ClassContext ctx)
         {
             List<MethodDeclarationSyntax> methods = new();
 
-            foreach (var member in ctx.Members.Where(member => member.TypeSym.Kind == SymbolKind.Field))
+            foreach (var member in ctx.Members.Where(member => member.TypeSym.TypeKind == TypeKind.Enum))
             {
                 var repr = AttributeHelper.GetEnumRepresentation(member.NameSym);
                 if (repr == 1)
                 {
                     methods.Add(ReadStringEnumMethod(member));
                 }
+
             }
 
             return methods.ToArray();
         }
         private static MethodDeclarationSyntax ReadStringEnumMethod(MemberContext ctx)
         {
-            var outMessage = SF.Identifier("enumMessage");
-            var (_, alias) = AttributeHelper.GetMemberAlias(ctx.NameSym);
+            var outMessage = SF.Identifier("enumMessage");           
             var repr = AttributeHelper.GetEnumRepresentation(ctx.NameSym);
             var metadata = ctx.TypeMetadata as INamedTypeSymbol;
             if (repr != 1 )
@@ -42,16 +42,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var stringData = SF.Identifier("stringData");
             List<StatementSyntax> statements = new()
             {
-                SimpleAssignExprStatement(ctx.Root.TryParseOutVar, DefaultLiteralExpr()),
+                SimpleAssignExprStatement(outMessage, DefaultLiteralExpr()),
                 IfNotReturnFalse(TryGetStringAsSpan(VarVariableDeclarationExpr(stringData)))
             };
             foreach (var member in metadata.GetMembers().Where(sym => sym.Kind == SymbolKind.Field))
             {
+                var (_, alias) = AttributeHelper.GetMemberAlias(member);
                 statements.Add(
                     SF.IfStatement(
-                        condition: SpanSequenceEqual(IdentifierName(stringData), IdentifierName(StaticEnumFieldNameToken(ctx.Root, metadata, alias))),
+                        condition: SpanSequenceEqual(IdentifierName(stringData), IdentifierName(StaticEnumFieldNameToken(metadata, alias))),
                         statement: SF.Block(
-                            SimpleAssignExprStatement(ctx.Root.TryParseOutVar, IdentifierFullName(member)),
+                            SimpleAssignExprStatement(outMessage, IdentifierFullName(member)),
                             SF.ReturnStatement(TrueLiteralExpr())
                             )));
             }
@@ -353,19 +354,36 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 if (member.TypeSym.TypeKind == TypeKind.Enum)
                 {
-                    var localReadEnumVar = SF.Identifier($"{member.TypeMetadata.Name}{member.NameSym.Name}");
+                    var localReadEnumVar = SF.Identifier($"{member.AssignedVariable}Temp");
                     int repr = AttributeHelper.GetEnumRepresentation(member.NameSym);
+                    if (repr == -1 ) { repr = 2; }
                     if (repr != 1)
                     {
-                        statements.Add( repr == 2 ? 
-                            LocalDeclarationStatement(IntPredefinedType(), localReadEnumVar, DefaultLiteralExpr()) :
-                            LocalDeclarationStatement(LongPredefinedType(), localReadEnumVar, DefaultLiteralExpr()));
-                        statements.Add( repr == 2 ? Statement(TryGetInt32(IdentifierName(localReadEnumVar))) : Statement(TryGetInt64(IdentifierName(localReadEnumVar))));
+                        statements.Add(
+                          SF.IfStatement(
+                              condition: SpanSequenceEqual(IdentifierName(bsonName), IdentifierName(StaticFieldNameToken(member))),
+                              statement: SF.Block(
+                                  IfContinue(BinaryExprEqualsEquals(IdentifierName(bsonType), NumericLiteralExpr(10))),
+                                  repr == 2 ?
+                                    LocalDeclarationStatement(IntPredefinedType(), localReadEnumVar, DefaultLiteralExpr()) :
+                                    LocalDeclarationStatement(LongPredefinedType(), localReadEnumVar, DefaultLiteralExpr()),
+                                  repr == 2 ?
+                                    IfNotReturnFalseElse(TryGetInt32(IdentifierName(localReadEnumVar)), SF.Block(SimpleAssignExprStatement(member.AssignedVariable, Cast(member.TypeSym, localReadEnumVar)))) :
+                                    IfNotReturnFalseElse(TryGetInt64(IdentifierName(localReadEnumVar)), SF.Block(SimpleAssignExprStatement(member.AssignedVariable, Cast(member.TypeSym, localReadEnumVar)))),
+                                  SF.ContinueStatement()
+                            )));
                     }
                     else
                     {
                         var readMethod = IdentifierName(ReadStringEnumMethodName(ctx, member.TypeMetadata, member.NameSym));
-                        statements.Add(IfNotReturnFalse(InvocationExpr(readMethod, OutArgument(IdentifierName(ctx.TryParseOutVarToken)))));
+                        statements.Add(
+                            SF.IfStatement(
+                                condition: SpanSequenceEqual(IdentifierName(bsonName), IdentifierName(StaticFieldNameToken(member))),
+                                statement: SF.Block(
+                                    IfContinue(BinaryExprEqualsEquals(IdentifierName(bsonType), NumericLiteralExpr(10))),
+                                    IfNotReturnFalse(InvocationExpr(readMethod, RefArgument(ctx.BsonReaderToken), OutArgument(IdentifierName(member.AssignedVariable)))),
+                                    SF.ContinueStatement()
+                                )));
                     }
                 }
                 else

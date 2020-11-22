@@ -57,13 +57,25 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             Root = root;
             Declaration = symbol;
             Members = new List<MemberContext>();
-            GenericArgs = !Declaration.TypeArguments.IsEmpty ? Declaration.TypeArguments : null;
+            GenericArgs = Declaration.TypeArguments.IsEmpty ? null : Declaration.TypeArguments;
             if (AttributeHelper.TryFindPrimaryConstructor(Declaration, out var constructor))
             {
                 if (constructor!.Parameters.Length != 0)
                 {
                     ConstructorParams = constructor.Parameters;
                 }
+            }
+            else
+            {
+                if (Declaration.GetMembers().Any(x => x.Kind == SymbolKind.Property && x.Name == "EqualityContract" && x.IsImplicitlyDeclared)) // record shit check
+                {
+                    if (Declaration.Constructors.Length == 2)
+                    {
+                        ConstructorParams = Declaration.Constructors.Where(x => x.Parameters[0].Type != Declaration).First().Parameters;
+                    }
+                    
+                }
+
             }
             foreach (var member in Declaration.GetMembers())
             {
