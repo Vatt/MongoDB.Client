@@ -197,35 +197,50 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 //         statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
                 //         @else:SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget)))));
                 _ = AttributeHelper.TryGetBsonWriteIgnoreIfAttr(member, out var condition);
-                if (member.TypeSym.IsReferenceType)
+                if (condition != null)
                 {
-                    if (condition != null)
+                    if (member.TypeSym.IsReferenceType)
                     {
-                        statements.Add(
-                            IfNot(
-                                condition,
-                                SF.IfStatement(
-                                    condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
-                                    statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
-                                    @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget)))))
-                            );
+                        if (condition != null)
+                        {
+                            statements.Add(
+                                IfNot(
+                                    condition,
+                                    SF.IfStatement(
+                                        condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
+                                        statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
+                                        @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget)))))
+                                );
+                        }
+                        else
+                        {
+                            statements.Add(
+                                IfNot(
+                                    condition,
+                                    SF.IfStatement(
+                                        condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
+                                        statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
+                                        @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget))))));
+                        }
+
                     }
-                    else
-                    {
-                        statements.Add(
-                             SF.IfStatement(
-                                 condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
-                                 statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
-                                 @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget)))));
-                    }
- 
                 }
                 else
                 {
-                    statements.Add(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget));
+                    if (member.TypeSym.IsReferenceType)
+                    {
+                        statements.Add(
+                            SF.IfStatement(
+                                        condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
+                                        statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
+                                        @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget)))));
+                    }
+                    else
+                    {
+                        statements.Add(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget));
+                    }
+                        
                 }
-
-
             }
 
             return SF.Block(
