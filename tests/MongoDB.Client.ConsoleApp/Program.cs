@@ -2,6 +2,7 @@ using MongoDB.Client.Bson.Document;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,97 +30,16 @@ namespace MongoDB.Client.ConsoleApp
             var client = new MongoClient(new DnsEndPoint(host, 27017), loggerFactory);
 
             var db = client.GetDatabase("TestDb");
-            var collection1 = db.GetCollection<GeoIp>("HeavyItems");
+            var collection1 = db.GetCollection<RootDocument>("HeavyItems");
 
-            //  await InsertItems(collection1, 1000);
-            //
-            // return;
 
-            // var collection3 = db.GetCollection<BsonDocument>("TestCollection2");
-            // var collection2 = db.GetCollection<GeoIp>("TestCollection3");
             var filter = new BsonDocument();
-            //  var filter = new BsonDocument("_id", new BsonObjectId("5fa29b6db27162107ffbe7db"));
 
-            //var result0 = await collection1.Find(filter).ToListAsync();
-            //var result1 = await collection1.Find(filter).FirstOrDefaultAsync();
-            // var item = CreateItem();
-            // await collection1.InsertAsync(item);
-            // for (int i = 0; i < 100; i++)
-            // {
-            //     Console.WriteLine(i);
-            //     var result0 = await collection1.Find(filter).ToListAsync();
-            // }
-            
-            // for (int i = 0; i < 10000; i++)
-            // {
-            //     var item = CreateItem();
-            //     await collection1.InsertAsync(item);
-            // }
-            var result0 = await collection1.Find(filter).ToListAsync();
-            Console.WriteLine("Done");
-            // for (int i = 0; i < 10000; i++)
-            // {
-            //     var item = CreateItem();
-            //     await collection1.InsertAsync(item);
-            // }
-            //
-            // Console.WriteLine("Done");
-            // Console.ReadKey();
-            //
-            // for (int i = 0; i < 10000; i++)
-            // {
-            //     var item = CreateItem();
-            //     await collection1.InsertAsync(item);
-            // }
+            var seeder = new DatabaseSeeder();
+            var item = seeder.GenerateSeed().First();
+            await collection1.InsertAsync(item);
 
             Console.WriteLine("Done");
-            Console.ReadKey();
-
-            // var result = await collection1.DeleteOneAsync(filter);
-            //
-            // Console.WriteLine();
-
-            //try
-            //{
-            //    // inserting duplicate
-            //    await collection1.InsertAsync(item);
-            //}
-            //catch (MongoException e)
-            //{
-            //    Console.WriteLine(e.Message);
-            //}
-
-
-            Console.WriteLine();
-            // var result1 = await collection2.GetCursorAsync(filter, default);
-            //
-            //
-            // var filter2 = new BsonDocument("_id", new BsonObjectId("5fa29b6db27162107ffbe7db"));
-            // var filter3 = new BsonDocument("_id", new BsonObjectId("5f987814bf344ec7cc57294a"));
-            // var filter4 = new BsonDocument("_id", new BsonObjectId("5f987814bf344ec7cc57295c"));
-            // var result2 = await collection1.GetCursorAsync(filter2, default);
-            //
-            //
-            //
-            // Console.WriteLine(result0.Cursor.Items.Count);
-            // Console.WriteLine(result1.Cursor.Items.Count);
-            // Console.WriteLine(result2.Cursor.Items.Count);
-            // await Warmup(collection1, filter);
-
-
-            //var count = 1000;
-            //await Concurrent(collection1, count, filter);
-            //await Sequential(collection1, count, filter);
-            //await Concurrent(collection1, count, filter);
-            //await Sequential(collection1, count, filter);
-            //await Concurrent(collection1, count, filter);
-            //await Sequential(collection1, count, filter);
-            // await Concurrent(collection1, count, filter);
-            // await Sequential(collection1, count, filter);
-            // await Concurrent(collection1, count, filter);
-            // await Sequential(collection1, count, filter);
-            // await Concurrent(collection1, count, filter);
-            // await Sequential(collection1, count, filter);
         }
 
 

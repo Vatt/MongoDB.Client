@@ -11,7 +11,7 @@ using MongoDB.Client.Protocol.Writers;
 namespace MongoDB.Client.Tests.Serialization
 {
 
-    public abstract class BaseSerialization
+    public abstract class BaseSerialization 
     {
         public static async Task<T> RoundTripAsync<T>(T message, IGenericBsonSerializer<T> serializer)
         {

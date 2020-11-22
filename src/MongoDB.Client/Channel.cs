@@ -300,6 +300,7 @@ namespace MongoDB.Client
                     _logger.SentInsertMessage(message.Header.RequestNumber);
                     var response =
                         await completion.CompletionSource.GetValueTask().ConfigureAwait(false);
+
                     if (response is InsertResult result)
                     {
                         if (result.WriteErrors is null)
@@ -308,6 +309,10 @@ namespace MongoDB.Client
                         }
 
                         throw new MongoInsertException(result.WriteErrors);
+                    }
+                    else if (response is BsonParseResult bson)
+                    {
+                        Debugger.Break();
                     }
                 }
             }
@@ -320,6 +325,7 @@ namespace MongoDB.Client
         }
 
         private static readonly InsertMsgType0BodyReader InsertBodyReader = new InsertMsgType0BodyReader();
+        private static readonly BsonBodyReader BsonBodyReader = new BsonBodyReader();
         private static async ValueTask<IParserResult> InsertParseAsync<TResp>(ProtocolReader reader, MongoResponseMessage mongoResponse)
         {
             switch (mongoResponse)
@@ -331,7 +337,7 @@ namespace MongoDB.Client
                         return ThrowHelper.InvalidPayloadTypeException<InsertResult>(msgMessage.MsgHeader.PayloadType);
                     }
 
-                    var result = await reader.ReadAsync(InsertBodyReader, default).ConfigureAwait(false);
+                    var result = await reader.ReadAsync(BsonBodyReader, default).ConfigureAwait(false);
                     reader.Advance();
 
                     return result.Message;
