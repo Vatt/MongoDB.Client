@@ -196,27 +196,22 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 //         condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
                 //         statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
                 //         @else:SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget)))));
-                _ = AttributeHelper.TryGetBsonWriteIgnoreIfAttr(member, out var condition);
-                if (condition != null)
+                if (AttributeHelper.TryGetBsonWriteIgnoreIfAttr(member, out var condition))
                 {
                     if (member.TypeSym.IsReferenceType)
                     {
-                        if (condition != null)
-                        {
-                            statements.Add(
+                        statements.Add(
                                 IfNot(
                                     condition,
                                     SF.IfStatement(
                                         condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
                                         statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
                                         @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget)))))
-                                );
-                        }
-                        else
-                        {
-                            statements.Add(IfNot(condition, WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget)));
-                        }
-
+                                );                       
+                    }
+                    else
+                    {
+                        statements.Add(IfNot(condition, WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget)));
                     }
                 }
                 else
