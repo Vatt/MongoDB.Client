@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Threading.Tasks.Sources;
 
 namespace MongoDB.Client
@@ -18,6 +19,11 @@ namespace MongoDB.Client
         public void OnCompleted(Action<object> continuation, object state, short token, ValueTaskSourceOnCompletedFlags flags) => _core.OnCompleted(continuation, state, token, flags);
 
         public ValueTaskSourceStatus GetStatus() => _core.GetStatus(_core.Version);
+
+        public ValueTask<T> GetValueTask()
+        {
+            return new ValueTask<T>(this, Version);
+        }
 
         public void TrySetResult(T result)
         {

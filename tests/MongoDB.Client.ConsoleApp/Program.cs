@@ -29,7 +29,7 @@ namespace MongoDB.Client.ConsoleApp
             var client = new MongoClient(new DnsEndPoint(host, 27017), loggerFactory);
 
             var db = client.GetDatabase("TestDb");
-            var collection1 = db.GetCollection<RootDocument>("HeavyItems");
+            var collection1 = db.GetCollection<GeoIp>("HeavyItems");
 
             //  await InsertItems(collection1, 1000);
             //
@@ -42,15 +42,14 @@ namespace MongoDB.Client.ConsoleApp
 
             //var result0 = await collection1.Find(filter).ToListAsync();
             //var result1 = await collection1.Find(filter).FirstOrDefaultAsync();
-
-            var gen = new DatabaseSeeder();
-            var items = gen.GenerateSeed(30000);
-            int counter = 0;
-            foreach (var item in items)
-            {
-                Console.WriteLine(counter++);
-                await collection1.InsertAsync(item);
-            }
+            var item = CreateItem();
+            await collection1.InsertAsync(item);
+            var result0 = await collection1.Find(filter).ToListAsync();
+            //for (int i = 0; i < 10000; i++)
+            //{
+            //    var item = CreateItem();
+            //    await collection1.InsertAsync(item);
+            //}
 
             Console.WriteLine("Done");
             // for (int i = 0; i < 10000; i++)

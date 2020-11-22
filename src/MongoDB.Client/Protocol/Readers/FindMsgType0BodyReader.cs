@@ -25,6 +25,7 @@ namespace MongoDB.Client.Protocol.Readers
             _state = ParserState.Initial;
         }
 
+
         public override bool TryParseMessage(in ReadOnlySequence<byte> input, ref SequencePosition consumed,
             ref SequencePosition examined, [MaybeNullWhen(false)] out CursorResult<T> message)
         {
