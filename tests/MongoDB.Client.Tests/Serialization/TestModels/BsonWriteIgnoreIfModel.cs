@@ -15,7 +15,12 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         [BsonWriteIgnoreIf("Field==42")]
         public string IgnoredField0{ get; set; }
 
+        [BsonWriteIgnoreIf("Field==42")]
+        public List<int> ListValue { get; set; }
+
         [BsonWriteIgnoreIf(@"IgnoredField0.Equals(""lol0"")")]
         public string IgnoredField1 { get; set; }
+
+
     }
 }

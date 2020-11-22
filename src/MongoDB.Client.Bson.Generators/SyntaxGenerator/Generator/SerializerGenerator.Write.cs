@@ -196,13 +196,29 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 //         condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
                 //         statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
                 //         @else:SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget)))));
+                _ = AttributeHelper.TryGetBsonWriteIgnoreIfAttr(member, out var condition);
                 if (member.TypeSym.IsReferenceType)
                 {
-                    statements.Add(
-                        SF.IfStatement(
-                            condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
-                            statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
-                            @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget)))));
+                    if (condition != null)
+                    {
+                        statements.Add(
+                            IfNot(
+                                condition,
+                                SF.IfStatement(
+                                    condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
+                                    statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
+                                    @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget)))))
+                            );
+                    }
+                    else
+                    {
+                        statements.Add(
+                             SF.IfStatement(
+                                 condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
+                                 statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
+                                 @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget)))));
+                    }
+ 
                 }
                 else
                 {
@@ -231,26 +247,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             ExpressionSyntax writerId, ExpressionSyntax writeTarget)
         {
             ITypeSymbol trueType = typeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol)typeSym).TypeParameters[0] : typeSym;
-            _ = AttributeHelper.TryGetBsonWriteIgnoreIfAttr(ctx, out var condition);
             if (TryGetSimpleWriteOperation(trueType, name, writeTarget, out var expr))
             {
-                if (condition != default)
-                {
-                    return IfNot(condition, expr);
-                }
 
                 return SF.ExpressionStatement(expr);
             }
             if (ctx.Root.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(trueType.Name)) != default)
             {
-                if (condition != default)
-                {
-                    return SF.Block(
-                        VarLocalDeclarationStatement(SF.Identifier("genericReserved"), WriterReserve(1)),
-                        Statement(WriteCString(SimpleAssignExpr(ctx.Root.WriterInputVar, IdentifierName(ctx.NameSym)))),
-                        IfNot(condition, WriteGeneric(writeTarget, SF.IdentifierName("genericReserved"))));
-                }
-
                 return SF.Block(
                     VarLocalDeclarationStatement(SF.Identifier("genericReserved"), WriterReserve(1)),
                     Statement(WriteCString(StaticFieldNameToken(ctx))),
@@ -261,13 +264,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 if (namedType.ToString().Contains("System.Collections.Generic.List") ||
                     namedType.ToString().Contains("System.Collections.Generic.IList"))
                 {
-                    if (condition != default)
-                    {
-                        return IfNot(
-                            condition,
-                            Statement(Write_Type_Name(4, IdentifierName(name))),
-                            InvocationExprStatement(IdentifierName(WriteArrayMethodName(ctx, trueType)), RefArgument(writerId), Argument(writeTarget)));
-                    }
                     return SF.Block(
                         Statement(Write_Type_Name(4, IdentifierName(name))),
                         InvocationExprStatement(IdentifierName(WriteArrayMethodName(ctx, trueType)), RefArgument(writerId), Argument(writeTarget)));
@@ -284,11 +280,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     //TODO: если сериализатор не из ЭТОЙ сборки, добавить ветку с мапой с проверкой на нуль
                     if (context.Declaration.ToString().Equals(trueType.ToString()))
                     {
-                        if (condition != default)
-                        {
-                            return IfNot(condition, GeneratedSerializerWrite(context, writerId, writeTarget));
-                        }
-
                         if (ctx.TypeSym.TypeKind == TypeKind.Enum)
                         {
                             //TODO: Удалить чисельные репрезентаци, оставить только строковые
