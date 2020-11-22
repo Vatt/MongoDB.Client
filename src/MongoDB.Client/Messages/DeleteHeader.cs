@@ -5,16 +5,16 @@ namespace MongoDB.Client.Messages
     [BsonSerializable]
     public class DeleteHeader
     {
-        [BsonElementField(ElementName = "delete")]
+        [BsonElement("delete")]
         public string Delete { get; set; }
 
-        [BsonElementField(ElementName = "ordered")]
+        [BsonElement("ordered")]
         public bool Ordered { get; set; }
 
-        [BsonElementField(ElementName = "$db")]
+        [BsonElement("$db")]
         public string Db { get; set; }
 
-        [BsonElementField(ElementName = "lsid")]
+        [BsonElement("lsid")]
         public SessionId Lsid { get; set; }
     }
 }

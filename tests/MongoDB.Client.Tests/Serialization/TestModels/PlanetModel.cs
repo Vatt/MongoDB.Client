@@ -5,19 +5,19 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
     [BsonEnumSerializable(EnumRepresentation.String)]
     public enum AtmosphereType
     {
-        [BsonElementField(ElementName = "No atmosphere")]
+        [BsonElement("No atmosphere")]
         NoAtmosphere,
         
-        [BsonElementField(ElementName = "Hot thick silicate vapour")]
+        [BsonElement("Hot thick silicate vapour")]
         HotThickSilicateVapour,
         
-        [BsonElementField(ElementName = "Hot thick carbon dioxide")]
+        [BsonElement("Hot thick carbon dioxide")]
         HotThickCarbonDioxide,
         
-        [BsonElementField(ElementName = "Hot thick Water")]
+        [BsonElement("Hot thick Water")]
         HotThickWater,
         
-        [BsonElementField(ElementName = "Sulphur dioxide")]
+        [BsonElement("Sulphur dioxide")]
         SulphurDioxide,
 
         [BsonIgnore]

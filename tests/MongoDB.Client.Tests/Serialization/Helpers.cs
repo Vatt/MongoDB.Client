@@ -27,6 +27,10 @@ namespace MongoDB.Client.Tests.Serialization
 
             for (int i = 0; i < list1.Count; i++)
             {
+                if (list1[i] == null && list2[i] == null)
+                {
+                    return true;
+                }
                 if (list1[i].Equals(list2[i]) == false)
                 {
                     return false;

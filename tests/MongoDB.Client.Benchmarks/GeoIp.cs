@@ -7,11 +7,11 @@ namespace MongoDB.Client.Benchmarks
     [BsonSerializable]
     public class GeoIp
     {
-        [BsonId]
+        [MongoDB.Bson.Serialization.Attributes.BsonId]
         [Bson.Serialization.Attributes.BsonIgnore]
         public ObjectId OldId { get; set; }
         
-        [BsonElementField(ElementName = "_id")]
+        [Bson.Serialization.Attributes.BsonElement("_id")]
         [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
         public MongoDB.Client.Bson.Document.BsonObjectId Id { get; set; }
         

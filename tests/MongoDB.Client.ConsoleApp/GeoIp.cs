@@ -8,7 +8,7 @@ namespace MongoDB.Client.ConsoleApp
     [BsonSerializable]
     public class GeoIp
     {
-        [BsonElementField(ElementName = "_id")]
+        [BsonId]
         public BsonObjectId Id { get; set; }
         public string status { get; set; }
         public string country { get; set; }

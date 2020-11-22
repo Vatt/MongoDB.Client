@@ -6,34 +6,34 @@ namespace MongoDB.Client.Messages
     [BsonSerializable]
     public class FindRequest
     {
-        [BsonElementField(ElementName = "find")]
+        [BsonElement("find")]
         [BsonWriteIgnoreIf("Find is null")]
         public string Find { get; set; }
 
-        [BsonElementField(ElementName = "filter")]
+        [BsonElement("filter")]
         [BsonWriteIgnoreIf("Filter is null")]
         public BsonDocument Filter { get; set; }
 
-        [BsonElementField(ElementName = "limit")]
+        [BsonElement("limit")]
         [BsonWriteIgnoreIf("Limit < 1")]
         public int Limit { get; set; }
 
         
         
-        [BsonElementField(ElementName = "getMore")]
+        [BsonElement("getMore")]
         [BsonWriteIgnoreIf("GetMore < 1")]
         public long GetMore { get; set; }
         
-        [BsonElementField(ElementName = "collection")]
+        [BsonElement("collection")]
         [BsonWriteIgnoreIf("Collection is null")]
         public string Collection { get; set; }
         
         
         
-        [BsonElementField(ElementName = "$db")]
+        [BsonElement("$db")]
         public string Db { get; set; }
 
-        [BsonElementField(ElementName = "lsid")]
+        [BsonElement("lsid")]
         public SessionId Lsid { get; set; }
     }
 }

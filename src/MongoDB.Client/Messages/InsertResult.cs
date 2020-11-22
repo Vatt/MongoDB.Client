@@ -6,26 +6,26 @@ namespace MongoDB.Client.Messages
     [BsonSerializable]
     public class InsertResult : IParserResult
     {
-        [BsonElementField(ElementName = "n")]
+        [BsonElement("n")]
         public int N { get; set; }
         
-        [BsonElementField(ElementName = "ok")]
+        [BsonElement("ok")]
         public double Ok { get; set; }
 
-        [BsonElementField(ElementName = "writeErrors")]
-        public List<InsertError>? WriteErrors { get; set; }
+        [BsonElement("writeErrors")]
+        public List<InsertError> WriteErrors { get; set; }
     }
     
     [BsonSerializable]
     public class InsertError
     {
-        [BsonElementField(ElementName = "index")]
+        [BsonElement("index")]
         public int Index { get; set; }
         
-        [BsonElementField(ElementName = "code")]
+        [BsonElement("code")]
         public int Code { get; set; }
 
-        [BsonElementField(ElementName = "errmsg")]
+        [BsonElement("errmsg")]
         public string ErrorMessage { get; set; }
     }
 }

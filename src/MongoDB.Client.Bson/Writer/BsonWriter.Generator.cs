@@ -5,12 +5,84 @@ using System.Buffers.Binary;
 using System.Buffers.Text;
 using System.Runtime.CompilerServices;
 using System.Text;
+using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Bson.Serialization.Exceptions;
 using MongoDB.Client.Bson.Utils;
 
 namespace MongoDB.Client.Bson.Writer
 {
     public ref partial struct BsonWriter
     {
+        private static void ThrowSerializerNotFound(string typeName)
+        {
+            throw new SerializerNotFoundException(typeName);
+        }
+        private static void ThrowSerializerIsNull(string typeName)
+        {
+            throw new SerializerIsNullException(typeName);
+        }
+        public void WriteGeneric<T>(T genericValue, ref Reserved typeReserved)
+        {
+            if (genericValue == null)
+            {
+                typeReserved.Write(10);
+                return;
+            }
+            switch (genericValue)
+            {
+                case double value:
+                    WriteDouble(value);
+                    typeReserved.Write(1);
+                    return;
+                case string value:
+                    WriteString(value);
+                    typeReserved.Write(2);
+                    return;
+                case BsonArray value:
+                    WriteDocument(value);
+                    typeReserved.Write(4);
+                    return;
+                case BsonDocument value:
+                    WriteDocument(value);
+                    typeReserved.Write(3);
+                    return;
+                case Guid value:
+                    WriteGuidAsBinaryData(value);
+                    typeReserved.Write(5);
+                    return;
+                case BsonObjectId value:
+                    WriteObjectId(value);
+                    typeReserved.Write(7);
+                    return;
+                case bool value:
+                    WriteBoolean(value);
+                    typeReserved.Write(8);
+                    return;
+                case DateTimeOffset value:
+                    WriteUtcDateTime(value);
+                    typeReserved.Write(9);
+                    return;
+                case int value:
+                    WriteInt32(value);
+                    typeReserved.Write(16);
+                    return;
+                case long value:
+                    WriteInt64(value);
+                    typeReserved.Write(18);
+                    return;
+            }
+
+            if (!SerializersMap.TryGetSerializer<T>(out var serializer))
+            {
+                ThrowSerializerNotFound(typeof(T).Name);
+            }
+            if (serializer is null)
+            {
+                ThrowSerializerIsNull(typeof(T).Name);
+            }
+            typeReserved.Write(3);
+            serializer.Write(ref this, genericValue);
+        }
         private void WriteGuidAsBinaryData(Guid value)
         {
             const int guidSize = 16;
@@ -120,7 +192,6 @@ namespace MongoDB.Client.Bson.Writer
             }
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, string value)
         {
@@ -168,10 +239,31 @@ namespace MongoDB.Client.Bson.Writer
                 ArrayPool<byte>.Shared.Return(buffer);
             }
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write_Type_Name_Value(ReadOnlySpan<byte> name, BsonArray value)
+        {
+            WriteByte(4);
+            WriteCString(name);
+            WriteDocument(value);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write_Type_Name_Value(int intName, BsonArray value)
+        {
+            var buffer = ArrayPool<byte>.Shared.Rent(10);
+            try
+            {
+                _ = Utf8Formatter.TryFormat(intName, buffer, out int written);
+                WriteByte(4);
+                WriteCString(buffer.AsSpan(0, written));
+                WriteDocument(value);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+        }
 
 
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        //public void Write(DateTimeOffset value) => WriteUtcDateTime(value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, BsonObjectId value)

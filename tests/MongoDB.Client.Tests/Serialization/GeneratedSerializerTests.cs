@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Tests.Serialization.TestModels;
 using Xunit;
 

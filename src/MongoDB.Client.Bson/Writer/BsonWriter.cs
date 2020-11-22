@@ -35,6 +35,11 @@ namespace MongoDB.Client.Bson.Writer
                 _reserved1 = r1;
                 _reserved2 = null;
             }
+            public void Write(byte source)
+            {
+                Debug.Assert(_reserved2 == null);
+                _reserved1[0] = source;
+            }
             public void Write(Span<byte> source)
             {
                 if (_reserved2 == null)
@@ -322,7 +327,7 @@ namespace MongoDB.Client.Bson.Writer
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteUtcDateTime(DateTimeOffset datetime)
+        public void WriteUtcDateTime(in DateTimeOffset datetime)
         {
             WriteInt64(datetime.ToUnixTimeMilliseconds());
         }
