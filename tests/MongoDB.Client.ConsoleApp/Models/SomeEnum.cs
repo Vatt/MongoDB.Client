@@ -2,7 +2,6 @@
 
 namespace MongoDB.Client.ConsoleApp.Models
 {
-    [BsonEnumSerializable(EnumRepresentation.Int32)]
     public enum SomeEnum
     {
         EnumValueOne = 0,
