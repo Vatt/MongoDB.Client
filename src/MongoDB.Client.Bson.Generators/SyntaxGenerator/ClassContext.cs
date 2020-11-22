@@ -10,11 +10,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
     internal class MasterContext
     {
         public readonly List<ClassContext> Contexts;
-        public readonly GeneratorExecutionContext GeneratorExecutionContext;
+        public readonly Compilation Compilation;
         public MasterContext(List<INamedTypeSymbol> symbols, GeneratorExecutionContext ctx)
         {
             Contexts = new List<ClassContext>();
-            GeneratorExecutionContext = ctx;
+            Compilation = ctx.Compilation;
             foreach (var symbol in symbols)
             {
                 Contexts.Add(new ClassContext(this, symbol));
@@ -97,6 +97,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     Members.Add(new MemberContext(this, member));
                 }
             }
+
         }
     }
     internal class MemberContext
@@ -108,7 +109,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         internal readonly string BsonElementValue;
         internal readonly ImmutableArray<ITypeSymbol>? TypeGenericArgs;
         internal SyntaxToken AssignedVariable;
-
+        internal readonly ISymbol TypeMetadata;
         internal bool IsGenericType => Root.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(TypeSym.Name)) != default;
         public MemberContext(ClassContext root, ISymbol memberSym)
         {
@@ -125,13 +126,19 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     break;
                 default: break;
             }
-
+            if (TypeSym != null)
+            {
+                _ = Types.TryGetMetadata(TypeSym, out TypeMetadata);
+            }
+             
+            var some = Root.Root.Compilation.GetTypesByMetadataName(TypeSym!.ToString()).ToArray();
             if (TypeSym is INamedTypeSymbol namedType)
             {
-                TypeGenericArgs = !namedType.TypeArguments.IsEmpty ? namedType.TypeArguments : null;
+                TypeGenericArgs = namedType.TypeArguments.IsEmpty ? null : namedType.TypeArguments;
             }
 
             (BsonElementValue, BsonElementAlias) = AttributeHelper.GetMemberAlias(NameSym);
         }
+
     }
 }

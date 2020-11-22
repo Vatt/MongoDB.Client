@@ -272,6 +272,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         Statement(Write_Type_Name(4, IdentifierName(name))),
                         InvocationExprStatement(IdentifierName(WriteArrayMethodName(ctx, trueType)), RefArgument(writerId), Argument(writeTarget)));
                 }
+            }else if (trueType is INamedTypeSymbol tryEnumType && tryEnumType.TypeKind == TypeKind.Enum)
+            {
+                //TODO: CALL WRITE ENUM METHOD HERE
+                return SF.ReturnStatement();
             }
             else
             {

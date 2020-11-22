@@ -8,6 +8,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        private static SyntaxToken ReadEnumMethod(MemberContext ctx)
+        {
+            return default;
+        }
         private static SyntaxToken ReadArrayMethodName(ISymbol nameSym, ITypeSymbol typeSymbol)
         {
             var name = $"TryParse{nameSym.Name}{typeSymbol.Name}";/*{typeSymbol.GetTypeMembers()[0].Name}*/
@@ -320,6 +324,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     return InvocationExpr(IdentifierName(ReadArrayMethodName(nameSym, trueType)), RefArgument(readerId), OutArgument(readTarget));
                 }
+            }else if (trueType is INamedTypeSymbol tryEnumType && tryEnumType.TypeKind == TypeKind.Enum)
+            {
+                //TODO: CALL ENUM PARSE METHOD HERE!
+                return SF.ParseExpression("continue;");
             }
             else
             {

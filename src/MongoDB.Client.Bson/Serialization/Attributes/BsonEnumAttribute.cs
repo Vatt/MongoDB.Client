@@ -8,10 +8,10 @@ namespace MongoDB.Client.Bson.Serialization.Attributes
         Int32 = 2,
         Int64 = 3,
     }
-    [AttributeUsage(AttributeTargets.Enum)]
-    public class BsonEnumSerializableAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+    public class BsonEnumAttribute : Attribute
     {
-        public BsonEnumSerializableAttribute(EnumRepresentation representation)
+        public BsonEnumAttribute(EnumRepresentation representation)
         {
             var enumValue = 1;
             if (enumValue == (int)representation)
