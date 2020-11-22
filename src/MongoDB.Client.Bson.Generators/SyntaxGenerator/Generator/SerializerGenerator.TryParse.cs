@@ -8,9 +8,68 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        private static SyntaxToken ReadEnumMethod(MemberContext ctx)
+        private static SyntaxToken ReadStringEnumMethodName(ClassContext ctx, ISymbol enumTypeName, ISymbol fieldOrPropertyName)
         {
-            return default;
+            var (_, alias) = AttributeHelper.GetMemberAlias(fieldOrPropertyName);
+            return SF.Identifier($"TryParse{StaticEnumFieldNameToken(ctx, enumTypeName, alias)}");
+        }
+
+        private static MethodDeclarationSyntax[] GenerateReadStringEnumMethods(ClassContext ctx)
+        {
+            List<MethodDeclarationSyntax> methods = new();
+
+            foreach (var member in ctx.Members.Where(member => member.TypeSym.Kind == SymbolKind.Field))
+            {
+                var repr = AttributeHelper.GetEnumRepresentation(member.NameSym);
+                if (repr == 1)
+                {
+                    methods.Add(ReadStringEnumMethod(member));
+                }
+            }
+
+            return methods.ToArray();
+        }
+        private static MethodDeclarationSyntax ReadStringEnumMethod(MemberContext ctx)
+        {
+            var outMessage = SF.Identifier("enumMessage");
+            var (_, alias) = AttributeHelper.GetMemberAlias(ctx.NameSym);
+            var repr = AttributeHelper.GetEnumRepresentation(ctx.NameSym);
+            var metadata = ctx.TypeMetadata as INamedTypeSymbol;
+            if (repr != 1 )
+            {
+                return default;
+            }
+            var stringData = SF.Identifier("stringData");
+            List<StatementSyntax> statements = new()
+            {
+                SimpleAssignExprStatement(ctx.Root.TryParseOutVar, DefaultLiteralExpr()),
+                IfNotReturnFalse(TryGetStringAsSpan(VarVariableDeclarationExpr(stringData)))
+            };
+            foreach (var member in metadata.GetMembers().Where(sym => sym.Kind == SymbolKind.Field))
+            {
+                statements.Add(
+                    SF.IfStatement(
+                        condition: SpanSequenceEqual(IdentifierName(stringData), IdentifierName(StaticEnumFieldNameToken(ctx.Root, metadata, alias))),
+                        statement: SF.Block(
+                            SimpleAssignExprStatement(ctx.Root.TryParseOutVar, IdentifierFullName(member)),
+                            SF.ReturnStatement(TrueLiteralExpr())
+                            )));
+            }
+            statements.Add(SF.ReturnStatement(TrueLiteralExpr()));     
+            return SF.MethodDeclaration(
+                    attributeLists: default,
+                    modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()),
+                    explicitInterfaceSpecifier: default,
+                    returnType: BoolPredefinedType(),
+                    identifier: ReadStringEnumMethodName(ctx.Root, metadata, ctx.NameSym),
+                    parameterList: ParameterList(RefParameter(ctx.Root.BsonReaderType, ctx.Root.BsonReaderToken),
+                                                 OutParameter(IdentifierName(ctx.TypeSym.ToString()), outMessage)),
+                    body: default,
+                    constraintClauses: default,
+                    expressionBody: default,
+                    typeParameterList: default,
+                    semicolonToken: default)
+                .WithBody(SF.Block(statements.ToArray()));
         }
         private static SyntaxToken ReadArrayMethodName(ISymbol nameSym, ITypeSymbol typeSymbol)
         {
@@ -66,11 +125,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         private static MethodDeclarationSyntax ReadArrayMethod(MemberContext ctx, ITypeSymbol type)
         {
-            var docLenToken = SF.Identifier($"arrayDocLength");
-            var unreadedToken = SF.Identifier($"arrayUnreaded");
-            var endMarkerToken = SF.Identifier($"arrayEndMarker");
-            var bsonTypeToken = SF.Identifier($"arrayBsonType");
-            var bsonNameToken = SF.Identifier($"arrayBsonName");
+            var docLenToken = SF.Identifier("arrayDocLength");
+            var unreadedToken = SF.Identifier("arrayUnreaded");
+            var endMarkerToken = SF.Identifier("arrayEndMarker");
+            var bsonTypeToken = SF.Identifier("arrayBsonType");
+            var bsonNameToken = SF.Identifier("arrayBsonName");
             var outMessage = SF.Identifier("array");
             var tempArrayRead = SF.Identifier("temp");
 
@@ -287,18 +346,40 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             var decl = ctx.Declaration;
             var members = ctx.Members;
+            
             List<StatementSyntax> statements = new();
-
+            
             foreach (var member in members)
             {
-                var operation = ReadOperation(ctx, member.NameSym, member.TypeSym, ctx.BsonReaderId, IdentifierName(member.AssignedVariable), bsonType, bsonName);
-                statements.Add(
-                    SF.IfStatement(
-                        condition: SpanSequenceEqual(IdentifierName(bsonName), IdentifierName(StaticFieldNameToken(member))),
-                        statement: SF.Block(
-                                IfContinue(BinaryExprEqualsEquals(IdentifierName(bsonType), NumericLiteralExpr(10))),
-                                IfNotReturnFalse(operation),
-                                SF.ContinueStatement())));
+                if (member.TypeSym.TypeKind == TypeKind.Enum)
+                {
+                    var localReadEnumVar = SF.Identifier($"{member.TypeMetadata.Name}{member.NameSym.Name}");
+                    int repr = AttributeHelper.GetEnumRepresentation(member.NameSym);
+                    if (repr != 1)
+                    {
+                        statements.Add( repr == 2 ? 
+                            LocalDeclarationStatement(IntPredefinedType(), localReadEnumVar, DefaultLiteralExpr()) :
+                            LocalDeclarationStatement(LongPredefinedType(), localReadEnumVar, DefaultLiteralExpr()));
+                        statements.Add( repr == 2 ? Statement(TryGetInt32(IdentifierName(localReadEnumVar))) : Statement(TryGetInt64(IdentifierName(localReadEnumVar))));
+                    }
+                    else
+                    {
+                        var readMethod = IdentifierName(ReadStringEnumMethodName(ctx, member.TypeMetadata, member.NameSym));
+                        statements.Add(IfNotReturnFalse(InvocationExpr(readMethod, OutArgument(IdentifierName(ctx.TryParseOutVarToken)))));
+                    }
+                }
+                else
+                {
+                    var operation = ReadOperation(ctx, member.NameSym, member.TypeSym, ctx.BsonReaderId, IdentifierName(member.AssignedVariable), bsonType, bsonName);
+                    statements.Add(
+                        SF.IfStatement(
+                            condition: SpanSequenceEqual(IdentifierName(bsonName), IdentifierName(StaticFieldNameToken(member))),
+                            statement: SF.Block(
+                                    IfContinue(BinaryExprEqualsEquals(IdentifierName(bsonType), NumericLiteralExpr(10))),
+                                    IfNotReturnFalse(operation),
+                                    SF.ContinueStatement())));
+                }
+
             }
             return statements.ToArray();
         }
@@ -321,13 +402,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 if (namedType.ToString().Contains("System.Collections.Generic.List") ||
                     namedType.ToString().Contains("System.Collections.Generic.IList"))
+                //if (namedType.Equals(Types.List) || namedType.Equals(Types.IList))
                 {
                     return InvocationExpr(IdentifierName(ReadArrayMethodName(nameSym, trueType)), RefArgument(readerId), OutArgument(readTarget));
                 }
-            }else if (trueType is INamedTypeSymbol tryEnumType && tryEnumType.TypeKind == TypeKind.Enum)
-            {
-                //TODO: CALL ENUM PARSE METHOD HERE!
-                return SF.ParseExpression("continue;");
             }
             else
             {

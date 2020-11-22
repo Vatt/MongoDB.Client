@@ -61,7 +61,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 .AddMembers(TryParseMethod(ctx))
                 .AddMembers(WriteMethod(ctx))
                 .AddMembers(GenerateReadArrayMethods(ctx))
-                .AddMembers(GenerateWriteArrayMethods(ctx));
+                .AddMembers(GenerateWriteArrayMethods(ctx))
+                .AddMembers(GenerateReadStringEnumMethods(ctx));
             return ctx.GenericArgs.HasValue && ctx.GenericArgs!.Value.Length > 0
                 ? decl.AddTypeParameterListParameters(ctx.GenericArgs!.Value.Select(TypeParameter).ToArray())
                 : decl;

@@ -39,10 +39,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         public static void TypesInit(Compilation compilation)
         {
             Compilation = compilation;
-            ListSymbol = Compilation.GetTypeByMetadataName("System.Collections.Generic.List`1");
-            IListSymbol = Compilation.GetTypeByMetadataName("System.Collections.Generic.IList`1");
+            List = Compilation.GetTypeByMetadataName("System.Collections.Generic.List`1")!;
+            IList = Compilation.GetTypeByMetadataName("System.Collections.Generic.IList`1")!;
         }
-        public static ISymbol ListSymbol; 
-        public static ISymbol IListSymbol; 
+        public static ISymbol List; 
+        public static ISymbol IList; 
     }
 }

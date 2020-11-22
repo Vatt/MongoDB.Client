@@ -8,6 +8,16 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        private static MethodDeclarationSyntax WriteEnumMethod(MemberContext ctx)
+        {
+            var (_, alias) = AttributeHelper.GetMemberAlias(ctx.NameSym);
+            var repr = AttributeHelper.GetEnumRepresentation(ctx.NameSym);
+            if (repr == -1 )// default representation - int32
+            {
+                repr = 2;
+            }
+            return default;
+        }
         private static SyntaxToken WriteArrayMethodName(MemberContext ctx, ITypeSymbol typeSymbol)
         {
             var name = $"Write{ctx.NameSym.Name}{typeSymbol.Name}";/*{typeSymbol.GetTypeMembers()[0].Name}*/
