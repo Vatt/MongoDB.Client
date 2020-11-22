@@ -8,15 +8,65 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        private static SyntaxToken WriteStringEnumMethodName(ClassContext ctx, ISymbol enumTypeName, ISymbol fieldOrPropertyName)
+        {
+            var (_, alias) = AttributeHelper.GetMemberAlias(fieldOrPropertyName);
+            return SF.Identifier($"Write{enumTypeName.Name}");
+        }
+        private static MethodDeclarationSyntax[] GenerateWriteStringEnumMethods(ClassContext ctx)
+        {
+            List<MethodDeclarationSyntax> methods = new();
+
+            foreach (var member in ctx.Members.Where(member => member.TypeSym.TypeKind == TypeKind.Enum))
+            {
+                var repr = AttributeHelper.GetEnumRepresentation(member.NameSym);
+                if (repr == 1)
+                {
+                    methods.Add(WriteEnumMethod(member));
+                }
+
+            }
+
+            return methods.ToArray();
+        }
         private static MethodDeclarationSyntax WriteEnumMethod(MemberContext ctx)
         {
-            var (_, alias) = AttributeHelper.GetMemberAlias(ctx.NameSym);
+            var spanNameArg = SF.Identifier("name");
+            var metadata = ctx.TypeMetadata as INamedTypeSymbol;
             var repr = AttributeHelper.GetEnumRepresentation(ctx.NameSym);
-            if (repr == -1 )// default representation - int32
+            if (repr != 1)
             {
-                repr = 2;
+                return default;
             }
-            return default;
+            List<StatementSyntax> statements = new();
+            foreach (var member in metadata.GetMembers().Where(sym => sym.Kind == SymbolKind.Field))
+            {
+                var (_, alias) = AttributeHelper.GetMemberAlias(member);               
+                statements.Add(
+                    SF.IfStatement(
+                        condition: BinaryExprEqualsEquals(ctx.Root.WriterInputVar, IdentifierFullName(member)),
+                        statement: SF.Block(
+                            //Statement(Write_Type_Name(2, IdentifierName(StaticFieldNameToken(ctx)))),
+                            Statement(Write_Type_Name(2, IdentifierName(spanNameArg))),
+                            Statement(WriteString(StaticEnumFieldNameToken(metadata, alias))))
+                    ));
+            }
+            return SF.MethodDeclaration(
+                    attributeLists: default,
+                    modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()),
+                    explicitInterfaceSpecifier: default,
+                    returnType: VoidPredefinedType(),
+                    identifier: WriteStringEnumMethodName(ctx.Root, metadata, ctx.NameSym),
+                    parameterList: ParameterList(RefParameter(ctx.Root.BsonWriterType, ctx.Root.BsonWriterToken),
+                                                 Parameter(ReadOnlySpanByte(), spanNameArg),
+                                                 Parameter(TypeFullName(ctx.TypeSym), ctx.Root.WriterInputVarToken)),
+                                                  
+                    body: default,
+                    constraintClauses: default,
+                    expressionBody: default,
+                    typeParameterList: default,
+                    semicolonToken: default)
+                .WithBody(SF.Block(statements.ToArray()));
         }
         private static SyntaxToken WriteArrayMethodName(MemberContext ctx, ITypeSymbol typeSymbol)
         {
@@ -190,6 +240,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 var writeTarget = SimpleMemberAccess(ctx.WriterInputVar, IdentifierName(member.NameSym));
                 ITypeSymbol trueType = member.TypeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol)member.TypeSym).TypeParameters[0] : member.TypeSym;
+                AttributeHelper.TryGetBsonWriteIgnoreIfAttr(member, out var condition);
                 if (trueType is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)
                 {
                     /*if (namedType.ToString().Contains("System.Collections.Generic.List") ||
@@ -200,13 +251,37 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     */
 
                 }
-
-                // statements.Add(
-                //     SF.IfStatement(
-                //         condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
-                //         statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
-                //         @else:SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget)))));
-                if (AttributeHelper.TryGetBsonWriteIgnoreIfAttr(member, out var condition))
+                if (member.TypeSym.TypeKind == TypeKind.Enum)
+                {
+                    int repr = AttributeHelper.GetEnumRepresentation(member.NameSym);
+                    if (repr == -1) { repr = 2; }
+                    if (repr != 1)
+                    {
+                        if (condition != null)
+                        {
+                            statements.Add(IfNot(condition, Write_Type_Name_Value(StaticFieldNameToken(member), repr == 2 ? CastToInt(writeTarget) : CastToLong(writeTarget))));       
+                        }
+                        else
+                        {
+                            statements.Add(Statement(Write_Type_Name_Value(StaticFieldNameToken(member), repr == 2 ? CastToInt(writeTarget) : CastToLong(writeTarget) )));
+                        }
+                    }
+                    else
+                    {
+                        var methodName = IdentifierName(WriteStringEnumMethodName(ctx, member.TypeMetadata, member.NameSym));
+                        var invocation = InvocationExpr(methodName, RefArgument(ctx.BsonWriterToken), Argument(StaticFieldNameToken(member)), Argument(writeTarget));
+                        if (condition != null)
+                        {
+                            statements.Add(IfNot(condition, invocation));
+                        }
+                        else
+                        {
+                            statements.Add(Statement(invocation));
+                        }
+                    }
+                    continue;   
+                }
+                if (condition != null)
                 {
                     if (member.TypeSym.IsReferenceType)
                     {
