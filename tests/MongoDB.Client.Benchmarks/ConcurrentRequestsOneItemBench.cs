@@ -36,7 +36,7 @@ namespace MongoDB.Client.Benchmarks
             var oldDb = oldClient.GetDatabase(dbName);
             _oldCollection = oldDb.GetCollection<GeoIp>(collectionName);
 
-
+            oldDb.DropCollection(collectionName);
             for (int i = 0; i < itemsCount; i++)
             {
                 var item = new GeoIp
@@ -62,7 +62,7 @@ namespace MongoDB.Client.Benchmarks
         [GlobalCleanup]
         public void Clean()
         {
-            _oldCollection.DeleteMany(FilterDefinition<GeoIp>.Empty);
+            _oldCollection.Database.DropCollection(GetType().Name);
         }
 
         private static readonly BsonDocument EmptyFilter = new BsonDocument();
