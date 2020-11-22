@@ -10,46 +10,47 @@ using MongoDB.Client.Protocol.Messages;
 
 namespace MongoDB.Client
 {
-    internal class ChannelsPool : IChannelsPool
+    internal class NodeChannelsPool : IChannelsPool
     {
-        private static readonly int _maxChannels = 64;//Environment.ProcessorCount * 6;
-        private const int Trashhold = 2; 
         private static readonly Random Random = new();
         
+        private readonly MongoClientSettings _settings;
         private readonly EndPoint _endPoint;
         private readonly ILoggerFactory _loggerFactory;
-        private readonly ILogger<ChannelsPool> _logger;
-        private ImmutableList<Channel> _channels = ImmutableList<Channel>.Empty;
+        private readonly ILogger<NodeChannelsPool> _logger;
+        private ImmutableArray<Channel> _channels = ImmutableArray<Channel>.Empty;
         private readonly SemaphoreSlim _channelAllocateLock = new(1);
         private int _channelNumber;
         private int _channelCounter;
 
-        public ChannelsPool(EndPoint endPoint, ILoggerFactory loggerFactory)
+        public NodeChannelsPool(MongoClientSettings settings, EndPoint endPoint, ILoggerFactory loggerFactory)
         {
+            _settings = settings;
             _endPoint = endPoint;
             _loggerFactory = loggerFactory;
-            _logger = loggerFactory.CreateLogger<ChannelsPool>();
+            _logger = loggerFactory.CreateLogger<NodeChannelsPool>();
             _initialDocument = InitHelper.CreateInitialCommand();
         }
 
         public ValueTask<Channel> GetChannelAsync(CancellationToken cancellationToken)
         {
             var idx = Interlocked.Increment(ref _channelCounter);
-
-            for (int i = 0; i < _channels.Count; i++)
+            var channels = _channels;
+            
+            for (int i = 0; i < channels.Length; i++)
             {
-                var current = (idx + i) % _channels.Count;
-                var channel = _channels[current];
-                if (channel.RequestsInProgress < Trashhold)
+                var current = (idx + i) % channels.Length;
+                var channel = channels[current];
+                if (channel.RequestsInProgress < _settings.MultiplexingTreshold)
                 {
                     return new ValueTask<Channel>(channel);
                 }
             }
 
-            if (_channels.Count == _maxChannels)
+            if (channels.Length == _settings.ConnectionPoolMaxSize)
             {
-                idx = Random.Next(_maxChannels);
-                return new ValueTask<Channel>(_channels[idx]);
+                idx = Random.Next(_settings.ConnectionPoolMaxSize);
+                return new ValueTask<Channel>(channels[idx]);
             }
             return AllocateNewChannel(cancellationToken);
         }
@@ -60,25 +61,26 @@ namespace MongoDB.Client
             try
             {
                 Channel channel;
-                for (int i = 0; i < _channels.Count; i++)
+                var channels = _channels;
+                for (int i = 0; i < channels.Length; i++)
                 {
-                    channel = _channels[i];
-                    if (channel.RequestsInProgress < Trashhold)
+                    channel = channels[i];
+                    if (channel.RequestsInProgress < _settings.MultiplexingTreshold)
                     {
                         return channel;
                     }
                 }
                 
-                if (_channels.Count == _maxChannels)
+                if (channels.Length == _settings.ConnectionPoolMaxSize)
                 {
-                    var idx = Random.Next(_maxChannels);
-                    return _channels[idx];
+                    var idx = Random.Next(_settings.ConnectionPoolMaxSize);
+                    return channels[idx];
                 }
 
                 channel = await CreateChannelAsync(cancellationToken);
                 
                 
-                _channels = _channels.Add(channel);
+                _channels = channels.Add(channel);
                 return channel;
             }
             finally
@@ -91,8 +93,8 @@ namespace MongoDB.Client
         {
             _logger.LogInformation("Allocating new channel");
             var channelNum = Interlocked.Increment(ref _channelNumber);
-            var channel = new Channel(_endPoint, _loggerFactory, channelNum);
-            await channel.ConnectAsync(token).ConfigureAwait(false);
+            var channel = new Channel(_loggerFactory, channelNum);
+            await channel.ConnectAsync(_endPoint, token).ConfigureAwait(false);
             var result = await OpenChannelAsync(channel,token);
             return channel;
         }

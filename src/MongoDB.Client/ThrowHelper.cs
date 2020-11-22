@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
+using MongoDB.Client.Exceptions;
 
 namespace MongoDB.Client
 {
@@ -88,8 +89,8 @@ namespace MongoDB.Client
         {
             throw new NotSupportedException($"Document end marker was not found");
         }
-        
-                [MethodImpl(MethodImplOptions.NoInlining)]
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         [DoesNotReturn]
         public static void InvalidProtocolHeader()
         {
@@ -168,6 +169,13 @@ namespace MongoDB.Client
         public static void CancelledException()
         {
             throw new OperationCanceledException();
+        }
+        
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
+        public static void CursorException(string message)
+        {
+            throw new MongoCursorException(message);
         }
     }
 }

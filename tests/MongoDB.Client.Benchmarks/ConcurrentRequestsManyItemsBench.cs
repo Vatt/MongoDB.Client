@@ -14,7 +14,8 @@ namespace MongoDB.Client.Benchmarks
         private MongoCollection<GeoIp> _collection;
         private IMongoCollection<GeoIp> _oldCollection;
 
-        private const int RequestsCount = 256;
+        [Params(256)] 
+        public int RequestsCount { get; set; }
         [Params(1, 4, 8, 16, 32, 64, 128)] public int Parallelism { get; set; }
 
         [GlobalSetup]
@@ -33,7 +34,7 @@ namespace MongoDB.Client.Benchmarks
             var oldDb = oldClient.GetDatabase(dbName);
             _oldCollection = oldDb.GetCollection<GeoIp>(collectionName);
 
-
+            oldDb.DropCollection(collectionName);
             for (int i = 0; i < itemsCount; i++)
             {
                 var item = new GeoIp
@@ -59,7 +60,7 @@ namespace MongoDB.Client.Benchmarks
         [GlobalCleanup]
         public void Clean()
         {
-            _oldCollection.DeleteMany(FilterDefinition<GeoIp>.Empty);
+            _oldCollection.Database.DropCollection(GetType().Name);
         }
 
         private static readonly BsonDocument EmptyFilter = new BsonDocument();
