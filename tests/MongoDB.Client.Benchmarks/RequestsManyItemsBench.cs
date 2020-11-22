@@ -70,13 +70,6 @@ namespace MongoDB.Client.Benchmarks
         }
 
         [Benchmark]
-        public async Task<int> NewClientToList2()
-        {
-            var result = await _collection.Find(EmptyFilter).ToListAsync2();
-            return result.Count;
-        }
-
-        [Benchmark]
         public async Task<int> OldClientToList()
         {
             var result = await _oldCollection.Find(FilterDefinition<GeoIp>.Empty).ToListAsync();
