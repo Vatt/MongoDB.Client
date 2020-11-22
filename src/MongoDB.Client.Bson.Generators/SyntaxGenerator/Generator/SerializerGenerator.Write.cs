@@ -214,13 +214,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         }
                         else
                         {
-                            statements.Add(
-                                IfNot(
-                                    condition,
-                                    SF.IfStatement(
-                                        condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
-                                        statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
-                                        @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget))))));
+                            statements.Add(IfNot(condition, WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget)));
                         }
 
                     }
@@ -239,7 +233,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     {
                         statements.Add(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget));
                     }
-                        
+
                 }
             }
 
