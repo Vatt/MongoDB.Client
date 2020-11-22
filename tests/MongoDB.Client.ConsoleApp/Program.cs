@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using MongoDB.Client.ConsoleApp.Models;
 using MongoDB.Client.Exceptions;
 
 
@@ -23,12 +24,12 @@ namespace MongoDB.Client.ConsoleApp
                     .SetMinimumLevel(LogLevel.Error)
                     .AddConsole();
             });
-            
-            
+
+
             var client = new MongoClient(new DnsEndPoint(host, 27017), loggerFactory);
 
             var db = client.GetDatabase("TestDb");
-            var collection1 = db.GetCollection<GeoIp>("TestCollection4");
+            var collection1 = db.GetCollection<GeoIp>("HeavyItems");
 
             //  await InsertItems(collection1, 1000);
             //
@@ -41,15 +42,43 @@ namespace MongoDB.Client.ConsoleApp
 
             //var result0 = await collection1.Find(filter).ToListAsync();
             //var result1 = await collection1.Find(filter).FirstOrDefaultAsync();
-
-
-            //var item = CreateItem();
-            //await collection1.InsertAsync(item);
+            // var item = CreateItem();
+            // await collection1.InsertAsync(item);
+            // for (int i = 0; i < 100; i++)
+            // {
+            //     Console.WriteLine(i);
+            //     var result0 = await collection1.Find(filter).ToListAsync();
+            // }
             
-            var result = await collection1.DeleteOneAsync(filter);
+            // for (int i = 0; i < 10000; i++)
+            // {
+            //     var item = CreateItem();
+            //     await collection1.InsertAsync(item);
+            // }
+            var result0 = await collection1.Find(filter).ToListAsync();
+            Console.WriteLine("Done");
+            // for (int i = 0; i < 10000; i++)
+            // {
+            //     var item = CreateItem();
+            //     await collection1.InsertAsync(item);
+            // }
+            //
+            // Console.WriteLine("Done");
+            // Console.ReadKey();
+            //
+            // for (int i = 0; i < 10000; i++)
+            // {
+            //     var item = CreateItem();
+            //     await collection1.InsertAsync(item);
+            // }
 
-            Console.WriteLine();
-            
+            Console.WriteLine("Done");
+            Console.ReadKey();
+
+            // var result = await collection1.DeleteOneAsync(filter);
+            //
+            // Console.WriteLine();
+
             //try
             //{
             //    // inserting duplicate
@@ -59,8 +88,8 @@ namespace MongoDB.Client.ConsoleApp
             //{
             //    Console.WriteLine(e.Message);
             //}
-            
-            
+
+
             Console.WriteLine();
             // var result1 = await collection2.GetCursorAsync(filter, default);
             //

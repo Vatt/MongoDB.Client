@@ -25,6 +25,7 @@ namespace MongoDB.Client.Protocol.Readers
             _state = ParserState.Initial;
         }
 
+
         public override bool TryParseMessage(in ReadOnlySequence<byte> input, ref SequencePosition consumed,
             ref SequencePosition examined, [MaybeNullWhen(false)] out CursorResult<T> message)
         {
@@ -65,8 +66,12 @@ namespace MongoDB.Client.Protocol.Readers
                         return false;
                     }
 #else
-                    if (bsonReader.TryGetByte(out _) == false) { return false; }
-                    if (bsonReader.TryGetCStringAsSpan(out _) == false) { return false; }
+                    // if (bsonReader.TryGetByte(out _) == false) { return false; }
+                    // if (bsonReader.TryGetCStringAsSpan(out _) == false) { return false; }
+                    if (bsonReader.TryAdvanceTo(0) == false)
+                    {
+                        return false;
+                    }
 #endif
                     if (bsonReader.TryPeekInt32(out int modelLength) && bsonReader.Remaining >= modelLength)
                     {

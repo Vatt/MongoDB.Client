@@ -57,14 +57,14 @@ namespace MongoDB.Client.Benchmarks
         private static readonly BsonDocument Empty = new BsonDocument();
 
         [Benchmark]
-        public async Task NewClient()
+        public async Task NewClientInsertOneItem()
         {
             _item.Id = BsonObjectId.NewObjectId();
             await _collection.InsertAsync(_item);
         }
 
         [Benchmark]
-        public async Task OldClient()
+        public async Task OldClientInsertOneItem()
         {
             _item.OldId = ObjectId.GenerateNewId();
             await _oldCollection.InsertOneAsync(_item);

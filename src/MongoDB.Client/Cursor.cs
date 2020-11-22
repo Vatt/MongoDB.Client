@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Messages;
@@ -50,7 +51,10 @@ namespace MongoDB.Client
             var requestDocument = CreateFindRequest(_filter);
             var request = new FindMessage(requestNum, requestDocument);
             var result = await channel.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
-
+            if (result.ErrorMessage is not null)
+            {
+                ThrowHelper.CursorException(result.ErrorMessage);
+            }
             foreach (var item in result.MongoCursor.Items)
             {
                 yield return item;
@@ -64,16 +68,45 @@ namespace MongoDB.Client
                 requestDocument = CreateGetMoreRequest(cursorId);
                 request = new FindMessage(requestNum, requestDocument);
                 var getMoreResult = await channel.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
+                if (getMoreResult.ErrorMessage is not null)
+                {
+                    ThrowHelper.CursorException(getMoreResult.ErrorMessage);
+                }
                 cursorId = getMoreResult.MongoCursor.Id;
                 foreach (var item in getMoreResult.MongoCursor.Items)
-                {
+                {   
                     yield return item;
                 }
                 ListsPool<T>.Pool.Return(getMoreResult.MongoCursor.Items);
             }
         }
 
-        
+        private Channel _channel;
+        private long _cursorId = -1;
+
+        public bool HasNext => _cursorId != 0;
+
+        public IAsyncEnumerator<T> GetAsyncEnumerator2(CancellationToken cancellationToken)
+        {
+            return new AsyncEnumerator<T>(this, cancellationToken);
+        }
+
+        public async ValueTask<List<T>> GetNextBatchAsync(CancellationToken cancellationToken)
+        {
+            if (_channel is null)
+            {
+                _channel = await _channelPool.GetChannelAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+
+            var requestNum = _channel.GetNextRequestNumber();
+            var requestDocument = _cursorId == -1 ? CreateFindRequest(_filter) : CreateGetMoreRequest(_cursorId);
+            var request = new FindMessage(requestNum, requestDocument);
+            var result = await _channel.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
+            _cursorId = result.MongoCursor.Id;
+            return result.MongoCursor.Items;
+        }
+
         private FindRequest CreateFindRequest(BsonDocument filter)
         {
             return new FindRequest
