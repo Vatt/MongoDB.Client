@@ -233,6 +233,7 @@ namespace MongoDB.Client
                     }
 
                     var result = await reader.ReadAsync(bodyReader, default).ConfigureAwait(false);
+                    reader.Advance();
                     return result.Message;
                 }
                 return ThrowHelper.UnsupportedTypeException<CursorResult<T>>(typeof(T));

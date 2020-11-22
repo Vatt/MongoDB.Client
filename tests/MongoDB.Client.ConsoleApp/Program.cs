@@ -44,7 +44,12 @@ namespace MongoDB.Client.ConsoleApp
             //var result1 = await collection1.Find(filter).FirstOrDefaultAsync();
             var item = CreateItem();
             await collection1.InsertAsync(item);
-            var result0 = await collection1.Find(filter).ToListAsync();
+            for (int i = 0; i < 100; i++)
+            {
+                Console.WriteLine(i);
+                var result0 = await collection1.Find(filter).ToListAsync();
+            }
+            
             //for (int i = 0; i < 10000; i++)
             //{
             //    var item = CreateItem();
