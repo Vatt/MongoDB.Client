@@ -91,8 +91,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 Dictionary<ISymbol, List<MemberDeclarationSyntax>> declarations = new(); 
                 foreach(var member in ctx.Members)
                 {
+
                     if (member.TypeSym.TypeKind == TypeKind.Enum)
                     {
+                        int repr = AttributeHelper.GetEnumRepresentation(member.NameSym);
+                        if (repr != 1) // static name spans only for string representation
+                        {
+                            continue;
+                        }
                         if (declarations.ContainsKey(member.TypeSym))
                         {
                             continue;
