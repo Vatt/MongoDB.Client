@@ -37,6 +37,13 @@ namespace MongoDB.Client.Bson.Reader
             _input = reader;
         }
 
+        
+        public bool TryAdvanceTo(byte delimiter, bool advancePastDelimiter = true)
+        {
+            return _input.TryAdvanceTo(delimiter, advancePastDelimiter);
+        }
+
+
         public bool TryGetByte(out byte value)
         {
             return _input.TryRead(out value);

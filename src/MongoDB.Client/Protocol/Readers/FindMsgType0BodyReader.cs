@@ -66,8 +66,12 @@ namespace MongoDB.Client.Protocol.Readers
                         return false;
                     }
 #else
-                    if (bsonReader.TryGetByte(out _) == false) { return false; }
-                    if (bsonReader.TryGetCStringAsSpan(out _) == false) { return false; }
+                    // if (bsonReader.TryGetByte(out _) == false) { return false; }
+                    // if (bsonReader.TryGetCStringAsSpan(out _) == false) { return false; }
+                    if (bsonReader.TryAdvanceTo(0) == false)
+                    {
+                        return false;
+                    }
 #endif
                     if (bsonReader.TryPeekInt32(out int modelLength) && bsonReader.Remaining >= modelLength)
                     {
