@@ -124,7 +124,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     result.AddRange(value);
                 }
-{                return result.ToArray();
+                return result.ToArray();
             }
         }
     }
