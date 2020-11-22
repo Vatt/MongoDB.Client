@@ -214,7 +214,7 @@ namespace MongoDB.Client
                         taskSource = new ManualResetValueTaskSource<IParserResult>();
                     }
 
-                    return new ParserCompletion(taskSource, CursorParserCallbackHolder<T>.Parser);
+                    return new ParserCompletion(taskSource, Parser);
                 };
             }
 
@@ -222,7 +222,6 @@ namespace MongoDB.Client
             {
                 if (mongoResponse is ResponseMsgMessage msgMessage)
                 {
-                    //SerializersMap.TryGetSerializer<T>(out var Serializer);
                     MsgBodyReader<T> bodyReader;
                     if (msgMessage.MsgHeader.PayloadType == 0)
                     {
@@ -234,7 +233,7 @@ namespace MongoDB.Client
                             .PayloadType);
                     }
 
-                    var result = await reader.ReadAsync(bodyReader, default).ConfigureAwait(false);
+                    var result = await reader.ReadAsync(bodyReader).ConfigureAwait(false);
                     reader.Advance();
                     return result.Message;
                 }
@@ -267,34 +266,6 @@ namespace MongoDB.Client
                 _queue.Enqueue(completion.CompletionSource);
             }
         }
-
-        //private static async ValueTask<IParserResult> CursorParseAsync<T>(ProtocolReader reader, MongoResponseMessage mongoResponse)
-        //{
-        //    switch (mongoResponse)
-        //    {
-        //        case ResponseMsgMessage msgMessage:
-        //            if (SerializersMap.TryGetSerializer<T>(out var msgSerializer))
-        //            {
-        //                MsgBodyReader<T> bodyReader;
-        //                if (msgMessage.MsgHeader.PayloadType == 0)
-        //                {
-        //                    bodyReader = new FindMsgType0BodyReader<T>(msgSerializer, msgMessage);
-        //                }
-        //                else
-        //                {
-        //                    return ThrowHelper.InvalidPayloadTypeException<CursorResult<T>>(msgMessage.MsgHeader
-        //                        .PayloadType);
-        //                }
-
-        //                var result = await reader.ReadAsync(bodyReader, default).ConfigureAwait(false);
-        //                return result.Message;
-        //            }
-
-        //            return ThrowHelper.UnsupportedTypeException<CursorResult<T>>(typeof(T));
-        //        default:
-        //            return ThrowHelper.UnsupportedTypeException<CursorResult<T>>(typeof(T));
-        //    }
-        //}
 
         private static class InsertParserCallbackHolder<T>
         {
@@ -365,7 +336,6 @@ namespace MongoDB.Client
 
                     return result.Message;
 
-                    return ThrowHelper.UnsupportedTypeException<InsertResult>(typeof(TResp));
                 default:
                     return ThrowHelper.UnsupportedTypeException<InsertResult>(typeof(TResp));
             }
