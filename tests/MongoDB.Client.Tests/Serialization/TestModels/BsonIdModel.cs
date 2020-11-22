@@ -6,7 +6,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
     [BsonSerializable]
     public class BsonIdModel
     {
-        [BsonId]
+        [BsonIdAttribute]
         public Guid Id;
         public int SomeInt;
         [BsonConstructor]
