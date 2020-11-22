@@ -1,4 +1,6 @@
-﻿using MongoDB.Client.Protocol.Common;
+﻿using System;
+using System.Runtime.InteropServices;
+using MongoDB.Client.Protocol.Common;
 
 namespace MongoDB.Client.Protocol.Readers
 {
