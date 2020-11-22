@@ -18,6 +18,7 @@ namespace MongoDB.Client.Tests.Serialization
                 Field = 42,
                 IgnoredField0 = "lol0",
                 IgnoredField1 = "lol1",
+                ListValue = new List<int> { 1, 2, 3 },
 
             };
             SerializersMap.TryGetSerializer<BsonWriteIgnoreIfModel>(out var serializer);
@@ -26,16 +27,18 @@ namespace MongoDB.Client.Tests.Serialization
             var result = await RoundTripAsync(doc, serializer);
             Assert.Equal(doc.Field, result.Field);
             Assert.Null(result.IgnoredField0);
-            
+            Assert.Null(result.ListValue);
             doc = new BsonWriteIgnoreIfModel
             {
                 Field = 41,
                 IgnoredField0 = "lol0",
                 IgnoredField1 = "lol1",
+                ListValue = new List<int> { 1, 2, 3 },
 
             };
             result = await RoundTripAsync(doc, serializer);
             Assert.Equal(doc.Field, result.Field);
+            Assert.Equal(doc.ListValue, result.ListValue);
             Assert.Null(result.IgnoredField1);
 
         }
