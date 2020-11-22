@@ -6,7 +6,7 @@ namespace MongoDB.Client.ConsoleApp.Models
     [BsonSerializable]
     public class RootDocument
     {
-        [BsonElementField(ElementName = "_id")]
+        [BsonId]
         public MongoDB.Client.Bson.Document.BsonObjectId Id { get; set; }
         public string TextFieldOne { get; set; }
 
