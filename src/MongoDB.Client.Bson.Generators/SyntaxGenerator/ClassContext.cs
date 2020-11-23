@@ -52,6 +52,47 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 
             return false;
         }
+        private void ProcessBaseList(INamedTypeSymbol symbol)
+        {
+            if (symbol == null)
+            {
+                return;
+            }
+            foreach (var member in symbol.GetMembers())
+            {
+                if ((member.IsStatic && Declaration.TypeKind != TypeKind.Enum) || member.IsAbstract || AttributeHelper.IsIgnore(member) ||
+                    (member.Kind != SymbolKind.Property && member.Kind != SymbolKind.Field))
+                {
+                    continue;
+                }
+                if (member.DeclaredAccessibility != Accessibility.Public)
+                {
+                    if (ConstructorParams == null)
+                    {
+                        continue;
+                    }
+
+                    foreach (var param in ConstructorParams)
+                    {
+                        //TODO: Смотреть флов аргумента вместо проверки на имя
+                        if (param.Name.Equals(member.Name))
+                        {
+                            Members.Add(new MemberContext(this, member));
+                            break;
+                        }
+                    }
+                    continue;
+                }
+                //TODO: допустимо только без гетера, если нет сетера проверить есть ли он в конструкторе
+                if ((member is IPropertySymbol { SetMethod: { }, GetMethod: { }, IsReadOnly: false }) ||
+                     (member is IFieldSymbol { IsReadOnly: false }))
+                {
+                    Members.Add(new MemberContext(this, member));
+                }
+                
+            }
+           // ProcessBaseList(symbol.BaseType);
+        }
         public ClassContext(MasterContext root, INamedTypeSymbol symbol)
         {
             Root = root;
@@ -107,8 +148,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                      (member is IFieldSymbol { IsReadOnly: false }))
                 {
                     Members.Add(new MemberContext(this, member));
-                }
+                }                
             }
+            ProcessBaseList(symbol.BaseType);
 
         }
     }
