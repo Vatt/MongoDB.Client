@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -36,6 +37,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Identifier($"{ctx.Root.Declaration.Name}{ctx.BsonElementAlias}");
         }
+        public static SyntaxToken StaticEnumFieldNameToken(ISymbol enumTypeName, string alias)
+        {
+            return SF.Identifier($"{enumTypeName.Name}{alias}");
+        }
         private static BaseListSyntax BaseList(ClassContext ctx)
         {
             var decl = ctx.Declaration;
@@ -51,22 +56,25 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var decl = SF.ClassDeclaration(SerializerName(ctx))
                 .AddModifiers(PublicKeyword(), SealedKeyword())
                 .WithBaseList(BaseList(ctx))
-                .WithMembers(GenerateStaticNamesSpans())
+                .AddMembers(GenerateStaticNamesSpans())
+                .AddMembers(GenerateEnumsStaticNamesSpansIfHave())
                 .AddMembers(TryParseMethod(ctx))
                 .AddMembers(WriteMethod(ctx))
                 .AddMembers(GenerateReadArrayMethods(ctx))
-                .AddMembers(GenerateWriteArrayMethods(ctx));
+                .AddMembers(GenerateWriteArrayMethods(ctx))
+                .AddMembers(GenerateReadStringEnumMethods(ctx))
+                .AddMembers(GenerateWriteStringEnumMethods(ctx));
             return ctx.GenericArgs.HasValue && ctx.GenericArgs!.Value.Length > 0
                 ? decl.AddTypeParameterListParameters(ctx.GenericArgs!.Value.Select(TypeParameter).ToArray())
                 : decl;
 
-            SyntaxList<MemberDeclarationSyntax> GenerateStaticNamesSpans()
+            MemberDeclarationSyntax[] GenerateStaticNamesSpans()
             {
-                var list = new SyntaxList<MemberDeclarationSyntax>();
+                var list = new List<MemberDeclarationSyntax>();
                 foreach (var member in ctx.Members)
                 {
                     var bytes = Encoding.UTF8.GetBytes(member.BsonElementValue);
-                    list = list.Add(
+                    list.Add(
                         SF.PropertyDeclaration(
                             attributeLists: default,
                             modifiers: new(PrivateKeyword(), StaticKeyword()),
@@ -78,7 +86,53 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                             initializer: default,
                             semicolonToken: SemicolonToken()));
                 }
-                return list;
+                return list.ToArray();
+            }
+            MemberDeclarationSyntax[] GenerateEnumsStaticNamesSpansIfHave()
+            {
+                Dictionary<ISymbol, List<MemberDeclarationSyntax>> declarations = new(); 
+                foreach(var member in ctx.Members)
+                {
+
+                    if (member.TypeSym.TypeKind == TypeKind.Enum)
+                    {
+                        int repr = AttributeHelper.GetEnumRepresentation(member.NameSym);
+                        if (repr != 1) // static name spans only for string representation
+                        {
+                            continue;
+                        }
+                        if (declarations.ContainsKey(member.TypeSym))
+                        {
+                            continue;
+                        }
+                        var typedMetadata = member.TypeMetadata as INamedTypeSymbol;
+                        declarations[member.TypeSym] = new();
+                        foreach (var enumMember in typedMetadata.GetMembers().Where( sym => sym.Kind == SymbolKind.Field))
+                        {
+                            var list = new List<MemberDeclarationSyntax>();
+                            var (bsonValue, bsonAlias) = AttributeHelper.GetMemberAlias(enumMember);
+                            var bytes = Encoding.UTF8.GetBytes(bsonValue);
+                            declarations[member.TypeSym].Add(
+                                SF.PropertyDeclaration(
+                                    attributeLists: default,
+                                    modifiers: new(PrivateKeyword(), StaticKeyword()),
+                                    type: ReadOnlySpanByte(),
+                                    explicitInterfaceSpecifier: default,
+                                    identifier: StaticEnumFieldNameToken(typedMetadata, bsonAlias),
+                                    accessorList: default,
+                                    expressionBody: SF.ArrowExpressionClause(SingleDimensionByteArrayCreation(bytes.Length, SeparatedList(bytes.Select(NumericLiteralExpr)))),
+                                    initializer: default,
+                                    semicolonToken: SemicolonToken()));
+                        }
+                    }
+                    
+                }
+                var result = new List<MemberDeclarationSyntax>();
+                foreach (var value in declarations.Values)
+                {
+                    result.AddRange(value);
+                }
+                return result.ToArray();
             }
         }
     }

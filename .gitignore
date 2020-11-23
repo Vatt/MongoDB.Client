@@ -339,3 +339,4 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 src/MongoDB.Client.Test/ReaderTestCollection.bson
+tests/MongoDB.Client.Tests/Serialization/Class1.cs
