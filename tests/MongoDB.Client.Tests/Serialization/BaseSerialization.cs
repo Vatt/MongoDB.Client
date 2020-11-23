@@ -17,8 +17,10 @@ namespace MongoDB.Client.Tests.Serialization
         {
             var pipe = new Pipe();
 
-            await WriteAsync(pipe.Writer, message, serializer);
-            return await ReadAsync(pipe.Reader, serializer);
+            var wtask = WriteAsync(pipe.Writer, message, serializer);
+            var rtask = ReadAsync(pipe.Reader, serializer);
+            await wtask;
+            return await rtask;
         }
 
         public static async Task<BsonDocument> RoundTripWithBsonAsync<T>(T message, IGenericBsonSerializer<T> serializer)

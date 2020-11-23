@@ -9,19 +9,19 @@ namespace MongoDB.Client.Tests.Serialization
 {
     public class LargeObjectTest : BaseSerialization
     {
-        
-        //[Fact]
-        //public async Task LabgeObjectTest()
-        //{
-        //    var model = GenerateObject();
-        //    SerializersMap.TryGetSerializer<RootDocument>(out var serializer);
-        //    var result = await RoundTripAsync(model, serializer);
 
-        //    Assert.Equal(model, result);
-        //}
-        
-        
-        
+        [Fact]
+        public async Task LabgeObjectTest()
+        {
+            var model = GenerateObject();
+            SerializersMap.TryGetSerializer<RootDocument>(out var serializer);
+            var result = await RoundTripAsync(model, serializer);
+
+            Assert.Equal(model, result);
+        }
+
+
+
         public RootDocument GenerateObject()
         {
             const int innerDocumentOneCount = 50;
