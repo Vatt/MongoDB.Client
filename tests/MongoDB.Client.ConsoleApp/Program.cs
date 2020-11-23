@@ -39,7 +39,7 @@ namespace MongoDB.Client.ConsoleApp
             
             var result = await InMemorySerialization.RoundTripAsync(item);
 
-            await collection1.InsertAsync(item);
+           // await collection1.InsertAsync(item);
 
             Console.WriteLine("Done");
         }

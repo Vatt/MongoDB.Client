@@ -268,8 +268,6 @@ namespace MongoDB.Client.Bson.Writer
             var encoder = Encoding.UTF8.GetEncoder();
             do
             {
-                GetNextSpan();
-
                 encoder.Convert(chars, _span, true, out var charsUsedJustNow, out var bytesWrittenJustNow, out _);
 
                 chars = chars.Slice(charsUsedJustNow);
