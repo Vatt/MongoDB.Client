@@ -2,7 +2,7 @@
 
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
-    [BsonEnumSerializable(EnumRepresentation.String)]
+    
     public enum AtmosphereType
     {
         [BsonElement("No atmosphere")]
@@ -28,6 +28,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
     public class PlanetModel
     {
         public string Name { get; set; }
+        [BsonEnum(EnumRepresentation.String)]
         public AtmosphereType Type;
         public override bool Equals(object obj)
         {

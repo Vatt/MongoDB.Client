@@ -15,6 +15,7 @@ namespace MongoDB.Client.Bson.Generators
         public void Execute(GeneratorExecutionContext context)
         {
             //System.Diagnostics.Debugger.Launch();
+            Types.TypesInit(context.Compilation);
             var masterContext = new MasterContext(CollectSymbols(context), context);
             var units = Create(masterContext);
             context.AddSource("GlobalSerializationHelperGenerated.cs", SourceText.From(GenerateGlobalHelperStaticClass(masterContext), Encoding.UTF8));

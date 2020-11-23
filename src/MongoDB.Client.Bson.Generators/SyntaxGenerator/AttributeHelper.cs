@@ -6,7 +6,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
     internal static class AttributeHelper
     {
         public static string BsonSerializableAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonSerializableAttribute";
-        public static string BsonEnumSerializableAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonEnumSerializableAttribute";
+        public static string BsonEnumAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonEnumAttribute";
         public static string BsonConstructorAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonConstructorAttribute";
         public static string IgnoreAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonIgnoreAttribute";
         public static string BsonElementAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonElementAttribute";
@@ -54,7 +54,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         {
             foreach (var attr in symbol.GetAttributes())
             {
-                if (attr.AttributeClass!.ToString().Equals(BsonEnumSerializableAttr))
+                if (attr.AttributeClass!.ToString().Equals(BsonEnumAttr))
                 {
                     return (int)attr.ConstructorArguments[0].Value;
                 }

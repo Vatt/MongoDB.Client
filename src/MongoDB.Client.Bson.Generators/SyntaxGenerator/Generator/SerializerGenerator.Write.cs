@@ -24,6 +24,27 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return SF.Identifier(name);
         }
+        private static SyntaxToken WriteStringEnumMethodName(ClassContext ctx, ISymbol enumTypeName, ISymbol fieldOrPropertyName)
+        {
+            var (_, alias) = AttributeHelper.GetMemberAlias(fieldOrPropertyName);
+            return SF.Identifier($"Write{enumTypeName.Name}");
+        }
+        private static MethodDeclarationSyntax[] GenerateWriteStringEnumMethods(ClassContext ctx)
+        {
+            List<MethodDeclarationSyntax> methods = new();
+
+            foreach (var member in ctx.Members.Where(member => member.TypeSym.TypeKind == TypeKind.Enum))
+            {
+                var repr = AttributeHelper.GetEnumRepresentation(member.NameSym);
+                if (repr == 1)
+                {
+                    methods.Add(WriteEnumMethod(member));
+                }
+
+            }
+
+            return methods.ToArray();
+        }
         private static MethodDeclarationSyntax[] GenerateWriteArrayMethods(ClassContext ctx)
         {
             List<MethodDeclarationSyntax> methods = new();
@@ -53,6 +74,45 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
 
             return methods.ToArray();
+        }
+        private static MethodDeclarationSyntax WriteEnumMethod(MemberContext ctx)
+        {
+            var spanNameArg = SF.Identifier("name");
+            var metadata = ctx.TypeMetadata as INamedTypeSymbol;
+            var repr = AttributeHelper.GetEnumRepresentation(ctx.NameSym);
+            if (repr != 1)
+            {
+                return default;
+            }
+            List<StatementSyntax> statements = new();
+            foreach (var member in metadata.GetMembers().Where(sym => sym.Kind == SymbolKind.Field))
+            {
+                var (_, alias) = AttributeHelper.GetMemberAlias(member);               
+                statements.Add(
+                    SF.IfStatement(
+                        condition: BinaryExprEqualsEquals(ctx.Root.WriterInputVar, IdentifierFullName(member)),
+                        statement: SF.Block(
+                            //Statement(Write_Type_Name(2, IdentifierName(StaticFieldNameToken(ctx)))),
+                            Statement(Write_Type_Name(2, IdentifierName(spanNameArg))),
+                            Statement(WriteString(StaticEnumFieldNameToken(metadata, alias))))
+                    ));
+            }
+            return SF.MethodDeclaration(
+                    attributeLists: default,
+                    modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()),
+                    explicitInterfaceSpecifier: default,
+                    returnType: VoidPredefinedType(),
+                    identifier: WriteStringEnumMethodName(ctx.Root, metadata, ctx.NameSym),
+                    parameterList: ParameterList(RefParameter(ctx.Root.BsonWriterType, ctx.Root.BsonWriterToken),
+                                                 Parameter(ReadOnlySpanByte(), spanNameArg),
+                                                 Parameter(TypeFullName(ctx.TypeSym), ctx.Root.WriterInputVarToken)),
+                                                  
+                    body: default,
+                    constraintClauses: default,
+                    expressionBody: default,
+                    typeParameterList: default,
+                    semicolonToken: default)
+                .WithBody(SF.Block(statements.ToArray()));
         }
         private static MethodDeclarationSyntax WriteArrayMethod(MemberContext ctx, ITypeSymbol type)
         {
@@ -110,13 +170,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         private static MethodDeclarationSyntax WriteMethod(ClassContext ctx)
         {
-            var decl = ctx.Declaration;
-
-            var body = ctx.Declaration.TypeKind == TypeKind.Enum ? WriteEnumBody(ctx) : WriteDefaultBody(ctx);
             return SF.MethodDeclaration(
                     attributeLists: default,
                     modifiers: default,
-                    explicitInterfaceSpecifier: SF.ExplicitInterfaceSpecifier(GenericName(SerializerInterfaceToken, TypeFullName(decl))),
+                    explicitInterfaceSpecifier: SF.ExplicitInterfaceSpecifier(GenericName(SerializerInterfaceToken, TypeFullName(ctx.Declaration))),
                     returnType: VoidPredefinedType(),
                     identifier: SF.Identifier("Write"),
                     parameterList: ParameterList(
@@ -127,48 +184,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     expressionBody: default,
                     typeParameterList: default,
                     semicolonToken: default)
-                .WithBody(body);
+                .WithBody(WriteMethodBody(ctx));
         }
 
-        private static BlockSyntax WriteEnumBody(ClassContext ctx)
-        {
-            var repr = AttributeHelper.GetEnumRepresentation(ctx.Declaration);
-            return (repr) switch
-            {
-                1 => StringRepresentation(ctx),
-                2 => Int32Representation(ctx),
-                3 => Int64Representation(ctx)
-            };
-            static BlockSyntax StringRepresentation(ClassContext ctx)
-            {
-                List<StatementSyntax> statements = new();
-                foreach (var member in ctx.Members)
-                {
-                    var sma = SimpleMemberAccess(IdentifierFullName(member.TypeSym), IdentifierName(member.NameSym));
-                    statements.Add(
-                        SF.IfStatement(
-                            condition: BinaryExprEqualsEquals(ctx.WriterInputVar, sma),
-                            statement: SF.Block(Statement(WriteString(StaticFieldNameToken(member))))
-                        ));
-                }
-                return SF.Block(statements.ToArray());
-            }
-            static BlockSyntax Int32Representation(ClassContext ctx)
-            {
-                return SF.Block
-                (
-                    Statement(WriteInt32(CastToInt(ctx.WriterInputVar)))
-                );
-            }
-            static BlockSyntax Int64Representation(ClassContext ctx)
-            {
-                return SF.Block
-                (
-                    Statement(WriteInt64(CastToLong(ctx.WriterInputVar)))
-                );
-            }
-        }
-        private static BlockSyntax WriteDefaultBody(ClassContext ctx)
+        private static BlockSyntax WriteMethodBody(ClassContext ctx)
         {
             var checkpoint = SF.Identifier("checkpoint");
             var reserved = SF.Identifier("reserved");
@@ -180,6 +199,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 var writeTarget = SimpleMemberAccess(ctx.WriterInputVar, IdentifierName(member.NameSym));
                 ITypeSymbol trueType = member.TypeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol)member.TypeSym).TypeParameters[0] : member.TypeSym;
+                AttributeHelper.TryGetBsonWriteIgnoreIfAttr(member, out var condition);
                 if (trueType is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)
                 {
                     /*if (namedType.ToString().Contains("System.Collections.Generic.List") ||
@@ -190,13 +210,37 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     */
 
                 }
-
-                // statements.Add(
-                //     SF.IfStatement(
-                //         condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
-                //         statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
-                //         @else:SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget)))));
-                if (AttributeHelper.TryGetBsonWriteIgnoreIfAttr(member, out var condition))
+                if (member.TypeSym.TypeKind == TypeKind.Enum)
+                {
+                    int repr = AttributeHelper.GetEnumRepresentation(member.NameSym);
+                    if (repr == -1) { repr = 2; }
+                    if (repr != 1)
+                    {
+                        if (condition != null)
+                        {
+                            statements.Add(IfNot(condition, Write_Type_Name_Value(StaticFieldNameToken(member), repr == 2 ? CastToInt(writeTarget) : CastToLong(writeTarget))));       
+                        }
+                        else
+                        {
+                            statements.Add(Statement(Write_Type_Name_Value(StaticFieldNameToken(member), repr == 2 ? CastToInt(writeTarget) : CastToLong(writeTarget) )));
+                        }
+                    }
+                    else
+                    {
+                        var methodName = IdentifierName(WriteStringEnumMethodName(ctx, member.TypeMetadata, member.NameSym));
+                        var invocation = InvocationExpr(methodName, RefArgument(ctx.BsonWriterToken), Argument(StaticFieldNameToken(member)), Argument(writeTarget));
+                        if (condition != null)
+                        {
+                            statements.Add(IfNot(condition, invocation));
+                        }
+                        else
+                        {
+                            statements.Add(Statement(invocation));
+                        }
+                    }
+                    continue;   
+                }
+                if (condition != null)
                 {
                     if (member.TypeSym.IsReferenceType)
                     {
@@ -230,8 +274,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     }
 
                 }
-
-
             }
 
             return SF.Block(
@@ -282,20 +324,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     //TODO: если сериализатор не из ЭТОЙ сборки, добавить ветку с мапой с проверкой на нуль
                     if (context.Declaration.ToString().Equals(trueType.ToString()))
                     {
-                        if (ctx.TypeSym.TypeKind == TypeKind.Enum)
-                        {
-                            //TODO: Удалить чисельные репрезентаци, оставить только строковые
-                            return SF.Block(
-                                Statement(Write_Type_Name(2, IdentifierName(StaticFieldNameToken(ctx)))),
-                                Statement(GeneratedSerializerWrite(context, writerId, writeTarget)));
-                        }
                         return SF.Block(
                             Statement(Write_Type_Name(3, IdentifierName(StaticFieldNameToken(ctx)))),
                             Statement(GeneratedSerializerWrite(context, writerId, writeTarget)));
                     }
                 }
             }
-            return SF.ReturnStatement();
+            return default;
         }
         private static bool TryGetSimpleWriteOperation(ITypeSymbol typeSymbol, SyntaxToken bsonNameToken,
             ExpressionSyntax writeTarget, out InvocationExpressionSyntax expr)

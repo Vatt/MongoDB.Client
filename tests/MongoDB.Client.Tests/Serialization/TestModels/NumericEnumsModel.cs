@@ -4,7 +4,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
 {
     
     
-    [BsonEnumSerializable(EnumRepresentation.Int32)]
+    
     public enum Int32Enum
     {
         EnumInt32Value1,
@@ -14,7 +14,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         EnumInt32Value5,
     }
 
-    [BsonEnumSerializable(EnumRepresentation.Int64)]
+    
     public enum Int64Enum
     {
         EnumInt64Value1,
@@ -27,7 +27,9 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
     public class NumericEnumsModel
     {
         public string Name;
+        [BsonEnum(EnumRepresentation.Int32)]
         public Int32Enum Int32EnumValue;
+        [BsonEnum(EnumRepresentation.Int64)]
         public Int64Enum Int64EnumValue;
         public override bool Equals(object? obj)
         {
