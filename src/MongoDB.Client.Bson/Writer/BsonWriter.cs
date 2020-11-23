@@ -262,16 +262,6 @@ namespace MongoDB.Client.Bson.Writer
             SlowWriteCString(value);
         }
         
-        // [MethodImpl(MethodImplOptions.NoInlining)]
-        // public void SlowWriteCString(ReadOnlySpan<char> value)
-        // {
-        //     Commit();
-        //     var written = Encoding.UTF8.GetBytes(value, _output);
-        //     Advance((int)written);
-        //     GetNextSpanWithoutCommit();
-        //     WriteByte(EndMarker);
-        // }
-        
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void SlowWriteCString(ReadOnlySpan<char> chars)
         {
@@ -310,8 +300,6 @@ namespace MongoDB.Client.Bson.Writer
             var encoder = Encoding.UTF8.GetEncoder();
             do
             {
-                GetNextSpan();
-
                 encoder.Convert(value, _span, true, out var charsUsedJustNow, out var bytesWrittenJustNow, out _);
 
                 value = value.Slice(charsUsedJustNow);

@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Client.ConsoleApp.Models;
 using MongoDB.Client.Exceptions;
 
-
 namespace MongoDB.Client.ConsoleApp
 {
     class Program
@@ -19,15 +18,14 @@ namespace MongoDB.Client.ConsoleApp
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
 
-            var loggerFactory = LoggerFactory.Create(builder =>
-            {
-                builder
-                    .SetMinimumLevel(LogLevel.Error)
-                    .AddConsole();
-            });
+            // var loggerFactory = LoggerFactory.Create(builder =>
+            // {
+            //     builder
+            //         .SetMinimumLevel(LogLevel.Error)
+            //         .AddConsole();
+            // });
 
-
-            var client = new MongoClient(new DnsEndPoint(host, 27017), loggerFactory);
+            var client = new MongoClient(new DnsEndPoint(host, 27017));
 
             var db = client.GetDatabase("TestDb");
             var collection1 = db.GetCollection<RootDocument>("HeavyItems");
@@ -37,6 +35,10 @@ namespace MongoDB.Client.ConsoleApp
 
             var seeder = new DatabaseSeeder();
             var item = seeder.GenerateSeed().First();
+
+            
+            var result = await InMemorySerialization.RoundTripAsync(item);
+
             await collection1.InsertAsync(item);
 
             Console.WriteLine("Done");
