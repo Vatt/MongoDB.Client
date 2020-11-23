@@ -37,30 +37,31 @@ namespace MongoDB.Client.Bson.Reader
             _input = reader;
         }
 
-        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryAdvanceTo(byte delimiter, bool advancePastDelimiter = true)
         {
             return _input.TryAdvanceTo(delimiter, advancePastDelimiter);
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetByte(out byte value)
         {
             return _input.TryRead(out value);
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetInt16(out short value)
         {
             return _input.TryReadLittleEndian(out value);
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetInt32(out int value)
         {
             return _input.TryReadLittleEndian(out value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPeekInt32(out int value)
         {
             if (_input.TryReadLittleEndian(out value))
@@ -71,12 +72,13 @@ namespace MongoDB.Client.Bson.Reader
             return false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetInt64(out long value)
         {
             return _input.TryReadLittleEndian(out value);
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetDouble(out double value)
         {
             value = default;
@@ -89,6 +91,7 @@ namespace MongoDB.Client.Bson.Reader
             return true;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetCString([MaybeNullWhen(false)] out string value)
         {
             value = default;
@@ -102,6 +105,7 @@ namespace MongoDB.Client.Bson.Reader
         }
 
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetCStringAsSpan(out ReadOnlySpan<byte> value)
         {
             if (!_input.TryReadTo(out value, EndMarker))
@@ -112,7 +116,7 @@ namespace MongoDB.Client.Bson.Reader
             return true;
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetString([MaybeNullWhen(false)] out string value)
         {
             value = default;
@@ -166,6 +170,7 @@ namespace MongoDB.Client.Bson.Reader
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetStringAsSpan(out ReadOnlySpan<byte> value)
         {
             value = default;
@@ -199,6 +204,7 @@ namespace MongoDB.Client.Bson.Reader
         }
 
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetObjectId(out BsonObjectId value)
         {
             const int oidSize = 12;
@@ -330,7 +336,7 @@ namespace MongoDB.Client.Bson.Reader
             return ThrowHelper.UnknownSubtypeException<bool>(subtype);
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetGuidFromString(out Guid value)
         {
             value = default;
@@ -342,7 +348,7 @@ namespace MongoDB.Client.Bson.Reader
             return true;
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetUtcDatetime([MaybeNullWhen(false)] out DateTimeOffset value)
         {
             value = default;
@@ -355,7 +361,7 @@ namespace MongoDB.Client.Bson.Reader
             return true;
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetBoolean(out bool value)
         {
             value = default;
