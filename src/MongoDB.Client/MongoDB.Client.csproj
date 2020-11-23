@@ -32,6 +32,9 @@
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
 			<_Parameter1>MongoDB.Client.Tests</_Parameter1>
 		</AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>MongoDB.Client.ConsoleApp</_Parameter1>
+    </AssemblyAttribute>
 	</ItemGroup>
 
 

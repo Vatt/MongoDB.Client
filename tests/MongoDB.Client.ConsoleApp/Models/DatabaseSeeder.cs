@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using MongoDB.Client.Bson.Document;
 
 namespace MongoDB.Client.ConsoleApp.Models
 {
@@ -20,17 +21,17 @@ namespace MongoDB.Client.ConsoleApp.Models
 
                 for (var j = 0; j < innerDocumentOneCount; j++)
                 {
-                    var firstLevelDocument = CreateTestInnerDocumentOne(i);
+                    var firstLevelDocument = CreateTestInnerDocumentOne(j);
                     firstLevelDocument.InnerDocuments = new List<SecondLevelDocument>();
 
                     for (var k = 0; k < innerDocumentTwoCount; k++)
                     {
-                        var secondLevelDocument = CreateTestInnerDocumentTwo(i);
+                        var secondLevelDocument = CreateTestInnerDocumentTwo(k);
                         secondLevelDocument.InnerDocuments = new List<ThirdLevelDocument>();
 
                         for (var l = 0; l < innerDocumentThreeCount; l++)
                         {
-                            var thirdLevelDocument = CreateTestInnerDocumentThree(i);
+                            var thirdLevelDocument = CreateTestInnerDocumentThree(l);
                             secondLevelDocument.InnerDocuments.Add(thirdLevelDocument);
                         }
 
@@ -48,6 +49,7 @@ namespace MongoDB.Client.ConsoleApp.Models
         {
             return new RootDocument
             {
+                Id = BsonObjectId.NewObjectId(),
                 DoubleField = i,
                 IntField = i,
                 TextFieldOne = $"{i}_{i}_{i}",

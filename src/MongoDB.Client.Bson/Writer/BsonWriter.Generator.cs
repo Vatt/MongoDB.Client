@@ -1,13 +1,10 @@
 ﻿using MongoDB.Client.Bson.Document;
 using System;
 using System.Buffers;
-using System.Buffers.Binary;
 using System.Buffers.Text;
 using System.Runtime.CompilerServices;
-using System.Text;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Exceptions;
-using MongoDB.Client.Bson.Utils;
 
 namespace MongoDB.Client.Bson.Writer
 {
@@ -90,6 +87,8 @@ namespace MongoDB.Client.Bson.Writer
             WriteByte((byte)BsonBinaryDataType.UUID);
             WriteGuidAsBytes(value);
         }
+        
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteString(ReadOnlySpan<byte> value)
         {
@@ -109,21 +108,44 @@ namespace MongoDB.Client.Bson.Writer
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void SlowWriteString(ReadOnlySpan<byte> value)
         {
-            Commit();
-            _output.Write(value);;
-            Advance(value.Length);
-            GetNextSpanWithoutCommit();
+            do
+            {
+                var count = Math.Min(_span.Length, value.Length);
+                value.Slice(0, count).CopyTo(_span);
+                value = value.Slice(count);
+                Advance(count);
+            } while (!value.IsEmpty);
             WriteByte(EndMarker);
         }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteCString(ReadOnlySpan<byte> value)
         {
-            Commit();
-            _output.Write(value);
-            Advance(value.Length);
-            GetNextSpanWithoutCommit();
+            var count = value.Length;
+            if (count <= _span.Length)
+            {
+                value.CopyTo(_span);
+                Advance(count);
+                WriteByte(EndMarker);
+                return;
+            }
+
+            SlowWriteCString(value);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void SlowWriteCString(ReadOnlySpan<byte> value)
+        {
+            do
+            {
+                var count = Math.Min(_span.Length, value.Length);
+                value.Slice(0, count).CopyTo(_span);
+                value = value.Slice(count);
+                Advance(count);
+            } while (!value.IsEmpty);
             WriteByte(EndMarker);
         }
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteBsonNull(ReadOnlySpan<byte> name)
         {

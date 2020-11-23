@@ -14,7 +14,6 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Protocol.Messages;
-using MongoDB.Client.Bson.Serialization;
 
 namespace MongoDB.Client
 {
@@ -197,15 +196,15 @@ namespace MongoDB.Client
 
         private static class CursorParserCallbackHolder<T>
         {
-            public static readonly Func<ProtocolReader, MongoResponseMessage, ValueTask<IParserResult>> Parser;
+            private static readonly Func<ProtocolReader, MongoResponseMessage, ValueTask<IParserResult>> _parser;
             public static readonly Func<int, ParserCompletion> Completion;
-            public static readonly IGenericBsonSerializer<T> Serializer;
+            private static readonly IGenericBsonSerializer<T> _serializer;
             private static readonly ConcurrentQueue<ManualResetValueTaskSource<IParserResult>> _queue = new();
 
             static CursorParserCallbackHolder()
             {
-                SerializersMap.TryGetSerializer<T>(out Serializer);
-                Parser = (reader, response) => CursorParseAsync<T>(reader, Serializer, response);
+                SerializersMap.TryGetSerializer(out _serializer);
+                _parser = (reader, response) => CursorParseAsync(reader, response);
                 Completion = i =>
                 {
                     ManualResetValueTaskSource<IParserResult> taskSource;
@@ -214,28 +213,22 @@ namespace MongoDB.Client
                         taskSource = new ManualResetValueTaskSource<IParserResult>();
                     }
 
-                    return new ParserCompletion(taskSource, Parser);
+                    return new ParserCompletion(taskSource, _parser);
                 };
             }
 
-            private static async ValueTask<IParserResult> CursorParseAsync<T>(ProtocolReader reader, IGenericBsonSerializer<T> serializer, MongoResponseMessage mongoResponse)
+            private static async ValueTask<IParserResult> CursorParseAsync(ProtocolReader reader, MongoResponseMessage mongoResponse)
             {
                 if (mongoResponse is ResponseMsgMessage msgMessage)
                 {
-                    MsgBodyReader<T> bodyReader;
                     if (msgMessage.MsgHeader.PayloadType == 0)
                     {
-                        bodyReader = new FindMsgType0BodyReader<T>(serializer, msgMessage);
+                        var bodyReader = new FindMsgType0BodyReader<T>(_serializer, msgMessage);
+                        var result = await reader.ReadAsync(bodyReader).ConfigureAwait(false);
+                        reader.Advance();
+                        return result.Message;
                     }
-                    else
-                    {
-                        return ThrowHelper.InvalidPayloadTypeException<CursorResult<T>>(msgMessage.MsgHeader
-                            .PayloadType);
-                    }
-
-                    var result = await reader.ReadAsync(bodyReader).ConfigureAwait(false);
-                    reader.Advance();
-                    return result.Message;
+                    return ThrowHelper.InvalidPayloadTypeException<CursorResult<T>>(msgMessage.MsgHeader.PayloadType);
                 }
                 return ThrowHelper.UnsupportedTypeException<CursorResult<T>>(typeof(T));
             }
@@ -300,6 +293,7 @@ namespace MongoDB.Client
                     _logger.SentInsertMessage(message.Header.RequestNumber);
                     var response =
                         await completion.CompletionSource.GetValueTask().ConfigureAwait(false);
+
                     if (response is InsertResult result)
                     {
                         if (result.WriteErrors is null)
@@ -308,6 +302,10 @@ namespace MongoDB.Client
                         }
 
                         throw new MongoInsertException(result.WriteErrors);
+                    }
+                    else if (response is BsonParseResult bson)
+                    {
+                        Debugger.Break();
                     }
                 }
             }
@@ -320,6 +318,7 @@ namespace MongoDB.Client
         }
 
         private static readonly InsertMsgType0BodyReader InsertBodyReader = new InsertMsgType0BodyReader();
+        //  private static readonly BsonBodyReader BsonBodyReader = new BsonBodyReader();
         private static async ValueTask<IParserResult> InsertParseAsync<TResp>(ProtocolReader reader, MongoResponseMessage mongoResponse)
         {
             switch (mongoResponse)

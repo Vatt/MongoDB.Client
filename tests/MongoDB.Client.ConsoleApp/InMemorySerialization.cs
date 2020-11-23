@@ -8,15 +8,15 @@ using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
 using MongoDB.Client.Protocol.Writers;
 
-namespace MongoDB.Client.Tests.Serialization
+namespace MongoDB.Client.ConsoleApp
 {
 
-    public abstract class BaseSerialization 
+    public static class InMemorySerialization 
     {
-        public static async Task<T> RoundTripAsync<T>(T message, IGenericBsonSerializer<T> serializer)
+        public static async Task<T> RoundTripAsync<T>(T message)
         {
             var pipe = new Pipe(new PipeOptions(pauseWriterThreshold: long.MaxValue, resumeWriterThreshold: long.MaxValue));
-
+            SerializersMap.TryGetSerializer<T>(out var serializer);
             var wtask = WriteAsync(pipe.Writer, message, serializer);
             var rtask = ReadAsync(pipe.Reader, serializer);
             await wtask;
@@ -38,6 +38,7 @@ namespace MongoDB.Client.Tests.Serialization
             await WriteAsync(pipe.Writer, message, writer);
             return await ReadAsync(pipe.Reader, reader);
         }
+        
         public static async Task<T> ReadAsync<T>(PipeReader input, IGenericBsonSerializer<T> serializer)
         {
             var reader = new ProtocolReader(input);

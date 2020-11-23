@@ -92,11 +92,11 @@ namespace MongoDB.Client.Bson.Reader
         public bool TryGetCString([MaybeNullWhen(false)] out string value)
         {
             value = default;
-            if (!_input.TryReadTo(out ReadOnlySpan<byte> data, EndMarker))
+            if (!_input.TryReadTo(out ReadOnlySequence<byte> data, EndMarker))
             {
                 return false;
             }
-
+            
             value = Encoding.UTF8.GetString(data);
             return true;
         }

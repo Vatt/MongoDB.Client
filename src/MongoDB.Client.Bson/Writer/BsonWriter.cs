@@ -264,13 +264,16 @@ namespace MongoDB.Client.Bson.Writer
         }
         
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void SlowWriteCString(ReadOnlySpan<char> value)
+        public void SlowWriteCString(ReadOnlySpan<char> chars)
         {
-            Commit();
-            var written = Encoding.UTF8.GetBytes(value, _output);
-            Advance((int)written);
-            GetNextSpanWithoutCommit();
-            WriteByte(EndMarker);
+            var encoder = Encoding.UTF8.GetEncoder();
+            do
+            {
+                encoder.Convert(chars, _span, true, out var charsUsedJustNow, out var bytesWrittenJustNow, out _);
+
+                chars = chars.Slice(charsUsedJustNow);
+                Advance(bytesWrittenJustNow);
+            } while (!chars.IsEmpty);
         }
         
         
@@ -293,10 +296,14 @@ namespace MongoDB.Client.Bson.Writer
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void SlowWriteString(ReadOnlySpan<char> value)
         {
-            Commit();
-            var written = Encoding.UTF8.GetBytes(value, _output);
-            Advance((int)written);
-            GetNextSpanWithoutCommit();
+            var encoder = Encoding.UTF8.GetEncoder();
+            do
+            {
+                encoder.Convert(value, _span, true, out var charsUsedJustNow, out var bytesWrittenJustNow, out _);
+
+                value = value.Slice(charsUsedJustNow);
+                Advance(bytesWrittenJustNow);
+            } while (!value.IsEmpty);
             WriteByte(EndMarker);
         }
 
