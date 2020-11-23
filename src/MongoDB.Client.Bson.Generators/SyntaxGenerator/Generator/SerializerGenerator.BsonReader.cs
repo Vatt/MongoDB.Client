@@ -30,9 +30,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return InvocationExpr(readerId ?? DefaultBsonReaderId, SF.IdentifierName("TryGetInt32"), OutArgument(assignOrDecl));
         }
+        public static InvocationExpressionSyntax TryGetInt32(SyntaxToken target, IdentifierNameSyntax? readerId = default)
+        {
+            return InvocationExpr(readerId ?? DefaultBsonReaderId, SF.IdentifierName("TryGetInt32"), OutArgument(IdentifierName(target)));
+        }
         public static InvocationExpressionSyntax TryGetInt64(ExpressionSyntax assignOrDecl, IdentifierNameSyntax? readerId = default)
         {
             return InvocationExpr(readerId ?? DefaultBsonReaderId, SF.IdentifierName("TryGetInt64"), OutArgument(assignOrDecl));
+        }
+        public static InvocationExpressionSyntax TryGetInt64(SyntaxToken target, IdentifierNameSyntax? readerId = default)
+        {
+            return InvocationExpr(readerId ?? DefaultBsonReaderId, SF.IdentifierName("TryGetInt64"), OutArgument(IdentifierName(target)));
         }
         public static InvocationExpressionSyntax TryGetObjectId(ExpressionSyntax assignOrDecl, IdentifierNameSyntax? readerId = default)
         {
