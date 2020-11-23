@@ -23,20 +23,21 @@ namespace MongoDB.Client.ConsoleApp
             return await rtask;
         }
 
-        public static async Task<BsonDocument> RoundTripWithBsonAsync<T>(T message, IGenericBsonSerializer<T> serializer)
+        public static async Task<BsonDocument> RoundTripToBsonAsync<T>(T message)
         {
             var pipe = new Pipe();
-
+            SerializersMap.TryGetSerializer<T>(out var serializer);
             await WriteAsync(pipe.Writer, message, serializer);
             return await ReadAsync<BsonDocument>(pipe.Reader, new BsonDocumentSerializer());
         }
 
-        public static async Task<T1> RoundTripAsync<T0, T1>(T0 message, IGenericBsonSerializer<T0> writer, IGenericBsonSerializer<T1> reader)
+        public static async Task<TReader> RoundTripAsync<TWriter, TReader>(TWriter message)
         {
             var pipe = new Pipe();
-
-            await WriteAsync(pipe.Writer, message, writer);
-            return await ReadAsync(pipe.Reader, reader);
+            SerializersMap.TryGetSerializer<TWriter>(out var writerSerializer);
+            SerializersMap.TryGetSerializer<TReader>(out var readerSerializer);
+            await WriteAsync(pipe.Writer, message, writerSerializer);
+            return await ReadAsync(pipe.Reader, readerSerializer);
         }
         
         public static async Task<T> ReadAsync<T>(PipeReader input, IGenericBsonSerializer<T> serializer)
