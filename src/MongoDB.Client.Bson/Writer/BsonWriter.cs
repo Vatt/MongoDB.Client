@@ -89,8 +89,9 @@ namespace MongoDB.Client.Bson.Writer
             {
                 var secondLen = length - _span.Length;
                 var first = _span.Slice(0, _span.Length);
-                _output.Advance(first.Length);
-                GetNextSpan();
+                //_output.Advance(first.Length);               
+                //GetNextSpan();
+                Advance(first.Length);
                 var second = _span.Slice(0, secondLen);
                 Advance(secondLen);
                 return new Reserved(first, second);
