@@ -15,7 +15,7 @@ namespace MongoDB.Client.ConsoleApp
     {
         public static async Task<T> RoundTripAsync<T>(T message)
         {
-            var pipe = new Pipe();
+            var pipe = new Pipe(new PipeOptions(pauseWriterThreshold: long.MaxValue, resumeWriterThreshold: long.MaxValue));
             SerializersMap.TryGetSerializer<T>(out var serializer);
             var wtask = WriteAsync(pipe.Writer, message, serializer);
             var rtask = ReadAsync(pipe.Reader, serializer);
