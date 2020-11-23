@@ -1,6 +1,5 @@
 ﻿using MongoDB.Client.Bson.Document;
 using System;
-using System.Buffers;
 using System.Buffers.Text;
 using System.Runtime.CompilerServices;
 using MongoDB.Client.Bson.Serialization;
@@ -14,10 +13,14 @@ namespace MongoDB.Client.Bson.Writer
         {
             throw new SerializerNotFoundException(typeName);
         }
+
+
         private static void ThrowSerializerIsNull(string typeName)
         {
             throw new SerializerIsNullException(typeName);
         }
+
+
         public void WriteGeneric<T>(T genericValue, ref Reserved typeReserved)
         {
             if (genericValue == null)
@@ -80,6 +83,8 @@ namespace MongoDB.Client.Bson.Writer
             typeReserved.Write(3);
             serializer.Write(ref this, genericValue);
         }
+
+
         private void WriteGuidAsBinaryData(Guid value)
         {
             const int guidSize = 16;
@@ -87,8 +92,8 @@ namespace MongoDB.Client.Bson.Writer
             WriteByte((byte)BsonBinaryDataType.UUID);
             WriteGuidAsBytes(value);
         }
-        
-        
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteString(ReadOnlySpan<byte> value)
         {
@@ -105,6 +110,7 @@ namespace MongoDB.Client.Bson.Writer
             SlowWriteString(value);
         }
 
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void SlowWriteString(ReadOnlySpan<byte> value)
         {
@@ -117,6 +123,7 @@ namespace MongoDB.Client.Bson.Writer
             } while (!value.IsEmpty);
             WriteByte(EndMarker);
         }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteCString(ReadOnlySpan<byte> value)
@@ -133,6 +140,7 @@ namespace MongoDB.Client.Bson.Writer
             SlowWriteCString(value);
         }
 
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void SlowWriteCString(ReadOnlySpan<byte> value)
         {
@@ -145,28 +153,23 @@ namespace MongoDB.Client.Bson.Writer
             } while (!value.IsEmpty);
             WriteByte(EndMarker);
         }
-        
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteBsonNull(ReadOnlySpan<byte> name)
         {
             WriteByte(10);
             WriteCString(name);
         }
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteBsonNull(int intName)
         {
-            var buffer = ArrayPool<byte>.Shared.Rent(10);
-            try
-            {
-                _ = Utf8Formatter.TryFormat(intName, buffer, out int written);
-                WriteByte(10);
-                WriteCString(buffer.AsSpan(0, written));
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
+            WriteByte(10);
+            WriteIntIndex(intName);
         }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name(byte type, ReadOnlySpan<byte> name)
@@ -174,21 +177,15 @@ namespace MongoDB.Client.Bson.Writer
             WriteByte(type);
             WriteCString(name);
         }
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name(byte type, int intName)
         {
-            var buffer = ArrayPool<byte>.Shared.Rent(10);
-            try
-            {
-                _ = Utf8Formatter.TryFormat(intName, buffer, out int written);
-                WriteByte(type);
-                WriteCString(buffer.AsSpan(0, written));
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
+            WriteByte(type);
+            WriteIntIndex(intName);
         }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, double value)
@@ -197,22 +194,16 @@ namespace MongoDB.Client.Bson.Writer
             WriteCString(name);
             WriteDouble(value);
         }
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(int intName, double value)
         {
-            var buffer = ArrayPool<byte>.Shared.Rent(10);
-            try
-            {
-                _ = Utf8Formatter.TryFormat(intName, buffer, out int written);
-                WriteByte(1);
-                WriteCString(buffer.AsSpan(0, written));
-                WriteDouble(value);
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
+            WriteByte(1);
+            WriteIntIndex(intName);
+            WriteDouble(value);
         }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, string value)
@@ -221,22 +212,16 @@ namespace MongoDB.Client.Bson.Writer
             WriteCString(name);
             WriteString(value);
         }
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(int intName, string value)
         {
-            var buffer = ArrayPool<byte>.Shared.Rent(10);
-            try
-            {
-                _ = Utf8Formatter.TryFormat(intName, buffer, out int written);
-                WriteByte(2);
-                WriteCString(buffer.AsSpan(0, written));
-                WriteString(value);
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
+            WriteByte(2);
+            WriteIntIndex(intName);
+            WriteString(value);
         }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, BsonDocument value)
@@ -245,22 +230,17 @@ namespace MongoDB.Client.Bson.Writer
             WriteCString(name);
             WriteDocument(value);
         }
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(int intName, BsonDocument value)
         {
-            var buffer = ArrayPool<byte>.Shared.Rent(10);
-            try
-            {
-                _ = Utf8Formatter.TryFormat(intName, buffer, out int written);
-                WriteByte(3);
-                WriteCString(buffer.AsSpan(0, written));
-                WriteDocument(value);
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
+            WriteByte(3);
+            WriteIntIndex(intName);
+            WriteDocument(value);
         }
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, BsonArray value)
         {
@@ -268,23 +248,15 @@ namespace MongoDB.Client.Bson.Writer
             WriteCString(name);
             WriteDocument(value);
         }
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(int intName, BsonArray value)
         {
-            var buffer = ArrayPool<byte>.Shared.Rent(10);
-            try
-            {
-                _ = Utf8Formatter.TryFormat(intName, buffer, out int written);
-                WriteByte(4);
-                WriteCString(buffer.AsSpan(0, written));
-                WriteDocument(value);
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
+            WriteByte(4);
+            WriteIntIndex(intName);
+            WriteDocument(value);
         }
-
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -294,46 +266,34 @@ namespace MongoDB.Client.Bson.Writer
             WriteCString(name);
             WriteObjectId(value);
         }
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(int intName, BsonObjectId value)
         {
-            var buffer = ArrayPool<byte>.Shared.Rent(10);
-            try
-            {
-                _ = Utf8Formatter.TryFormat(intName, buffer, out int written);
-                WriteByte(7);
-                WriteCString(buffer.AsSpan(0, written));
-                WriteObjectId(value);
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
+            WriteByte(7);
+            WriteIntIndex(intName);
+            WriteObjectId(value);
         }
 
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write_Type_Name_Value(ReadOnlySpan<byte> name, bool value) 
+        public void Write_Type_Name_Value(ReadOnlySpan<byte> name, bool value)
         {
             WriteByte(8);
             WriteCString(name);
             WriteBoolean(value);
         }
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(int intName, bool value)
         {
-            var buffer = ArrayPool<byte>.Shared.Rent(10);
-            try
-            {
-                _ = Utf8Formatter.TryFormat(intName, buffer, out int written);
-                WriteByte(8);
-                WriteCString(buffer.AsSpan(0, written));
-                WriteBoolean(value);
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
+            WriteByte(8);
+            WriteIntIndex(intName);
+            WriteBoolean(value);
         }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, Guid value)
@@ -343,6 +303,7 @@ namespace MongoDB.Client.Bson.Writer
             WriteGuidAsBinaryData(value);
         }
 
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, DateTimeOffset value)
         {
@@ -351,22 +312,15 @@ namespace MongoDB.Client.Bson.Writer
             WriteUtcDateTime(value);
         }
 
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(int intName, DateTimeOffset value)
         {
-            var buffer = ArrayPool<byte>.Shared.Rent(10);
-            try
-            {
-                _ = Utf8Formatter.TryFormat(intName, buffer, out int written);
-                WriteByte(9);
-                WriteCString(buffer.AsSpan(0, written));
-                WriteUtcDateTime(value);
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
+            WriteByte(9);
+            WriteIntIndex(intName);
+            WriteUtcDateTime(value);
         }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, int value)
@@ -375,22 +329,14 @@ namespace MongoDB.Client.Bson.Writer
             WriteCString(name);
             WriteInt32(value);
         }
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(int intName, int value)
         {
-            var buffer = ArrayPool<byte>.Shared.Rent(10);
-            try
-            {
-                _ = Utf8Formatter.TryFormat(intName, buffer, out int written);
-                WriteByte(16);
-                WriteCString(buffer.AsSpan(0, written));
-                WriteInt32(value);
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
-
+            WriteByte(16);
+            WriteIntIndex(intName);
+            WriteInt32(value);
         }
 
 
@@ -402,23 +348,41 @@ namespace MongoDB.Client.Bson.Writer
             WriteInt64(value);
         }
 
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(int intName, long value)
         {
-            var buffer = ArrayPool<byte>.Shared.Rent(10);
-            try
-            {
-                _ = Utf8Formatter.TryFormat(intName, buffer, out int written);
-                WriteByte(18);
-                WriteCString(buffer.AsSpan(0, written));
-                WriteInt64(value);
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
-
+            WriteByte(18);
+            WriteIntIndex(intName);
+            WriteInt64(value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void WriteIntIndex(int index)
+        {
+            if (Utf8Formatter.TryFormat(index, _span, out int written))
+            {
+                Advance(written);
+                WriteByte(EndMarker);
+            }
+            else
+            {
+                WriteIntIndexSlow(index);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void WriteIntIndexSlow(int index)
+        {
+            Span<byte> span = stackalloc byte[10];
+            Utf8Formatter.TryFormat(index, span, out int written2);
+            var count = Math.Min(_span.Length, written2);
+            span = span.Slice(0, written2);
+            span.Slice(0, count).CopyTo(_span);
+            Advance(count);
+            span.Slice(count).CopyTo(_span);
+            Advance(written2 - count);
+            WriteByte(EndMarker);
+        }
     }
 }
