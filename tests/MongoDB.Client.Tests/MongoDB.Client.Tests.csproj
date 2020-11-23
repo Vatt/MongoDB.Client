@@ -25,8 +25,4 @@
     <ProjectReference Include="..\..\src\MongoDB.Client\MongoDB.Client.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Client" />
-  </ItemGroup>
-
 </Project>
