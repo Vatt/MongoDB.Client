@@ -8,166 +8,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        private static SyntaxToken WriteArrayMethodName(MemberContext ctx, ITypeSymbol typeSymbol)
-        {
-            var name = $"Write{ctx.NameSym.Name}{typeSymbol.Name}";/*{typeSymbol.GetTypeMembers()[0].Name}*/
-            var type = typeSymbol as INamedTypeSymbol;
-
-            while (true)
-            {
-                name = $"{name}{type.TypeArguments[0].Name}";
-                type = type.TypeArguments[0] as INamedTypeSymbol;
-                if (type is null || type.TypeArguments.IsEmpty)
-                {
-                    break;
-                }
-            }
-            return SF.Identifier(name);
-        }
-        private static SyntaxToken WriteStringEnumMethodName(ClassContext ctx, ISymbol enumTypeName, ISymbol fieldOrPropertyName)
-        {
-            var (_, alias) = AttributeHelper.GetMemberAlias(fieldOrPropertyName);
-            return SF.Identifier($"Write{enumTypeName.Name}");
-        }
-        private static MethodDeclarationSyntax[] GenerateWriteStringEnumMethods(ClassContext ctx)
-        {
-            List<MethodDeclarationSyntax> methods = new();
-
-            foreach (var member in ctx.Members.Where(member => member.TypeSym.TypeKind == TypeKind.Enum))
-            {
-                var repr = AttributeHelper.GetEnumRepresentation(member.NameSym);
-                if (repr == 1)
-                {
-                    methods.Add(WriteEnumMethod(member));
-                }
-
-            }
-
-            return methods.ToArray();
-        }
-        private static MethodDeclarationSyntax[] GenerateWriteArrayMethods(ClassContext ctx)
-        {
-            List<MethodDeclarationSyntax> methods = new();
-
-            foreach (var member in ctx.Members)
-            {
-                if (member.TypeSym.ToString().Contains("System.Collections.Generic.List") ||
-                    member.TypeSym.ToString().Contains("System.Collections.Generic.IList"))
-                {
-                    var type = member.TypeSym as INamedTypeSymbol;
-                    if (type is null)
-                    {
-                        methods.Add(WriteArrayMethod(member, member.TypeSym));
-                        break;
-                    }
-                    type = member.TypeSym as INamedTypeSymbol;
-                    while (true)
-                    {
-                        methods.Add(WriteArrayMethod(member, type));
-                        type = type.TypeArguments[0] as INamedTypeSymbol;
-                        if (type is null || type.TypeArguments.IsEmpty)
-                        {
-                            break;
-                        }
-                    }
-                }
-            }
-
-            return methods.ToArray();
-        }
-        private static MethodDeclarationSyntax WriteEnumMethod(MemberContext ctx)
-        {
-            var spanNameArg = SF.Identifier("name");
-            var metadata = ctx.TypeMetadata as INamedTypeSymbol;
-            var repr = AttributeHelper.GetEnumRepresentation(ctx.NameSym);
-            if (repr != 1)
-            {
-                return default;
-            }
-            List<StatementSyntax> statements = new();
-            foreach (var member in metadata.GetMembers().Where(sym => sym.Kind == SymbolKind.Field))
-            {
-                var (_, alias) = AttributeHelper.GetMemberAlias(member);               
-                statements.Add(
-                    SF.IfStatement(
-                        condition: BinaryExprEqualsEquals(ctx.Root.WriterInputVar, IdentifierFullName(member)),
-                        statement: SF.Block(
-                            //Statement(Write_Type_Name(2, IdentifierName(StaticFieldNameToken(ctx)))),
-                            Statement(Write_Type_Name(2, IdentifierName(spanNameArg))),
-                            Statement(WriteString(StaticEnumFieldNameToken(metadata, alias))))
-                    ));
-            }
-            return SF.MethodDeclaration(
-                    attributeLists: default,
-                    modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()),
-                    explicitInterfaceSpecifier: default,
-                    returnType: VoidPredefinedType(),
-                    identifier: WriteStringEnumMethodName(ctx.Root, metadata, ctx.NameSym),
-                    parameterList: ParameterList(RefParameter(ctx.Root.BsonWriterType, ctx.Root.BsonWriterToken),
-                                                 Parameter(ReadOnlySpanByte(), spanNameArg),
-                                                 Parameter(TypeFullName(ctx.TypeSym), ctx.Root.WriterInputVarToken)),
-                                                  
-                    body: default,
-                    constraintClauses: default,
-                    expressionBody: default,
-                    typeParameterList: default,
-                    semicolonToken: default)
-                .WithBody(SF.Block(statements.ToArray()));
-        }
-        private static MethodDeclarationSyntax WriteArrayMethod(MemberContext ctx, ITypeSymbol type)
-        {
-            ITypeSymbol trueType = type.Name.Equals("Nullable") ? ((INamedTypeSymbol)type).TypeParameters[0] : type;
-            var classCtx = ctx.Root;
-            var checkpoint = SF.Identifier("checkpoint");
-            var reserved = SF.Identifier("reserved");
-            var docLength = SF.Identifier("docLength");
-            var sizeSpan = SF.Identifier("sizeSpan");
-            var index = SF.Identifier("index");
-            var array = SF.Identifier("array");
-            var typeArg = (trueType as INamedTypeSymbol).TypeArguments[0];
-            StatementSyntax writeOperation = default;
-            if (typeArg.IsReferenceType)
-            {
-                writeOperation =
-                    SF.IfStatement(
-                        condition: BinaryExprEqualsEquals(ElementAccessExpr(IdentifierName(array), index), NullLiteralExpr()),
-                        statement: SF.Block(Statement(WriteBsonNull(index))),
-                        @else: SF.ElseClause(SF.Block(WriteOperation(ctx, index, typeArg, classCtx.BsonWriterId, ElementAccessExpr(IdentifierName(array), index)))));
-            }
-            else
-            {
-                writeOperation = WriteOperation(ctx, index, typeArg, classCtx.BsonWriterId, ElementAccessExpr(IdentifierName(array), index));
-            }
-            return SF.MethodDeclaration(
-                    attributeLists: default,
-                    modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()),
-                    explicitInterfaceSpecifier: default,
-                    returnType: VoidPredefinedType(),
-                    identifier: WriteArrayMethodName(ctx, trueType),
-                    parameterList: ParameterList(
-                        RefParameter(classCtx.BsonWriterType, classCtx.BsonWriterToken),
-                        Parameter(TypeFullName(trueType), array)),
-                    body: default,
-                    constraintClauses: default,
-                    expressionBody: default,
-                    typeParameterList: default,
-                    semicolonToken: default)
-                .WithBody(SF.Block(
-                    VarLocalDeclarationStatement(checkpoint, WriterWritten()),
-                    VarLocalDeclarationStatement(reserved, WriterReserve(4)),
-                    ForStatement(
-                        indexVar: index,
-                        condition: BinaryExprLessThan(IdentifierName(index), SimpleMemberAccess(IdentifierName(array), IdentifierName("Count"))),
-                        incrementor: PostfixUnaryExpr(index),
-                        body: SF.Block(writeOperation!)),
-                    WriteByteStatement((byte)'\x00'),
-                    VarLocalDeclarationStatement(docLength, BinaryExprMinus(WriterWritten(), IdentifierName(checkpoint))),
-                    LocalDeclarationStatement(SpanByte(), sizeSpan, StackAllocByteArray(4)),
-                    Statement(BinaryPrimitivesWriteInt32LittleEndian(sizeSpan, docLength)),
-                    Statement(ReservedWrite(reserved, sizeSpan)),
-                    Statement(WriterCommit())
-                ));
-        }
         private static MethodDeclarationSyntax WriteMethod(ClassContext ctx)
         {
             return SF.MethodDeclaration(
@@ -227,7 +67,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     }
                     else
                     {
-                        var methodName = IdentifierName(WriteStringEnumMethodName(ctx, member.TypeMetadata, member.NameSym));
+                        var methodName = IdentifierName(WriteStringReprEnumMethodName(ctx, member.TypeMetadata, member.NameSym));
                         var invocation = InvocationExpr(methodName, RefArgument(ctx.BsonWriterToken), Argument(StaticFieldNameToken(member)), Argument(writeTarget));
                         if (condition != null)
                         {
@@ -283,7 +123,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     statements.ToArray())
                 .AddStatements(
                     WriteByteStatement((byte)'\x00'),
-                    VarLocalDeclarationStatement(docLength, BinaryExprMinus(WriterWritten(), IdentifierName(checkpoint))),
+                    VarLocalDeclarationStatement(docLength, BinaryExprMinus(WriterWritten(), checkpoint)),
                     LocalDeclarationStatement(SpanByte(), sizeSpan, StackAllocByteArray(4)),
                     Statement(BinaryPrimitivesWriteInt32LittleEndian(sizeSpan, docLength)),
                     Statement(ReservedWrite(reserved, sizeSpan)),
@@ -313,8 +153,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     namedType.ToString().Contains("System.Collections.Generic.IList"))
                 {
                     return SF.Block(
-                        Statement(Write_Type_Name(4, IdentifierName(name))),
-                        InvocationExprStatement(IdentifierName(WriteArrayMethodName(ctx, trueType)), RefArgument(writerId), Argument(writeTarget)));
+                        Statement(Write_Type_Name(4, name)),
+                        InvocationExprStatement(WriteArrayMethodName(ctx, trueType), RefArgument(writerId), Argument(writeTarget)));
                 }
             }
             else
@@ -325,7 +165,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     if (context.Declaration.ToString().Equals(trueType.ToString()))
                     {
                         return SF.Block(
-                            Statement(Write_Type_Name(3, IdentifierName(StaticFieldNameToken(ctx)))),
+                            Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
                             Statement(GeneratedSerializerWrite(context, writerId, writeTarget)));
                     }
                 }

@@ -21,6 +21,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return InvocationExpr(spanName, SF.IdentifierName("SequenceEqual"), SF.Argument(otherSpanName));
         }
+        public static InvocationExpressionSyntax SpanSequenceEqual(SyntaxToken spanName, SyntaxToken otherSpanName)
+        {
+            return InvocationExpr(IdentifierName(spanName), SF.IdentifierName("SequenceEqual"), SF.Argument(IdentifierName(otherSpanName)));
+        }
         public static CastExpressionSyntax CastToInt(ExpressionSyntax expr)
         {
             return SF.CastExpression(IntPredefinedType(), expr);
@@ -125,9 +129,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.BinaryExpression(SyntaxKind.SubtractExpression, left, right);
         }
+        public static BinaryExpressionSyntax BinaryExprMinus(ExpressionSyntax left, SyntaxToken right)
+        {
+            return SF.BinaryExpression(SyntaxKind.SubtractExpression, left, IdentifierName(right));
+        }
         public static BinaryExpressionSyntax BinaryExprLessThan(ExpressionSyntax left, ExpressionSyntax right)
         {
             return SF.BinaryExpression(SyntaxKind.LessThanExpression, left, right);
+        }
+        public static BinaryExpressionSyntax BinaryExprLessThan(SyntaxToken left, ExpressionSyntax right)
+        {
+            return SF.BinaryExpression(SyntaxKind.LessThanExpression, IdentifierName(left), right);
         }
         public static BinaryExpressionSyntax BinaryExprPlus(ExpressionSyntax left, ExpressionSyntax right)
         {
@@ -137,9 +149,21 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.BinaryExpression(SyntaxKind.NotEqualsExpression, left, right);
         }
+        public static BinaryExpressionSyntax BinaryExprNotEquals(SyntaxToken left, ExpressionSyntax right)
+        {
+            return SF.BinaryExpression(SyntaxKind.NotEqualsExpression, IdentifierName(left), right);
+        }
         public static BinaryExpressionSyntax BinaryExprEqualsEquals(ExpressionSyntax left, ExpressionSyntax right)
         {
             return SF.BinaryExpression(SyntaxKind.EqualsExpression, left, right);
+        }
+        public static BinaryExpressionSyntax BinaryExprEqualsEquals(ExpressionSyntax left, SyntaxToken right)
+        {
+            return SF.BinaryExpression(SyntaxKind.EqualsExpression, left, IdentifierName(right));
+        }
+        public static BinaryExpressionSyntax BinaryExprEqualsEquals(SyntaxToken left, ExpressionSyntax right)
+        {
+            return SF.BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(left), right);
         }
         public static DeclarationExpressionSyntax VarVariableDeclarationExpr(SyntaxToken varId)
         {
@@ -169,6 +193,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static ElementAccessExpressionSyntax ElementAccessExpr(ExpressionSyntax target, SyntaxToken index)
         {
             return SF.ElementAccessExpression(target, SF.BracketedArgumentList(SeparatedList(SF.Argument(IdentifierName(index)))));
+        }
+        public static ElementAccessExpressionSyntax ElementAccessExpr(SyntaxToken target, SyntaxToken index)
+        {
+            return SF.ElementAccessExpression(IdentifierName(target), SF.BracketedArgumentList(SeparatedList(SF.Argument(IdentifierName(index)))));
         }
         public static PostfixUnaryExpressionSyntax PostfixUnaryExpr(SyntaxToken variable)
         {

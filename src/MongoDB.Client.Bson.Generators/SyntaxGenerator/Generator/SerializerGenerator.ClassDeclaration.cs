@@ -62,8 +62,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 .AddMembers(WriteMethod(ctx))
                 .AddMembers(GenerateReadArrayMethods(ctx))
                 .AddMembers(GenerateWriteArrayMethods(ctx))
-                .AddMembers(GenerateReadStringEnumMethods(ctx))
-                .AddMembers(GenerateWriteStringEnumMethods(ctx));
+                .AddMembers(GenerateReadStringReprEnumMethods(ctx))
+                .AddMembers(GenerateWriteStringReprEnumMethods(ctx));
             return ctx.GenericArgs.HasValue && ctx.GenericArgs!.Value.Length > 0
                 ? decl.AddTypeParameterListParameters(ctx.GenericArgs!.Value.Select(TypeParameter).ToArray())
                 : decl;
@@ -125,7 +125,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                     semicolonToken: SemicolonToken()));
                         }
                     }
-                    
                 }
                 var result = new List<MemberDeclarationSyntax>();
                 foreach (var value in declarations.Values)
