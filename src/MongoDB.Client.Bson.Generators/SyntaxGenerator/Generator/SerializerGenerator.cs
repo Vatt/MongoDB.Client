@@ -23,6 +23,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member);
         }
+        public static MemberAccessExpressionSyntax SimpleMemberAccess(SyntaxToken source, IdentifierNameSyntax member)
+        {
+            return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName(source), member);
+        }
         public static MemberAccessExpressionSyntax SimpleMemberAccess(ExpressionSyntax source, IdentifierNameSyntax member1, IdentifierNameSyntax member2)
         {
             var first = SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member1);
@@ -32,9 +36,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.ExpressionStatement(InvocationExpr(source, member, args));
         }
+        public static ExpressionStatementSyntax InvocationExprStatement(SyntaxToken source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
+        {
+            return SF.ExpressionStatement(InvocationExpr(IdentifierName(source), member, args));
+        }
         public static ExpressionStatementSyntax InvocationExprStatement(IdentifierNameSyntax member, params ArgumentSyntax[] args)
         {
             return SF.ExpressionStatement(InvocationExpr(member, args));
+        }
+        public static ExpressionStatementSyntax InvocationExprStatement(SyntaxToken member, params ArgumentSyntax[] args)
+        {
+            return SF.ExpressionStatement(InvocationExpr(IdentifierName(member), args));
         }
         public static InvocationExpressionSyntax InvocationExpr(ExpressionSyntax source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
         {
