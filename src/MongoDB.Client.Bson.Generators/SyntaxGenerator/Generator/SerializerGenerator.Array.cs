@@ -45,8 +45,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             foreach (var member in ctx.Members)
             {
-                if (member.TypeSym.ToString().Contains("System.Collections.Generic.List") ||
-                    member.TypeSym.ToString().Contains("System.Collections.Generic.IList"))
+                if (ctx.Types.IsListOrIList(member.TypeSym))
                 {
                     var type = member.TypeSym as INamedTypeSymbol;
                     if (type is null)
@@ -79,8 +78,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             List<MethodDeclarationSyntax> methods = new();
             foreach (var member in ctx.Members)
             {
-                if (member.TypeSym.ToString().Contains("System.Collections.Generic.List") ||
-                    member.TypeSym.ToString().Contains("System.Collections.Generic.IList"))
+                if (ctx.Types.IsListOrIList(member.TypeSym))
                 {
                     var type = member.TypeSym as INamedTypeSymbol;
                     if (type is null)

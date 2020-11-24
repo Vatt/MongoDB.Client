@@ -135,7 +135,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             ExpressionSyntax writerId, ExpressionSyntax writeTarget)
         {
             ITypeSymbol trueType = typeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol)typeSym).TypeParameters[0] : typeSym;
-            if (TryGetSimpleWriteOperation(trueType, name, writeTarget, out var expr))
+            if (TryGetSimpleWriteOperation(ctx.Root.Types, trueType, name, writeTarget, out var expr))
             {
 
                 return SF.ExpressionStatement(expr);
@@ -149,8 +149,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             if (trueType is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)
             {
-                if (namedType.ToString().Contains("System.Collections.Generic.List") ||
-                    namedType.ToString().Contains("System.Collections.Generic.IList"))
+                if (ctx.Root.Types.IsListOrIList(namedType))
                 {
                     return SF.Block(
                         Statement(Write_Type_Name(4, name)),
@@ -172,46 +171,57 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return default;
         }
-        private static bool TryGetSimpleWriteOperation(ITypeSymbol typeSymbol, SyntaxToken bsonNameToken,
-            ExpressionSyntax writeTarget, out InvocationExpressionSyntax expr)
+        private static bool TryGetSimpleWriteOperation(TypeLib typeLib, ITypeSymbol typeSymbol, SyntaxToken bsonNameToken, ExpressionSyntax writeTarget, out InvocationExpressionSyntax expr)
         {
             expr = default;
             var bsonName = IdentifierName(bsonNameToken);
-            switch (typeSymbol.ToString())
+            switch (typeSymbol.SpecialType)
             {
-                case "double":
+                case SpecialType.System_Double:
                     expr = Write_Type_Name_Value(bsonName, writeTarget);
                     return true;
-                case "string":
+                case SpecialType.System_String:
                     expr = Write_Type_Name_Value(bsonName, writeTarget);
                     return true;
-                case "MongoDB.Client.Bson.Document.BsonDocument":
+                case SpecialType.System_Boolean:
                     expr = Write_Type_Name_Value(bsonName, writeTarget);
                     return true;
-                case "MongoDB.Client.Bson.Document.BsonArray":
+                case SpecialType.System_Int32:
                     expr = Write_Type_Name_Value(bsonName, writeTarget);
                     return true;
-                case "MongoDB.Client.Bson.Document.BsonObjectId":
+                case SpecialType.System_Int64:
                     expr = Write_Type_Name_Value(bsonName, writeTarget);
                     return true;
-                case "bool":
-                    expr = Write_Type_Name_Value(bsonName, writeTarget);
-                    return true;
-                case "int":
-                    expr = Write_Type_Name_Value(bsonName, writeTarget);
-                    return true;
-                case "long":
-                    expr = Write_Type_Name_Value(bsonName, writeTarget);
-                    return true;
-                case "System.Guid":
-                    expr = Write_Type_Name_Value(bsonName, writeTarget);
-                    return true;
-                case "System.DateTimeOffset":
-                    expr = Write_Type_Name_Value(bsonName, writeTarget);
-                    return true;
-                default:
-                    return false;
+                //case SpecialType.System_DateTime:
+                //    expr = Write_Type_Name_Value(bsonName, writeTarget);
+                //    return true;
             }
+            if(typeSymbol.Equals(typeLib.BsonDocument, SymbolEqualityComparer.Default))
+            {
+                expr = Write_Type_Name_Value(bsonName, writeTarget);
+                return true;
+            }
+            if (typeSymbol.Equals(typeLib.BsonArray, SymbolEqualityComparer.Default))
+            {
+                expr = Write_Type_Name_Value(bsonName, writeTarget);
+                return true;
+            }
+            if (typeSymbol.Equals(typeLib.BsonObjectId, SymbolEqualityComparer.Default))
+            {
+                expr = Write_Type_Name_Value(bsonName, writeTarget);
+                return true;
+            }
+            if (typeSymbol.Equals(typeLib.System_Guid, SymbolEqualityComparer.Default))
+            {
+                expr = Write_Type_Name_Value(bsonName, writeTarget);
+                return true;
+            }
+            if (typeSymbol.Equals(typeLib.System_DateTimeOffset, SymbolEqualityComparer.Default))
+            {
+                expr = Write_Type_Name_Value(bsonName, writeTarget);
+                return true;
+            }
+            return false;
         }
     }
 }

@@ -15,9 +15,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         {
             Contexts = new List<ClassContext>();
             Compilation = ctx.Compilation;
+            var typelib = TypeLib.FromCompilation(Compilation);
             foreach (var symbol in symbols)
             {
-                Contexts.Add(new ClassContext(this, symbol));
+                Contexts.Add(new ClassContext(this, typelib, symbol));
             }
         }
     }
@@ -34,6 +35,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         internal IdentifierNameSyntax WriterInputVar => SF.IdentifierName("message");
         internal SyntaxToken WriterInputVarToken => SF.Identifier("message");
         internal readonly MasterContext Root;
+        internal readonly TypeLib Types;
         internal readonly INamedTypeSymbol Declaration;
         internal readonly List<MemberContext> Members;
         internal readonly ImmutableArray<ITypeSymbol>? GenericArgs;
@@ -55,6 +57,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         private void ProcessBaseList(INamedTypeSymbol symbol)
         {
             if (symbol == null)
+            {
+                return;
+            }
+            if (symbol.SpecialType != SpecialType.None)
+            {
+                return;
+            }
+            if(symbol.TypeKind == TypeKind.Interface)
             {
                 return;
             }
@@ -84,18 +94,19 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     continue;
                 }
                 //TODO: допустимо только без гетера, если нет сетера проверить есть ли он в конструкторе
-                if ((member is IPropertySymbol { SetMethod: { }, GetMethod: { }, IsReadOnly: false }) ||
-                     (member is IFieldSymbol { IsReadOnly: false }))
+                if ((member is IPropertySymbol { SetMethod: { IsInitOnly: false }, GetMethod: { }, IsReadOnly: false }) ||
+                    (member is IFieldSymbol { IsReadOnly: false }))
                 {
                     Members.Add(new MemberContext(this, member));
                 }
                 
             }
-           // ProcessBaseList(symbol.BaseType);
+            ProcessBaseList(symbol.BaseType);
         }
-        public ClassContext(MasterContext root, INamedTypeSymbol symbol)
+        public ClassContext(MasterContext root, TypeLib typeLib, INamedTypeSymbol symbol)
         {
             Root = root;
+            Types = typeLib;
             Declaration = symbol;
             Members = new List<MemberContext>();
             GenericArgs = Declaration.TypeArguments.IsEmpty ? null : Declaration.TypeArguments;
@@ -182,7 +193,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             }
             if (TypeSym != null)
             {
-                _ = Types.TryGetMetadata(TypeSym, out TypeMetadata);
+                _ = Root.Types.TryGetMetadata(TypeSym, out TypeMetadata);
             }
              
             var some = Root.Root.Compilation.GetTypesByMetadataName(TypeSym!.ToString()).ToArray();
