@@ -32,6 +32,7 @@ namespace MongoDB.Client.Benchmarks
             zip = 190000
         };
 
+
         [GlobalSetup]
         public void Setup()
         {
@@ -46,6 +47,7 @@ namespace MongoDB.Client.Benchmarks
             var oldClient = new MongoDB.Driver.MongoClient($"mongodb://{host}:27017");
             var oldDb = oldClient.GetDatabase(dbName);
             _oldCollection = oldDb.GetCollection<GeoIp>(collectionName);
+      
         }
 
         [GlobalCleanup]
