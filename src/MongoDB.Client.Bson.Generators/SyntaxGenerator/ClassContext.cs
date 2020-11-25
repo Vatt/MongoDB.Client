@@ -11,14 +11,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
     {
         public readonly List<ClassContext> Contexts;
         public readonly Compilation Compilation;
-        public MasterContext(List<INamedTypeSymbol> symbols, GeneratorExecutionContext ctx)
+        public MasterContext(List<(SyntaxNode, INamedTypeSymbol)> symbols, GeneratorExecutionContext ctx)
         {
             Contexts = new List<ClassContext>();
             Compilation = ctx.Compilation;
             var typelib = TypeLib.FromCompilation(Compilation);
-            foreach (var symbol in symbols)
+            foreach (var pair in symbols)
             {
-                Contexts.Add(new ClassContext(this, typelib, symbol));
+                var (node, symbol) = pair;
+                 Contexts.Add(new ClassContext(this, typelib, node, symbol));
             }
         }
     }
@@ -34,9 +35,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         internal IdentifierNameSyntax TryParseOutVar => SF.IdentifierName(TryParseOutVarToken);
         internal IdentifierNameSyntax WriterInputVar => SF.IdentifierName("message");
         internal SyntaxToken WriterInputVarToken => SF.Identifier("message");
+
+        internal readonly bool IsRecord;
         internal readonly MasterContext Root;
         internal readonly TypeLib Types;
         internal readonly INamedTypeSymbol Declaration;
+        internal readonly SyntaxNode DeclarationNode;
         internal readonly List<MemberContext> Members;
         internal readonly ImmutableArray<ITypeSymbol>? GenericArgs;
         internal readonly ImmutableArray<IParameterSymbol>? ConstructorParams;
@@ -54,7 +58,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 
             return false;
         }
-        private void ProcessBaseList(INamedTypeSymbol symbol)
+        private void ProcessRecordInherit(INamedTypeSymbol symbol)
         {
             if (symbol == null)
             {
@@ -84,7 +88,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 
                     foreach (var param in ConstructorParams)
                     {
-                        //TODO: Смотреть флов аргумента вместо проверки на имя
                         if (param.Name.Equals(member.Name))
                         {
                             Members.Add(new MemberContext(this, member));
@@ -93,21 +96,21 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     }
                     continue;
                 }
-                //TODO: допустимо только без гетера, если нет сетера проверить есть ли он в конструкторе
-                if ((member is IPropertySymbol { SetMethod: { IsInitOnly: false }, GetMethod: { }, IsReadOnly: false }) ||
+                if ((member is IPropertySymbol { SetMethod:{ } /*{ IsInitOnly: false }*/, GetMethod: { }, IsReadOnly: false }) ||
                     (member is IFieldSymbol { IsReadOnly: false }))
                 {
                     Members.Add(new MemberContext(this, member));
                 }
                 
             }
-            ProcessBaseList(symbol.BaseType);
+            ProcessRecordInherit(symbol.BaseType);
         }
-        public ClassContext(MasterContext root, TypeLib typeLib, INamedTypeSymbol symbol)
+        public ClassContext(MasterContext root, TypeLib typeLib, SyntaxNode node, INamedTypeSymbol symbol)
         {
             Root = root;
             Types = typeLib;
             Declaration = symbol;
+            DeclarationNode = node;
             Members = new List<MemberContext>();
             GenericArgs = Declaration.TypeArguments.IsEmpty ? null : Declaration.TypeArguments;
             if (AttributeHelper.TryFindPrimaryConstructor(Declaration, out var constructor))
@@ -117,16 +120,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     ConstructorParams = constructor.Parameters;
                 }
             }
-            else
+            //if (Declaration.GetMembers().Any(x => x.Kind == SymbolKind.Property && x.Name == "EqualityContract" && x.IsImplicitlyDeclared)) // record shit check
+            if (DeclarationNode is RecordDeclarationSyntax)
             {
-                if (Declaration.GetMembers().Any(x => x.Kind == SymbolKind.Property && x.Name == "EqualityContract" && x.IsImplicitlyDeclared)) // record shit check
+                IsRecord = true;
+                if (Declaration.Constructors.Length == 2)
                 {
-                    if (Declaration.Constructors.Length == 2)
-                    {
-                        ConstructorParams = Declaration.Constructors.Where(x => x.Parameters[0].Type != Declaration).First().Parameters;
-                    }
-                    
+                    ConstructorParams = Declaration.Constructors.Where(x => x.Parameters[0].Type != Declaration).First().Parameters;
                 }
+                ProcessRecordInherit(symbol.BaseType);
 
             }
             foreach (var member in Declaration.GetMembers())
@@ -161,8 +163,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     Members.Add(new MemberContext(this, member));
                 }                
             }
-            ProcessBaseList(symbol.BaseType);
-
         }
     }
     internal class MemberContext

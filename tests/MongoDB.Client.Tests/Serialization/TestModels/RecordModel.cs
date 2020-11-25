@@ -5,20 +5,21 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
     [BsonSerializable]
-    public record RecordModel(int A, long B, double C, string D, Guid E)
+    public record RecordModel0(int A, long B, double C, string D, Guid E)
     {
         public BsonDocument Document { get; set; }
-    }
-    [BsonSerializable]
-    public record RecordWithConstructor(int AA, long BB, double CC, string DD, Guid EE) : RecordModel(42, 42, 42, "42", Guid.NewGuid());
-
-    [BsonSerializable]
-    public record RecordWithBase : RecordWithConstructor
-    {
-        [BsonConstructor]
-        public RecordWithBase(BsonDocument Document) : base(42, 42, 42, "42", Guid.NewGuid())
+        public void DoSome()
         {
-            this.Document = Document;
+
         }
     }
+    [BsonSerializable]
+    public record RecordModel1(int AA, long BB, double CC, string DD, Guid EE) : RecordModel0(AA, BB, CC, DD, EE);
+
+    [BsonSerializable]
+    public record RecordModel2(int NewInt) : RecordModel1(42, 42, 42, "42", Guid.NewGuid());
+
+    [BsonSerializable]
+    public record RecordModel3(int AA, long BB, double CC, string DD, Guid EE, int F, long G) : RecordModel1(AA, BB, CC, DD, EE);
+
 }

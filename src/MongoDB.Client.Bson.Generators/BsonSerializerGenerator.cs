@@ -50,9 +50,9 @@ namespace MongoDB.Client.Bson.Generators
         {
         }
 
-        private List<INamedTypeSymbol> CollectSymbols(GeneratorExecutionContext context)
+        private List<(SyntaxNode, INamedTypeSymbol)> CollectSymbols(GeneratorExecutionContext context)
         {
-            List<INamedTypeSymbol> symbols = new List<INamedTypeSymbol>();
+            List<(SyntaxNode, INamedTypeSymbol)> symbols = new ();
             foreach (var tree in context.Compilation.SyntaxTrees)
             {
                 foreach (var node in tree.GetRoot().DescendantNodes())
@@ -66,10 +66,9 @@ namespace MongoDB.Client.Bson.Generators
 
                     foreach (var attr in symbol.GetAttributes())
                     {
-                        if (attr.AttributeClass!.ToString().Equals("MongoDB.Client.Bson.Serialization.Attributes.BsonSerializableAttribute") ||
-                            attr.AttributeClass!.ToString().Equals("MongoDB.Client.Bson.Serialization.Attributes.BsonEnumSerializableAttribute"))
+                        if (attr.AttributeClass!.ToString().Equals("MongoDB.Client.Bson.Serialization.Attributes.BsonSerializableAttribute"))
                         {
-                            symbols.Add(symbol);
+                            symbols.Add((node, symbol));
                             break;
                         }
                     }
