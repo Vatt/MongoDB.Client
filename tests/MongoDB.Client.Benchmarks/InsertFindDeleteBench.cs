@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using MongoDB.Bson;
+using MongoDB.Client.Benchmarks.Serialization.Models;
 using MongoDB.Driver;
 using BsonDocument = MongoDB.Client.Bson.Document.BsonDocument;
 using BsonObjectId = MongoDB.Client.Bson.Document.BsonObjectId;

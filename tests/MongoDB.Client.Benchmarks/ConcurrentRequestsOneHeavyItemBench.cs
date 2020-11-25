@@ -1,23 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using MongoDB.Client.Benchmarks.Serialization;
+using MongoDB.Client.Benchmarks.Serialization.Models;
 using MongoDB.Driver;
 using BsonDocument = MongoDB.Client.Bson.Document.BsonDocument;
 
 namespace MongoDB.Client.Benchmarks
 {
     [MemoryDiagnoser]
-    public class ConcurrentRequestsOneItemBench
+    public class ConcurrentRequestsOneHeavyItemBench
     {
-        private MongoCollection<GeoIp> _collection;
-        private IMongoCollection<GeoIp> _oldCollection;
+        private MongoCollection<RootDocument> _collection;
+        private IMongoCollection<RootDocument> _oldCollection;
 
         [Params(1, 4, 8, 16, 32, 64, 128)]
         public int Parallelism { get; set; }
-        
-        [Params(256)] 
+
+        [Params(256)]
         public int RequestsCount { get; set; }
 
         [GlobalSetup]
@@ -26,37 +28,18 @@ namespace MongoDB.Client.Benchmarks
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
             var dbName = "BenchmarkDb";
             var collectionName = GetType().Name;
-            var itemsCount = 1;
 
             var client = new MongoClient(new DnsEndPoint(host, 27017));
             var db = client.GetDatabase(dbName);
-            _collection = db.GetCollection<GeoIp>(collectionName);
+            _collection = db.GetCollection<RootDocument>(collectionName);
 
             var oldClient = new MongoDB.Driver.MongoClient($"mongodb://{host}:27017");
             var oldDb = oldClient.GetDatabase(dbName);
-            _oldCollection = oldDb.GetCollection<GeoIp>(collectionName);
+            _oldCollection = oldDb.GetCollection<RootDocument>(collectionName);
 
             oldDb.DropCollection(collectionName);
-            for (int i = 0; i < itemsCount; i++)
-            {
-                var item = new GeoIp
-                {
-                    city = "St Petersburg",
-                    country = "Russia",
-                    countryCode = "RU",
-                    isp = "NevalinkRoute",
-                    lat = 59.8944f,
-                    lon = 30.2642f,
-                    org = "Nevalink Ltd.",
-                    query = "31.134.191.87",
-                    region = "SPE",
-                    regionName = "St.-Petersburg",
-                    status = "success",
-                    timezone = "Europe/Moscow",
-                    zip = 190000
-                };
-                _oldCollection.InsertOne(item);
-            }
+            var item = new DatabaseSeeder().GenerateSeed(1).First();
+            _oldCollection.InsertOne(item);
         }
 
         [GlobalCleanup]
@@ -80,7 +63,7 @@ namespace MongoDB.Client.Benchmarks
             else
             {
                 var iterations = RequestsCount / Parallelism;
-                var tasks = new Task<GeoIp>[Parallelism];
+                var tasks = new Task<RootDocument>[Parallelism];
                 for (int i = 0; i < iterations; i++)
                 {
                     for (int j = 0; j < Parallelism; j++)
@@ -100,18 +83,18 @@ namespace MongoDB.Client.Benchmarks
             {
                 for (int i = 0; i < RequestsCount; i++)
                 {
-                    await _oldCollection.Find(FilterDefinition<GeoIp>.Empty).FirstOrDefaultAsync();
+                    await _oldCollection.Find(FilterDefinition<RootDocument>.Empty).FirstOrDefaultAsync();
                 }
             }
             else
             {
                 var iterations = RequestsCount / Parallelism;
-                var tasks = new Task<GeoIp>[Parallelism];
+                var tasks = new Task<RootDocument>[Parallelism];
                 for (int i = 0; i < iterations; i++)
                 {
                     for (int j = 0; j < Parallelism; j++)
                     {
-                        tasks[j] = _oldCollection.Find(FilterDefinition<GeoIp>.Empty).FirstOrDefaultAsync();
+                        tasks[j] = _oldCollection.Find(FilterDefinition<RootDocument>.Empty).FirstOrDefaultAsync();
                     }
 
                     await Task.WhenAll(tasks);
