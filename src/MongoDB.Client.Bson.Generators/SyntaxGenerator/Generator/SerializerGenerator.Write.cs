@@ -8,7 +8,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        private static MethodDeclarationSyntax WriteMethod(ClassContext ctx)
+        private static MethodDeclarationSyntax WriteMethod(ContextCore ctx)
         {
             return SF.MethodDeclaration(
                     attributeLists: default,
@@ -27,7 +27,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 .WithBody(WriteMethodBody(ctx));
         }
 
-        private static BlockSyntax WriteMethodBody(ClassContext ctx)
+        private static BlockSyntax WriteMethodBody(ContextCore ctx)
         {
             var checkpoint = SF.Identifier("checkpoint");
             var reserved = SF.Identifier("reserved");

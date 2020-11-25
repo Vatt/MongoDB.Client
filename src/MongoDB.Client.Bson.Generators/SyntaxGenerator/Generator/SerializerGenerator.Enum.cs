@@ -8,17 +8,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        private static SyntaxToken ReadStringReprEnumMethodName(ClassContext ctx, ISymbol enumTypeName, ISymbol fieldOrPropertyName)
+        private static SyntaxToken ReadStringReprEnumMethodName(ContextCore ctx, ISymbol enumTypeName, ISymbol fieldOrPropertyName)
         {
             var (_, alias) = AttributeHelper.GetMemberAlias(fieldOrPropertyName);
             return SF.Identifier($"TryParse{enumTypeName.Name}");
         }
-        private static SyntaxToken WriteStringReprEnumMethodName(ClassContext ctx, ISymbol enumTypeName, ISymbol fieldOrPropertyName)
+        private static SyntaxToken WriteStringReprEnumMethodName(ContextCore ctx, ISymbol enumTypeName, ISymbol fieldOrPropertyName)
         {
             var (_, alias) = AttributeHelper.GetMemberAlias(fieldOrPropertyName);
             return SF.Identifier($"Write{enumTypeName.Name}");
         }
-        private static MethodDeclarationSyntax[] GenerateWriteStringReprEnumMethods(ClassContext ctx)
+        private static MethodDeclarationSyntax[] GenerateWriteStringReprEnumMethods(ContextCore ctx)
         {
             List<MethodDeclarationSyntax> methods = new();
 
@@ -32,7 +32,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return methods.ToArray();
         }
-        private static MethodDeclarationSyntax[] GenerateReadStringReprEnumMethods(ClassContext ctx)
+        private static MethodDeclarationSyntax[] GenerateReadStringReprEnumMethods(ContextCore ctx)
         {
             List<MethodDeclarationSyntax> methods = new();
 

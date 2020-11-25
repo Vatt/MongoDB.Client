@@ -8,7 +8,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        private static MethodDeclarationSyntax TryParseMethod(ClassContext ctx)
+        private static MethodDeclarationSyntax TryParseMethod(ContextCore ctx)
         {
             var decl = ctx.Declaration;
             var docLenToken = SF.Identifier("docLength");
@@ -55,7 +55,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     .AddStatements(CreateMessage(ctx))
                     .AddStatements(SF.ReturnStatement(TrueLiteralExpr())));
         }
-        private static StatementSyntax[] CreateMessage(ClassContext ctx)
+        private static StatementSyntax[] CreateMessage(ContextCore ctx)
         {
             var result = new List<ExpressionStatementSyntax>();
             if (ctx.HavePrimaryConstructor)
@@ -96,7 +96,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return result.ToArray();
         }
-        private static StatementSyntax[] DeclareTempVariables(ClassContext ctx)
+        private static StatementSyntax[] DeclareTempVariables(ContextCore ctx)
         {
             List<StatementSyntax> variables = new();
             foreach (var member in ctx.Members)
@@ -107,7 +107,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             return variables.ToArray();
         }
-        private static StatementSyntax[] Operations(ClassContext ctx, SyntaxToken bsonType, SyntaxToken bsonName)
+        private static StatementSyntax[] Operations(ContextCore ctx, SyntaxToken bsonType, SyntaxToken bsonName)
         {
             var decl = ctx.Declaration;
             var members = ctx.Members;
@@ -164,7 +164,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return statements.ToArray();
         }
 
-        private static ExpressionSyntax ReadOperation(ClassContext ctx, ISymbol nameSym, ITypeSymbol typeSym, ExpressionSyntax readerId,
+        private static ExpressionSyntax ReadOperation(ContextCore ctx, ISymbol nameSym, ITypeSymbol typeSym, ExpressionSyntax readerId,
                                                       ExpressionSyntax readTarget, SyntaxToken bsonType)
         {
             ITypeSymbol trueType = typeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol)typeSym).TypeParameters[0] : typeSym;

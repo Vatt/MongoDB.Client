@@ -12,9 +12,9 @@ namespace MongoDB.Client.Tests.Serialization
         [Fact]
         public async Task RecordTest()
         {
-            var model = new RecordModel(42, 42, 42, "42", Guid.NewGuid());
+            var model = new RecordModel0(42, 42, 42, "42", Guid.NewGuid());
             model.Document = new BsonDocument("42", "42");
-            SerializersMap.TryGetSerializer<RecordModel>(out var serializer);
+            SerializersMap.TryGetSerializer<RecordModel0>(out var serializer);
             var result = await RoundTripAsync(model, serializer);
 
             Assert.Equal(result, model);
@@ -22,8 +22,8 @@ namespace MongoDB.Client.Tests.Serialization
         [Fact]
         public async Task RecordWithConstructorTest()
         { 
-            var model = new RecordWithBase(new BsonDocument("42", "42"));
-            SerializersMap.TryGetSerializer<RecordWithBase>(out var serializer);
+            var model = new RecordModel2(1);
+            SerializersMap.TryGetSerializer<RecordModel2>(out var serializer);
             var result = await RoundTripAsync(model, serializer);
 
             Assert.Equal(result, model);

@@ -39,7 +39,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return SF.Identifier(name);
         }
-        private static MethodDeclarationSyntax[] GenerateReadArrayMethods(ClassContext ctx)
+        private static MethodDeclarationSyntax[] GenerateReadArrayMethods(ContextCore ctx)
         {
             List<MethodDeclarationSyntax> methods = new();
 
@@ -73,7 +73,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             return methods.ToArray();
         }
-        private static MethodDeclarationSyntax[] GenerateWriteArrayMethods(ClassContext ctx)
+        private static MethodDeclarationSyntax[] GenerateWriteArrayMethods(ContextCore ctx)
         {
             List<MethodDeclarationSyntax> methods = new();
             foreach (var member in ctx.Members)
