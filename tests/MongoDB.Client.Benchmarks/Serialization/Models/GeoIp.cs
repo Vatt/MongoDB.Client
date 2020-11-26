@@ -1,21 +1,20 @@
 ﻿using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Client.Bson.Serialization.Attributes;
 
-namespace MongoDB.Client.Benchmarks
+namespace MongoDB.Client.Benchmarks.Serialization.Models
 {
     [BsonSerializable]
     public class GeoIp
     {
         [MongoDB.Bson.Serialization.Attributes.BsonId]
-        [Bson.Serialization.Attributes.BsonIgnore]
+        [BsonIgnore]
         public ObjectId OldId { get; set; }
-        
-        [Bson.Serialization.Attributes.BsonElement("_id")]
+
+        [BsonElement("_id")]
         [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
-        public MongoDB.Client.Bson.Document.BsonObjectId Id { get; set; }
-        
-        
+        public Bson.Document.BsonObjectId Id { get; set; }
+
+
         public string status { get; set; }
         public string country { get; set; }
         public string countryCode { get; set; }
