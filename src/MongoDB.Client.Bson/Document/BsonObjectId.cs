@@ -143,5 +143,15 @@ namespace MongoDB.Client.Bson.Document
         {
             return Part1 == other.Part1 && Part2 == other.Part2 && Part3 == other.Part3;
         }
+
+        public static bool operator == (BsonObjectId left, BsonObjectId rigth)
+        {
+            return left.Equals(rigth);
+        }
+
+        public static bool operator !=(BsonObjectId left, BsonObjectId rigth)
+        {
+            return left.Equals(rigth) == false;
+        }
     }
 }

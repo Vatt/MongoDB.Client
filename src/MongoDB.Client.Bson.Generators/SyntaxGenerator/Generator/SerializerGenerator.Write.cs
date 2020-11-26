@@ -110,9 +110,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     }
                     else
                     {
+                        if (member.BsonElementAlias == "_id" && member.TypeSym.ToString() == "MongoDB.Client.Bson.Document.BsonObjectId")
+                        {
+                            statements.Add(
+                                SF.IfStatement(
+                                    BinaryExprEqualsEquals(writeTarget, Default(TypeFullName(member.TypeSym))),
+                                    SF.Block(
+                                        SimpleAssignExprStatement(writeTarget, NewBsonObjectId(TypeFullName(member.TypeSym))))));
+                        }
+
                         statements.Add(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget));
                     }
-
                 }
             }
 

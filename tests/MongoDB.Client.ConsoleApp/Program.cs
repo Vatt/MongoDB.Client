@@ -21,17 +21,16 @@ namespace MongoDB.Client.ConsoleApp
     {
         static async Task Main(string[] args)
         {
-            TestMockPipe();
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
 
-            // var loggerFactory = LoggerFactory.Create(builder =>
-            // {
-            //     builder
-            //         .SetMinimumLevel(LogLevel.Error)
-            //         .AddConsole();
-            // });
+            var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder
+                    .SetMinimumLevel(LogLevel.Error)
+                    .AddConsole();
+            });
 
-            var client = new MongoClient(new DnsEndPoint(host, 27017));
+            var client = new MongoClient(new DnsEndPoint(host, 27017), loggerFactory);
 
             var db = client.GetDatabase("TestDb");
             var collection1 = db.GetCollection<RootDocument>("HeavyItems");
