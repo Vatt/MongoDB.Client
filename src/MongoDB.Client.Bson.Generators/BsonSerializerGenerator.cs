@@ -15,8 +15,8 @@ namespace MongoDB.Client.Bson.Generators
         public void Execute(GeneratorExecutionContext context)
         {
             //System.Diagnostics.Debugger.Launch();
-            Types.TypesInit(context.Compilation);
-            var masterContext = new MasterContext(CollectSymbols(context), context);
+            TypeLib.TypeLibInit(context.Compilation);
+            var masterContext = new MasterContext(CollectSymbols(context));
             var units = Create(masterContext);
             context.AddSource("GlobalSerializationHelperGenerated.cs", SourceText.From(GenerateGlobalHelperStaticClass(masterContext), Encoding.UTF8));
             for (int index = 0; index < units.Length; index++)
@@ -30,9 +30,9 @@ namespace MongoDB.Client.Bson.Generators
                 //System.Diagnostics.Debugger.Break();
             }
         }
-        public static CompilationUnitSyntax[] Create(MasterContext context)
+        public static CompilationUnitSyntax[] Create(MasterContext master)
         {
-            CompilationUnitSyntax[] units = new CompilationUnitSyntax[context.Contexts.Count];
+            CompilationUnitSyntax[] units = new CompilationUnitSyntax[master.Contexts.Count];
             for (int index = 0; index < units.Length; index++)
             {
                 units[index] = SF.CompilationUnit()
@@ -42,7 +42,7 @@ namespace MongoDB.Client.Bson.Generators
                         SF.UsingDirective(SF.ParseName("System.Buffers.Binary")))
                     .AddMembers(
                         SF.NamespaceDeclaration(SF.ParseName("MongoDB.Client.Bson.Serialization.Generated"))
-                            .AddMembers(SerializerGenerator.GenerateSerializer(context.Contexts[index]))
+                            .AddMembers(SerializerGenerator.GenerateSerializer(master.Contexts[index]))
                     );
             }
             return units;
@@ -51,9 +51,9 @@ namespace MongoDB.Client.Bson.Generators
         {
         }
 
-        private List<INamedTypeSymbol> CollectSymbols(GeneratorExecutionContext context)
+        private List<(SyntaxNode, INamedTypeSymbol)> CollectSymbols(GeneratorExecutionContext context)
         {
-            List<INamedTypeSymbol> symbols = new List<INamedTypeSymbol>();
+            List<(SyntaxNode, INamedTypeSymbol)> symbols = new ();
             foreach (var tree in context.Compilation.SyntaxTrees)
             {
                 foreach (var node in tree.GetRoot().DescendantNodes())
@@ -67,10 +67,9 @@ namespace MongoDB.Client.Bson.Generators
 
                     foreach (var attr in symbol.GetAttributes())
                     {
-                        if (attr.AttributeClass!.ToString().Equals("MongoDB.Client.Bson.Serialization.Attributes.BsonSerializableAttribute") ||
-                            attr.AttributeClass!.ToString().Equals("MongoDB.Client.Bson.Serialization.Attributes.BsonEnumSerializableAttribute"))
+                        if (attr.AttributeClass!.ToString().Equals("MongoDB.Client.Bson.Serialization.Attributes.BsonSerializableAttribute"))
                         {
-                            symbols.Add(symbol);
+                            symbols.Add((node, symbol));
                             break;
                         }
                     }

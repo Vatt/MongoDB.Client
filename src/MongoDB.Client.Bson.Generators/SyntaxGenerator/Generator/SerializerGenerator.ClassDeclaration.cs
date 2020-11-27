@@ -11,7 +11,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
     internal static partial class SerializerGenerator
     {
         private static readonly SyntaxToken SerializerInterfaceToken = SF.Identifier("MongoDB.Client.Bson.Serialization.IGenericBsonSerializer");
-        public static string SerializerName(ClassContext ctx)
+        public static string SerializerName(ContextCore ctx)
         {
             string generics = ctx.GenericArgs.HasValue && ctx.GenericArgs.Value.Length > 0
                 ? string.Join(String.Empty, ctx.GenericArgs.Value)
@@ -19,14 +19,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return $"{ctx.Declaration.ContainingNamespace.ToString().Replace(".", String.Empty)}{ctx.Declaration.Name}{generics}SerializerGenerated";
         }
 
-        public static InvocationExpressionSyntax GeneratedSerializerTryParse(ClassContext ctx, ExpressionSyntax reader, ExpressionSyntax variable)
+        public static InvocationExpressionSyntax GeneratedSerializerTryParse(ContextCore ctx, ExpressionSyntax reader, ExpressionSyntax variable)
         {
             var generatedHelperId = SF.IdentifierName("GlobalSerializationHelperGenerated");
             var serializer = SF.IdentifierName($"{SerializerName(ctx)}StaticField");
             var sma = SimpleMemberAccess(generatedHelperId, serializer);
             return InvocationExpr(sma, IdentifierName("TryParse"), RefArgument(reader), OutArgument(variable));
         }
-        public static InvocationExpressionSyntax GeneratedSerializerWrite(ClassContext ctx, ExpressionSyntax writer, ExpressionSyntax variable)
+        public static InvocationExpressionSyntax GeneratedSerializerWrite(ContextCore ctx, ExpressionSyntax writer, ExpressionSyntax variable)
         {
             var generatedHelperId = SF.IdentifierName("GlobalSerializationHelperGenerated");
             var serializer = SF.IdentifierName($"{SerializerName(ctx)}StaticField");
@@ -41,7 +41,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Identifier($"{enumTypeName.Name}{alias}");
         }
-        private static BaseListSyntax BaseList(ClassContext ctx)
+        private static BaseListSyntax BaseList(ContextCore ctx)
         {
             var decl = ctx.Declaration;
             if (ctx.GenericArgs.HasValue && ctx.GenericArgs.Value.Length > 0)
@@ -51,7 +51,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var name = GenericName(SerializerInterfaceToken, TypeFullName(decl));
             return SF.BaseList().AddTypes(SF.SimpleBaseType(name));
         }
-        public static ClassDeclarationSyntax GenerateSerializer(ClassContext ctx)
+        public static ClassDeclarationSyntax GenerateSerializer(ContextCore ctx)
         {
             var decl = SF.ClassDeclaration(SerializerName(ctx))
                 .AddModifiers(PublicKeyword(), SealedKeyword())

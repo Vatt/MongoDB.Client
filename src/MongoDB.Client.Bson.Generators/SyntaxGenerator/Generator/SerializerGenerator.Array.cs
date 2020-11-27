@@ -39,14 +39,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return SF.Identifier(name);
         }
-        private static MethodDeclarationSyntax[] GenerateReadArrayMethods(ClassContext ctx)
+        private static MethodDeclarationSyntax[] GenerateReadArrayMethods(ContextCore ctx)
         {
             List<MethodDeclarationSyntax> methods = new();
 
             foreach (var member in ctx.Members)
             {
-                if (member.TypeSym.ToString().Contains("System.Collections.Generic.List") ||
-                    member.TypeSym.ToString().Contains("System.Collections.Generic.IList"))
+                if (TypeLib.IsListOrIList(member.TypeSym))
                 {
                     var type = member.TypeSym as INamedTypeSymbol;
                     if (type is null)
@@ -74,13 +73,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             return methods.ToArray();
         }
-        private static MethodDeclarationSyntax[] GenerateWriteArrayMethods(ClassContext ctx)
+        private static MethodDeclarationSyntax[] GenerateWriteArrayMethods(ContextCore ctx)
         {
             List<MethodDeclarationSyntax> methods = new();
             foreach (var member in ctx.Members)
             {
-                if (member.TypeSym.ToString().Contains("System.Collections.Generic.List") ||
-                    member.TypeSym.ToString().Contains("System.Collections.Generic.IList"))
+                if (TypeLib.IsListOrIList(member.TypeSym))
                 {
                     var type = member.TypeSym as INamedTypeSymbol;
                     if (type is null)
