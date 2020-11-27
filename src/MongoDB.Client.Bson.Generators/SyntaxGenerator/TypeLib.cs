@@ -62,9 +62,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         {
             return symbol.ToString().Contains("System.Collections.Generic.List") || symbol.ToString().Contains("System.Collections.Generic.IList");
         }
+        public static bool IsBsonOBjectId(ISymbol sym)
+        {
+            return sym.Equals(BsonObjectId, SymbolEqualityComparer.Default);
+        }
         public static ISymbol BsonDocument;
         public static ISymbol BsonArray;
-        public static ISymbol BsonObjectId;
+        public static ITypeSymbol BsonObjectId;
         public static ISymbol System_Collections_Generic_List_T;
         public static ISymbol System_Collections_Generic_IList_T;
         public static ISymbol System_Object;
