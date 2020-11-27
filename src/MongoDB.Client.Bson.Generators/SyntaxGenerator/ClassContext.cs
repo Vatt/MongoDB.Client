@@ -37,7 +37,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 
                     foreach (var param in ConstructorParams)
                     {
-                        //TODO: Смотреть флов аргумента вместо проверки на имя
                         if (param.Name.Equals(member.Name))
                         {
                             Members.Add(new MemberContext(this, member));

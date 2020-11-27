@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -21,12 +22,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     ConstructorParams = constructor.Parameters;
                 }
             }
-            if (Declaration.Constructors.Length == 2)
+            else
             {
-                ConstructorParams = Declaration.Constructors.Where(x => x.Parameters[0].Type != Declaration).First().Parameters;
-            }
-            var mem = symbol as IFieldSymbol;
-            ProcessRecordInherit(symbol.BaseType);
+                if (Declaration.Constructors.Length == 2)
+                {
+                    ConstructorParams = Declaration.Constructors.Where(x => x.Parameters[0].Type != Declaration).First().Parameters;
+                }
+            }       
             foreach (var member in Declaration.GetMembers())
             {
                 if ((member.IsStatic && Declaration.TypeKind != TypeKind.Enum) || member.IsAbstract || AttributeHelper.IsIgnore(member) ||
@@ -43,7 +45,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 
                     foreach (var param in ConstructorParams)
                     {
-                        //TODO: Смотреть флов аргумента вместо проверки на имя
                         if (param.Name.Equals(member.Name))
                         {
                             Members.Add(new MemberContext(this, member));
@@ -59,53 +60,58 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     Members.Add(new MemberContext(this, member));
                 }
             }
+            //ProcessRecordInherit(symbol.BaseType);
         }
-        private void ProcessRecordInherit(INamedTypeSymbol symbol)
-        {
-            if (symbol == null)
-            {
-                return;
-            }
-            if (symbol.SpecialType != SpecialType.None)
-            {
-                return;
-            }
-            if (symbol.TypeKind == TypeKind.Interface)
-            {
-                return;
-            }
-            foreach (var member in symbol.GetMembers())
-            {
-                if ((member.IsStatic && Declaration.TypeKind != TypeKind.Enum) || member.IsAbstract || AttributeHelper.IsIgnore(member) ||
-                    (member.Kind != SymbolKind.Property && member.Kind != SymbolKind.Field))
-                {
-                    continue;
-                }
-                if (member.DeclaredAccessibility != Accessibility.Public)
-                {
-                    if (ConstructorParams == null)
-                    {
-                        continue;
-                    }
+        //private void ProcessRecordInherit(INamedTypeSymbol symbol)
+        //{
+        //    if (symbol == null)
+        //    {
+        //        return;
+        //    }
+        //    if (symbol.SpecialType != SpecialType.None)
+        //    {
+        //        return;
+        //    }
+        //    if (symbol.TypeKind == TypeKind.Interface)
+        //    {
+        //        return;
+        //    }
+        //    foreach (var member in symbol.GetMembers())
+        //    {
+        //        if (Members.Any(m=>m.NameSym.Name.Equals(member.Name)))
+        //        {
+        //            continue;
+        //        }
+        //        if ((member.IsStatic && Declaration.TypeKind != TypeKind.Enum) || member.IsAbstract || AttributeHelper.IsIgnore(member) ||
+        //            (member.Kind != SymbolKind.Property && member.Kind != SymbolKind.Field))
+        //        {
+        //            continue;
+        //        }
+        //        if (member.DeclaredAccessibility != Accessibility.Public)
+        //        {
+        //            if (ConstructorParams == null)
+        //            {
+        //                continue;
+        //            }
 
-                    foreach (var param in ConstructorParams)
-                    {
-                        if (param.Name.Equals(member.Name))
-                        {
-                            Members.Add(new MemberContext(this, member));
-                            break;
-                        }
-                    }
-                    continue;
-                }
-                if ((member is IPropertySymbol { SetMethod: { } /*{ IsInitOnly: false }*/, GetMethod: { }, IsReadOnly: false }) ||
-                    (member is IFieldSymbol { IsReadOnly: false }))
-                {
-                    Members.Add(new MemberContext(this, member));
-                }
+        //            foreach (var param in ConstructorParams)
+        //            {
+        //                if (param.Name.Equals(member.Name))
+        //                {
+        //                    Members.Add(new MemberContext(this, member));
+        //                    break;
+        //                }
+        //            }
+        //            continue;
+        //        }
+        //        if ((member is IPropertySymbol { SetMethod: { } /*{ IsInitOnly: false }*/, GetMethod: { }, IsReadOnly: false }) ||
+        //            (member is IFieldSymbol { IsReadOnly: false }))
+        //        {
+        //            Members.Add(new MemberContext(this, member));
+        //        }
 
-            }
-            ProcessRecordInherit(symbol.BaseType);
-        }
+        //    }
+        //    ProcessRecordInherit(symbol.BaseType);
+        //}
     }
 }

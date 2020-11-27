@@ -30,9 +30,9 @@ namespace MongoDB.Client.Bson.Generators
                 //System.Diagnostics.Debugger.Break();
             }
         }
-        public static CompilationUnitSyntax[] Create(MasterContext context)
+        public static CompilationUnitSyntax[] Create(MasterContext master)
         {
-            CompilationUnitSyntax[] units = new CompilationUnitSyntax[context.Contexts.Count];
+            CompilationUnitSyntax[] units = new CompilationUnitSyntax[master.Contexts.Count];
             for (int index = 0; index < units.Length; index++)
             {
                 units[index] = SF.CompilationUnit()
@@ -42,7 +42,7 @@ namespace MongoDB.Client.Bson.Generators
                         SF.UsingDirective(SF.ParseName("System.Buffers.Binary")))
                     .AddMembers(
                         SF.NamespaceDeclaration(SF.ParseName("MongoDB.Client.Bson.Serialization.Generated"))
-                            .AddMembers(SerializerGenerator.GenerateSerializer(context.Contexts[index]))
+                            .AddMembers(SerializerGenerator.GenerateSerializer(master.Contexts[index]))
                     );
             }
             return units;
