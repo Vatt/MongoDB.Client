@@ -9,6 +9,11 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MongoDB.Client.ConsoleApp.Models;
 using MongoDB.Client.Exceptions;
+using MongoDB.Client.Bson.Serialization.Attributes;
+using MongoDB.Client.Bson.Serialization;
+using System.Buffers;
+using MongoDB.Client.Bson.Writer;
+using MongoDB.Client.Bson.Reader;
 
 namespace MongoDB.Client.ConsoleApp
 {
@@ -18,14 +23,14 @@ namespace MongoDB.Client.ConsoleApp
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
 
-            // var loggerFactory = LoggerFactory.Create(builder =>
-            // {
-            //     builder
-            //         .SetMinimumLevel(LogLevel.Error)
-            //         .AddConsole();
-            // });
+            var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder
+                    .SetMinimumLevel(LogLevel.Error)
+                    .AddConsole();
+            });
 
-            var client = new MongoClient(new DnsEndPoint(host, 27017));
+            var client = new MongoClient(new DnsEndPoint(host, 27017), loggerFactory);
 
             var db = client.GetDatabase("TestDb");
             var collection1 = db.GetCollection<RootDocument>("HeavyItems");
@@ -44,6 +49,23 @@ namespace MongoDB.Client.ConsoleApp
             Console.WriteLine("Done");
         }
 
+        public static void TestMockPipe()
+        {
+            var seeder = new DatabaseSeeder();
+            var item = seeder.GenerateSeed().First();
+            SerializersMap.TryGetSerializer<RootDocument>(out var serializer);
+            var pipe = new ArrayBufferWriter<byte>(1024*1024);
+
+
+            var writer = new BsonWriter(pipe);
+            serializer.Write(ref writer, item);
+
+
+            var reader = new BsonReader(pipe.WrittenMemory);
+            serializer.TryParse(ref reader, out var parsedItem);
+
+            var eq = item.Equals(parsedItem);
+        }
 
         private static async Task InsertItems(MongoCollection<GeoIp> collection, int count)
         {

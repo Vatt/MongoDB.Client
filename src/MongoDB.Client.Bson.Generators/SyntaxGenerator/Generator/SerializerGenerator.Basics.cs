@@ -21,6 +21,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return InvocationExpr(spanName, SF.IdentifierName("SequenceEqual"), SF.Argument(otherSpanName));
         }
+        public static InvocationExpressionSyntax NewBsonObjectId(TypeSyntax typeSyntax)
+        {
+            return InvocationExpr(typeSyntax, SF.IdentifierName("NewObjectId"));
+        }
         public static InvocationExpressionSyntax SpanSequenceEqual(SyntaxToken spanName, SyntaxToken otherSpanName)
         {
             return InvocationExpr(IdentifierName(spanName), SF.IdentifierName("SequenceEqual"), SF.Argument(IdentifierName(otherSpanName)));
@@ -117,6 +121,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.SizeOfExpression(type);
         }
+
+        public static DefaultExpressionSyntax Default(TypeSyntax type)
+        {
+            return SF.DefaultExpression(type);
+        }
+
         public static InvocationExpressionSyntax NameOf(ExpressionSyntax expr)
         {
             return SF.InvocationExpression(SF.IdentifierName("nameof"), SF.ArgumentList().AddArguments(SF.Argument(expr)));

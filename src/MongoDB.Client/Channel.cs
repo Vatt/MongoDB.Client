@@ -204,7 +204,7 @@ namespace MongoDB.Client
             static CursorParserCallbackHolder()
             {
                 SerializersMap.TryGetSerializer(out _serializer);
-                _parser = (reader, response) => CursorParseAsync(reader, response);
+                _parser = CursorParseAsync;
                 Completion = i =>
                 {
                     ManualResetValueTaskSource<IParserResult> taskSource;

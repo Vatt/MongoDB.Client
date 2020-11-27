@@ -23,48 +23,46 @@ namespace MongoDB.Client.Bson.Reader
             switch (genericValue)
             {
                 case double value:
-                    if (!TryGetDouble(out value)){ return false; }
+                    if (!TryGetDouble(out value)) { return false; }
                     genericValue = (T)(object)value;
                     return true;
                 case string value:
-                    if (!TryGetString(out value)){ return false; }
+                    if (!TryGetString(out value)) { return false; }
                     genericValue = (T)(object)value;
                     return true;
                 case BsonArray value:
                     BsonDocument tempArray = value;
-                    if (!TryParseDocument(out tempArray)){ return false; }
+                    if (!TryParseDocument(out tempArray)) { return false; }
                     genericValue = (T)(object)tempArray;
                     return true;
                 case BsonDocument value:
-                    if (!TryParseDocument(out value)){ return false; }
+                    if (!TryParseDocument(out value)) { return false; }
                     genericValue = (T)(object)value;
                     return true;
                 case Guid value:
-                    if (!TryGetGuidWithBsonType(bsonType, out value)){ return false; }
+                    if (!TryGetGuidWithBsonType(bsonType, out value)) { return false; }
                     genericValue = (T)(object)value;
                     return true;
                 case BsonObjectId value:
-                    if (!TryGetObjectId(out value)){ return false; }
+                    if (!TryGetObjectId(out value)) { return false; }
                     genericValue = (T)(object)value;
                     return true;
                 case bool value:
-                    if (!TryGetBoolean(out value)){ return false; }
+                    if (!TryGetBoolean(out value)) { return false; }
                     genericValue = (T)(object)value;
                     return true;
                 case DateTimeOffset value:
-                    if (!TryGetDateTimeWithBsonType(bsonType, out value)){ return false; }
+                    if (!TryGetDateTimeWithBsonType(bsonType, out value)) { return false; }
                     genericValue = (T)(object)value;
                     return true;
                 case int value:
-                    if (!TryGetInt32(out value)){ return false; }
+                    if (!TryGetInt32(out value)) { return false; }
                     genericValue = (T)(object)value;
                     return true;
                 case long value:
-                    if (!TryGetInt64(out value)){ return false; }
+                    if (!TryGetInt64(out value)) { return false; }
                     genericValue = (T)(object)value;
                     return true;
-
-                
             }
 
             if (!SerializersMap.TryGetSerializer<T>(out var serializer))
@@ -81,123 +79,121 @@ namespace MongoDB.Client.Bson.Reader
 
         public bool TrySkipCString()
         {
-            if (!_input.TryAdvanceTo(EndMarker))
-            {
-                return false;
-            }
-
-            return true;
+            return _input.TryAdvanceTo(EndMarker);
         }
+
+
         public bool TrySkip(int bsonType)
         {
             switch (bsonType)
             {
                 case 1:
-                {
-                    _input.Advance(sizeof(double));
-                    return true;
-                }
+                    {
+                        return TryAdvance(sizeof(double));
+                    }
                 case 2:
-                {
-                    if (!TryGetInt32(out var length))
                     {
+                        if (TryGetInt32(out var length))
+                        {
+                            return TryAdvance(length);
+                        }
+
                         return false;
                     }
-                    _input.Advance(length);
-                    return true;
-                }
                 case 3:
-                {
-                    
-                    if (!TryGetInt32(out var docLength))
                     {
+
+                        if (TryGetInt32(out var docLength))
+                        {
+                            return TryAdvance(docLength - sizeof(int));
+                        }
                         return false;
                     }
-                    _input.Advance(docLength - sizeof(int));
-                    return true;
-                }
                 case 4:
-                {
-                    if (!TryGetInt32(out var arrayLength)) 
                     {
+                        if (TryGetInt32(out var arrayLength))
+                        {
+                            return TryAdvance(arrayLength - sizeof(int));
+                        }
+
                         return false;
                     }
-
-                    _input.Advance(arrayLength - sizeof(int));
-                    return true;
-                }
                 case 5:
-                {
-                    if (!TryGetInt32(out var binDataLength))
                     {
+                        if (TryGetInt32(out var binDataLength))
+                        {
+                            return TryAdvance(binDataLength + 1);
+                        }
+
                         return false;
                     }
-
-                    _input.Advance(binDataLength + 1);
-                    return true;
-                }
                 case 7:
-                {
-                    _input.Advance(12);
-                    return true;
-                }
+                    {
+                        return TryAdvance(12);
+                    }
                 case 8:
-                {
-                    _input.Advance(1);
-                    return true;
-                }
+                    {
+                        return TryAdvance(1);
+                    }
                 case 9:
-                {
-                    _input.Advance(sizeof(long));
-                    return true;
-                }
+                    {
+                        return TryAdvance(sizeof(long));
+                    }
                 case 10:
-                {
-                    return true;
-                }
+                    {
+                        return true;
+                    }
                 case 16:
-                {
-                    _input.Advance(sizeof(int));
-                    return true;
-                }
+                    {
+                        return TryAdvance(sizeof(int));
+                    }
                 case 17:
-                {
-                    _input.Advance(sizeof(long));
-                    return true;
-                }
+                    {
+                        return TryAdvance(sizeof(long));
+                    }
                 case 18:
-                {
-                    _input.Advance(sizeof(long));
-                    return true;
-                }
+                    {
+                        return TryAdvance(sizeof(long));
+                    }
                 default:
-                {
-                    return ThrowHelper.UnknownTypeException<bool>(bsonType);
-                }
+                    {
+                        return ThrowHelper.UnknownTypeException<bool>(bsonType);
+                    }
             }
         }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool TryAdvance(long value)
+        {
+            if (_input.Remaining >= value)
+            {
+                _input.Advance(value);
+                return true;
+            }
+            return false;
+        }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetGuidWithBsonType(int bsonType, out Guid value)
         {
-            value = default;
-            
             if (bsonType == 5)
             {
                 return TryGetBinaryDataGuid(out value);
             }
             if (bsonType == 2)
             {
-                return TryGetGuidFromString(out value);                
+                return TryGetGuidFromString(out value);
             }
-            throw new ArgumentException("Unsupported Guid type");
+
+            value = default;
+            return ThrowHelper.UnsupportedGuidTypeException<bool>(bsonType);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetDateTimeWithBsonType(int bsonType, out DateTimeOffset value)
         {
-            value = default;
-
             if (bsonType == 3)
             {
                 return TryGetDatetimeFromDocument(out value);
@@ -210,7 +206,9 @@ namespace MongoDB.Client.Bson.Reader
             {
                 return TryGetUtcDatetime(out value);
             }
-            throw new ArgumentException("Unsupported DateTime type");
+
+            value = default;
+            return ThrowHelper.UnsupportedDateTimeTypeException<bool>(bsonType);
         }
     }
 }

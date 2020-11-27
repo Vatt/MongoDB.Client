@@ -10,7 +10,7 @@ namespace MongoDB.Client.Bson.Reader
 {
     public ref partial struct BsonReader
     {
-        private const byte EndMarker = (byte) '\x00';
+        private const byte EndMarker = (byte)'\x00';
 
 
         private SequenceReader<byte> _input;
@@ -37,30 +37,31 @@ namespace MongoDB.Client.Bson.Reader
             _input = reader;
         }
 
-        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryAdvanceTo(byte delimiter, bool advancePastDelimiter = true)
         {
             return _input.TryAdvanceTo(delimiter, advancePastDelimiter);
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetByte(out byte value)
         {
             return _input.TryRead(out value);
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetInt16(out short value)
         {
             return _input.TryReadLittleEndian(out value);
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetInt32(out int value)
         {
             return _input.TryReadLittleEndian(out value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPeekInt32(out int value)
         {
             if (_input.TryReadLittleEndian(out value))
@@ -71,142 +72,123 @@ namespace MongoDB.Client.Bson.Reader
             return false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetInt64(out long value)
         {
             return _input.TryReadLittleEndian(out value);
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetDouble(out double value)
         {
-            value = default;
-            if (!TryGetInt64(out var temp))
+            if (TryGetInt64(out var temp))
             {
-                return false;
+                value = BitConverter.Int64BitsToDouble(temp);
+                return true;
             }
 
-            value = BitConverter.Int64BitsToDouble(temp);
-            return true;
+            value = default;
+            return false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetCString([MaybeNullWhen(false)] out string value)
         {
-            value = default;
-            if (!_input.TryReadTo(out ReadOnlySequence<byte> data, EndMarker))
+            if (_input.TryReadTo(out ReadOnlySequence<byte> data, EndMarker))
             {
-                return false;
-            }
-            
-            value = Encoding.UTF8.GetString(data);
-            return true;
-        }
-
-
-        public bool TryGetCStringAsSpan(out ReadOnlySpan<byte> value)
-        {
-            if (!_input.TryReadTo(out value, EndMarker))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-
-        public bool TryGetString([MaybeNullWhen(false)] out string value)
-        {
-            value = default;
-            if (!TryGetInt32(out var length))
-            {
-                return false;
-            }
-
-            if (_input.Remaining < length)
-            {
-                return false;
-            }
-
-            var stringLength = length - 1;
-            if (_input.UnreadSpan.Length >= length)
-            {
-                var data = _input.UnreadSpan.Slice(0, stringLength);
-                _input.Advance(length);
                 value = Encoding.UTF8.GetString(data);
                 return true;
             }
-
-            return SlowTryGetString(stringLength, out value);
+            value = default;
+            return false;
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private bool SlowTryGetString(int stringLength, [MaybeNullWhen(false)] out string? value)
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetCStringAsSpan(out ReadOnlySpan<byte> value)
         {
-            value = default;
-            byte[]? buffer = null;
-            Span<byte> span = stringLength < 512
-                ? stackalloc byte[stringLength]
-                : (buffer = ArrayPool<byte>.Shared.Rent(stringLength)).AsSpan(0, stringLength);
-            try
+            if (_input.TryReadTo(out value, EndMarker))
             {
-                if (_input.TryCopyTo(span))
-                {
-                    _input.Advance(stringLength + 1);
-                    value = Encoding.UTF8.GetString(span);
-                    return true;
-                }
-
-                return false;
-            }
-            finally
-            {
-                if (buffer is not null)
-                {
-                    ArrayPool<byte>.Shared.Return(buffer);
-                }
-            }
-        }
-
-        public bool TryGetStringAsSpan(out ReadOnlySpan<byte> value)
-        {
-            value = default;
-            if (!TryGetInt32(out var length))
-            {
-                return false;
-            }
-
-            if (_input.Remaining < length)
-            {
-                return false;
-            }
-
-
-            if (_input.UnreadSpan.Length >= length)
-            {
-                value = _input.UnreadSpan.Slice(0, length - 1);
-                _input.Advance(length);
-                return true;
-            }
-
-            var result = new byte[length - 1];
-            if (_input.TryCopyTo(result))
-            {
-                _input.Advance(length);
-                value = result;
                 return true;
             }
 
             return false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetString([MaybeNullWhen(false)] out string value)
+        {
+            if (TryGetInt32(out var length))
+            {
+                var stringLength = length - 1;
+                if (_input.UnreadSpan.Length >= length)
+                {
+                    var data = _input.UnreadSpan.Slice(0, stringLength);
+                    value = Encoding.UTF8.GetString(data);
+                    _input.Advance(length);
+                    return true;
+                }
+                if (_input.Remaining >= length)
+                {
+                    return SlowTryGetString(stringLength, out value);
+                }
+            }
+            value = default;
+            return false;
+        }
 
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private bool SlowTryGetString(int stringLength, [MaybeNullWhen(false)] out string value)
+        {
+            var data = _input.UnreadSequence.Slice(0, stringLength);
+            _input.Advance(stringLength + 1);
+            value = Encoding.UTF8.GetString(data);
+            return true;
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetStringAsSpan(out ReadOnlySpan<byte> value)
+        {
+            if (TryGetInt32(out var length))
+            {
+                if (_input.UnreadSpan.Length >= length)
+                {
+                    value = _input.UnreadSpan.Slice(0, length - 1);
+                    _input.Advance(length);
+                    return true;
+                }
+                if (_input.Remaining >= length)
+                {
+                    return TryGetStringAsSpanSlow(length - 1, out value);
+                }
+            }
+
+            value = default;
+            return false;
+        }
+
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private bool TryGetStringAsSpanSlow(int stringLength, out ReadOnlySpan<byte> value)
+        {
+            var result = new byte[stringLength];
+            if (_input.TryCopyTo(result))
+            {
+                _input.Advance(stringLength);
+                value = result;
+                return true;
+            }
+            value = result;
+            return false;
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetObjectId(out BsonObjectId value)
         {
             const int oidSize = 12;
-            value = default;
-            if (_input.Remaining < oidSize)
-            {
-                return false;
-            }
 
             if (_input.UnreadSpan.Length >= oidSize)
             {
@@ -214,19 +196,28 @@ namespace MongoDB.Client.Bson.Reader
                 _input.Advance(oidSize);
                 return true;
             }
+            if (_input.Remaining >= oidSize)
+            {
+                return SlowGetObjectId(out value);
+            }
 
-            SlowGetObjectId(out value);
-            return true;
+            value = default;
+            return false;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private void SlowGetObjectId(out BsonObjectId value)
+        private bool SlowGetObjectId(out BsonObjectId value)
         {
             const int oidSize = 12;
             Span<byte> buffer = stackalloc byte[oidSize];
-            _input.TryCopyTo(buffer);
-            value = new BsonObjectId(buffer);
-            _input.Advance(oidSize);
+            if (_input.TryCopyTo(buffer))
+            {
+                value = new BsonObjectId(buffer);
+                _input.Advance(oidSize);
+                return true;
+            }
+            value = default;
+            return false;
         }
 
         public bool TryGetBinaryData(out BsonBinaryData value)
@@ -250,122 +241,124 @@ namespace MongoDB.Client.Bson.Reader
             switch (subtype)
             {
                 case 0:
-                {
-                    var data = new byte[len];
-                    if (_input.TryCopyTo(data))
                     {
-                        value = BsonBinaryData.Create(data);
-                        _input.Advance(len);
-                        return true;
-                    }
+                        var data = new byte[len];
+                        if (_input.TryCopyTo(data))
+                        {
+                            value = BsonBinaryData.Create(data);
+                            _input.Advance(len);
+                            return true;
+                        }
 
-                    return false;
-                }
+                        return false;
+                    }
                 case 4:
-                {
-                    if (_input.UnreadSpan.Length < len)
                     {
-                        value = BsonBinaryData.Create(new Guid(_input.UnreadSpan.Slice(0, len)));
-                        _input.Advance(len);
-                        return true;
-                    }
+                        if (_input.UnreadSpan.Length < len)
+                        {
+                            value = BsonBinaryData.Create(new Guid(_input.UnreadSpan.Slice(0, len)));
+                            _input.Advance(len);
+                            return true;
+                        }
 
-                    Span<byte> buffer = stackalloc byte[len];
-                    if (_input.TryCopyTo(buffer))
-                    {
-                        value = BsonBinaryData.Create(new Guid(buffer));
-                        _input.Advance(len);
-                        return true;
-                    }
+                        Span<byte> buffer = stackalloc byte[len];
+                        if (_input.TryCopyTo(buffer))
+                        {
+                            value = BsonBinaryData.Create(new Guid(buffer));
+                            _input.Advance(len);
+                            return true;
+                        }
 
-                    return false;
-                }
+                        return false;
+                    }
                 default:
-                {
-                    return ThrowHelper.UnknownSubtypeException<bool>(subtype);
-                }
+                    {
+                        return ThrowHelper.UnknownSubtypeException<bool>(subtype);
+                    }
             }
         }
 
 
         public bool TryGetBinaryDataGuid(out Guid value)
         {
+            if (TryGetInt32(out var len))
+            {
+                if (_input.Remaining > len)
+                {
+                    TryGetByte(out var subtype);
+                    if (subtype == 4)
+                    {
+                        if (_input.UnreadSpan.Length >= len)
+                        {
+                            value = new Guid(_input.UnreadSpan.Slice(0, len));
+                            _input.Advance(len);
+                            return true;
+                        }
+                        return TryGetBinaryDataGuidSlow(len, out value);
+                    }
+
+                    value = default;
+                    return ThrowHelper.UnknownSubtypeException<bool>(subtype);
+                }
+            }
+
             value = default;
-            if (!TryGetInt32(out var len))
-            {
-                return false;
-            }
-
-            if (!TryGetByte(out var subtype))
-            {
-                return false;
-            }
-
-            if (_input.Remaining < len)
-            {
-                return false;
-            }
-
-            if (subtype == 4)
-            {
-                if (_input.UnreadSpan.Length < len)
-                {
-                    value = new Guid(_input.UnreadSpan.Slice(0, len));
-                    _input.Advance(len);
-                    return true;
-                }
-
-                Span<byte> buffer = stackalloc byte[len];
-                if (_input.TryCopyTo(buffer))
-                {
-                    value = new Guid(buffer);
-                    _input.Advance(len);
-                    return true;
-                }
-
-                return false;
-            }
-
-
-            return ThrowHelper.UnknownSubtypeException<bool>(subtype);
+            return false;
         }
 
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public bool TryGetBinaryDataGuidSlow(int len, out Guid value)
+        {
+            Span<byte> buffer = stackalloc byte[len];
+            if (_input.TryCopyTo(buffer))
+            {
+                value = new Guid(buffer);
+                _input.Advance(len);
+                return true;
+            }
+            value = default;
+            return false;
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetGuidFromString(out Guid value)
         {
-            value = default;
             if (TryGetString(out var data))
             {
                 value = new Guid(data);
+                return true;
             }
-
-            return true;
+            value = default;
+            return false;
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetUtcDatetime([MaybeNullWhen(false)] out DateTimeOffset value)
         {
-            value = default;
-            if (!TryGetInt64(out var data))
+            if (TryGetInt64(out var data))
             {
-                return false;
+                value = DateTimeOffset.FromUnixTimeMilliseconds(data);
+                return true;
             }
 
-            value = DateTimeOffset.FromUnixTimeMilliseconds(data);
-            return true;
+            value = default;
+            return false;
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetBoolean(out bool value)
         {
-            value = default;
-            if (!TryGetByte(out var boolean))
+            if (TryGetByte(out var boolean))
             {
-                return false;
+                value = boolean == 1;
+                return true;
+
             }
 
-            value = boolean == 1;
-            return true;
+            value = default;
+            return false;
         }
 
 
