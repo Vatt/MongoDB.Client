@@ -55,20 +55,35 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             System_DateTime = Compilation.GetSpecialType(SpecialType.System_DateTime);
             System_Decimal = Compilation.GetSpecialType(SpecialType.System_Decimal);
             System_Enum = Compilation.GetSpecialType(SpecialType.System_Enum);
-            System_Enum = Compilation.GetSpecialType(SpecialType.System_Enum);
         }
 
         public static bool IsListOrIList(ISymbol symbol)
         {
             return symbol.ToString().Contains("System.Collections.Generic.List") || symbol.ToString().Contains("System.Collections.Generic.IList");
         }
-        public static bool IsBsonOBjectId(ISymbol sym)
+        public static bool IsBsonObjectId(ISymbol sym)
         {
             return sym.Equals(BsonObjectId, SymbolEqualityComparer.Default);
         }
+        public static bool IsBsonDocument(ISymbol sym)
+        {
+            return sym.Equals(BsonDocument, SymbolEqualityComparer.Default);
+        }
+        public static bool IsBsonArray(ISymbol sym)
+        {
+            return sym.Equals(BsonArray, SymbolEqualityComparer.Default);
+        }
+        public static bool IsDateTimeOffset(ISymbol sym)
+        {
+            return sym.Equals(System_DateTimeOffset, SymbolEqualityComparer.Default);
+        }
+        public static bool IsGuid(ISymbol sym)
+        {
+            return sym.Equals(System_Guid, SymbolEqualityComparer.Default);
+        }
         public static ISymbol BsonDocument;
         public static ISymbol BsonArray;
-        public static ITypeSymbol BsonObjectId;
+        public static ISymbol BsonObjectId;
         public static ISymbol System_Collections_Generic_List_T;
         public static ISymbol System_Collections_Generic_IList_T;
         public static ISymbol System_Object;

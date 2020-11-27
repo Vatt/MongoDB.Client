@@ -174,14 +174,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var index = SF.Identifier("index");
             var array = SF.Identifier("array");
             var typeArg = (trueType as INamedTypeSymbol).TypeArguments[0];
-            StatementSyntax writeOperation = default;
+            StatementSyntax[] writeOperation = default;
             if (typeArg.IsReferenceType)
             {
                 writeOperation =
-                    SF.IfStatement(
-                        condition: BinaryExprEqualsEquals(ElementAccessExpr(array, index), NullLiteralExpr()),
-                        statement: SF.Block(Statement(WriteBsonNull(index))),
-                        @else: SF.ElseClause(SF.Block(WriteOperation(ctx, index, typeArg, classCtx.BsonWriterId, ElementAccessExpr(array, index)))));
+                    Statements(
+                        SF.IfStatement(
+                            condition: BinaryExprEqualsEquals(ElementAccessExpr(array, index), NullLiteralExpr()),
+                            statement: SF.Block(Statement(WriteBsonNull(index))),
+                            @else: SF.ElseClause(SF.Block(WriteOperation(ctx, index, typeArg, classCtx.BsonWriterId, ElementAccessExpr(array, index))))));
             }
             else
             {

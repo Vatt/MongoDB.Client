@@ -1,11 +1,20 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        public static StatementSyntax[] Statements(params ExpressionSyntax[] expressions)
+        {
+            return expressions.Select( expr => Statement(expr) ).ToArray();
+        }
+        public static StatementSyntax[] Statements(params StatementSyntax[] statements)
+        {
+            return statements;
+        }
         public static StatementSyntax Statement(ExpressionSyntax expr)
         {
             return SF.ExpressionStatement(expr);
@@ -244,9 +253,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Identifier(sym.ToString());
         }
-        public static TypeSyntax TypeFullName(ITypeSymbol sym)
+        public static TypeSyntax TypeFullName(ISymbol sym)
         {
-            ITypeSymbol trueType = sym.Name.Equals("Nullable") ? ((INamedTypeSymbol)sym).TypeParameters[0] : sym;
+            ISymbol trueType = sym.Name.Equals("Nullable") ? ((INamedTypeSymbol)sym).TypeParameters[0] : sym;
             return SF.ParseTypeName(trueType.ToString());
         }
         public static TypeSyntax TypeName(ITypeSymbol sym)

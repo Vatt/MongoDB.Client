@@ -223,27 +223,27 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 //    expr = TryGetDateTimeWithBsonType(bsonType, variable);
                 //    return true;
             }
-            if (typeSymbol.Equals(TypeLib.BsonDocument, SymbolEqualityComparer.Default))
+            if (TypeLib.IsBsonDocument(typeSymbol))
             {
                 expr = TryParseDocument(variable);
                 return true;
             }
-            if (typeSymbol.Equals(TypeLib.BsonArray, SymbolEqualityComparer.Default))
+            if (TypeLib.IsBsonArray(typeSymbol))
             {
                 expr = TryParseDocument(variable);
                 return true;
-            }    
-            if (typeSymbol.Equals(TypeLib.BsonObjectId, SymbolEqualityComparer.Default))
+            }
+            if (TypeLib.IsBsonObjectId(typeSymbol))
             {
                 expr = TryGetObjectId(variable);
                 return true;
-            }         
-            if (typeSymbol.Equals(TypeLib.System_Guid, SymbolEqualityComparer.Default))
+            }
+            if (TypeLib.IsGuid(typeSymbol))
             {
                 expr = TryGetGuidWithBsonType(bsonType, variable);
                 return true;
             }
-            if (typeSymbol.Equals(TypeLib.System_DateTimeOffset, SymbolEqualityComparer.Default))
+            if (TypeLib.IsDateTimeOffset(typeSymbol))
             {
                 expr = TryGetDateTimeWithBsonType(bsonType, variable);
                 return true;

@@ -50,41 +50,43 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             foreach (var member in ctx.Members)
             {
-                StatementSyntax statement;
+                StatementSyntax[] writeStatement;
                 var writeTarget = SimpleMemberAccess(ctx.WriterInputVar, IdentifierName(member.NameSym));
                 ITypeSymbol trueType = member.TypeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol)member.TypeSym).TypeParameters[0] : member.TypeSym;
                 AttributeHelper.TryGetBsonWriteIgnoreIfAttr(member, out var condition);
                 if (member.TypeSym.TypeKind == TypeKind.Enum)
                 {
-                    statement = GenerateWriteEnum(ctx, member, writeTarget);
+                    writeStatement = Statements(GenerateWriteEnum(ctx, member, writeTarget));
                     goto CONDITION_CHECK;
                 }
                 if (member.TypeSym.IsReferenceType)
                 {
-                    statement = SF.IfStatement(
-                                    condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
-                                    statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
-                                    @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget))));
+                    writeStatement = 
+                        Statements(
+                            SF.IfStatement(
+                                condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
+                                statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
+                                @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget)))));
                 }
                 else
                 {
-                    if (member.BsonElementAlias.Equals("_id") && TypeLib.IsBsonOBjectId(member.TypeSym))
+                    if (member.BsonElementAlias.Equals("_id") && TypeLib.IsBsonObjectId(member.TypeSym))
                     {
                         statements.Add(
                             SF.IfStatement(
                                 BinaryExprEqualsEquals(writeTarget, Default(TypeFullName(member.TypeSym))),
                                 SF.Block(SimpleAssignExprStatement(writeTarget, NewBsonObjectId()))));
                     }
-                    statement = WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget);
+                    writeStatement = WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget);
                 }
 CONDITION_CHECK:
                 if (condition != null)
                 {
-                    statements.Add(IfNot(condition, SF.Block(statement)));
+                    statements.Add(IfNot(condition, SF.Block(writeStatement)));
                 }
                 else
                 {
-                    statements.Add(statement);
+                    statements.AddRange(writeStatement);
                 }
             }
 
@@ -103,29 +105,32 @@ CONDITION_CHECK:
                     );
         }
 
-        public static StatementSyntax WriteOperation(MemberContext ctx, SyntaxToken name, ITypeSymbol typeSym,
-            ExpressionSyntax writerId, ExpressionSyntax writeTarget)
+        public static StatementSyntax[] WriteOperation(MemberContext ctx, SyntaxToken name, ITypeSymbol typeSym, ExpressionSyntax writerId, ExpressionSyntax writeTarget)
         {
             ITypeSymbol trueType = typeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol)typeSym).TypeParameters[0] : typeSym;
             if (TryGetSimpleWriteOperation(trueType, name, writeTarget, out var expr))
             {
 
-                return SF.ExpressionStatement(expr);
+                return new StatementSyntax[] { Statement(expr) };
             }
             if (ctx.Root.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(trueType.Name)) != default)
             {
-                return SF.Block(
-                    VarLocalDeclarationStatement(SF.Identifier("genericReserved"), WriterReserve(1)),
+                return Statements
+                (
+                    VarLocalDeclarationStatement(SF.Identifier($"{name}genericReserved"), WriterReserve(1)),
                     Statement(WriteCString(StaticFieldNameToken(ctx))),
-                    Statement(WriteGeneric(writeTarget, SF.IdentifierName("genericReserved"))));
+                    Statement(WriteGeneric(writeTarget, SF.IdentifierName($"{name}genericReserved"))) 
+                );
             }
             if (trueType is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)
             {
                 if (TypeLib.IsListOrIList(namedType))
                 {
-                    return SF.Block(
-                        Statement(Write_Type_Name(4, name)),
-                        InvocationExprStatement(WriteArrayMethodName(ctx, trueType), RefArgument(writerId), Argument(writeTarget)));
+                    return Statements
+                    (
+                            Statement(Write_Type_Name(4, name)),
+                            InvocationExprStatement(WriteArrayMethodName(ctx, trueType), RefArgument(writerId), Argument(writeTarget))
+                    );
                 }
             }
             else
@@ -135,9 +140,11 @@ CONDITION_CHECK:
                     //TODO: если сериализатор не из ЭТОЙ сборки, добавить ветку с мапой с проверкой на нуль
                     if (context.Declaration.ToString().Equals(trueType.ToString()))
                     {
-                        return SF.Block(
-                            Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
-                            Statement(GeneratedSerializerWrite(context, writerId, writeTarget)));
+                        return Statements
+                        (
+                                Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
+                                Statement(GeneratedSerializerWrite(context, writerId, writeTarget))
+                        );
                     }
                 }
             }
@@ -168,27 +175,27 @@ CONDITION_CHECK:
                 //    expr = Write_Type_Name_Value(bsonName, writeTarget);
                 //    return true;
             }
-            if(typeSymbol.Equals(TypeLib.BsonDocument, SymbolEqualityComparer.Default))
+            if(TypeLib.IsBsonDocument(typeSymbol))
             {
                 expr = Write_Type_Name_Value(bsonName, writeTarget);
                 return true;
             }
-            if (typeSymbol.Equals(TypeLib.BsonArray, SymbolEqualityComparer.Default))
+            if (TypeLib.IsBsonArray(typeSymbol))
             {
                 expr = Write_Type_Name_Value(bsonName, writeTarget);
                 return true;
             }
-            if (typeSymbol.Equals(TypeLib.BsonObjectId, SymbolEqualityComparer.Default))
+            if (TypeLib.IsBsonObjectId(typeSymbol))
             {
                 expr = Write_Type_Name_Value(bsonName, writeTarget);
                 return true;
             }
-            if (typeSymbol.Equals(TypeLib.System_Guid, SymbolEqualityComparer.Default))
+            if (TypeLib.IsGuid(typeSymbol))
             {
                 expr = Write_Type_Name_Value(bsonName, writeTarget);
                 return true;
             }
-            if (typeSymbol.Equals(TypeLib.System_DateTimeOffset, SymbolEqualityComparer.Default))
+            if (TypeLib.IsDateTimeOffset(typeSymbol))
             {
                 expr = Write_Type_Name_Value(bsonName, writeTarget);
                 return true;
