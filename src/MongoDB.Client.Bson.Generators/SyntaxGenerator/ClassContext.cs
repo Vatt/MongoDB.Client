@@ -5,10 +5,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
     internal class ClassContext : ContextCore
     {
-        public ClassContext(MasterContext root, TypeLib typeLib, SyntaxNode node, INamedTypeSymbol symbol)
+        public ClassContext(MasterContext root, SyntaxNode node, INamedTypeSymbol symbol)
         {
             Root = root;
-            Types = typeLib;
             Declaration = symbol;
             DeclarationNode = node;
             Members = new List<MemberContext>();

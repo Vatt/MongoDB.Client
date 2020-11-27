@@ -6,8 +6,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
     public class TypeLib
     {
-        private Compilation Compilation;
-        public bool TryGetMetadata(ITypeSymbol source, out ISymbol result)
+        private static Compilation Compilation;
+        public static bool TryGetMetadata(ITypeSymbol source, out ISymbol result)
         {
             result = default;
             var str = source.ToString();
@@ -35,11 +35,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             }         
             return false;
         }
-        public static TypeLib FromCompilation(Compilation compilation)
-        {
-            return new TypeLib(compilation);
-        }
-        private TypeLib(Compilation compilation)
+        public static void TypeLibInit(Compilation compilation)
         {
             Compilation = compilation;
             System_DateTimeOffset = Compilation.GetTypeByMetadataName("System.DateTimeOffset")!;
@@ -62,26 +58,26 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             System_Enum = Compilation.GetSpecialType(SpecialType.System_Enum);
         }
 
-        public bool IsListOrIList(ISymbol symbol)
+        public static bool IsListOrIList(ISymbol symbol)
         {
             return symbol.ToString().Contains("System.Collections.Generic.List") || symbol.ToString().Contains("System.Collections.Generic.IList");
         }
-        public readonly ISymbol BsonDocument;
-        public readonly ISymbol BsonArray;
-        public readonly ISymbol BsonObjectId;
-        public readonly ISymbol System_Collections_Generic_List_T;
-        public readonly ISymbol System_Collections_Generic_IList_T;
-        public readonly ISymbol System_Object;
-        public readonly ISymbol System_Boolean;
-        public readonly ISymbol System_Int32;
-        public readonly ISymbol System_String;
-        public readonly ISymbol System_Int64;
-        public readonly ISymbol System_Double;
-        public readonly ISymbol System_Nullable_T;
-        public readonly ISymbol System_DateTime;
-        public readonly ISymbol System_Decimal;
-        public readonly ISymbol System_Enum;
-        public readonly ISymbol System_DateTimeOffset;       
-        public readonly ISymbol System_Guid;       
+        public static ISymbol BsonDocument;
+        public static ISymbol BsonArray;
+        public static ISymbol BsonObjectId;
+        public static ISymbol System_Collections_Generic_List_T;
+        public static ISymbol System_Collections_Generic_IList_T;
+        public static ISymbol System_Object;
+        public static ISymbol System_Boolean;
+        public static ISymbol System_Int32;
+        public static ISymbol System_String;
+        public static ISymbol System_Int64;
+        public static ISymbol System_Double;
+        public static ISymbol System_Nullable_T;
+        public static ISymbol System_DateTime;
+        public static ISymbol System_Decimal;
+        public static ISymbol System_Enum;
+        public static ISymbol System_DateTimeOffset;       
+        public static ISymbol System_Guid;       
     }
 }

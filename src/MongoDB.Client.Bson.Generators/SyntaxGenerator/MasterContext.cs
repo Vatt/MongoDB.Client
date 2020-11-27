@@ -7,22 +7,19 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
     internal class MasterContext
     {
         public readonly List<ContextCore> Contexts;
-        public readonly Compilation Compilation;
-        public MasterContext(List<(SyntaxNode, INamedTypeSymbol)> symbols, GeneratorExecutionContext ctx)
+        public MasterContext(List<(SyntaxNode, INamedTypeSymbol)> symbols)
         {
             Contexts = new List<ContextCore>();
-            Compilation = ctx.Compilation;
-            var typelib = TypeLib.FromCompilation(Compilation);
             foreach (var pair in symbols)
             {
                 var (node, symbol) = pair;
                 if (node is RecordDeclarationSyntax)
                 {
-                    Contexts.Add(new RecordContext(this, typelib, node, symbol));
+                    Contexts.Add(new RecordContext(this, node, symbol));
                 }
                 else
                 {
-                    Contexts.Add(new ClassContext(this, typelib, node, symbol));
+                    Contexts.Add(new ClassContext(this, node, symbol));
                 }
                 
             }

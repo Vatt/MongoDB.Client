@@ -135,7 +135,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             ExpressionSyntax writerId, ExpressionSyntax writeTarget)
         {
             ITypeSymbol trueType = typeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol)typeSym).TypeParameters[0] : typeSym;
-            if (TryGetSimpleWriteOperation(ctx.Root.Types, trueType, name, writeTarget, out var expr))
+            if (TryGetSimpleWriteOperation(trueType, name, writeTarget, out var expr))
             {
 
                 return SF.ExpressionStatement(expr);
@@ -149,7 +149,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             if (trueType is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)
             {
-                if (ctx.Root.Types.IsListOrIList(namedType))
+                if (TypeLib.IsListOrIList(namedType))
                 {
                     return SF.Block(
                         Statement(Write_Type_Name(4, name)),
@@ -171,7 +171,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return default;
         }
-        private static bool TryGetSimpleWriteOperation(TypeLib typeLib, ITypeSymbol typeSymbol, SyntaxToken bsonNameToken, ExpressionSyntax writeTarget, out InvocationExpressionSyntax expr)
+        private static bool TryGetSimpleWriteOperation(ITypeSymbol typeSymbol, SyntaxToken bsonNameToken, ExpressionSyntax writeTarget, out InvocationExpressionSyntax expr)
         {
             expr = default;
             var bsonName = IdentifierName(bsonNameToken);
@@ -196,27 +196,27 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 //    expr = Write_Type_Name_Value(bsonName, writeTarget);
                 //    return true;
             }
-            if(typeSymbol.Equals(typeLib.BsonDocument, SymbolEqualityComparer.Default))
+            if(typeSymbol.Equals(TypeLib.BsonDocument, SymbolEqualityComparer.Default))
             {
                 expr = Write_Type_Name_Value(bsonName, writeTarget);
                 return true;
             }
-            if (typeSymbol.Equals(typeLib.BsonArray, SymbolEqualityComparer.Default))
+            if (typeSymbol.Equals(TypeLib.BsonArray, SymbolEqualityComparer.Default))
             {
                 expr = Write_Type_Name_Value(bsonName, writeTarget);
                 return true;
             }
-            if (typeSymbol.Equals(typeLib.BsonObjectId, SymbolEqualityComparer.Default))
+            if (typeSymbol.Equals(TypeLib.BsonObjectId, SymbolEqualityComparer.Default))
             {
                 expr = Write_Type_Name_Value(bsonName, writeTarget);
                 return true;
             }
-            if (typeSymbol.Equals(typeLib.System_Guid, SymbolEqualityComparer.Default))
+            if (typeSymbol.Equals(TypeLib.System_Guid, SymbolEqualityComparer.Default))
             {
                 expr = Write_Type_Name_Value(bsonName, writeTarget);
                 return true;
             }
-            if (typeSymbol.Equals(typeLib.System_DateTimeOffset, SymbolEqualityComparer.Default))
+            if (typeSymbol.Equals(TypeLib.System_DateTimeOffset, SymbolEqualityComparer.Default))
             {
                 expr = Write_Type_Name_Value(bsonName, writeTarget);
                 return true;

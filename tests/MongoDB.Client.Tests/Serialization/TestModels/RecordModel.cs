@@ -14,7 +14,10 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         }
     }
     [BsonSerializable]
-    public record RecordModel1(int AA, long BB, double CC, string DD, Guid EE) : RecordModel0(AA, BB, CC, DD, EE);
+    public record RecordModel1(int AA, long BB, double CC, string DD, Guid EE) : RecordModel0(AA, BB, CC, DD, EE)
+    {
+        public new BsonDocument Document;
+    }
 
     [BsonSerializable]
     public record RecordModel2(int NewInt) : RecordModel1(42, 42, 42, "42", Guid.NewGuid());

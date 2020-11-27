@@ -34,10 +34,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             }
             if (TypeSym != null)
             {
-                _ = Root.Types.TryGetMetadata(TypeSym, out TypeMetadata);
+                _ = TypeLib.TryGetMetadata(TypeSym, out TypeMetadata);
             }
 
-            var some = Root.Root.Compilation.GetTypesByMetadataName(TypeSym!.ToString()).ToArray();
+            //var some = TypeLib.GetTypesByMetadataName(TypeSym!.ToString()).ToArray();
             if (TypeSym is INamedTypeSymbol namedType)
             {
                 TypeGenericArgs = namedType.TypeArguments.IsEmpty ? null : namedType.TypeArguments;

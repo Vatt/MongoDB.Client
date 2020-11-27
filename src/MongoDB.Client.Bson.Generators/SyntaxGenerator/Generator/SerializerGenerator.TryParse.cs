@@ -169,7 +169,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             ITypeSymbol trueType = typeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol)typeSym).TypeParameters[0] : typeSym;
 
-            if (TryGetSimpleReadOperation(ctx.Types, trueType, IdentifierName(bsonType), readTarget, out var simpleOperation))
+            if (TryGetSimpleReadOperation(trueType, IdentifierName(bsonType), readTarget, out var simpleOperation))
             {
                 return simpleOperation;
             }
@@ -180,7 +180,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             if (trueType is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)
             {
-                if (ctx.Types.IsListOrIList(namedType))
+                if (TypeLib.IsListOrIList(namedType))
                 {
                     return InvocationExpr(IdentifierName(ReadArrayMethodName(nameSym, trueType)), RefArgument(readerId), OutArgument(readTarget));
                 }
@@ -199,7 +199,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             return default;
         }
-        private static bool TryGetSimpleReadOperation(TypeLib typeLib, ITypeSymbol typeSymbol, ExpressionSyntax bsonType, ExpressionSyntax variable, out InvocationExpressionSyntax expr)
+        private static bool TryGetSimpleReadOperation(ITypeSymbol typeSymbol, ExpressionSyntax bsonType, ExpressionSyntax variable, out InvocationExpressionSyntax expr)
         {
             expr = default;
             switch (typeSymbol.SpecialType)
@@ -223,27 +223,27 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 //    expr = TryGetDateTimeWithBsonType(bsonType, variable);
                 //    return true;
             }
-            if (typeSymbol.Equals(typeLib.BsonDocument, SymbolEqualityComparer.Default))
+            if (typeSymbol.Equals(TypeLib.BsonDocument, SymbolEqualityComparer.Default))
             {
                 expr = TryParseDocument(variable);
                 return true;
             }
-            if (typeSymbol.Equals(typeLib.BsonArray, SymbolEqualityComparer.Default))
+            if (typeSymbol.Equals(TypeLib.BsonArray, SymbolEqualityComparer.Default))
             {
                 expr = TryParseDocument(variable);
                 return true;
             }    
-            if (typeSymbol.Equals(typeLib.BsonObjectId, SymbolEqualityComparer.Default))
+            if (typeSymbol.Equals(TypeLib.BsonObjectId, SymbolEqualityComparer.Default))
             {
                 expr = TryGetObjectId(variable);
                 return true;
             }         
-            if (typeSymbol.Equals(typeLib.System_Guid, SymbolEqualityComparer.Default))
+            if (typeSymbol.Equals(TypeLib.System_Guid, SymbolEqualityComparer.Default))
             {
                 expr = TryGetGuidWithBsonType(bsonType, variable);
                 return true;
             }
-            if (typeSymbol.Equals(typeLib.System_DateTimeOffset, SymbolEqualityComparer.Default))
+            if (typeSymbol.Equals(TypeLib.System_DateTimeOffset, SymbolEqualityComparer.Default))
             {
                 expr = TryGetDateTimeWithBsonType(bsonType, variable);
                 return true;

@@ -6,10 +6,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
     internal class RecordContext : ContextCore
     {
-        public RecordContext(MasterContext root, TypeLib typeLib, SyntaxNode node, INamedTypeSymbol symbol)
+        public RecordContext(MasterContext root, SyntaxNode node, INamedTypeSymbol symbol)
         {
             Root = root;
-            Types = typeLib;
             Declaration = symbol;
             DeclarationNode = node;
             Members = new List<MemberContext>();
@@ -26,6 +25,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             {
                 ConstructorParams = Declaration.Constructors.Where(x => x.Parameters[0].Type != Declaration).First().Parameters;
             }
+            var mem = symbol as IFieldSymbol;
             ProcessRecordInherit(symbol.BaseType);
             foreach (var member in Declaration.GetMembers())
             {

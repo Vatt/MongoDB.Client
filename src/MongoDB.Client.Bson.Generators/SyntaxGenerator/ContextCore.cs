@@ -23,7 +23,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 
         internal bool IsRecord;
         internal MasterContext Root;
-        internal TypeLib Types;
         internal INamedTypeSymbol Declaration;
         internal SyntaxNode DeclarationNode;
         internal List<MemberContext> Members;
