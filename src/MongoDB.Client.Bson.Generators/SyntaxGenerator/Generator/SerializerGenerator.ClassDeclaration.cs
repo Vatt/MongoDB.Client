@@ -51,10 +51,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var name = GenericName(SerializerInterfaceToken, TypeFullName(decl));
             return SF.BaseList().AddTypes(SF.SimpleBaseType(name));
         }
-        public static ClassDeclarationSyntax GenerateSerializer(ContextCore ctx)
+        public static StructDeclarationSyntax GenerateSerializer(ContextCore ctx)
         {
-            var decl = SF.ClassDeclaration(SerializerName(ctx))
-                .AddModifiers(PublicKeyword(), SealedKeyword())
+            var decl = SF.StructDeclaration(SerializerName(ctx))
+                .AddModifiers(PublicKeyword(), ReadOnlyKeyword())
                 .WithBaseList(BaseList(ctx))
                 .AddMembers(GenerateStaticNamesSpans())
                 .AddMembers(GenerateEnumsStaticNamesSpansIfHave())

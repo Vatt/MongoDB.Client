@@ -175,6 +175,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Token(SyntaxKind.SealedKeyword);
         }
+        public static SyntaxToken ReadOnlyKeyword()
+        {
+            return SF.Token(SyntaxKind.ReadOnlyKeyword);
+        }
         public static PredefinedTypeSyntax IntPredefinedType()
         {
             return SF.PredefinedType(IntKeyword());
