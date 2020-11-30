@@ -5,7 +5,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
     [BsonSerializable]
-    public class ManyListModel
+    public partial class ManyListModel
     {
         public string Name;
         public List<List<List<List<List<List<long>>>>>> Longs;

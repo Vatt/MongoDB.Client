@@ -40,6 +40,7 @@ namespace MongoDB.Client.Bson.Generators
                         SF.UsingDirective(SF.ParseName("System")),
                         SF.UsingDirective(SF.ParseName("System.Collections.Generic")),
                         SF.UsingDirective(SF.ParseName("System.Buffers.Binary")))
+                    .AddMembers(SerializerGenerator.GenerateStaticProvider(master.Contexts[index]))
                     .AddMembers(
                         SF.NamespaceDeclaration(SF.ParseName("MongoDB.Client.Bson.Serialization.Generated"))
                             .AddMembers(SerializerGenerator.GenerateSerializer(master.Contexts[index]))

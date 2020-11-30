@@ -15,7 +15,7 @@ namespace MongoDB.Client.Tests.Serialization
             var simpleModel = new GenericModel<long>()
             {
                 GenericValue = long.MaxValue,
-                GenericList = new System.Collections.Generic.List<long>() { 1, 2, 3, 4, 5},
+                GenericList = new System.Collections.Generic.List<long>() { 1, 2, 3, 4, 5 },
             };
             var result = await RoundTripAsync<GenericModel<long>>(simpleModel, GenericModel<long>.Serializer);
 

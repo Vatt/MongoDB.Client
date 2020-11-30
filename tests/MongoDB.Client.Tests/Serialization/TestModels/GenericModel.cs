@@ -4,18 +4,18 @@ using System.Collections.Generic;
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
     [BsonSerializable]
-    public class NonGenericModel
+    public partial class NonGenericModel
     {
         public int A;
         public long B;
         public double C;
     }
-//    [BsonSerializable]
+    [BsonSerializable]
     public partial class GenericModel<T>
     {
         public T GenericValue;
         public List<T> GenericList;
 
     }
-   
+
 }

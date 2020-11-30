@@ -25,7 +25,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
     }
     
     [BsonSerializable]
-    public class PlanetModel
+    public partial class PlanetModel
     {
         public string Name { get; set; }
         [BsonEnum(EnumRepresentation.String)]

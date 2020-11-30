@@ -167,6 +167,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Token(SyntaxKind.PrivateKeyword);
         }
+        public static SyntaxToken PartialKeyword()
+        {
+            return SF.Token(SyntaxKind.PartialKeyword);
+        }
         public static SyntaxToken StaticKeyword()
         {
             return SF.Token(SyntaxKind.StaticKeyword);
@@ -252,6 +256,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static SyntaxToken SemicolonToken()
         {
             return SF.Token(SyntaxKind.SemicolonToken);
+        }
+        public static SyntaxToken OpenBraceToken()
+        {
+            return SF.Token(SyntaxKind.OpenBraceToken);
+        }
+        public static SyntaxToken CloseBraceToken()
+        {
+            return SF.Token(SyntaxKind.CloseBraceToken);
         }
         public static SyntaxToken TokenFullName(ISymbol sym)
         {

@@ -43,9 +43,7 @@ namespace MongoDB.Client.Tests.Serialization
                 LongValue =  9713984265,
                 List = lstModel,
             };
-            SerializersMap.TryGetSerializer<ModelForGenerated>(out var writer);
-            SerializersMap.TryGetSerializer<ShortModelForGenerated>(out var reader);
-            var result = await RoundTripAsync(doc, writer, reader);
+            var result = await RoundTripAsync(doc, ModelForGenerated.Serializer, ShortModelForGenerated.Serializer);
 
             Assert.True(result.Equals(doc));
         }

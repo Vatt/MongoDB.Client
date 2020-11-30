@@ -5,7 +5,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
     [BsonSerializable]
-    public class RootDocument : IEquatable<RootDocument>
+    public partial class RootDocument : IEquatable<RootDocument>
     {
         [BsonId] public MongoDB.Client.Bson.Document.BsonObjectId Id { get; set; }
         public string TextFieldOne { get; set; }

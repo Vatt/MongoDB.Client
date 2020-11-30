@@ -14,8 +14,7 @@ namespace MongoDB.Client.Tests.Serialization
         {
             var model = new RecordModel0(42, 42, 42, "42", Guid.NewGuid());
             model.Document = new BsonDocument("42", "42");
-            SerializersMap.TryGetSerializer<RecordModel0>(out var serializer);
-            var result = await RoundTripAsync(model, serializer);
+            var result = await RoundTripAsync(model, RecordModel0.Serializer);
 
             Assert.Equal(result, model);
         }
