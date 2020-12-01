@@ -42,7 +42,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                             identifier: SF.Identifier("Serializer"),
                             accessorList: default,
                             expressionBody: SF.ArrowExpressionClause(ObjectCreation(SelTypefName(ctx))),
-                            //expressionBody: SF.ArrowExpressionClause(ObjectCreation(SF.ParseTypeName($"MongoDB.Client.Bson.Serialization.Generated.{SerializerName(ctx)}"))),
                             initializer: default,
                             semicolonToken: SemicolonToken());
             switch (ctx.DeclarationNode)
@@ -53,7 +52,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         .AddMembers(providerDecl);
                     break;
                 case StructDeclarationSyntax:
-                    provider = SF.StructDeclaration(ctx.Declaration.Name)
+                    provider = SF.StructDeclaration(SelfName(ctx))
                         .WithModifiers(new(PublicKeyword(), PartialKeyword()))
                         .AddMembers(providerDecl); 
                     break;
@@ -62,13 +61,37 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         default,
                         new(PublicKeyword(), PartialKeyword()),
                         decl.Keyword, 
-                        SF.Identifier(ctx.Declaration.Name),
+                        SF.Identifier(SelfName(ctx)),
                         default, default, default, default, 
                         OpenBraceToken(), new(providerDecl), CloseBraceToken(), default);
 
                     break;
             }
-            return SF.NamespaceDeclaration(SF.ParseName(ctx.Declaration.ContainingNamespace.ToString())).AddMembers(provider);
+            return SF.NamespaceDeclaration(SF.ParseName(ctx.Declaration.ContainingNamespace.ToString())).AddMembers(ProcessNested(provider, ctx.Declaration.ContainingSymbol));
+
+            static MemberDeclarationSyntax ProcessNested(MemberDeclarationSyntax member, ISymbol symbol)
+            {
+                if (symbol is null || symbol.Kind == SymbolKind.Namespace)
+                {
+                    return member;
+                }
+                MemberDeclarationSyntax decl = default;
+                switch (((INamedTypeSymbol)symbol).TypeKind)
+                {
+                    case TypeKind.Class:
+                        decl = SF.ClassDeclaration(symbol.Name)
+                            .AddModifiers(PublicKeyword(), PartialKeyword())
+                            .AddMembers(member);
+                        break;
+                    case TypeKind.Struct:
+                        decl = SF.StructDeclaration(symbol.Name)
+                            .AddModifiers(PublicKeyword(), StaticKeyword())
+                            .AddMembers(member);
+                        break;
+                        //TODO: Record
+                }
+                return ProcessNested(decl, symbol.ContainingSymbol);
+            }
         }
     }
 }

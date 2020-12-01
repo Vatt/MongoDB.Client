@@ -73,6 +73,7 @@ namespace MongoDB.Client.Tests.Serialization
                     new ModelForGenerated.ListItem("ModelForGenerated.ListItem3")
                 }
             };
+            
             var doc = new ModelForGenerated
             {
                 DoubleValue =  52456478.24587874,
@@ -86,8 +87,6 @@ namespace MongoDB.Client.Tests.Serialization
                 List = lstModel,
             };
             var result = await RoundTripAsync(doc, ModelForGenerated.Serializer);
-
-
             Assert.Equal(doc, result);
         }
 
