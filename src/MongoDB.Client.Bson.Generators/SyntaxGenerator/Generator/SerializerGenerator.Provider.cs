@@ -9,15 +9,26 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        public static string SelfName(ContextCore ctx)
+        public static string SelfName(ISymbol symbol)
         {
-            if (ctx.GenericArgs.HasValue)
+            if (symbol is INamedTypeSymbol namedSym && namedSym.TypeArguments.Length > 0)
             {
-                return GenericName(SF.Identifier(ctx.Declaration.Name), ctx.GenericArgs.Value.Select(sym => TypeFullName(sym)).ToArray()).ToString();
+                return GenericName(SF.Identifier(namedSym.Name), namedSym.TypeArguments.Select(sym => TypeFullName(sym)).ToArray()).ToString();
             }
             else
             {
-                return ctx.Declaration.Name;
+                return symbol.Name;
+            }
+        }
+        public static string SelfFullName(ISymbol symbol)
+        {
+            if (symbol is INamedTypeSymbol namedSym && namedSym.TypeArguments.Length > 0)
+            {
+                return GenericName(SF.Identifier(namedSym.ToString()), namedSym.TypeArguments.Select(sym => TypeFullName(sym)).ToArray()).ToString();
+            }
+            else
+            {
+                return symbol.ToString();
             }
         }
         public static TypeSyntax SelTypefName(ContextCore ctx)
@@ -47,12 +58,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             switch (ctx.DeclarationNode)
             {
                 case ClassDeclarationSyntax:
-                    provider = SF.ClassDeclaration(SelfName(ctx))
+                    provider = SF.ClassDeclaration(SelfName(ctx.Declaration))
                         .WithModifiers(new(PublicKeyword(), PartialKeyword()))
                         .AddMembers(providerDecl);
                     break;
                 case StructDeclarationSyntax:
-                    provider = SF.StructDeclaration(SelfName(ctx))
+                    provider = SF.StructDeclaration(SelfName(ctx.Declaration))
                         .WithModifiers(new(PublicKeyword(), PartialKeyword()))
                         .AddMembers(providerDecl); 
                     break;
@@ -61,7 +72,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         default,
                         new(PublicKeyword(), PartialKeyword()),
                         decl.Keyword, 
-                        SF.Identifier(SelfName(ctx)),
+                        SF.Identifier(SelfName(ctx.Declaration)),
                         default, default, default, default, 
                         OpenBraceToken(), new(providerDecl), CloseBraceToken(), default);
 

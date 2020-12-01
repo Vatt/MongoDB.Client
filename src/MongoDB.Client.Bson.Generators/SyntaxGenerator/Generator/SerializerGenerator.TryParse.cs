@@ -18,8 +18,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var bsonNameToken = SF.Identifier("bsonName");
             return SF.MethodDeclaration(
                     attributeLists: default,
-                    modifiers: default,
-                    explicitInterfaceSpecifier: SF.ExplicitInterfaceSpecifier(GenericName(SerializerInterfaceToken, TypeFullName(decl))),
+                    modifiers: new(PublicKeyword()),
+                    explicitInterfaceSpecifier: default,//SF.ExplicitInterfaceSpecifier(GenericName(SerializerInterfaceToken, TypeFullName(decl))),
                     returnType: BoolPredefinedType(),
                     identifier: SF.Identifier("TryParse"),
                     parameterList: ParameterList(RefParameter(ctx.BsonReaderType, ctx.BsonReaderToken),
@@ -187,13 +187,18 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             else
             {
-                foreach (var context in ctx.Root.Contexts)
+                //foreach (var context in ctx.Root.Contexts)
+                //{
+                //    //TODO: если сериализатор не из ЭТОЙ сборки, добавить ветку с мапой с проверкой на нуль
+                //    if (context.Declaration.ToString().Equals(trueType.ToString()))
+                //    {
+                //        return GeneratedSerializerTryParse(context, readerId, readTarget);
+                //    }
+                //}
+                if (AttributeHelper.IsBsonSerializable(typeSym))
                 {
-                    //TODO: если сериализатор не из ЭТОЙ сборки, добавить ветку с мапой с проверкой на нуль
-                    if (context.Declaration.ToString().Equals(trueType.ToString()))
-                    {
-                        return GeneratedSerializerTryParse(context, readerId, readTarget);
-                    }
+                    var sma = SimpleMemberAccess(IdentifierName(SelfFullName(typeSym)), IdentifierName("Serializer"));
+                    return InvocationExpr(sma, IdentifierName("TryParse"), RefArgument(readerId), OutArgument(readTarget));
                 }
             }
 
