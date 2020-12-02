@@ -12,8 +12,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.MethodDeclaration(
                     attributeLists: default,
-                    modifiers: default,
-                    explicitInterfaceSpecifier: SF.ExplicitInterfaceSpecifier(GenericName(SerializerInterfaceToken, TypeFullName(ctx.Declaration))),
+                    modifiers: new(PublicKeyword()),
+                    explicitInterfaceSpecifier: default,// SF.ExplicitInterfaceSpecifier(GenericName(SerializerInterfaceToken, TypeFullName(ctx.Declaration))),
                     returnType: VoidPredefinedType(),
                     identifier: SF.Identifier("Write"),
                     parameterList: ParameterList(
@@ -138,12 +138,21 @@ CONDITION_CHECK:
                 foreach (var context in ctx.Root.Root.Contexts)
                 {
                     //TODO: если сериализатор не из ЭТОЙ сборки, добавить ветку с мапой с проверкой на нуль
-                    if (context.Declaration.ToString().Equals(trueType.ToString()))
+                    //if (context.Declaration.ToString().Equals(trueType.ToString()))
+                    //{
+                    //    return Statements
+                    //    (
+                    //            Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
+                    //            Statement(GeneratedSerializerWrite(context, writerId, writeTarget))
+                    //    );
+                    //}
+                    if (AttributeHelper.IsBsonSerializable(typeSym))
                     {
+                        var sma = SimpleMemberAccess(IdentifierName(SelfFullName(typeSym)), IdentifierName("Serializer"));
                         return Statements
                         (
-                                Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
-                                Statement(GeneratedSerializerWrite(context, writerId, writeTarget))
+                               Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
+                               InvocationExprStatement(sma, IdentifierName("Write"), RefArgument(writerId), Argument(writeTarget))
                         );
                     }
                 }

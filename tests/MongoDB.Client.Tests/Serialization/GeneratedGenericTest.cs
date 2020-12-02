@@ -17,7 +17,7 @@ namespace MongoDB.Client.Tests.Serialization
                 GenericValue = long.MaxValue,
                 GenericList = new System.Collections.Generic.List<long>() { 1, 2, 3, 4, 5 },
             };
-            var result = await RoundTripAsync<GenericModel<long>>(simpleModel, GenericModel<long>.Serializer);
+            var result = await RoundTripAsync(simpleModel, GenericModel<long>.Serializer);
 
             var nongeneric = new NonGenericModel()
             {
@@ -35,7 +35,19 @@ namespace MongoDB.Client.Tests.Serialization
                 },
                 GenericList = new System.Collections.Generic.List<NonGenericModel>() { nongeneric, null, nongeneric, nongeneric },
             };
-            var docresult = await RoundTripAsync<GenericModel<NonGenericModel>>(docgeneric, GenericModel<NonGenericModel>.Serializer);
+            var docresult = await RoundTripAsync(docgeneric, GenericModel<NonGenericModel>.Serializer);
+
+            var anotherModel = new AnotherGenericModel<long>()
+            {
+                GenericValue = long.MaxValue,
+                GenericList = new System.Collections.Generic.List<long>() { 1, 2, 3, 4, 5 },
+            };
+            var anotherdocgeneric = new GenericModel<AnotherGenericModel<long>>()
+            {
+                GenericValue = anotherModel,
+                GenericList = new System.Collections.Generic.List<AnotherGenericModel<long>>() { anotherModel, null, anotherModel, anotherModel },
+            };
+            var anotherdocresult = await RoundTripAsync(anotherdocgeneric, GenericModel<AnotherGenericModel<long>>.Serializer);
         }
     }
 }

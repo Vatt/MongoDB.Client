@@ -11,6 +11,13 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         public double C;
     }
     [BsonSerializable]
+    public partial class AnotherGenericModel<T>
+    {
+        public T GenericValue;
+        public List<T> GenericList;
+
+    }
+    [BsonSerializable]
     public partial class GenericModel<T>
     {
         public T GenericValue;

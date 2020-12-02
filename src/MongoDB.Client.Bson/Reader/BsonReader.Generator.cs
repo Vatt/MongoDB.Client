@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Bson.Serialization.Exceptions;
 using MongoDB.Client.Bson.Utils;
 
@@ -64,17 +65,34 @@ namespace MongoDB.Client.Bson.Reader
                     genericValue = (T)(object)value;
                     return true;
             }
-
-            if (!SerializersMap.TryGetSerializer<T>(out var serializer))
+            if (typeof(T).GetCustomAttributes(typeof(BsonSerializableAttribute), false).Length > 0)
             {
-                ThrowSerializerNotFound(typeof(T).Name);
+                var property = typeof(T).GetProperty("Serializer");
+                if (property is null)
+                {
+                    ThrowSerializerNotFound(typeof(T).Name);
+                }
+                IGenericBsonSerializer<T> serializer = property.GetMethod.Invoke(default, default) as IGenericBsonSerializer<T>;
+                if (serializer is null)
+                {
+                    ThrowSerializerNotFound(typeof(T).Name);
+                }
+                return serializer.TryParse(ref this, out genericValue);
+            }
+            else
+            {
+                if (!SerializersMap.TryGetSerializer<T>(out var serializer))
+                {
+                    ThrowSerializerNotFound(typeof(T).Name);
+                }
+
+                if (serializer is null)
+                {
+                    ThrowSerializerIsNull(typeof(T).Name);
+                }
+                return serializer.TryParse(ref this, out genericValue);
             }
 
-            if (serializer is null)
-            {
-                ThrowSerializerIsNull(typeof(T).Name);
-            }
-            return serializer.TryParse(ref this, out genericValue);
         }
 
         public bool TrySkipCString()

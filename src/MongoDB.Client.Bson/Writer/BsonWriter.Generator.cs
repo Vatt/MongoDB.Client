@@ -4,6 +4,7 @@ using System.Buffers.Text;
 using System.Runtime.CompilerServices;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Exceptions;
+using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Bson.Writer
 {
@@ -72,16 +73,38 @@ namespace MongoDB.Client.Bson.Writer
                     return;
             }
 
-            if (!SerializersMap.TryGetSerializer<T>(out var serializer))
+
+            if (typeof(T).GetCustomAttributes(typeof(BsonSerializableAttribute), false).Length > 0)
             {
-                ThrowSerializerNotFound(typeof(T).Name);
+                var property = typeof(T).GetProperty("Serializer");
+                if (property is null)
+                {
+                    ThrowSerializerNotFound(typeof(T).Name);
+                }
+                IGenericBsonSerializer<T> serializer = property.GetMethod.Invoke(default, default) as IGenericBsonSerializer<T>;
+                if (serializer is null)
+                {
+                    ThrowSerializerNotFound(typeof(T).Name);
+                }
+                typeReserved.Write(3);
+                serializer.Write(ref this, genericValue);
+                return;
             }
-            if (serializer is null)
+            else
             {
-                ThrowSerializerIsNull(typeof(T).Name);
+                if (!SerializersMap.TryGetSerializer<T>(out var serializer))
+                {
+                    ThrowSerializerNotFound(typeof(T).Name);
+                }
+                if (serializer is null)
+                {
+                    ThrowSerializerIsNull(typeof(T).Name);
+                }
+                typeReserved.Write(3);
+                serializer.Write(ref this, genericValue);
             }
-            typeReserved.Write(3);
-            serializer.Write(ref this, genericValue);
+
+
         }
 
 
