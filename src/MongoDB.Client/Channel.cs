@@ -266,10 +266,8 @@ namespace MongoDB.Client
             public static Func<int, ParserCompletion>? Completion;
         }
 
-        public async ValueTask InsertAsync<T, TSerializer>(InsertMessage<T> message, TSerializer serializer, CancellationToken cancellationToken)
-            where TSerializer : struct, IGenericBsonSerializer<T>
+        public async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken cancellationToken)
         {
-            serializer = default(TSerializer);
             if (InsertParserCallbackHolder<T>.Parser is null)
             {
                 InsertParserCallbackHolder<T>.Parser = (reader, response) => InsertParseAsync<T>(reader, response);
@@ -288,8 +286,8 @@ namespace MongoDB.Client
             var completion = _completionMap.GetOrAdd(message.Header.RequestNumber, InsertParserCallbackHolder<T>.Completion!);
             try
             {
-                //if (SerializersMap.TryGetSerializer<T>(out var serializer))
-                //{
+                if (SerializersMap.TryGetSerializer<T>(out var serializer))
+                {
                     var insertWriter = new InsertMessageWriter<T>(serializer);
                     await _writer!.WriteAsync(insertWriter, message, cancellationToken).ConfigureAwait(false);
                     _logger.SentInsertMessage(message.Header.RequestNumber);
@@ -309,7 +307,7 @@ namespace MongoDB.Client
                     {
                         Debugger.Break();
                     }
-                //}
+                }
             }
             finally
             {
