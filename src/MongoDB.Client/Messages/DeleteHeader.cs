@@ -3,7 +3,7 @@
 namespace MongoDB.Client.Messages
 {
     [BsonSerializable]
-    public class DeleteHeader
+    public partial class DeleteHeader
     {
         [BsonElement("delete")]
         public string Delete { get; set; }

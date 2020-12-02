@@ -24,5 +24,4 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         public List<T> GenericList;
 
     }
-
 }
