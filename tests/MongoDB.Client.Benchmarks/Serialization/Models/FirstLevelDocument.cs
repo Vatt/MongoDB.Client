@@ -6,7 +6,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 namespace MongoDB.Client.Benchmarks.Serialization.Models
 {
     [BsonSerializable]
-    public class FirstLevelDocument
+    public partial class FirstLevelDocument
     {
         public string TextField { get; set; }
 

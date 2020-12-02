@@ -4,7 +4,7 @@ using MongoDB.Client.Bson.Document;
 
 namespace MongoDB.Client.ConsoleApp.Models
 {
-    public class DatabaseSeeder
+    public partial class DatabaseSeeder
     {
         public IEnumerable<RootDocument> GenerateSeed(int count = 500)
         {
