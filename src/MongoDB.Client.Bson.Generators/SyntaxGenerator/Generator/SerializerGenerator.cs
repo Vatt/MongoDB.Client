@@ -171,6 +171,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Token(SyntaxKind.PartialKeyword);
         }
+        public static SyntaxToken RecordKeyword()
+        {
+            return SF.Token(SyntaxKind.RecordKeyword);
+        }
         public static SyntaxToken StaticKeyword()
         {
             return SF.Token(SyntaxKind.StaticKeyword);
