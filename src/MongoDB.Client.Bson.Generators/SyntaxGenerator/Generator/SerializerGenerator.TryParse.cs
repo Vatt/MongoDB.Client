@@ -18,7 +18,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var bsonNameToken = SF.Identifier("bsonName");
             return SF.MethodDeclaration(
                     attributeLists: default,
-                    modifiers: new(PublicKeyword()),
+                    modifiers: new(PublicKeyword(), StaticKeyword()),
                     explicitInterfaceSpecifier: default,//SF.ExplicitInterfaceSpecifier(GenericName(SerializerInterfaceToken, TypeFullName(decl))),
                     returnType: BoolPredefinedType(),
                     identifier: SF.Identifier("TryParse"),
@@ -197,8 +197,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 //}
                 if (AttributeHelper.IsBsonSerializable(typeSym))
                 {
-                    var sma = SimpleMemberAccess(IdentifierName(SelfFullName(typeSym)), IdentifierName("Serializer"));
-                    return InvocationExpr(sma, IdentifierName("TryParse"), RefArgument(readerId), OutArgument(readTarget));
+                    return InvocationExpr(IdentifierName(SelfFullName(typeSym)), IdentifierName("TryParse"), RefArgument(readerId), OutArgument(readTarget));
                 }
             }
 

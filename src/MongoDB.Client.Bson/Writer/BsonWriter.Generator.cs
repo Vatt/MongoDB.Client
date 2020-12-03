@@ -8,8 +8,10 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Bson.Writer
 {
+
     public ref partial struct BsonWriter
     {
+        private delegate void WriteDelegate<T>(ref BsonWriter write, in T message);
         private static void ThrowSerializerNotFound(string typeName)
         {
             throw new SerializerNotFoundException(typeName);
@@ -76,18 +78,13 @@ namespace MongoDB.Client.Bson.Writer
 
             if (typeof(T).GetCustomAttributes(typeof(BsonSerializableAttribute), false).Length > 0)
             {
-                var property = typeof(T).GetProperty("Serializer");
-                if (property is null)
-                {
-                    ThrowSerializerNotFound(typeof(T).Name);
-                }
-                IGenericBsonSerializer<T> serializer = property.GetMethod.Invoke(default, default) as IGenericBsonSerializer<T>;
-                if (serializer is null)
+                var writer = typeof(T).GetMethod("Write").CreateDelegate(typeof(WriteDelegate<T>)) as WriteDelegate<T>;
+                if (writer is null)
                 {
                     ThrowSerializerNotFound(typeof(T).Name);
                 }
                 typeReserved.Write(3);
-                serializer.Write(ref this, genericValue);
+                writer!(ref this, genericValue);
                 return;
             }
             else

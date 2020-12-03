@@ -77,11 +77,7 @@ namespace MongoDB.Client.Tests.Serialization
                     Id = Guid.NewGuid()
                 }
             };
-            SerializersMap.TryGetSerializer<InsertHeader>(out var serializer);
-
-
-
-            var result = await RoundTripWithBsonAsync(doc, serializer);
+            var result = await RoundTripWithBsonAsync(doc);
 
 
            

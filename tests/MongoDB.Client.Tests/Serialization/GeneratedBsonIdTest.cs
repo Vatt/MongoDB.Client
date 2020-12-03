@@ -13,7 +13,7 @@ namespace MongoDB.Client.Tests.Serialization
         public async Task BsonIdTest()
         {
             var model = new BsonIdModel(Guid.NewGuid(), Int32.MaxValue);            
-            var result = await RoundTripAsync(model, BsonIdModel.Serializer);
+            var result = await RoundTripAsync(model);
 
             Assert.Equal(model, result);
         }
@@ -26,7 +26,7 @@ namespace MongoDB.Client.Tests.Serialization
             {
                 SomeInt = 42
             };
-            var result = await RoundTripAsync(model, BsonObjectIdModel.Serializer);
+            var result = await RoundTripAsync(model);
 
             Assert.True(model.Id != default);
             Assert.Equal(model, result);

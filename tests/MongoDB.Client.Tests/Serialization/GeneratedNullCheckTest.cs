@@ -17,7 +17,7 @@ namespace MongoDB.Client.Tests.Serialization
                     null,
                     new NullCheckData(42),
                 });
-            var result = await RoundTripAsync<NullCheckModel>(model, NullCheckModel.Serializer);
+            var result = await RoundTripAsync<NullCheckModel>(model);
 
             Assert.Equal(result, model);
         } 

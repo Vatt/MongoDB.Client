@@ -16,7 +16,7 @@ namespace MongoDB.Client.Tests.Serialization
                 Name = "HUYADES SECTOR 33-4-12",
                 Type = AtmosphereType.HotThickSilicateVapour,
             };
-            var result = await RoundTripAsync(somePlanet, PlanetModel.Serializer);
+            var result = await RoundTripAsync(somePlanet);
 
             Assert.Equal(somePlanet, result);
         }
@@ -29,7 +29,7 @@ namespace MongoDB.Client.Tests.Serialization
                 Int32EnumValue = Int32Enum.EnumInt32Value3,
                 Int64EnumValue = Int64Enum.EnumInt64Value1,
             };
-            var result = await RoundTripAsync(somePlanet, NumericEnumsModel.Serializer);
+            var result = await RoundTripAsync(somePlanet);
 
             Assert.Equal(somePlanet, result);
         }

@@ -18,7 +18,6 @@ namespace MongoDB.Client.Bson.Generators
             TypeLib.TypeLibInit(context.Compilation);
             var masterContext = new MasterContext(CollectSymbols(context));
             var units = Create(masterContext);
-            context.AddSource("GlobalSerializationHelperGenerated.cs", SourceText.From(GenerateGlobalHelperStaticClass(masterContext), Encoding.UTF8));
             for (int index = 0; index < units.Length; index++)
             {
                 if (context.CancellationToken.IsCancellationRequested)
@@ -40,11 +39,7 @@ namespace MongoDB.Client.Bson.Generators
                         SF.UsingDirective(SF.ParseName("System")),
                         SF.UsingDirective(SF.ParseName("System.Collections.Generic")),
                         SF.UsingDirective(SF.ParseName("System.Buffers.Binary")))
-                    .AddMembers(SerializerGenerator.GenerateStaticProvider(master.Contexts[index]))
-                    .AddMembers(
-                        SF.NamespaceDeclaration(SF.ParseName("MongoDB.Client.Bson.Serialization.Generated"))
-                            .AddMembers(SerializerGenerator.GenerateSerializer(master.Contexts[index]))
-                    );
+                    .AddMembers(SerializerGenerator.GenerateSerializer(master.Contexts[index]));
             }
             return units;
         }

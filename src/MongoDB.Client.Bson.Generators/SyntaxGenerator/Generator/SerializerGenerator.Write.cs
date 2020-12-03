@@ -12,7 +12,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.MethodDeclaration(
                     attributeLists: default,
-                    modifiers: new(PublicKeyword()),
+                    modifiers: new(PublicKeyword(), StaticKeyword()),
                     explicitInterfaceSpecifier: default,// SF.ExplicitInterfaceSpecifier(GenericName(SerializerInterfaceToken, TypeFullName(ctx.Declaration))),
                     returnType: VoidPredefinedType(),
                     identifier: SF.Identifier("Write"),
@@ -148,11 +148,10 @@ CONDITION_CHECK:
                     //}
                     if (AttributeHelper.IsBsonSerializable(typeSym))
                     {
-                        var sma = SimpleMemberAccess(IdentifierName(SelfFullName(typeSym)), IdentifierName("Serializer"));
                         return Statements
                         (
                                Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
-                               InvocationExprStatement(sma, IdentifierName("Write"), RefArgument(writerId), Argument(writeTarget))
+                               InvocationExprStatement(IdentifierName(SelfFullName(typeSym)), IdentifierName("Write"), RefArgument(writerId), Argument(writeTarget))
                         );
                     }
                 }

@@ -21,7 +21,7 @@ namespace MongoDB.Client.Tests.Serialization
                 ListValue = new List<int> { 1, 2, 3 },
 
             };
-            var result = await RoundTripAsync(doc, BsonWriteIgnoreIfModel.Serializer);
+            var result = await RoundTripAsync(doc);
             Assert.Equal(doc.Field, result.Field);
             Assert.Null(result.IgnoredField0);
             Assert.Null(result.ListValue);
@@ -33,7 +33,7 @@ namespace MongoDB.Client.Tests.Serialization
                 ListValue = new List<int> { 1, 2, 3 },
 
             };
-            result = await RoundTripAsync(doc, BsonWriteIgnoreIfModel.Serializer);
+            result = await RoundTripAsync(doc);
             Assert.Equal(doc.Field, result.Field);
             Assert.Equal(doc.ListValue, result.ListValue);
             Assert.Null(result.IgnoredField1);
@@ -48,7 +48,7 @@ namespace MongoDB.Client.Tests.Serialization
                 Field = "Field",
                 IgnoredField = "IgnoredField"
             };
-            var result = await RoundTripAsync(doc, ModelWithIgnore.Serializer);
+            var result = await RoundTripAsync(doc);
 
 
             Assert.Equal(doc.Field, result.Field);
@@ -86,7 +86,7 @@ namespace MongoDB.Client.Tests.Serialization
                 GuidValue = Guid.NewGuid(),
                 List = lstModel,
             };
-            var result = await RoundTripAsync(doc, ModelForGenerated.Serializer);
+            var result = await RoundTripAsync(doc);
             Assert.Equal(doc, result);
         }
 

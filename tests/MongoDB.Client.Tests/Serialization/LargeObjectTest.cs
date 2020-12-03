@@ -14,7 +14,7 @@ namespace MongoDB.Client.Tests.Serialization
         public async Task LabgeObjectTest()
         {
             var model = GenerateObject();
-            var result = await RoundTripAsync(model, RootDocument.Serializer);
+            var result = await RoundTripAsync(model);
 
             Assert.Equal(model, result);
         }
