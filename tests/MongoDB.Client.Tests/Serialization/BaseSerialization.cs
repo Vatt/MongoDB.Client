@@ -1,6 +1,9 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipelines;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
@@ -13,38 +16,65 @@ using MongoDB.Client.Protocol.Writers;
 
 namespace MongoDB.Client.Tests.Serialization
 {
-   
+    internal unsafe class UnitTestReplyBodyWriter<T> : IMessageWriter<T>
+    {
+        private  readonly delegate*<ref BsonWriter, in T, void> _writerPtr;
+
+        public UnitTestReplyBodyWriter(delegate*<ref BsonWriter, in T, void> writer)
+        {
+            _writerPtr = writer;
+        }
+
+        public void WriteMessage(T message, IBufferWriter<byte> output)
+        {
+            var writer = new BsonWriter(output);
+            _writerPtr(ref writer, message);
+
+        }
+    }
+    internal unsafe class UnitTestReplyBodyReader<T> : IMessageReader<QueryResult<T>>
+    {
+        private readonly delegate*<ref BsonReader, out T, bool> _readerPtr;
+        private readonly ReplyMessage _replyMessage;
+        private readonly QueryResult<T> _result;
+
+        public  UnitTestReplyBodyReader(delegate*<ref BsonReader, out T, bool> readerPtr, ReplyMessage replyMessage)
+        {
+            _readerPtr = readerPtr;
+            _replyMessage = replyMessage;
+            _result = new QueryResult<T>(_replyMessage.ReplyHeader.CursorId);
+        }
+
+        public bool TryParseMessage(in ReadOnlySequence<byte> input, ref SequencePosition consumed, ref SequencePosition examined, [MaybeNullWhen(false)] out QueryResult<T> message)
+        {
+            message = _result;
+            var bsonReader = new BsonReader(input);
+            while (_result.Count < _replyMessage.ReplyHeader.NumberReturned)
+            {
+                if (_readerPtr(ref bsonReader, out var item))
+                {
+                    _result.Add(item);
+                    consumed = bsonReader.Position;
+                    examined = bsonReader.Position;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
     public abstract class BaseSerialization 
     {
-        private delegate bool TryParseDelegate<T>(ref BsonReader reader, out T message);
-        private delegate void WriteDelegate<T>(ref BsonWriter write, in T message);
-        private struct Serializer<T> : IGenericBsonSerializer<T>
+        private unsafe static delegate*<ref BsonReader, out T, bool> GetTryParseDelegate<T>()
         {
-            private TryParseDelegate<T> _reader;
-            private WriteDelegate<T> _writer;
-            public Serializer(TryParseDelegate<T> reader, WriteDelegate<T> writer)
-            {
-                _reader = reader;
-                _writer = writer;
-            }
-            public bool TryParse(ref BsonReader reader, [MaybeNullWhen(false)] out T message)
-            {
-                return _reader(ref reader, out message);
-            }
-
-            public void Write(ref BsonWriter writer, in T message)
-            {
-                _writer(ref writer, message);
-            }
+            return (delegate*< ref BsonReader, out T, bool> )typeof(T).GetMethod("TryParse", BindingFlags.Public | BindingFlags.Static).MethodHandle.GetFunctionPointer();
         }
-
-        private static TryParseDelegate<T> GetTryParseDelegate<T>()
+        private unsafe static delegate*<ref BsonWriter, in T, void> GetWriteDelegate<T>()
         {
-            return typeof(T).GetMethod("TryParse").CreateDelegate(typeof(TryParseDelegate<T>)) as TryParseDelegate<T>;
-        }
-        private static WriteDelegate<T> GetWriteDelegate<T>()
-        {
-            return typeof(T).GetMethod("Write").CreateDelegate(typeof(WriteDelegate<T>)) as WriteDelegate<T>;
+            return (delegate*< ref BsonWriter, in T, void>)typeof(T).GetMethod("Write", BindingFlags.Public | BindingFlags.Static).MethodHandle.GetFunctionPointer();
         }
         public static async Task<T> RoundTripAsync<T>(T message)
         {
@@ -73,12 +103,22 @@ namespace MongoDB.Client.Tests.Serialization
         public static async Task<T1> RoundTripAsync<T0, T1>(T0 message)
         {
             var pipe = new Pipe();
-            var writer = new Serializer<T0>(GetTryParseDelegate<T0>(), GetWriteDelegate<T0>());
-            var reader = new Serializer<T1>(GetTryParseDelegate<T1>(), GetWriteDelegate<T1>());
+            UnitTestReplyBodyReader<T1> reader = default;
+            unsafe
+            {
+                reader = new UnitTestReplyBodyReader<T1>(GetTryParseDelegate<T1>(), new ReplyMessage(default, new ReplyMessageHeader(default, default, default, 1)));
+            }
             await WriteAsync(pipe.Writer, message);
             return await ReadAsync(pipe.Reader, reader);
         }
-        public static async Task<T> ReadAsync<T>(PipeReader input, IGenericBsonSerializer<T> serializer)
+        internal static async Task<T> ReadAsync<T>(PipeReader input, UnitTestReplyBodyReader<T> messageReader)
+        {
+            var reader = new ProtocolReader(input);           
+            var result = await reader.ReadAsync(messageReader).ConfigureAwait(false);
+            reader.Advance();
+            return result.Message.FirstOrDefault();
+        }
+        internal static async Task<T> ReadAsync<T>(PipeReader input, IGenericBsonSerializer<T> serializer)
         {
             var reader = new ProtocolReader(input);
             var messageReader = new ReplyBodyReader<T>(serializer, new ReplyMessage(default, new ReplyMessageHeader(default, default, default, 1)));
@@ -89,19 +129,24 @@ namespace MongoDB.Client.Tests.Serialization
         public static async Task<T> ReadAsync<T>(PipeReader input)
         {
             var reader = new ProtocolReader(input);
-            var serializer = new Serializer<T>(GetTryParseDelegate<T>(), GetWriteDelegate<T>());
-            var messageReader =  new ReplyBodyReader<T>(serializer, new ReplyMessage(default, new ReplyMessageHeader(default, default, default, 1)));
+            UnitTestReplyBodyReader<T> messageReader = default;
+            unsafe
+            {
+                messageReader = new UnitTestReplyBodyReader<T>(GetTryParseDelegate<T>(), new ReplyMessage(default, new ReplyMessageHeader(default, default, default, 1)));
+            }
+            
             var result = await reader.ReadAsync(messageReader).ConfigureAwait(false);
             reader.Advance();
             return result.Message.FirstOrDefault();
         }
-
-
         public static async Task WriteAsync<T>(PipeWriter output, T message)
         {
             var writer = new ProtocolWriter(output);
-            var serializer = new Serializer<T>(GetTryParseDelegate<T>(), GetWriteDelegate<T>());
-            var messageWriter = new ReplyBodyWriter<T>(serializer);
+            UnitTestReplyBodyWriter<T> messageWriter = default;
+            unsafe
+            {
+                messageWriter = new UnitTestReplyBodyWriter<T>(GetWriteDelegate<T>());
+            }
             await writer.WriteAsync(messageWriter, message).ConfigureAwait(false);
             await output.FlushAsync();
             await output.CompleteAsync();

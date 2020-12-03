@@ -90,7 +90,6 @@ namespace MongoDB.Client.Tests.Serialization
                 }
             };
             var result = await RoundTripAsync(model);
-
             Assert.Equal(model, result);
         }
     }
