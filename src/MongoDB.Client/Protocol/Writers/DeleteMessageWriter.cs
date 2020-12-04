@@ -10,15 +10,6 @@ namespace MongoDB.Client.Protocol.Writers
 {
     public class DeleteMessageWriter : IMessageWriter<DeleteMessage>
     {
-        private static readonly IGenericBsonSerializer<DeleteHeader> _headerSerializer;
-        private static readonly IGenericBsonSerializer<DeleteBody> _bodySerializer;
-
-        static DeleteMessageWriter()
-        {
-            SerializersMap.TryGetSerializer(out _headerSerializer!);
-            SerializersMap.TryGetSerializer(out _bodySerializer!);
-        }
-
         public void WriteMessage(DeleteMessage message, IBufferWriter<byte> output)
         {
             var firstSpan = output.GetSpan();
@@ -33,7 +24,7 @@ namespace MongoDB.Client.Protocol.Writers
 
             writer.WriteByte((byte) PayloadType.Type0);
 
-            _headerSerializer.Write(ref writer, message.DeleteHeader);
+            DeleteHeader.Write(ref writer, message.DeleteHeader);
 
 
             writer.WriteByte((byte) PayloadType.Type1);
@@ -43,7 +34,7 @@ namespace MongoDB.Client.Protocol.Writers
             writer.WriteInt32(0); // size
             writer.WriteCString("deletes");
 
-            _bodySerializer.Write(ref writer, message.DeleteBody);
+            DeleteBody.Write(ref writer, message.DeleteBody);
 
             writer.Commit();
             BinaryPrimitives.WriteInt32LittleEndian(secondSpan, writer.Written - checkpoint);

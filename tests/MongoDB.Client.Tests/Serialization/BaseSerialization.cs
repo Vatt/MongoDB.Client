@@ -68,14 +68,14 @@ namespace MongoDB.Client.Tests.Serialization
     }
     public abstract class BaseSerialization 
     {
-        private unsafe static delegate*<ref BsonReader, out T, bool> GetTryParseDelegate<T>()
-        {
-            return (delegate*< ref BsonReader, out T, bool> )typeof(T).GetMethod("TryParse", BindingFlags.Public | BindingFlags.Static).MethodHandle.GetFunctionPointer();
-        }
-        private unsafe static delegate*<ref BsonWriter, in T, void> GetWriteDelegate<T>()
-        {
-            return (delegate*< ref BsonWriter, in T, void>)typeof(T).GetMethod("Write", BindingFlags.Public | BindingFlags.Static).MethodHandle.GetFunctionPointer();
-        }
+        //private unsafe static delegate*<ref BsonReader, out T, bool> GetTryParseDelegate<T>()
+        //{
+        //    return (delegate*< ref BsonReader, out T, bool> )typeof(T).GetMethod("TryParse", BindingFlags.Public | BindingFlags.Static).MethodHandle.GetFunctionPointer();
+        //}
+        //private unsafe static delegate*<ref BsonWriter, in T, void> GetWriteDelegate<T>()
+        //{
+        //    return (delegate*< ref BsonWriter, in T, void>)typeof(T).GetMethod("Write", BindingFlags.Public | BindingFlags.Static).MethodHandle.GetFunctionPointer();
+        //}
         public static async Task<T> RoundTripAsync<T>(T message)
         {
             var pipe = new Pipe(new PipeOptions(pauseWriterThreshold: long.MaxValue, resumeWriterThreshold: long.MaxValue));
@@ -106,7 +106,7 @@ namespace MongoDB.Client.Tests.Serialization
             UnitTestReplyBodyReader<T1> reader = default;
             unsafe
             {
-                reader = new UnitTestReplyBodyReader<T1>(GetTryParseDelegate<T1>(), new ReplyMessage(default, new ReplyMessageHeader(default, default, default, 1)));
+                reader = new UnitTestReplyBodyReader<T1>(SerializerFnPtrProvider<T1>.TryParseFnPtr, new ReplyMessage(default, new ReplyMessageHeader(default, default, default, 1)));
             }
             await WriteAsync(pipe.Writer, message);
             return await ReadAsync(pipe.Reader, reader);
@@ -132,7 +132,7 @@ namespace MongoDB.Client.Tests.Serialization
             UnitTestReplyBodyReader<T> messageReader = default;
             unsafe
             {
-                messageReader = new UnitTestReplyBodyReader<T>(GetTryParseDelegate<T>(), new ReplyMessage(default, new ReplyMessageHeader(default, default, default, 1)));
+                messageReader = new UnitTestReplyBodyReader<T>(SerializerFnPtrProvider<T>.TryParseFnPtr, new ReplyMessage(default, new ReplyMessageHeader(default, default, default, 1)));
             }
             
             var result = await reader.ReadAsync(messageReader).ConfigureAwait(false);
@@ -145,7 +145,7 @@ namespace MongoDB.Client.Tests.Serialization
             UnitTestReplyBodyWriter<T> messageWriter = default;
             unsafe
             {
-                messageWriter = new UnitTestReplyBodyWriter<T>(GetWriteDelegate<T>());
+                messageWriter = new UnitTestReplyBodyWriter<T>(SerializerFnPtrProvider<T>.WriteFnPtr);
             }
             await writer.WriteAsync(messageWriter, message).ConfigureAwait(false);
             await output.FlushAsync();

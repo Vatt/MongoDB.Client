@@ -10,13 +10,6 @@ namespace MongoDB.Client.Protocol.Writers
 {
     public class FindMessageWriter : IMessageWriter<FindMessage>
     {
-        private static readonly IGenericBsonSerializer<FindRequest> _headerSerializer;
-
-        static FindMessageWriter()
-        {
-            SerializersMap.TryGetSerializer(out _headerSerializer!);
-        }
-
         public void WriteMessage(FindMessage message, IBufferWriter<byte> output)
         {
             var span = output.GetSpan();
@@ -30,7 +23,7 @@ namespace MongoDB.Client.Protocol.Writers
             writer.WriteInt32((int) CreateFlags(message));
 
             writer.WriteByte((byte) message.Type);
-            _headerSerializer.Write(ref writer, message.Document);
+            FindRequest.Write(ref writer, message.Document);
             writer.Commit();
             BinaryPrimitives.WriteInt32LittleEndian(span, writer.Written);
         }

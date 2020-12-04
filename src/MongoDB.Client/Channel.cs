@@ -17,7 +17,7 @@ using MongoDB.Client.Protocol.Messages;
 
 namespace MongoDB.Client
 {
-    internal class Channel : IAsyncDisposable
+    internal partial class Channel : IAsyncDisposable
     {
         private readonly ILogger _logger;
         private readonly NetworkConnectionFactory _connectionFactory;
@@ -194,45 +194,7 @@ namespace MongoDB.Client
         }
 
 
-        private static class CursorParserCallbackHolder<T>
-        {
-            private static readonly Func<ProtocolReader, MongoResponseMessage, ValueTask<IParserResult>> _parser;
-            public static readonly Func<int, ParserCompletion> Completion;
-            private static readonly IGenericBsonSerializer<T> _serializer;
-            private static readonly ConcurrentQueue<ManualResetValueTaskSource<IParserResult>> _queue = new();
 
-            static CursorParserCallbackHolder()
-            {
-                SerializersMap.TryGetSerializer(out _serializer);
-                _parser = CursorParseAsync;
-                Completion = i =>
-                {
-                    ManualResetValueTaskSource<IParserResult> taskSource;
-                    if (_queue.TryDequeue(out taskSource) == false)
-                    {
-                        taskSource = new ManualResetValueTaskSource<IParserResult>();
-                    }
-
-                    return new ParserCompletion(taskSource, _parser);
-                };
-            }
-
-            private static async ValueTask<IParserResult> CursorParseAsync(ProtocolReader reader, MongoResponseMessage mongoResponse)
-            {
-                if (mongoResponse is ResponseMsgMessage msgMessage)
-                {
-                    if (msgMessage.MsgHeader.PayloadType == 0)
-                    {
-                        var bodyReader = new FindMsgType0BodyReader<T>(_serializer, msgMessage);
-                        var result = await reader.ReadAsync(bodyReader).ConfigureAwait(false);
-                        reader.Advance();
-                        return result.Message;
-                    }
-                    return ThrowHelper.InvalidPayloadTypeException<CursorResult<T>>(msgMessage.MsgHeader.PayloadType);
-                }
-                return ThrowHelper.UnsupportedTypeException<CursorResult<T>>(typeof(T));
-            }
-        }
 
 
         public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message,
@@ -410,7 +372,7 @@ namespace MongoDB.Client
             }
         }
 
-        private readonly struct ParserCompletion
+        internal readonly struct ParserCompletion
         {
             public ParserCompletion(ManualResetValueTaskSource<IParserResult> completionSource,
                 Func<ProtocolReader, MongoResponseMessage, ValueTask<IParserResult>> parseAsync)
