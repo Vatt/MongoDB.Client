@@ -13,10 +13,9 @@ namespace MongoDB.Client
 {
     internal partial class Channel
     {
-
-        internal static partial class CursorParserCallbackHolder<T>
+        private static partial class CursorParserCallbackHolder<T>
         {
-            internal class FindMsgType0BodyReaderUnsafe : IMessageReader<CursorResult<T>>
+            private class FindMsgType0BodyReaderUnsafe : IMessageReader<CursorResult<T>>
             {
                 private long _modelsReaded;
                 private long _payloadLength;
@@ -25,8 +24,8 @@ namespace MongoDB.Client
 
                 private ParserState _state;
 
-                protected CursorResult<T> _cursorResult;
-                protected ResponseMsgMessage Message;
+                private CursorResult<T> _cursorResult;
+                private ResponseMsgMessage Message;
                 public bool Complete { get; protected set; }
 
 

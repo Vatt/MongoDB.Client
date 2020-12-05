@@ -281,11 +281,12 @@ namespace MongoDB.Client
             private static unsafe readonly delegate*<ref BsonWriter, in T, void> WriterFnPtr;
             public static Func<ProtocolReader, MongoResponseMessage, ValueTask<IParserResult>>? Parser;
             public static Func<int, ParserCompletion>? Completion;
-            public unsafe static readonly IMessageWriter<InsertMessage<T>> InsertMessageWriter;
-            unsafe static InsertParserCallbackHolder()
+            public static readonly IMessageWriter<InsertMessage<T>> InsertMessageWriter;
+            static unsafe InsertParserCallbackHolder()
             {
+                SerializersMap.TryGetSerializer<T>(out var serializer);
                 WriterFnPtr = SerializerFnPtrProvider<T>.WriteFnPtr;
-                InsertMessageWriter = new InsertMessageWriterUnsafe();
+                InsertMessageWriter = WriterFnPtr != null ? new InsertMessageWriterUnsafe() : new InsertMessageWriter<T>(serializer);
             }
         }
         public async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken cancellationToken)
@@ -355,7 +356,6 @@ namespace MongoDB.Client
         }
 
         private static readonly InsertMsgType0BodyReader InsertBodyReader = new InsertMsgType0BodyReader();
-        //  private static readonly BsonBodyReader BsonBodyReader = new BsonBodyReader();
         private static async ValueTask<IParserResult> InsertParseAsync<TResp>(ProtocolReader reader, MongoResponseMessage mongoResponse)
         {
             switch (mongoResponse)

@@ -18,29 +18,20 @@ namespace MongoDB.Client.Tests.Serialization
 {
     internal unsafe class UnitTestReplyBodyWriter<T> : IMessageWriter<T>
     {
-        private  readonly delegate*<ref BsonWriter, in T, void> _writerPtr;
-
-        public UnitTestReplyBodyWriter(delegate*<ref BsonWriter, in T, void> writer)
-        {
-            _writerPtr = writer;
-        }
-
         public void WriteMessage(T message, IBufferWriter<byte> output)
         {
             var writer = new BsonWriter(output);
-            _writerPtr(ref writer, message);
+            SerializerFnPtrProvider<T>.WriteFnPtr(ref writer, message);
 
         }
     }
     internal unsafe class UnitTestReplyBodyReader<T> : IMessageReader<QueryResult<T>>
     {
-        private readonly delegate*<ref BsonReader, out T, bool> _readerPtr;
         private readonly ReplyMessage _replyMessage;
         private readonly QueryResult<T> _result;
 
-        public  UnitTestReplyBodyReader(delegate*<ref BsonReader, out T, bool> readerPtr, ReplyMessage replyMessage)
+        public  UnitTestReplyBodyReader(ReplyMessage replyMessage)
         {
-            _readerPtr = readerPtr;
             _replyMessage = replyMessage;
             _result = new QueryResult<T>(_replyMessage.ReplyHeader.CursorId);
         }
@@ -51,7 +42,7 @@ namespace MongoDB.Client.Tests.Serialization
             var bsonReader = new BsonReader(input);
             while (_result.Count < _replyMessage.ReplyHeader.NumberReturned)
             {
-                if (_readerPtr(ref bsonReader, out var item))
+                if (SerializerFnPtrProvider<T>.TryParseFnPtr(ref bsonReader, out var item))
                 {
                     _result.Add(item);
                     consumed = bsonReader.Position;
@@ -68,14 +59,6 @@ namespace MongoDB.Client.Tests.Serialization
     }
     public abstract class BaseSerialization 
     {
-        //private unsafe static delegate*<ref BsonReader, out T, bool> GetTryParseDelegate<T>()
-        //{
-        //    return (delegate*< ref BsonReader, out T, bool> )typeof(T).GetMethod("TryParse", BindingFlags.Public | BindingFlags.Static).MethodHandle.GetFunctionPointer();
-        //}
-        //private unsafe static delegate*<ref BsonWriter, in T, void> GetWriteDelegate<T>()
-        //{
-        //    return (delegate*< ref BsonWriter, in T, void>)typeof(T).GetMethod("Write", BindingFlags.Public | BindingFlags.Static).MethodHandle.GetFunctionPointer();
-        //}
         public static async Task<T> RoundTripAsync<T>(T message)
         {
             var pipe = new Pipe(new PipeOptions(pauseWriterThreshold: long.MaxValue, resumeWriterThreshold: long.MaxValue));
@@ -106,7 +89,7 @@ namespace MongoDB.Client.Tests.Serialization
             UnitTestReplyBodyReader<T1> reader = default;
             unsafe
             {
-                reader = new UnitTestReplyBodyReader<T1>(SerializerFnPtrProvider<T1>.TryParseFnPtr, new ReplyMessage(default, new ReplyMessageHeader(default, default, default, 1)));
+                reader = new UnitTestReplyBodyReader<T1>(new ReplyMessage(default, new ReplyMessageHeader(default, default, default, 1)));
             }
             await WriteAsync(pipe.Writer, message);
             return await ReadAsync(pipe.Reader, reader);
@@ -132,7 +115,7 @@ namespace MongoDB.Client.Tests.Serialization
             UnitTestReplyBodyReader<T> messageReader = default;
             unsafe
             {
-                messageReader = new UnitTestReplyBodyReader<T>(SerializerFnPtrProvider<T>.TryParseFnPtr, new ReplyMessage(default, new ReplyMessageHeader(default, default, default, 1)));
+                messageReader = new UnitTestReplyBodyReader<T>(new ReplyMessage(default, new ReplyMessageHeader(default, default, default, 1)));
             }
             
             var result = await reader.ReadAsync(messageReader).ConfigureAwait(false);
@@ -145,7 +128,7 @@ namespace MongoDB.Client.Tests.Serialization
             UnitTestReplyBodyWriter<T> messageWriter = default;
             unsafe
             {
-                messageWriter = new UnitTestReplyBodyWriter<T>(SerializerFnPtrProvider<T>.WriteFnPtr);
+                messageWriter = new UnitTestReplyBodyWriter<T>();
             }
             await writer.WriteAsync(messageWriter, message).ConfigureAwait(false);
             await output.FlushAsync();

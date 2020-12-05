@@ -10,8 +10,6 @@ namespace MongoDB.Client.Bson.Reader
 {
     public ref partial struct BsonReader
     {
-        private delegate bool TryParseDelegate<T>(ref BsonReader reader, out T message);
-        
         private static void ThrowSerializerNotFound(string typeName)
         {
             throw new SerializerNotFoundException(typeName);
@@ -20,7 +18,7 @@ namespace MongoDB.Client.Bson.Reader
         {
             throw new SerializerIsNullException(typeName);
         }
-        public bool TryReadGeneric<T>(int bsonType, out T genericValue)
+        public unsafe bool TryReadGeneric<T>(int bsonType, out T genericValue)
         {
             genericValue = default;
             switch (genericValue)
@@ -67,14 +65,10 @@ namespace MongoDB.Client.Bson.Reader
                     genericValue = (T)(object)value;
                     return true;
             }
-            if (typeof(T).GetCustomAttributes(typeof(BsonSerializableAttribute), false).Length > 0)
+            var reader = SerializerFnPtrProvider<T>.TryParseFnPtr;
+            if (reader != default)
             {
-                var writer = typeof(T).GetMethod("TryParse").CreateDelegate(typeof(TryParseDelegate<T>)) as TryParseDelegate<T>;
-                if (writer is null)
-                {
-                    ThrowSerializerNotFound(typeof(T).Name);
-                }
-                return writer!(ref this, out genericValue);
+                return reader(ref this, out genericValue);
             }
             else
             {

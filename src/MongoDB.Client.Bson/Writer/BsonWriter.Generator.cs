@@ -24,7 +24,7 @@ namespace MongoDB.Client.Bson.Writer
         }
 
 
-        public void WriteGeneric<T>(T genericValue, ref Reserved typeReserved)
+        public unsafe void WriteGeneric<T>(T genericValue, ref Reserved typeReserved)
         {
             if (genericValue == null)
             {
@@ -76,16 +76,10 @@ namespace MongoDB.Client.Bson.Writer
             }
 
 
-            if (typeof(T).GetCustomAttributes(typeof(BsonSerializableAttribute), false).Length > 0)
+            var writer = SerializerFnPtrProvider<T>.WriteFnPtr;
+            if (writer != default)
             {
-                var writer = typeof(T).GetMethod("Write").CreateDelegate(typeof(WriteDelegate<T>)) as WriteDelegate<T>;
-                if (writer is null)
-                {
-                    ThrowSerializerNotFound(typeof(T).Name);
-                }
-                typeReserved.Write(3);
-                writer!(ref this, genericValue);
-                return;
+                writer(ref this, genericValue);
             }
             else
             {
@@ -100,8 +94,6 @@ namespace MongoDB.Client.Bson.Writer
                 typeReserved.Write(3);
                 serializer.Write(ref this, genericValue);
             }
-
-
         }
 
 

@@ -11,13 +11,14 @@ namespace MongoDB.Client
 {
     internal partial class Channel
     {
-        internal static partial class CursorParserCallbackHolder<T>
+        private static partial class CursorParserCallbackHolder<T>
         {
             private static readonly Func<ProtocolReader, MongoResponseMessage, ValueTask<IParserResult>> _parser;
             internal static readonly Func<int, ParserCompletion> Completion;
             private static readonly IGenericBsonSerializer<T> _serializer;
             private static readonly ConcurrentQueue<ManualResetValueTaskSource<IParserResult>> _queue = new();
-            private static unsafe readonly delegate*<ref Bson.Reader.BsonReader, out T, bool> TryParseFnPtr;
+            private static readonly unsafe delegate*<ref Bson.Reader.BsonReader, out T, bool> TryParseFnPtr;
+           
             static CursorParserCallbackHolder()
             {
                 SerializersMap.TryGetSerializer(out _serializer);
@@ -42,18 +43,17 @@ namespace MongoDB.Client
             {
                 if (mongoResponse is ResponseMsgMessage msgMessage)
                 {
-                    //IMessageReader<CursorResult<T>> bodyReader;
+                    IMessageReader<CursorResult<T>> bodyReader;
                     if (msgMessage.MsgHeader.PayloadType == 0)
                     {
-                        //if (_serializer == null)
-                        //{
-                        //    bodyReader = new FindMsgType0BodyReaderUnsafe(msgMessage);
-                        //}
-                        //else
-                        //{
-                        //    bodyReader = new FindMsgType0BodyReader<T>(_serializer, msgMessage);
-                        //}
-                        var bodyReader = new FindMsgType0BodyReaderUnsafe(msgMessage);
+                        if (_serializer == null)
+                        {
+                            bodyReader = new FindMsgType0BodyReaderUnsafe(msgMessage);
+                        }
+                        else
+                        {
+                            bodyReader = new FindMsgType0BodyReader<T>(_serializer, msgMessage);
+                        }
                         var result = await reader.ReadAsync(bodyReader).ConfigureAwait(false);
                         reader.Advance();
                         return result.Message;

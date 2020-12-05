@@ -14,7 +14,7 @@ namespace MongoDB.Client.Bson.Serialization
             var writeMethod = typeof(T).GetMethod("Write", BindingFlags.Public | BindingFlags.Static);
             if (tryParseMethod == null)
             {
-                TryParseFnPtr = null;
+                TryParseFnPtr = default;
             }
             else
             {
@@ -23,7 +23,7 @@ namespace MongoDB.Client.Bson.Serialization
             
             if(writeMethod == null)
             {
-                WriteFnPtr = null;
+                WriteFnPtr = default;
             }
             else
             {
