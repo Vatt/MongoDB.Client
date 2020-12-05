@@ -14,6 +14,9 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Protocol.Messages;
+using System.Buffers;
+using MongoDB.Client.Bson.Writer;
+using System.Buffers.Binary;
 
 namespace MongoDB.Client
 {
@@ -223,7 +226,68 @@ namespace MongoDB.Client
         }
 
 
+        internal static class InsertParserCallbackHolder<T>
+        {
+            public class InsertMessageWriterUnsafe : IMessageWriter<InsertMessage<T>>
+            {
+                public unsafe void WriteMessage(InsertMessage<T> message, IBufferWriter<byte> output)
+                {
+                    var firstSpan = output.GetSpan();
+                    var writer = new BsonWriter(output);
 
+                    writer.WriteInt32(0); // size
+                    writer.WriteInt32(message.Header.RequestNumber);
+                    writer.WriteInt32(0); // responseTo
+                    writer.WriteInt32((int)message.Header.Opcode);
+
+                    writer.WriteInt32((int)CreateFlags(message));
+
+                    writer.WriteByte((byte)PayloadType.Type0);
+
+                    InsertHeader.Write(ref writer, message.InsertHeader);
+
+
+                    writer.WriteByte((byte)PayloadType.Type1);
+                    writer.Commit();
+                    var checkpoint = writer.Written;
+                    var secondSpan = output.GetSpan();
+                    writer.WriteInt32(0); // size
+                    writer.WriteCString("documents");
+
+                    foreach (var item in message.Items)
+                    {
+                        //WriterFnPtr(ref writer, item);
+                        SerializerFnPtrProvider<T>.WriteFnPtr(ref writer, item);
+                    }
+
+                    writer.Commit();
+                    BinaryPrimitives.WriteInt32LittleEndian(secondSpan, writer.Written - checkpoint);
+                    BinaryPrimitives.WriteInt32LittleEndian(firstSpan, writer.Written);
+                }
+                private OpMsgFlags CreateFlags(InsertMessage<T> message)
+                {
+                    var flags = (OpMsgFlags)0;
+                    if (message.MoreToCome)
+                    {
+                        flags |= OpMsgFlags.MoreToCome;
+                    }
+                    if (message.ExhaustAllowed)
+                    {
+                        flags |= OpMsgFlags.ExhaustAllowed;
+                    }
+                    return flags;
+                }
+            }
+            private static unsafe readonly delegate*<ref BsonWriter, in T, void> WriterFnPtr;
+            public static Func<ProtocolReader, MongoResponseMessage, ValueTask<IParserResult>>? Parser;
+            public static Func<int, ParserCompletion>? Completion;
+            public unsafe static readonly IMessageWriter<InsertMessage<T>> InsertMessageWriter;
+            unsafe static InsertParserCallbackHolder()
+            {
+                WriterFnPtr = SerializerFnPtrProvider<T>.WriteFnPtr;
+                InsertMessageWriter = new InsertMessageWriterUnsafe();
+            }
+        }
         public async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken cancellationToken)
         {
             if (InsertParserCallbackHolder<T>.Parser is null)
@@ -244,27 +308,42 @@ namespace MongoDB.Client
             var completion = _completionMap.GetOrAdd(message.Header.RequestNumber, InsertParserCallbackHolder<T>.Completion!);
             try
             {
-                if (SerializersMap.TryGetSerializer<T>(out var serializer))
+                //if (SerializersMap.TryGetSerializer<T>(out var serializer))
+                //{
+                //    var insertWriter = new InsertMessageWriter<T>(serializer);
+                //    await _writer!.WriteAsync(insertWriter, message, cancellationToken).ConfigureAwait(false);
+                //    var response = await completion.CompletionSource.GetValueTask().ConfigureAwait(false);
+
+                //    if (response is InsertResult result)
+                //    {
+                //        if (result.WriteErrors is null)
+                //        {
+                //            return;
+                //        }
+
+                //        throw new MongoInsertException(result.WriteErrors);
+                //    }
+                //    else if (response is BsonParseResult bson)
+                //    {
+                //        Debugger.Break();
+                //    }
+                //}
+                await _writer!.WriteAsync(InsertParserCallbackHolder<T>.InsertMessageWriter, message, cancellationToken).ConfigureAwait(false);
+                _logger.SentInsertMessage(message.Header.RequestNumber);
+                var response = await completion.CompletionSource.GetValueTask().ConfigureAwait(false);
+
+                if (response is InsertResult result)
                 {
-                    var insertWriter = new InsertMessageWriter<T>(serializer);
-                    await _writer!.WriteAsync(insertWriter, message, cancellationToken).ConfigureAwait(false);
-                    _logger.SentInsertMessage(message.Header.RequestNumber);
-                    var response =
-                        await completion.CompletionSource.GetValueTask().ConfigureAwait(false);
-
-                    if (response is InsertResult result)
+                    if (result.WriteErrors is null)
                     {
-                        if (result.WriteErrors is null)
-                        {
-                            return;
-                        }
+                        return;
+                    }
 
-                        throw new MongoInsertException(result.WriteErrors);
-                    }
-                    else if (response is BsonParseResult bson)
-                    {
-                        Debugger.Break();
-                    }
+                    throw new MongoInsertException(result.WriteErrors);
+                }
+                else if (response is BsonParseResult bson)
+                {
+                    Debugger.Break();
                 }
             }
             finally
@@ -288,7 +367,7 @@ namespace MongoDB.Client
                         return ThrowHelper.InvalidPayloadTypeException<InsertResult>(msgMessage.MsgHeader.PayloadType);
                     }
 
-                    var result = await reader.ReadAsync(InsertParserCallbackHolder<TResp>.InsertBodyReader, default).ConfigureAwait(false);
+                    var result = await reader.ReadAsync(InsertBodyReader, default).ConfigureAwait(false);
                     reader.Advance();
 
                     return result.Message;

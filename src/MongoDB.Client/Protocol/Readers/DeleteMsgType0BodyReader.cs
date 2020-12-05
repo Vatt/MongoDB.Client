@@ -10,12 +10,12 @@ namespace MongoDB.Client.Protocol.Readers
 {
     internal class DeleteMsgType0BodyReader : IMessageReader<DeleteResult>
     {
-        private static readonly IGenericBsonSerializer<DeleteResult> _resultSerializer;
+        //private static readonly IGenericBsonSerializer<DeleteResult> _resultSerializer;
 
-        static DeleteMsgType0BodyReader()
-        {
-            SerializersMap.TryGetSerializer(out _resultSerializer!);
-        }
+        //static DeleteMsgType0BodyReader()
+        //{
+        //    SerializersMap.TryGetSerializer(out _resultSerializer!);
+        //}
        
        public long Consumed { get; private set; }
 
@@ -28,7 +28,7 @@ namespace MongoDB.Client.Protocol.Readers
             var bsonReader = new BsonReader(input);
 
 
-            if (_resultSerializer.TryParse(ref bsonReader, out message) == false)
+            if (DeleteResult.TryParse(ref bsonReader, out message) == false)
             {
                 return false;
             }
