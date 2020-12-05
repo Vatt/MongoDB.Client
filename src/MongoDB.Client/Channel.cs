@@ -222,11 +222,7 @@ namespace MongoDB.Client
             }
         }
 
-        private static class InsertParserCallbackHolder<T>
-        {
-            public static Func<ProtocolReader, MongoResponseMessage, ValueTask<IParserResult>>? Parser;
-            public static Func<int, ParserCompletion>? Completion;
-        }
+
 
         public async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken cancellationToken)
         {
@@ -292,7 +288,7 @@ namespace MongoDB.Client
                         return ThrowHelper.InvalidPayloadTypeException<InsertResult>(msgMessage.MsgHeader.PayloadType);
                     }
 
-                    var result = await reader.ReadAsync(InsertBodyReader, default).ConfigureAwait(false);
+                    var result = await reader.ReadAsync(InsertParserCallbackHolder<TResp>.InsertBodyReader, default).ConfigureAwait(false);
                     reader.Advance();
 
                     return result.Message;
