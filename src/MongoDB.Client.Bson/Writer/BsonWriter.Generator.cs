@@ -82,7 +82,7 @@ namespace MongoDB.Client.Bson.Writer
                 //    break;
             }
 
-//        SERIALIZABLE:
+        //SERIALIZABLE:
             var writer = SerializerFnPtrProvider<T>.WriteFnPtr;
             if (writer != default)
             {

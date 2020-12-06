@@ -1,6 +1,7 @@
 ﻿using MongoDB.Client.Bson.Document;
 using System;
 using System.Collections.Generic;
+using SmallGenericDocument = MongoDB.Client.Benchmarks.Serialization.Models.SmallGenericDocument<MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<int>, MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<string>>;
 using GenericDocument = MongoDB.Client.Benchmarks.Serialization.Models.GenericDocument<double, string, MongoDB.Client.Bson.Document.BsonDocument, MongoDB.Client.Bson.Document.BsonObjectId, int, long,
                                                                                         System.DateTimeOffset, System.Guid,
                                                                                         MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<int>,
@@ -15,12 +16,21 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
             Console.WriteLine("Seeding a database for experiment....");
             yield return CreateTestDocument(count);
         }
+        public IEnumerable<SmallNonGenericDocument> GenerateSmallSeed(int count = 500)
+        {
+            Console.WriteLine("Seeding a database for experiment....");
+            yield return GenerateSmallNonGenericDocument();
+        }
         public IEnumerable<GenericDocument> GenerateGenericSeed(int count = 500)
         {
             Console.WriteLine("Seeding a database for experiment....");
             yield return CreateTestGenericDocument(count);
         }
-
+        public IEnumerable<SmallGenericDocument> GenerateSmallGenericSeed(int count = 500)
+        {
+            Console.WriteLine("Seeding a database for experiment....");
+            yield return GenerateSmallGenericDocument();
+        }
         private NonGenericDocument CreateTestDocument(int itemsInList)
         {
             NonGenericDocument doc = new ()
@@ -88,6 +98,38 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
                 doc.List9.Add(new AnotherGenericModel<string>("42", "42", "42"));
             }
             return doc;
+        }
+        private SmallGenericDocument GenerateSmallGenericDocument()
+        {
+            return new SmallGenericDocument()
+            {
+                Field0 = 100500,
+                Field1 = "100500",
+                Field2 = new BsonDocument("SomeElement", "SomeElementValue"),
+                Field3 = BsonObjectId.NewObjectId(),
+                Field4 = 42,
+                Field5 = 42,
+                Field6 = DateTimeOffset.UtcNow,
+                Field7 = Guid.NewGuid(),
+                Field8 = new AnotherGenericModel<int>(42, 42, 42),
+                Field9 = new AnotherGenericModel<string>("42", "42", "42"),
+            };
+        }
+        private SmallNonGenericDocument GenerateSmallNonGenericDocument()
+        {
+            return new SmallNonGenericDocument()
+            {
+                Field0 = 100500,
+                Field1 = "100500",
+                Field2 = new BsonDocument("SomeElement", "SomeElementValue"),
+                Field3 = BsonObjectId.NewObjectId(),
+                Field4 = 42,
+                Field5 = 42,
+                Field6 = DateTimeOffset.UtcNow,
+                Field7 = Guid.NewGuid(),
+                Field8 = new AnotherNonGenericModel0(42, 42, 42),
+                Field9 = new AnotherNonGenericModel1("42", "42", "42"),
+            };
         }
     }
 }

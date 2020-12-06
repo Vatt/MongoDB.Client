@@ -10,8 +10,21 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
 
     [BsonSerializable]
     public partial record AnotherNonGenericModel1(string A, string B, string C);
-    
 
+    [BsonSerializable]
+    public partial class SmallNonGenericDocument
+    {
+        public double Field0 { get; set; }
+        public string Field1 { get; set; }
+        public MongoDB.Client.Bson.Document.BsonDocument Field2 { get; set; }
+        public MongoDB.Client.Bson.Document.BsonObjectId Field3 { get; set; }
+        public int Field4 { get; set; }
+        public long Field5 { get; set; }
+        public DateTimeOffset Field6 { get; set; }
+        public Guid Field7 { get; set; }
+        public AnotherNonGenericModel0 Field8 { get; set; }
+        public AnotherNonGenericModel1 Field9 { get; set; }
+    }
     [BsonSerializable]
     public partial class NonGenericDocument
     {
@@ -65,4 +78,18 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
         public List<T8> List8 { get; set; }
         public List<T9> List9 { get; set; }
     }
-}
+    [BsonSerializable]
+    public partial class SmallGenericDocument<T0, T1>
+    {
+        public double Field0 { get; set; }
+        public string Field1 { get; set; }
+        public MongoDB.Client.Bson.Document.BsonDocument Field2 { get; set; }
+        public MongoDB.Client.Bson.Document.BsonObjectId Field3 { get; set; }
+        public int Field4 { get; set; }
+        public long Field5 { get; set; }
+        public DateTimeOffset Field6 { get; set; }
+        public Guid Field7 { get; set; }
+        public T0 Field8 { get; set; }
+        public T1 Field9 { get; set; }
+    }
+    }
