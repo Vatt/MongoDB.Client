@@ -27,10 +27,10 @@ namespace MongoDB.Client.Bson.Reader
                     if (!TryGetDouble(out value)) { return false; }
                     genericValue = (T)(object)value;
                     return true;
-                case string value:
-                    if (!TryGetString(out value)) { return false; }
-                    genericValue = (T)(object)value;
-                    return true;
+                //case string value:
+                //    if (!TryGetString(out value)) { return false; }
+                //    genericValue = (T)(object)value;
+                //    return true;
                 case BsonArray value:
                     BsonDocument tempArray = value;
                     if (!TryParseDocument(out tempArray)) { return false; }
@@ -63,7 +63,14 @@ namespace MongoDB.Client.Bson.Reader
                 case long value:
                     if (!TryGetInt64(out value)) { return false; }
                     genericValue = (T)(object)value;
-                    return true;
+                    return true;                    
+            }
+            if (typeof(T) == typeof(string))
+            {
+                string strvalue = default;
+                if (!TryGetString(out strvalue)) { return false; }
+                genericValue = (T)(object)strvalue;
+                return true;
             }
             var reader = SerializerFnPtrProvider<T>.TryParseFnPtr;
             if (reader != default)

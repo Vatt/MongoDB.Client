@@ -44,9 +44,6 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
     [BsonSerializable]
     public partial class GenericDocument<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>
     {
-        // public static GenericDocument<double, string, MongoDB.Client.Bson.Document.BsonDocument, MongoDB.Client.Bson.Document.BsonObjectId, int, long, DateTimeOffset, Guid,
-        //     AnotherGenericModel<int>, AnotherGenericModel<string>> Create()
-        //     => new();
         public T0 Field0 { get; set; }
         public T1 Field1 { get; set; }
         public T2 Field2 { get; set; }
