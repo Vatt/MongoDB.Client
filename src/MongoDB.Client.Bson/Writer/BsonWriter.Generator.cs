@@ -31,6 +31,10 @@ namespace MongoDB.Client.Bson.Writer
                 typeReserved.Write(10);
                 return;
             }
+            //if (SerializerFnPtrProvider<T>.IsSerializable)
+            //{
+            //    goto SERIALIZABLE;
+            //}
             switch (genericValue)
             {
                 case double value:
@@ -73,9 +77,12 @@ namespace MongoDB.Client.Bson.Writer
                     WriteInt64(value);
                     typeReserved.Write(18);
                     return;
+                //default:
+                //    System.Diagnostics.Debugger.Break();
+                //    break;
             }
 
-
+//        SERIALIZABLE:
             var writer = SerializerFnPtrProvider<T>.WriteFnPtr;
             if (writer != default)
             {
