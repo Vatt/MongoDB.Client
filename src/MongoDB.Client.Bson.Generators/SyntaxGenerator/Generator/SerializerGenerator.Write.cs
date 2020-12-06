@@ -15,7 +15,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     modifiers: new(PublicKeyword(), StaticKeyword()),
                     explicitInterfaceSpecifier: default,// SF.ExplicitInterfaceSpecifier(GenericName(SerializerInterfaceToken, TypeFullName(ctx.Declaration))),
                     returnType: VoidPredefinedType(),
-                    identifier: SF.Identifier("Write"),
+                    identifier: SF.Identifier("WriteBson"),
                     parameterList: ParameterList(
                         RefParameter(ctx.BsonWriterType, ctx.BsonWriterToken),
                         InParameter(TypeFullName(ctx.Declaration), ctx.TryParseOutVarToken)),
@@ -151,7 +151,7 @@ CONDITION_CHECK:
                         return Statements
                         (
                                Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
-                               InvocationExprStatement(IdentifierName(SelfFullName(typeSym)), IdentifierName("Write"), RefArgument(writerId), Argument(writeTarget))
+                               InvocationExprStatement(IdentifierName(SelfFullName(typeSym)), IdentifierName("WriteBson"), RefArgument(writerId), Argument(writeTarget))
                         );
                     }
                 }

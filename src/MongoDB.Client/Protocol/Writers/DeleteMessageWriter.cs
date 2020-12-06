@@ -24,7 +24,7 @@ namespace MongoDB.Client.Protocol.Writers
 
             writer.WriteByte((byte) PayloadType.Type0);
 
-            DeleteHeader.Write(ref writer, message.DeleteHeader);
+            DeleteHeader.WriteBson(ref writer, message.DeleteHeader);
 
 
             writer.WriteByte((byte) PayloadType.Type1);
@@ -34,7 +34,7 @@ namespace MongoDB.Client.Protocol.Writers
             writer.WriteInt32(0); // size
             writer.WriteCString("deletes");
 
-            DeleteBody.Write(ref writer, message.DeleteBody);
+            DeleteBody.WriteBson(ref writer, message.DeleteBody);
 
             writer.Commit();
             BinaryPrimitives.WriteInt32LittleEndian(secondSpan, writer.Written - checkpoint);

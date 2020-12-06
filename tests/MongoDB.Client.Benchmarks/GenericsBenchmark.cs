@@ -25,40 +25,23 @@ namespace MongoDB.Client.Benchmarks
         private GenericDocument _genericDocument;
         private ArrayBufferWriter _writeBuffer;
         private ArrayBufferWriter _readBuffer;
-        private byte[] _documentBson;
-        private byte[] _buffer = new byte[1024 * 1024];
+
         [GlobalSetup]
         public void Setup()
         {
             var seeder = new GenericDatabaseSeeder();
-            _document = seeder.GenerateSeed().First();
-            _genericDocument = seeder.GenerateGenericSeed().First();
+            _document = seeder.GenerateSeed(/*2000*/).First();
+            _genericDocument = seeder.GenerateGenericSeed(/*2000*/).First();
             _writeBuffer = new ArrayBufferWriter(1024 * 1024);
             _readBuffer = new ArrayBufferWriter(1024 * 1024);
             var writer = new BsonWriter(_readBuffer);
-            NonGenericDocument.Write(ref writer, _document);
-            _documentBson = _document.ToBson();
+            NonGenericDocument.WriteBson(ref writer, _document);
         }
-        [Benchmark]
-        public NonGenericDocument ReadNonGeneric()
-        {
-            var reader = new BsonReader(_readBuffer.WrittenMemory);
-            NonGenericDocument.TryParse(ref reader, out var parsedItem);
-            return parsedItem;
-        }
-        [Benchmark]
-        public void WriteNonGeneric()
-        {
-            _writeBuffer.Reset();
-            var writer = new BsonWriter(_writeBuffer);
-            NonGenericDocument.Write(ref writer, _document);
-        }
-
         [Benchmark]
         public GenericDocument ReadGeneric()
         {
             var reader = new BsonReader(_readBuffer.WrittenMemory);
-            GenericDocument.TryParse(ref reader, out var parsedItem);
+            GenericDocument.TryParseBson(ref reader, out var parsedItem);
             return parsedItem;
         }
         [Benchmark]
@@ -66,7 +49,23 @@ namespace MongoDB.Client.Benchmarks
         {
             _writeBuffer.Reset();
             var writer = new BsonWriter(_writeBuffer);
-            GenericDocument.Write(ref writer, _genericDocument);
+            GenericDocument.WriteBson(ref writer, _genericDocument);
         }
+        [Benchmark]
+        public NonGenericDocument ReadNonGeneric()
+        {
+            var reader = new BsonReader(_readBuffer.WrittenMemory);
+            NonGenericDocument.TryParseBson(ref reader, out var parsedItem);
+            return parsedItem;
+        }
+        [Benchmark]
+        public void WriteNonGeneric()
+        {
+            _writeBuffer.Reset();
+            var writer = new BsonWriter(_writeBuffer);
+            NonGenericDocument.WriteBson(ref writer, _document);
+        }
+
+
     }
 }

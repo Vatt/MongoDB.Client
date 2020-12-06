@@ -244,7 +244,7 @@ namespace MongoDB.Client
 
                     writer.WriteByte((byte)PayloadType.Type0);
 
-                    InsertHeader.Write(ref writer, message.InsertHeader);
+                    InsertHeader.WriteBson(ref writer, message.InsertHeader);
 
 
                     writer.WriteByte((byte)PayloadType.Type1);
