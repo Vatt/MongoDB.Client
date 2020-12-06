@@ -17,8 +17,8 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
     {
         public double Field0 { get; set; }
         public string Field1 { get; set; }
-        public BsonDocument Field2 { get; set; }
-        public ObjectId Field3 { get; set; }
+        public MongoDB.Client.Bson.Document.BsonDocument Field2 { get; set; }
+        public MongoDB.Client.Bson.Document.BsonObjectId Field3 { get; set; }
         public int Field4 { get; set; }
         public long Field5 { get; set; }
         public DateTimeOffset Field6 { get; set; }
@@ -27,8 +27,8 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
         public AnotherNonGenericModel1 Field9 { get; set; }
         public List<double> List0 { get; set; }
         public List<string> List1 { get; set; }
-        public List<BsonDocument> List2 { get; set; }
-        public List<ObjectId> List3 { get; set; }
+        public List<MongoDB.Client.Bson.Document.BsonDocument> List2 { get; set; }
+        public List<MongoDB.Client.Bson.Document.BsonObjectId> List3 { get; set; }
         public List<int> List4 { get; set; }
         public List<long> List5 { get; set; }
         public List<DateTimeOffset> List6 { get; set; }
@@ -44,7 +44,7 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
     [BsonSerializable]
     public partial class GenericDocument<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>
     {
-        // public static GenericDocument<double, string, BsonDocument, ObjectId, int, long, DateTimeOffset, Guid,
+        // public static GenericDocument<double, string, MongoDB.Client.Bson.Document.BsonDocument, MongoDB.Client.Bson.Document.BsonObjectId, int, long, DateTimeOffset, Guid,
         //     AnotherGenericModel<int>, AnotherGenericModel<string>> Create()
         //     => new();
         public T0 Field0 { get; set; }
