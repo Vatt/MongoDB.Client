@@ -11,12 +11,10 @@ namespace MongoDB.Client.Bson.Writer
 
     public ref partial struct BsonWriter
     {
-        private delegate void WriteDelegate<T>(ref BsonWriter write, in T message);
         private static void ThrowSerializerNotFound(string typeName)
         {
             throw new SerializerNotFoundException(typeName);
         }
-
 
         private static void ThrowSerializerIsNull(string typeName)
         {
@@ -99,7 +97,7 @@ namespace MongoDB.Client.Bson.Writer
                     ThrowSerializerIsNull(typeof(T).Name);
                 }
                 typeReserved.Write(3);
-                serializer.Write(ref this, genericValue);
+                serializer.WriteBson(ref this, genericValue);
             }
         }
 

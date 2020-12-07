@@ -10,6 +10,29 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        public static StatementSyntax[] OtherTryParseBson(MemberContext member)
+        {
+            var genericName = GenericName(SF.Identifier("TryGetSerializer"), TypeFullName(member.TypeSym));
+            var serializersMapCall = InvocationExpr(IdentifierName("MongoDB.Client.Bson.Serialization.SerializersMap"),
+                                                    genericName,
+                                                    OutArgument(VarVariableDeclarationExpr(SF.Identifier($"{member.NameSym.Name}Serializer"))));
+            var serializerTryParse = InvocationExpr(SF.IdentifierName($"{member.NameSym.Name}Serializer"), IdentifierName("TryParseBson"), RefArgument(member.Root.BsonReaderToken), OutArgument(IdentifierName(member.AssignedVariable)));
+            return Statements(
+                IfNot(serializersMapCall, SerializerNotFoundException(member.TypeSym)),
+                IfNotReturnFalse(serializerTryParse));
+        }
+        public static StatementSyntax[] OtherWriteBson(MemberContext member)
+        {
+            var genericName = GenericName(SF.Identifier("TryGetSerializer"), TypeFullName(member.TypeSym));
+            var serializersMapCall = InvocationExpr(IdentifierName("MongoDB.Client.Bson.Serialization.SerializersMap"),
+                                                    genericName,
+                                                    OutArgument(VarVariableDeclarationExpr(SF.Identifier($"{member.NameSym.Name}Serializer"))));
+            var sma = SimpleMemberAccess(member.Root.WriterInputVar, IdentifierName(member.NameSym));
+            var serializerWrite = InvocationExprStatement(SF.IdentifierName($"{member.NameSym.Name}Serializer"), IdentifierName("WriteBson"), RefArgument(member.Root.BsonWriterToken), Argument(sma));
+            return Statements(
+                IfNot(serializersMapCall, SerializerNotFoundException(member.TypeSym)),
+                serializerWrite);
+        }
         public static string SelfName(ISymbol symbol)
         {
             if (symbol is INamedTypeSymbol namedSym && namedSym.TypeArguments.Length > 0)

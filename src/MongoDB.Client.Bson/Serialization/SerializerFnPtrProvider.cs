@@ -10,7 +10,7 @@ namespace MongoDB.Client.Bson.Serialization
     {
         public static readonly delegate*<ref BsonReader, out T, bool> TryParseFnPtr;
         public static readonly delegate*<ref BsonWriter, in T, void> WriteFnPtr;
-        public static readonly delegate*<ref BsonReader, int, out T, bool> TryParseSimpleBsonType;
+        //public static readonly delegate*<ref BsonReader, int, out T, bool> TryParseSimpleBsonType;
         public static readonly bool IsSerializable;
         public static readonly bool IsSimpleBsonType;
         static SerializerFnPtrProvider()
@@ -19,7 +19,7 @@ namespace MongoDB.Client.Bson.Serialization
             {
                 TryParseFnPtr = default;
                 WriteFnPtr = default;
-                TryParseSimpleBsonType = default;
+                //TryParseSimpleBsonType = default;
                 IsSerializable = false;
                 IsSimpleBsonType = false;
                 return;
@@ -33,30 +33,30 @@ namespace MongoDB.Client.Bson.Serialization
                 IsSerializable = false;
                 IsSimpleBsonType = true;
 
-                if (typeof(T) == typeof(DateTimeOffset))
-                {
-                    TryParseSimpleBsonType = &TryParseDateTimeOffset;
-                }
-                if (typeof(T) == typeof(BsonObjectId))
-                {
-                    TryParseSimpleBsonType = &TryParseBsonObjectId;
-                }
-                if (typeof(T) == typeof(Guid))
-                {
-                    TryParseSimpleBsonType = &TryParseGuid;
-                }
-                if (typeof(T) == typeof(string))
-                {
-                    TryParseSimpleBsonType = &TryParseString;
-                }
-                if (typeof(T) == typeof(BsonArray))
-                {
-                    TryParseSimpleBsonType = &TryParseBsonArray;
-                }
-                if (typeof(T) == typeof(BsonDocument))
-                {
-                    TryParseSimpleBsonType = &TryParseBsonDocument;
-                }
+                //if (typeof(T) == typeof(DateTimeOffset))
+                //{
+                //    TryParseSimpleBsonType = &TryParseDateTimeOffset;
+                //}
+                //if (typeof(T) == typeof(BsonObjectId))
+                //{
+                //    TryParseSimpleBsonType = &TryParseBsonObjectId;
+                //}
+                //if (typeof(T) == typeof(Guid))
+                //{
+                //    TryParseSimpleBsonType = &TryParseGuid;
+                //}
+                //if (typeof(T) == typeof(string))
+                //{
+                //    TryParseSimpleBsonType = &TryParseString;
+                //}
+                //if (typeof(T) == typeof(BsonArray))
+                //{
+                //    TryParseSimpleBsonType = &TryParseBsonArray;
+                //}
+                //if (typeof(T) == typeof(BsonDocument))
+                //{
+                //    TryParseSimpleBsonType = &TryParseBsonDocument;
+                //}
 
                 return;
             }
@@ -84,7 +84,7 @@ namespace MongoDB.Client.Bson.Serialization
             {
                 IsSerializable = true;
                 IsSimpleBsonType = false;
-                TryParseSimpleBsonType = default;
+                //TryParseSimpleBsonType = default;
             }
         }
 

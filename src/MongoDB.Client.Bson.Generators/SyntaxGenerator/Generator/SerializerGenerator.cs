@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
 using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
@@ -14,6 +15,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static StatementSyntax[] Statements(params StatementSyntax[] statements)
         {
             return statements;
+        }
+        public static StatementSyntax[] Statements(StatementSyntax first, params StatementSyntax[] statements)
+        {
+            var lst = new List<StatementSyntax>(statements.Length + 1);
+            lst.Add(first);
+            lst.AddRange(statements);
+            return lst.ToArray();
         }
         public static StatementSyntax Statement(ExpressionSyntax expr)
         {
@@ -29,6 +37,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return SF.ObjectCreationExpression(SF.ParseTypeName(trueType.ToString()), args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args), default);
         }
         public static MemberAccessExpressionSyntax SimpleMemberAccess(ExpressionSyntax source, IdentifierNameSyntax member)
+        {
+            return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member);
+        }
+        public static MemberAccessExpressionSyntax SimpleMemberAccess(ExpressionSyntax source, SimpleNameSyntax member)
         {
             return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member);
         }
@@ -58,6 +70,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return SF.ExpressionStatement(InvocationExpr(IdentifierName(member), args));
         }
         public static InvocationExpressionSyntax InvocationExpr(ExpressionSyntax source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
+        {
+            return SF.InvocationExpression(SimpleMemberAccess(source, member), args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args));
+        }
+        public static InvocationExpressionSyntax InvocationExpr(ExpressionSyntax source, SimpleNameSyntax member, params ArgumentSyntax[] args)
         {
             return SF.InvocationExpression(SimpleMemberAccess(source, member), args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args));
         }

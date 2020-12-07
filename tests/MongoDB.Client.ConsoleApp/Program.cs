@@ -58,11 +58,11 @@ namespace MongoDB.Client.ConsoleApp
 
 
             var writer = new BsonWriter(pipe);
-            serializer.Write(ref writer, item);
+            serializer.WriteBson(ref writer, item);
 
 
             var reader = new BsonReader(pipe.WrittenMemory);
-            serializer.TryParse(ref reader, out var parsedItem);
+            serializer.TryParseBson(ref reader, out var parsedItem);
 
             var eq = item.Equals(parsedItem);
         }

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipelines;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
@@ -59,6 +61,11 @@ namespace MongoDB.Client.Tests.Serialization
     }
     public abstract class BaseSerialization 
     {
+        [ModuleInitializer]
+        public static void TestInit()
+        {
+            SerializersMap.RegisterSerializers(new KeyValuePair<Type, IBsonSerializer>(typeof(TestModels.CustomModel), new TestModels.CustomModelSerializer()));
+        }
         public static async Task<T> RoundTripAsync<T>(T message)
         {
             var pipe = new Pipe(new PipeOptions(pauseWriterThreshold: long.MaxValue, resumeWriterThreshold: long.MaxValue));

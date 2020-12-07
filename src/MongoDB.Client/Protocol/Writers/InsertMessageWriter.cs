@@ -43,7 +43,7 @@ namespace MongoDB.Client.Protocol.Writers
 
             foreach (var item in message.Items)
             {
-                _serializer.Write(ref writer, item);
+                _serializer.WriteBson(ref writer, item);
             }
             
             writer.Commit();

@@ -154,6 +154,13 @@ CONDITION_CHECK:
                                InvocationExprStatement(IdentifierName(SelfFullName(typeSym)), IdentifierName("WriteBson"), RefArgument(writerId), Argument(writeTarget))
                         );
                     }
+                    else
+                    {
+                        return Statements(
+                                Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
+                                OtherWriteBson(ctx)
+                            );
+                    }
                 }
             }
             return default;
