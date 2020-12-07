@@ -12,7 +12,7 @@ namespace MongoDB.Client.Bson.Serialization
     {
         private static readonly Dictionary<Type, IBsonSerializer> _serializerMap = new Dictionary<Type, IBsonSerializer>
         {
-            [typeof(BsonDocument)] = new BsonDocumentSerializer(),            
+            //[typeof(BsonDocument)] = new BsonDocumentSerializer(),            
         };
         //static SerializersMap()
         //{

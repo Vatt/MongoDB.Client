@@ -180,14 +180,19 @@ namespace MongoDB.Client
                 switch (mongoResponse)
                 {
                     case ReplyMessage replyMessage:
-                        if (SerializersMap.TryGetSerializer<T>(out var replySerializer))
-                        {
-                            var bodyReader = new ReplyBodyReader<T>(replySerializer, replyMessage);
-                            var bodyResult = await reader.ReadAsync(bodyReader, default)
-                                .ConfigureAwait(false);
-                            reader.Advance();
-                            return bodyResult.Message;
-                        }
+                        //if (SerializersMap.TryGetSerializer<T>(out var replySerializer))
+                        //{
+                        //    var bodyReader = new ReplyBodyReader<T>(new BsonDocumentSerializer() as IGenericBsonSerializer<T>, replyMessage);
+                        //    var bodyResult = await reader.ReadAsync(bodyReader, default)
+                        //        .ConfigureAwait(false);
+                        //    reader.Advance();
+                        //    return bodyResult.Message;
+                        //}
+                        var bodyReader = new ReplyBodyReader<T>(new BsonDocumentSerializer() as IGenericBsonSerializer<T>, replyMessage);
+                        var bodyResult = await reader.ReadAsync(bodyReader, default)
+                            .ConfigureAwait(false);
+                        reader.Advance();
+                        return bodyResult.Message;
 
                         return ThrowHelper.UnsupportedTypeException<QueryResult<T>>(typeof(T));
                     default:
