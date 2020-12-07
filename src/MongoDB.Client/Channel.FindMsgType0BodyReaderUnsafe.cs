@@ -98,9 +98,10 @@ namespace MongoDB.Client
                                 T item = default;
                                 unsafe
                                 {
-                                    TryParseResult = TryParseFnPtr(ref bsonReader, out item);
+                                    //TryParseResult = TryParseFnPtr(ref bsonReader, out item);
                                 }
-                                if (TryParseResult)
+                                //if (TryParseResult)
+                                if (TryParseDelegate(ref bsonReader, out item))
                                 {
                                     items.Add(item);
                                     _modelsReaded += bsonReader.BytesConsumed - checkpoint;

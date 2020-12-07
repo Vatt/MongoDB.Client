@@ -6,11 +6,15 @@ using System.Reflection;
 
 namespace MongoDB.Client.Bson.Serialization
 {
+    public delegate bool TryParseDelegate<T>(ref BsonReader reader, out T message);
+    public delegate void WriteDelegate<T>(ref BsonWriter reader, in T message);
     public unsafe static class SerializerFnPtrProvider<T>
     {
         public static readonly delegate*<ref BsonReader, out T, bool> TryParseFnPtr;
         public static readonly delegate*<ref BsonWriter, in T, void> WriteFnPtr;
         public static readonly delegate*<ref BsonReader, int, out T, bool> TryParseSimpleBsonType;
+        public static readonly TryParseDelegate<T> TryParseDelegate;
+        public static readonly WriteDelegate<T> WriteDelegate;
         public static readonly bool IsSerializable;
         public static readonly bool IsSimpleBsonType;
         static SerializerFnPtrProvider()
@@ -70,6 +74,7 @@ namespace MongoDB.Client.Bson.Serialization
             else
             {
                 TryParseFnPtr = (delegate*<ref BsonReader, out T, bool>)tryParseMethod.MethodHandle.GetFunctionPointer();
+                TryParseDelegate = tryParseMethod.CreateDelegate(typeof(TryParseDelegate<T>)) as TryParseDelegate<T>;
             }
             
             if(writeMethod == null)
@@ -79,6 +84,7 @@ namespace MongoDB.Client.Bson.Serialization
             else
             {
                 WriteFnPtr = (delegate*<ref BsonWriter, in T, void>)writeMethod.MethodHandle.GetFunctionPointer();
+                WriteDelegate = writeMethod.CreateDelegate(typeof(WriteDelegate<T>)) as WriteDelegate<T>;
             }
             if ( ( TryParseFnPtr != default && WriteFnPtr != default ) || SerializersMap.TryGetSerializer<T>(out var _))
             {

@@ -18,13 +18,14 @@ namespace MongoDB.Client
             private static readonly IGenericBsonSerializer<T> _serializer;
             private static readonly ConcurrentQueue<ManualResetValueTaskSource<IParserResult>> _queue = new();
             private static readonly unsafe delegate*<ref Bson.Reader.BsonReader, out T, bool> TryParseFnPtr;
-           
+            private static readonly TryParseDelegate<T> TryParseDelegate;
             static CursorParserCallbackHolder()
             {
                 SerializersMap.TryGetSerializer(out _serializer);
                 unsafe
                 {
                     TryParseFnPtr = SerializerFnPtrProvider<T>.TryParseFnPtr;
+                    TryParseDelegate = SerializerFnPtrProvider<T>.TryParseDelegate;
                 }
                 _parser = CursorParseAsync;
                 Completion = i =>
