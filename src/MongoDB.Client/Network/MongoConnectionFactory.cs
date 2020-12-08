@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 namespace MongoDB.Client.Network
 {
-    public class NetworkConnectionFactory : IConnectionFactory
+    public class MongoConnectionFactory : IConnectionFactory
     {
         public async ValueTask<ConnectionContext> ConnectAsync(EndPoint? endPoint,  CancellationToken cancellationToken = default)
         {
@@ -18,7 +18,7 @@ namespace MongoDB.Client.Network
                 return null;
             }
             var ns = new NetworkStream(socket);
-            return default;// System.Net.Connections.Connection.FromStream(ns, localEndPoint: socket.LocalEndPoint, remoteEndPoint: socket.RemoteEndPoint);
+            return default;
         }
     }
 }

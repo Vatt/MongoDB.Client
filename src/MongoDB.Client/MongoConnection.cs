@@ -24,7 +24,7 @@ namespace MongoDB.Client
     internal partial class MongoConnection : IAsyncDisposable
     {
         private readonly ILogger _logger;
-        private readonly NetworkConnectionFactory _connectionFactory;
+        private readonly MongoConnectionFactory _connectionFactory;
         private ConnectionContext _connection;
         private ProtocolReader? _reader;
         private ProtocolWriter? _writer;
@@ -49,7 +49,7 @@ namespace MongoDB.Client
         {
             _channelNum = channelNum;
             _logger = loggerFactory.CreateLogger($"Channel: {channelNum}");
-            _connectionFactory = new NetworkConnectionFactory();
+            _connectionFactory = new MongoConnectionFactory();
         }
 
         private static int _counter;

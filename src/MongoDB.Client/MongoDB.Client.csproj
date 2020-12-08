@@ -37,5 +37,9 @@
     </AssemblyAttribute>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Network\Transport.Sockets\Intenral\" />
+	</ItemGroup>
+
 
 </Project>
