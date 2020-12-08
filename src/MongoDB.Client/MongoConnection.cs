@@ -49,7 +49,7 @@ namespace MongoDB.Client
         {
             _channelNum = channelNum;
             _logger = loggerFactory.CreateLogger($"Channel: {channelNum}");
-            _connectionFactory = new MongoConnectionFactory();
+            _connectionFactory = new MongoConnectionFactory(loggerFactory);
         }
 
         private static int _counter;

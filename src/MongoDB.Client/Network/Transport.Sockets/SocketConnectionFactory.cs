@@ -36,22 +36,25 @@ namespace MongoDB.Client.Network.Transport.Sockets
             var logger = loggerFactory.CreateLogger("MongoDB.Client.Network.Transport.Sockets");
             _trace = new SocketsTrace(logger);
         }
-
+        //public async ValueTask<ConnectionContext> ConnectAsync(DnsEndPoint endpoint, CancellationToken cancellationToken = default)
+        //{
+        //    return new IPEndPoint(endpoint.)
+        //}
         public async ValueTask<ConnectionContext> ConnectAsync(EndPoint endpoint, CancellationToken cancellationToken = default)
         {
-            var ipEndPoint = endpoint as IPEndPoint;
+            //var ipEndPoint = endpoint as IPEndPoint;
 
-            if (ipEndPoint is null)
-            {
-                throw new NotSupportedException("The SocketConnectionFactory only supports IPEndPoints for now.");
-            }
+            //if (ipEndPoint is null)
+            //{
+            //    throw new NotSupportedException("The SocketConnectionFactory only supports IPEndPoints for now.");
+            //}
 
-            var socket = new Socket(ipEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp)
+            var socket = new Socket(/*endpoint.AddressFamily, */SocketType.Stream, ProtocolType.Tcp)
             {
                 NoDelay = _options.NoDelay
             };
 
-            await socket.ConnectAsync(ipEndPoint);
+            await socket.ConnectAsync(endpoint);
 
             var socketConnection = new SocketConnection(
                 socket,
