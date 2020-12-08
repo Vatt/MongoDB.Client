@@ -17,6 +17,7 @@ using MongoDB.Client.Protocol.Messages;
 using System.Buffers;
 using MongoDB.Client.Bson.Writer;
 using System.Buffers.Binary;
+using Microsoft.AspNetCore.Connections;
 
 namespace MongoDB.Client
 {
@@ -24,7 +25,7 @@ namespace MongoDB.Client
     {
         private readonly ILogger _logger;
         private readonly NetworkConnectionFactory _connectionFactory;
-        private System.Net.Connections.Connection? _connection;
+        private ConnectionContext _connection;
         private ProtocolReader? _reader;
         private ProtocolWriter? _writer;
         private readonly MessageHeaderReader _messageHeaderReader = new();
@@ -60,15 +61,15 @@ namespace MongoDB.Client
 
         public async Task ConnectAsync(EndPoint endPoint, CancellationToken cancellationToken)
         {
-            _connection = await _connectionFactory.ConnectAsync(endPoint, null, cancellationToken)
+            _connection = await _connectionFactory.ConnectAsync(endPoint, cancellationToken)
                 .ConfigureAwait(false);
             if (_connection is null)
             {
                 ThrowHelper.ConnectionException<bool>(endPoint);
             }
 
-            _reader = new ProtocolReader(_connection.Pipe.Input);
-            _writer = new ProtocolWriter(_connection.Pipe.Output);
+            _reader = _connection.CreateReader();
+            _writer = _connection.CreateWriter();
             _readingTask = StartReadAsync();
         }
 
@@ -447,7 +448,8 @@ namespace MongoDB.Client
 
             if (_connection is not null)
             {
-                await _connection.CloseAsync().ConfigureAwait(false);
+                //TODO: CHECK IT!
+                //await _connection.CloseAsync().ConfigureAwait(false);
                 await _connection.DisposeAsync().ConfigureAwait(false);
             }
         }
