@@ -5,34 +5,44 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
-using MongoDB.Client.MongoConnections;
 using MongoDB.Client.Protocol.Messages;
 
 namespace MongoDB.Client
 {
-    internal class NodeChannelsPool : IChannelsPool
+    internal class NodeConnectionsPool : IConnectionsPool
     {
+        internal class ConnectionInfo
+        {
+            public BsonDocument MongoConnectionInfo { get; }
+            public BsonDocument Hell { get; }
+
+            public ConnectionInfo(BsonDocument mongoConnectionInfo, BsonDocument hell)
+            {
+                MongoConnectionInfo = mongoConnectionInfo;
+                Hell = hell;
+            }
+        }
         private static readonly Random Random = new();
         
         private readonly MongoClientSettings _settings;
         private readonly EndPoint _endPoint;
         private readonly ILoggerFactory _loggerFactory;
-        private readonly ILogger<NodeChannelsPool> _logger;
-        private ImmutableArray<Channel> _channels = ImmutableArray<Channel>.Empty;
+        private readonly ILogger<NodeConnectionsPool> _logger;
+        private ImmutableArray<MongoConnection> _channels = ImmutableArray<MongoConnection>.Empty;
         private readonly SemaphoreSlim _channelAllocateLock = new(1);
         private int _channelNumber;
         private int _channelCounter;
 
-        public NodeChannelsPool(MongoClientSettings settings, EndPoint endPoint, ILoggerFactory loggerFactory)
+        public NodeConnectionsPool(MongoClientSettings settings, EndPoint endPoint, ILoggerFactory loggerFactory)
         {
             _settings = settings;
             _endPoint = endPoint;
             _loggerFactory = loggerFactory;
-            _logger = loggerFactory.CreateLogger<NodeChannelsPool>();
+            _logger = loggerFactory.CreateLogger<NodeConnectionsPool>();
             _initialDocument = InitHelper.CreateInitialCommand();
         }
 
-        public ValueTask<Channel> GetChannelAsync(CancellationToken cancellationToken)
+        public ValueTask<MongoConnection> GetChannelAsync(CancellationToken cancellationToken)
         {
             var idx = Interlocked.Increment(ref _channelCounter);
             var channels = _channels;
@@ -43,24 +53,24 @@ namespace MongoDB.Client
                 var channel = channels[current];
                 if (channel.RequestsInProgress < _settings.MultiplexingTreshold)
                 {
-                    return new ValueTask<Channel>(channel);
+                    return new ValueTask<MongoConnection>(channel);
                 }
             }
 
             if (channels.Length == _settings.ConnectionPoolMaxSize)
             {
                 idx = Random.Next(_settings.ConnectionPoolMaxSize);
-                return new ValueTask<Channel>(channels[idx]);
+                return new ValueTask<MongoConnection>(channels[idx]);
             }
             return AllocateNewChannel(cancellationToken);
         }
 
-        private async ValueTask<Channel> AllocateNewChannel(CancellationToken cancellationToken)
+        private async ValueTask<MongoConnection> AllocateNewChannel(CancellationToken cancellationToken)
         {
             await _channelAllocateLock.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                Channel channel;
+                MongoConnection channel;
                 var channels = _channels;
                 for (int i = 0; i < channels.Length; i++)
                 {
@@ -89,11 +99,11 @@ namespace MongoDB.Client
             }
         }
 
-        private async Task<Channel> CreateChannelAsync(CancellationToken token)
+        private async Task<MongoConnection> CreateChannelAsync(CancellationToken token)
         {
             _logger.LogInformation("Allocating new channel");
             var channelNum = Interlocked.Increment(ref _channelNumber);
-            var channel = new Channel(_loggerFactory, channelNum);
+            var channel = new MongoConnection(_loggerFactory, channelNum);
             await channel.ConnectAsync(_endPoint, token).ConfigureAwait(false);
             var result = await OpenChannelAsync(channel,token);
             return channel;
@@ -101,7 +111,7 @@ namespace MongoDB.Client
         
         
         private readonly BsonDocument _initialDocument;
-        private async Task<ConnectionInfo> OpenChannelAsync(Channel channel, CancellationToken token)
+        private async Task<ConnectionInfo> OpenChannelAsync(MongoConnection channel, CancellationToken token)
         {
             var connectRequest = CreateQueryRequest(_initialDocument, channel.GetNextRequestNumber());
             var configMessage = await channel.SendQueryAsync<BsonDocument>(connectRequest, token).ConfigureAwait(false);

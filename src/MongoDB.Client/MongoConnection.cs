@@ -20,7 +20,7 @@ using System.Buffers.Binary;
 
 namespace MongoDB.Client
 {
-    internal partial class Channel : IAsyncDisposable
+    internal partial class MongoConnection : IAsyncDisposable
     {
         private readonly ILogger _logger;
         private readonly NetworkConnectionFactory _connectionFactory;
@@ -44,7 +44,7 @@ namespace MongoDB.Client
 
         private readonly int _channelNum;
 
-        public Channel(ILoggerFactory loggerFactory, int channelNum)
+        public MongoConnection(ILoggerFactory loggerFactory, int channelNum)
         {
             _channelNum = channelNum;
             _logger = loggerFactory.CreateLogger($"Channel: {channelNum}");

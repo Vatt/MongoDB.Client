@@ -7,7 +7,7 @@ namespace MongoDB.Client
     public class MongoClient
     {
         public MongoClientSettings Settings { get; }
-        private readonly IChannelsPool _channelsPool;
+        private readonly IConnectionsPool _channelsPool;
 
         public MongoClient()
          : this(new MongoClientSettings(), new NullLoggerFactory())
@@ -32,7 +32,7 @@ namespace MongoDB.Client
         public MongoClient(MongoClientSettings settings, ILoggerFactory loggerFactory)
         {
             Settings = settings;
-            _channelsPool = new NodeChannelsPool(settings, settings.Endpoints[0], loggerFactory);
+            _channelsPool = new NodeConnectionsPool(settings, settings.Endpoints[0], loggerFactory);
         }
 
         public MongoDatabase GetDatabase(string name)

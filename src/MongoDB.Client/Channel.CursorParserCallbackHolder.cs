@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace MongoDB.Client
 {
-    internal partial class Channel
+    internal partial class MongoConnection
     {
         private static partial class CursorParserCallbackHolder<T>
         {
