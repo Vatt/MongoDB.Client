@@ -15,7 +15,7 @@ namespace MongoDB.Client.Benchmarks
         private MongoCollection<RootDocument> _collection;
         private IMongoCollection<RootDocument> _oldCollection;
 
-        [Params(256)]
+        [Params(256)] 
         public int RequestsCount { get; set; }
 
         [Params(100)]
