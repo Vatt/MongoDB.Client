@@ -27,7 +27,7 @@ namespace MongoDB.Client.Protocol.Readers
             var bsonReader = new BsonReader(input);
             while (_result.Count < _replyMessage.ReplyHeader.NumberReturned)
             {
-                if (_serializer.TryParse(ref bsonReader, out var item))
+                if (_serializer.TryParseBson(ref bsonReader, out var item))
                 {
                     _result.Add(item);
                     consumed = bsonReader.Position;

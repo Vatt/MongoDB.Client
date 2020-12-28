@@ -12,5 +12,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var exception = SF.ParseTypeName("MongoDB.Client.Bson.Serialization.Exceptions.SerializerEndMarkerException");
             return SF.ThrowExpression(ObjectCreation(exception, SF.Argument(NameOf(IdentifierName(symbol.ToString()))), SF.Argument(endMarker)));
         }
+        public static ThrowExpressionSyntax SerializerNotFoundException(ISymbol symbol)
+        {
+
+            var exception = SF.ParseTypeName("MongoDB.Client.Bson.Serialization.Exceptions.SerializerNotFoundException");
+            return SF.ThrowExpression(ObjectCreation(exception, SF.Argument(NameOf(IdentifierName(symbol.ToString())))));
+        }
     }
 }

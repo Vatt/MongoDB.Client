@@ -3,7 +3,7 @@
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
     [BsonSerializable]
-    public class ModelWithIgnore
+    public partial class ModelWithIgnore
     {
         public string Field { get; set; }
 

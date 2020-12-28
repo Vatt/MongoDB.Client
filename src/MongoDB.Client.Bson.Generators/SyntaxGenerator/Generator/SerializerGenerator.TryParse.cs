@@ -18,10 +18,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var bsonNameToken = SF.Identifier("bsonName");
             return SF.MethodDeclaration(
                     attributeLists: default,
-                    modifiers: default,
-                    explicitInterfaceSpecifier: SF.ExplicitInterfaceSpecifier(GenericName(SerializerInterfaceToken, TypeFullName(decl))),
+                    modifiers: new(PublicKeyword(), StaticKeyword()),
+                    explicitInterfaceSpecifier: default,//SF.ExplicitInterfaceSpecifier(GenericName(SerializerInterfaceToken, TypeFullName(decl))),
                     returnType: BoolPredefinedType(),
-                    identifier: SF.Identifier("TryParse"),
+                    identifier: SF.Identifier("TryParseBson"),
                     parameterList: ParameterList(RefParameter(ctx.BsonReaderType, ctx.BsonReaderToken),
                                                  OutParameter(TypeFullName(ctx.Declaration), ctx.TryParseOutVarToken)),
                     body: default,
@@ -151,13 +151,38 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 else
                 {
                     var operation = ReadOperation(ctx, member.NameSym, member.TypeSym, ctx.BsonReaderId, IdentifierName(member.AssignedVariable), bsonType);
-                    statements.Add(
-                        SF.IfStatement(
-                            condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
-                            statement: 
-                            SF.Block(
-                                    IfNotReturnFalse(operation),
-                                    SF.ContinueStatement())));
+                    if(operation != default)
+                    {
+                        statements.Add(
+                            SF.IfStatement(
+                                condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
+                                statement:
+                                SF.Block(IfNotReturnFalse(operation), SF.ContinueStatement())));
+                    }
+                    else
+                    {
+                        if (AttributeHelper.IsBsonSerializable(member.TypeSym))
+                        {
+                            var condition = InvocationExpr(IdentifierName(SelfFullName(member.TypeSym)), IdentifierName("TryParseBson"), RefArgument(ctx.BsonReaderId), OutArgument(IdentifierName(member.AssignedVariable)));
+                            statements.Add(
+                                           SF.IfStatement(
+                                               condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
+                                               statement:
+                                               SF.Block(IfNotReturnFalse(condition), SF.ContinueStatement())));
+                        }
+                        else
+                        {
+                            statements.Add(
+                                           SF.IfStatement(
+                                               condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
+                                               statement:
+                                               SF.Block(
+                                                   OtherTryParseBson(member))
+                                               .AddStatements(
+                                                   SF.ContinueStatement())));
+                        }
+                    }
+
                 }
 
             }
@@ -185,18 +210,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     return InvocationExpr(IdentifierName(ReadArrayMethodName(nameSym, trueType)), RefArgument(readerId), OutArgument(readTarget));
                 }
             }
-            else
-            {
-                foreach (var context in ctx.Root.Contexts)
-                {
-                    //TODO: если сериализатор не из ЭТОЙ сборки, добавить ветку с мапой с проверкой на нуль
-                    if (context.Declaration.ToString().Equals(trueType.ToString()))
-                    {
-                        return GeneratedSerializerTryParse(context, readerId, readTarget);
-                    }
-                }
-            }
-
             return default;
         }
         private static bool TryGetSimpleReadOperation(ITypeSymbol typeSymbol, ExpressionSyntax bsonType, ExpressionSyntax variable, out InvocationExpressionSyntax expr)

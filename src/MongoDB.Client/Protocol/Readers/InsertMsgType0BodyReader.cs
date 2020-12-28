@@ -9,15 +9,7 @@ using MongoDB.Client.Protocol.Core;
 namespace MongoDB.Client.Protocol.Readers
 {
     internal class InsertMsgType0BodyReader : IMessageReader<InsertResult>
-    {
-        private static readonly IGenericBsonSerializer<InsertResult> _resultSerializer;
-
-        static InsertMsgType0BodyReader()
-        {
-            SerializersMap.TryGetSerializer(out _resultSerializer!);
-            
-        }
-       
+    {     
        public long Consumed { get; private set; }
 
         public bool TryParseMessage(
@@ -29,7 +21,7 @@ namespace MongoDB.Client.Protocol.Readers
             var bsonReader = new BsonReader(input);
 
 
-            if (_resultSerializer.TryParse(ref bsonReader, out message) == false)
+            if (InsertResult.TryParseBson(ref bsonReader, out message) == false)
             {
                 return false;
             }

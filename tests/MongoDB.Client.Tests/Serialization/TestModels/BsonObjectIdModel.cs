@@ -5,7 +5,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
     [BsonSerializable]
-    public class BsonObjectIdModel
+    public partial class BsonObjectIdModel
     {
         [BsonId]
         public BsonObjectId Id { get; set; }

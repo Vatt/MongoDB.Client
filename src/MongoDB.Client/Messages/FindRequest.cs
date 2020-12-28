@@ -4,7 +4,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 namespace MongoDB.Client.Messages
 {
     [BsonSerializable]
-    public class FindRequest
+    public partial class FindRequest
     {
         [BsonElement("find")]
         [BsonWriteIgnoreIf("Find is null")]

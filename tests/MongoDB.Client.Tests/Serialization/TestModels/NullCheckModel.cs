@@ -4,7 +4,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
     [BsonSerializable]
-    public class NullCheckData
+    public partial class NullCheckData
     {
         public int A;
 
@@ -19,7 +19,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         }
     }
     [BsonSerializable]
-    public class NullCheckModel
+    public partial class NullCheckModel
     {
         public NullCheckData Data;
         public List<NullCheckData> DataArray;

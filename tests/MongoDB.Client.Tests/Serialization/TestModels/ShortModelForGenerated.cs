@@ -7,10 +7,10 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
     [BsonSerializable]
-    public class ShortModelForGenerated : IEquatable<ModelForGenerated>
+    public partial class ShortModelForGenerated : IEquatable<ModelForGenerated>
     {
         [BsonSerializable]
-        public class ShortListModel : IEquatable<ModelForGenerated.ListModel>
+        public partial class ShortListModel : IEquatable<ModelForGenerated.ListModel>
         {
             public List<double> Doubles { get; set; }
             public List<string> Strings { get; set; }
@@ -63,10 +63,10 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         }
 
         [BsonSerializable]
-        public class ShortListItem: IEquatable<ModelForGenerated.ListItem>
+        public partial class ShortListItem : IEquatable<ModelForGenerated.ListItem>
         {
             [BsonSerializable]
-            public class ShortInnerItem : IEquatable<ModelForGenerated.ListItem.InnerItem>
+            public partial class ShortInnerItem : IEquatable<ModelForGenerated.ListItem.InnerItem>
             {
                 public int A;
                 public PlanetModel PlanetModel;

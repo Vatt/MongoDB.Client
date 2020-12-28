@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Bson.Serialization.Exceptions;
 using MongoDB.Client.Bson.Utils;
 
@@ -17,64 +18,102 @@ namespace MongoDB.Client.Bson.Reader
         {
             throw new SerializerIsNullException(typeName);
         }
-        public bool TryReadGeneric<T>(int bsonType, out T genericValue)
+        public unsafe bool TryReadGeneric<T>(int bsonType, out T genericValue)
         {
-            genericValue = default;
-            switch (genericValue)
+            genericValue = default(T);
+            if (SerializerFnPtrProvider<T>.IsSerializable)
             {
-                case double value:
-                    if (!TryGetDouble(out value)) { return false; }
-                    genericValue = (T)(object)value;
-                    return true;
-                case string value:
-                    if (!TryGetString(out value)) { return false; }
-                    genericValue = (T)(object)value;
-                    return true;
-                case BsonArray value:
-                    BsonDocument tempArray = value;
-                    if (!TryParseDocument(out tempArray)) { return false; }
-                    genericValue = (T)(object)tempArray;
-                    return true;
-                case BsonDocument value:
-                    if (!TryParseDocument(out value)) { return false; }
-                    genericValue = (T)(object)value;
-                    return true;
-                case Guid value:
-                    if (!TryGetGuidWithBsonType(bsonType, out value)) { return false; }
-                    genericValue = (T)(object)value;
-                    return true;
-                case BsonObjectId value:
-                    if (!TryGetObjectId(out value)) { return false; }
-                    genericValue = (T)(object)value;
-                    return true;
-                case bool value:
-                    if (!TryGetBoolean(out value)) { return false; }
-                    genericValue = (T)(object)value;
-                    return true;
-                case DateTimeOffset value:
-                    if (!TryGetDateTimeWithBsonType(bsonType, out value)) { return false; }
-                    genericValue = (T)(object)value;
-                    return true;
-                case int value:
-                    if (!TryGetInt32(out value)) { return false; }
-                    genericValue = (T)(object)value;
-                    return true;
-                case long value:
-                    if (!TryGetInt64(out value)) { return false; }
-                    genericValue = (T)(object)value;
-                    return true;
+                goto SERIALIZABLE;
+            }
+            if (SerializerFnPtrProvider<T>.IsSimpleBsonType)
+            {
+                //return SerializerFnPtrProvider<T>.TryParseSimpleBsonType(ref this, bsonType, out genericValue);
+                goto SIMPLE_BSON_TYPE;
+            }
+            if (typeof(T).IsPrimitive)
+            {
+                switch (genericValue)
+                {
+                    case double value:
+                        if (!TryGetDouble(out value)) { return false; }
+                        genericValue = (T)(object)value;
+                        return true;
+                    case bool value:
+                        if (!TryGetBoolean(out value)) { return false; }
+                        genericValue = (T)(object)value;
+                        return true;
+                    case int value:
+                        if (!TryGetInt32(out value)) { return false; }
+                        genericValue = (T)(object)value;
+                        return true;
+                    case long value:
+                        if (!TryGetInt64(out value)) { return false; }
+                        genericValue = (T)(object)value;
+                        return true;
+                    default:
+                        ThrowSerializerNotFound(typeof(T).Name);
+                        break;
+                }
+            }
+        SIMPLE_BSON_TYPE:
+            if (typeof(T) == typeof(DateTimeOffset))
+            {
+                if (!TryGetDateTimeWithBsonType(bsonType, out var value)) { return false; }
+                genericValue = (T)(object)value;
+                return true;
+            }
+            if (typeof(T) == typeof(BsonObjectId))
+            {
+                if (!TryGetObjectId(out var value)) { return false; }
+                genericValue = (T)(object)value;
+                return true;
+            }
+            if (typeof(T) == typeof(Guid))
+            {
+                if (!TryGetGuidWithBsonType(bsonType, out var value)) { return false; }
+                genericValue = (T)(object)value;
+                return true;
+            }
+            if (typeof(T) == typeof(string))
+            {
+                string strvalue = default;
+                if (!TryGetString(out strvalue)) { return false; }
+                genericValue = (T)(object)strvalue;
+                return true;
+            }
+            if (typeof(T) == typeof(BsonArray))
+            {
+                BsonDocument tempArray;
+                if (!TryParseDocument(out tempArray)) { return false; }
+                genericValue = (T)(object)tempArray;
+                return true;
+            }
+            if (typeof(T) == typeof(BsonDocument))
+            {
+                if (!TryParseDocument(out var value)) { return false; }
+                genericValue = (T)(object)value;
+                return true;
+            }
+        SERIALIZABLE:
+            var reader = SerializerFnPtrProvider<T>.TryParseFnPtr;
+            if (reader != default)
+            {
+                return reader(ref this, out genericValue);
+            }
+            else
+            {
+                if (SerializersMap.TryGetSerializer<T>(out var serializer) == false)
+                {
+                    ThrowSerializerNotFound(typeof(T).Name);
+                }
+
+                if (serializer is null)
+                {
+                    ThrowSerializerIsNull(typeof(T).Name);
+                }
+                return serializer.TryParseBson(ref this, out genericValue);
             }
 
-            if (!SerializersMap.TryGetSerializer<T>(out var serializer))
-            {
-                ThrowSerializerNotFound(typeof(T).Name);
-            }
-
-            if (serializer is null)
-            {
-                ThrowSerializerIsNull(typeof(T).Name);
-            }
-            return serializer.TryParse(ref this, out genericValue);
         }
 
         public bool TrySkipCString()

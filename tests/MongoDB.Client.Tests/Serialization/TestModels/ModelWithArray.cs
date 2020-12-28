@@ -5,7 +5,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
     [BsonSerializable]
-    public class ModelWithArray : IEquatable<ModelWithArray>
+    public partial class ModelWithArray : IEquatable<ModelWithArray>
     {
         public string Name { get; set; }
         

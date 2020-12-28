@@ -5,7 +5,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 namespace MongoDB.Client.MongoConnections
 {
     [BsonSerializable]
-    public class MongoTopologyVersion
+    public partial class MongoTopologyVersion
     {
         [BsonElement("processId")]
         public BsonObjectId ProcesssId;
@@ -15,7 +15,7 @@ namespace MongoDB.Client.MongoConnections
     }
 
     [BsonSerializable]
-    public class MongoConnectionInfo
+    public partial class MongoConnectionInfo
     {
         [BsonElement("ismaster")]
         public bool IsMaster { get; set; }

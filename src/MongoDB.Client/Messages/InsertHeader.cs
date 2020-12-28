@@ -3,7 +3,7 @@
 namespace MongoDB.Client.Messages
 {
     [BsonSerializable]
-    public class InsertHeader
+    public partial class InsertHeader
     {
         [BsonElement("insert")]
         public string Insert { get; set; }

@@ -4,7 +4,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 namespace MongoDB.Client.Messages
 {
     [BsonSerializable]
-    public class DeleteResult : IParserResult
+    public partial class DeleteResult : IParserResult
     {
         [BsonElement("n")]
         public int N { get; set; }

@@ -7,7 +7,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 namespace MongoDB.Client.Benchmarks.Serialization.Models
 {
     [BsonSerializable]
-    public class RootDocument
+    public partial class RootDocument
     {
         [MongoDB.Bson.Serialization.Attributes.BsonId]
         [Bson.Serialization.Attributes.BsonIgnore]

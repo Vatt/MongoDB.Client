@@ -12,6 +12,21 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         public static string BsonElementAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonElementAttribute";
         public static string BsonIdAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonIdAttribute";
         public static string BsonWriteIgnoreIfAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonWriteIgnoreIfAttribute";
+        public static bool IsBsonSerializable(ISymbol symbol)
+        {
+            if (symbol.GetAttributes().Length == 0)
+            {
+                return false;
+            }
+            foreach (var attr in symbol.GetAttributes())
+            {
+                if (attr.AttributeClass.ToString().Equals(BsonSerializableAttr))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
         public static bool TryGetBsonWriteIgnoreIfAttr(MemberContext ctx, out ExpressionSyntax expr)
         {
             expr = default;

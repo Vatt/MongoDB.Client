@@ -75,7 +75,7 @@ namespace MongoDB.Client.Protocol.Readers
 #endif
                     if (bsonReader.TryPeekInt32(out int modelLength) && bsonReader.Remaining >= modelLength)
                     {
-                        if (Serializer.TryParse(ref bsonReader, out var item))
+                        if (Serializer.TryParseBson(ref bsonReader, out var item))
                         {
                             items.Add(item);
                             _modelsReaded += bsonReader.BytesConsumed - checkpoint;

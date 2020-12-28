@@ -10,10 +10,10 @@ using MongoDB.Client.Bson.Document;
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
     [BsonSerializable]
-    public class ModelForGenerated : IEquatable<ModelForGenerated>
+    public partial class ModelForGenerated : IEquatable<ModelForGenerated>
     {
         [BsonSerializable]
-        public class ListModel : IEquatable<ListModel>
+        public partial class ListModel : IEquatable<ListModel>
         {
             public List<double> Doubles { get; set; }
             public List<string> Strings { get; set; }
@@ -68,10 +68,10 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         }
 
         [BsonSerializable]
-        public class ListItem: IEquatable<ListItem>
+        public partial class ListItem : IEquatable<ListItem>
         {
             [BsonSerializable]
-            public class InnerItem : IEquatable<InnerItem>
+            public partial class InnerItem : IEquatable<InnerItem>
             {
                 public int A;
                 public int B;

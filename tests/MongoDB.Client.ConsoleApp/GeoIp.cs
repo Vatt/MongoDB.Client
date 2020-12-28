@@ -6,7 +6,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 namespace MongoDB.Client.ConsoleApp
 {
     [BsonSerializable]
-    public class GeoIp
+    public partial class GeoIp
     {
         [BsonId]
         public BsonObjectId Id { get; set; }

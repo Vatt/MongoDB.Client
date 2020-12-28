@@ -3,7 +3,7 @@
 namespace MongoDB.Client.ConsoleApp.Models
 {
     [BsonSerializable]
-    public class ThirdLevelDocument
+    public partial class ThirdLevelDocument
     {
         public string TextField { get; set; }
         public double DoubleField { get; set; }

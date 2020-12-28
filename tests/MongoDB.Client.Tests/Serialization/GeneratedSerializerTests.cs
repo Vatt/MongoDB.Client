@@ -21,10 +21,7 @@ namespace MongoDB.Client.Tests.Serialization
                 ListValue = new List<int> { 1, 2, 3 },
 
             };
-            SerializersMap.TryGetSerializer<BsonWriteIgnoreIfModel>(out var serializer);
-
-
-            var result = await RoundTripAsync(doc, serializer);
+            var result = await RoundTripAsync(doc);
             Assert.Equal(doc.Field, result.Field);
             Assert.Null(result.IgnoredField0);
             Assert.Null(result.ListValue);
@@ -36,7 +33,7 @@ namespace MongoDB.Client.Tests.Serialization
                 ListValue = new List<int> { 1, 2, 3 },
 
             };
-            result = await RoundTripAsync(doc, serializer);
+            result = await RoundTripAsync(doc);
             Assert.Equal(doc.Field, result.Field);
             Assert.Equal(doc.ListValue, result.ListValue);
             Assert.Null(result.IgnoredField1);
@@ -51,10 +48,7 @@ namespace MongoDB.Client.Tests.Serialization
                 Field = "Field",
                 IgnoredField = "IgnoredField"
             };
-            SerializersMap.TryGetSerializer<ModelWithIgnore>(out var serializer);
-
-
-            var result = await RoundTripAsync(doc, serializer);
+            var result = await RoundTripAsync(doc);
 
 
             Assert.Equal(doc.Field, result.Field);
@@ -79,6 +73,7 @@ namespace MongoDB.Client.Tests.Serialization
                     new ModelForGenerated.ListItem("ModelForGenerated.ListItem3")
                 }
             };
+            
             var doc = new ModelForGenerated
             {
                 DoubleValue =  52456478.24587874,
@@ -91,10 +86,7 @@ namespace MongoDB.Client.Tests.Serialization
                 GuidValue = Guid.NewGuid(),
                 List = lstModel,
             };
-            SerializersMap.TryGetSerializer<ModelForGenerated>(out var serializer);
-            var result = await RoundTripAsync(doc, serializer);
-
-
+            var result = await RoundTripAsync(doc);
             Assert.Equal(doc, result);
         }
 

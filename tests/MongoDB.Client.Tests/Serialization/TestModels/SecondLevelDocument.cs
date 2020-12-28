@@ -5,7 +5,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
     [BsonSerializable]
-    public class SecondLevelDocument : IEquatable<SecondLevelDocument>
+    public partial class SecondLevelDocument : IEquatable<SecondLevelDocument>
     {
         public string TextField { get; set; }
         public int IntField { get; set; }

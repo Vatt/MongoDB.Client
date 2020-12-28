@@ -4,7 +4,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 namespace MongoDB.Client.ConsoleApp.Models
 {
     [BsonSerializable]
-    public class SecondLevelDocument
+    public partial class SecondLevelDocument
     {
         public string TextField { get; set; }
         public int IntField { get; set; }

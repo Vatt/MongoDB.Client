@@ -3,7 +3,7 @@
 namespace MongoDB.Client.Benchmarks.Serialization
 {
     [BsonSerializable]
-    public class SimpleModel
+    public partial class SimpleModel
     {
         [MongoDB.Bson.Serialization.Attributes.BsonId]
         [BsonIgnore]

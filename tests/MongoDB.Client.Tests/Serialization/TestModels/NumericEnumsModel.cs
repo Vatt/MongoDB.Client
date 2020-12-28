@@ -24,7 +24,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         EnumInt64Value5,
     }
     [BsonSerializable]
-    public class NumericEnumsModel
+    public partial class NumericEnumsModel
     {
         public string Name;
         [BsonEnum(EnumRepresentation.Int32)]

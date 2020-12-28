@@ -4,7 +4,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 namespace MongoDB.Client.ConsoleApp.Models
 {
     [BsonSerializable]
-    public class RootDocument
+    public partial class RootDocument
     {
         [BsonId]
         public MongoDB.Client.Bson.Document.BsonObjectId Id { get; set; }

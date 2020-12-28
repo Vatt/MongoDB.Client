@@ -4,7 +4,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 namespace MongoDB.Client.Messages
 {
     [BsonSerializable]
-    public class InsertResult : IParserResult
+    public partial class InsertResult : IParserResult
     {
         [BsonElement("n")]
         public int N { get; set; }
@@ -17,7 +17,7 @@ namespace MongoDB.Client.Messages
     }
     
     [BsonSerializable]
-    public class InsertError
+    public partial class InsertError
     {
         [BsonElement("index")]
         public int Index { get; set; }

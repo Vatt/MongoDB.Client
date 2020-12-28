@@ -11,12 +11,6 @@ namespace MongoDB.Client.Protocol.Writers
     public class InsertMessageWriter<T> : IMessageWriter<InsertMessage<T>>
     {
         private readonly IGenericBsonSerializer<T> _serializer;
-        private static readonly IGenericBsonSerializer<InsertHeader> _headerSerializer;
-
-        static InsertMessageWriter()
-        {
-           SerializersMap.TryGetSerializer(out _headerSerializer!);
-        }
 
         public InsertMessageWriter(IGenericBsonSerializer<T> serializer)
         {
@@ -37,7 +31,7 @@ namespace MongoDB.Client.Protocol.Writers
             
             writer.WriteByte((byte)PayloadType.Type0);
 
-            _headerSerializer.Write(ref writer, message.InsertHeader);
+            InsertHeader.WriteBson(ref writer, message.InsertHeader);
 
 
             writer.WriteByte((byte)PayloadType.Type1);
@@ -49,7 +43,7 @@ namespace MongoDB.Client.Protocol.Writers
 
             foreach (var item in message.Items)
             {
-                _serializer.Write(ref writer, item);
+                _serializer.WriteBson(ref writer, item);
             }
             
             writer.Commit();

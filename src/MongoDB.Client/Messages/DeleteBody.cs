@@ -4,7 +4,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 namespace MongoDB.Client.Messages
 {
     [BsonSerializable]
-    public class DeleteBody
+    public partial class DeleteBody
     {
         [BsonElement("q")]
         public BsonDocument Filter { get; set; }

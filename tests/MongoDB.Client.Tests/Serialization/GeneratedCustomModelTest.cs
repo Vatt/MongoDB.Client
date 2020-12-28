@@ -7,15 +7,14 @@ using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization
 {
-    public class GeneratedRecordTest : BaseSerialization
+    public class GeneratedCustomModelTest : BaseSerialization
     {
         [Fact]
-        public async Task RecordTest()
+        public async Task CustomModelTest()
         {
-            var model = new RecordModel0(42, 42, 42, "42", Guid.NewGuid());
-            model.Document = new BsonDocument("42", "42");
-            var result = await RoundTripAsync(model);
+            var model = new ModelWithCustom("CustomModelTest", new CustomModel(42, 42, 42));
 
+            var result = await RoundTripAsync(model);
             Assert.Equal(result, model);
         }
     }

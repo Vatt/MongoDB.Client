@@ -12,10 +12,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.MethodDeclaration(
                     attributeLists: default,
-                    modifiers: default,
-                    explicitInterfaceSpecifier: SF.ExplicitInterfaceSpecifier(GenericName(SerializerInterfaceToken, TypeFullName(ctx.Declaration))),
+                    modifiers: new(PublicKeyword(), StaticKeyword()),
+                    explicitInterfaceSpecifier: default,// SF.ExplicitInterfaceSpecifier(GenericName(SerializerInterfaceToken, TypeFullName(ctx.Declaration))),
                     returnType: VoidPredefinedType(),
-                    identifier: SF.Identifier("Write"),
+                    identifier: SF.Identifier("WriteBson"),
                     parameterList: ParameterList(
                         RefParameter(ctx.BsonWriterType, ctx.BsonWriterToken),
                         InParameter(TypeFullName(ctx.Declaration), ctx.TryParseOutVarToken)),
@@ -138,13 +138,28 @@ CONDITION_CHECK:
                 foreach (var context in ctx.Root.Root.Contexts)
                 {
                     //TODO: если сериализатор не из ЭТОЙ сборки, добавить ветку с мапой с проверкой на нуль
-                    if (context.Declaration.ToString().Equals(trueType.ToString()))
+                    //if (context.Declaration.ToString().Equals(trueType.ToString()))
+                    //{
+                    //    return Statements
+                    //    (
+                    //            Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
+                    //            Statement(GeneratedSerializerWrite(context, writerId, writeTarget))
+                    //    );
+                    //}
+                    if (AttributeHelper.IsBsonSerializable(typeSym))
                     {
                         return Statements
                         (
-                                Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
-                                Statement(GeneratedSerializerWrite(context, writerId, writeTarget))
+                               Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
+                               InvocationExprStatement(IdentifierName(SelfFullName(typeSym)), IdentifierName("WriteBson"), RefArgument(writerId), Argument(writeTarget))
                         );
+                    }
+                    else
+                    {
+                        return Statements(
+                                Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
+                                OtherWriteBson(ctx)
+                            );
                     }
                 }
             }

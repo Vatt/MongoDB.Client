@@ -89,9 +89,7 @@ namespace MongoDB.Client.Tests.Serialization
                     }
                 }
             };
-            SerializersMap.TryGetSerializer<ManyListModel>(out var serializer);
-            var result = await RoundTripAsync(model, serializer);
-
+            var result = await RoundTripAsync(model);
             Assert.Equal(model, result);
         }
     }

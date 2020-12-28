@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
     [BsonSerializable]
-    public class BsonWriteIgnoreIfModel
+    public partial class BsonWriteIgnoreIfModel
     {
         public int Field { get; set; }
 

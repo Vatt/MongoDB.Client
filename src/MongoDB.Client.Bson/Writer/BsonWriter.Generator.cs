@@ -4,9 +4,11 @@ using System.Buffers.Text;
 using System.Runtime.CompilerServices;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Exceptions;
+using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Bson.Writer
 {
+
     public ref partial struct BsonWriter
     {
         private static void ThrowSerializerNotFound(string typeName)
@@ -14,20 +16,23 @@ namespace MongoDB.Client.Bson.Writer
             throw new SerializerNotFoundException(typeName);
         }
 
-
         private static void ThrowSerializerIsNull(string typeName)
         {
             throw new SerializerIsNullException(typeName);
         }
 
 
-        public void WriteGeneric<T>(T genericValue, ref Reserved typeReserved)
+        public unsafe void WriteGeneric<T>(T genericValue, ref Reserved typeReserved)
         {
             if (genericValue == null)
             {
                 typeReserved.Write(10);
                 return;
             }
+            //if (SerializerFnPtrProvider<T>.IsSerializable)
+            //{
+            //    goto SERIALIZABLE;
+            //}
             switch (genericValue)
             {
                 case double value:
@@ -70,18 +75,30 @@ namespace MongoDB.Client.Bson.Writer
                     WriteInt64(value);
                     typeReserved.Write(18);
                     return;
+                //default:
+                //    System.Diagnostics.Debugger.Break();
+                //    break;
             }
 
-            if (!SerializersMap.TryGetSerializer<T>(out var serializer))
+        //SERIALIZABLE:
+            var writer = SerializerFnPtrProvider<T>.WriteFnPtr;
+            if (writer != default)
             {
-                ThrowSerializerNotFound(typeof(T).Name);
+                writer(ref this, genericValue);
             }
-            if (serializer is null)
+            else
             {
-                ThrowSerializerIsNull(typeof(T).Name);
+                if (!SerializersMap.TryGetSerializer<T>(out var serializer))
+                {
+                    ThrowSerializerNotFound(typeof(T).Name);
+                }
+                if (serializer is null)
+                {
+                    ThrowSerializerIsNull(typeof(T).Name);
+                }
+                typeReserved.Write(3);
+                serializer.WriteBson(ref this, genericValue);
             }
-            typeReserved.Write(3);
-            serializer.Write(ref this, genericValue);
         }
 
 
@@ -302,7 +319,13 @@ namespace MongoDB.Client.Bson.Writer
             WriteCString(name);
             WriteGuidAsBinaryData(value);
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write_Type_Name_Value(int intName, Guid value)
+        {
+            WriteByte(5);
+            WriteIntIndex(intName);
+            WriteGuidAsBinaryData(value);
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, DateTimeOffset value)
