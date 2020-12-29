@@ -11,7 +11,7 @@ namespace MongoDB.Client
 {
     public class Cursor<T> : IAsyncEnumerable<T>
     {
-        private readonly IChannelsPool _channelPool;
+        private readonly IConnectionsPool _channelPool;
         private readonly BsonDocument _filter;
         private readonly CollectionNamespace _collectionNamespace;
         private readonly BsonDocument _sessionId;
@@ -20,17 +20,17 @@ namespace MongoDB.Client
 
         public static readonly SessionId SharedSession = new SessionId();
 
-        internal Cursor(IChannelsPool channelPool, BsonDocument filter, CollectionNamespace collectionNamespace)
+        internal Cursor(IConnectionsPool channelPool, BsonDocument filter, CollectionNamespace collectionNamespace)
             : this(channelPool, filter, collectionNamespace, SharedSessionId)
         {
         }
 
-        internal Cursor(IChannelsPool channelPool, BsonDocument filter, CollectionNamespace collectionNamespace, Guid sessionId)
+        internal Cursor(IConnectionsPool channelPool, BsonDocument filter, CollectionNamespace collectionNamespace, Guid sessionId)
             : this(channelPool, filter, collectionNamespace, new BsonDocument("id", BsonBinaryData.Create(sessionId)))
         {
         }
         
-        internal Cursor(IChannelsPool channelPool, BsonDocument filter, CollectionNamespace collectionNamespace,
+        internal Cursor(IConnectionsPool channelPool, BsonDocument filter, CollectionNamespace collectionNamespace,
             BsonDocument sessionId)
         {
             _channelPool = channelPool;
@@ -81,7 +81,7 @@ namespace MongoDB.Client
             }
         }
 
-        private Channel _channel;
+        private MongoConnection _channel;
         private long _cursorId = -1;
 
         public bool HasNext => _cursorId != 0;
