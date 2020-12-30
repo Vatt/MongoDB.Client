@@ -19,7 +19,7 @@ namespace MongoDB.Client.Connection
                 var request = await _channelReader.ReadAsync();
                 switch (request.Type)
                 {
-                    case  RequestType.FindRequest:
+                    case RequestType.FindRequest:
                         {
                             var findRequest = (FindMongoRequest)request;
                             _completions.GetOrAdd(findRequest.Message.Header.RequestNumber, findRequest);
@@ -27,7 +27,7 @@ namespace MongoDB.Client.Connection
                             _logger.SentCursorMessage(findRequest.Message.Header.RequestNumber);
                             break;
                         }
-                    case  RequestType.QueryRequest:
+                    case RequestType.QueryRequest:
                         {
                             var queryRequest = (QueryMongoRequest)request;
                             _completions.GetOrAdd(queryRequest.Message.RequestNumber, queryRequest);
@@ -36,13 +36,21 @@ namespace MongoDB.Client.Connection
                             break;
                         }
                     case RequestType.InsertRequest:
-                    {
-                        var insertRequest = (InsertMongoRequest)request;
-                        _completions.GetOrAdd(insertRequest.RequestNumber, insertRequest);
-                        await insertRequest.WriteAsync(insertRequest.Message, _protocolWriter, _shutdownCts.Token).ConfigureAwait(false);
-                        _logger.SentInsertMessage(insertRequest.RequestNumber);
-                        break;
-                    }
+                        {
+                            var insertRequest = (InsertMongoRequest)request;
+                            _completions.GetOrAdd(insertRequest.RequestNumber, insertRequest);
+                            await insertRequest.WriteAsync(insertRequest.Message, _protocolWriter, _shutdownCts.Token).ConfigureAwait(false);
+                            _logger.SentInsertMessage(insertRequest.RequestNumber);
+                            break;
+                        }
+                    case RequestType.DeleteRequest:
+                        {
+                            var deleteRequest = (DeleteMongoRequest)request;
+                            _completions.GetOrAdd(deleteRequest.Message.Header.RequestNumber, deleteRequest);
+                            await _protocolWriter!.WriteAsync(ProtocolWriters.DeleteMessageWriter, deleteRequest.Message, _shutdownCts.Token).ConfigureAwait(false);
+                            _logger.SentCursorMessage(deleteRequest.Message.Header.RequestNumber);
+                            break;
+                        }
                     default:
                         throw new Exception(nameof(StartChannelListerAsync)); // TODO: FIXIT
                 }

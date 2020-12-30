@@ -45,11 +45,11 @@ namespace MongoDB.Client.Connection
             }
         }
 
-        public static ValueTask WriteAsync(object message, ProtocolWriter writer, CancellationToken token)
+        public static ValueTask WriteAsync(object message, ProtocolWriter protocol, CancellationToken token)
         {
             if (message is InsertMessage<T> insertMessage)
             {
-                return writer.WriteAsync(InsertMessageWriter, insertMessage, token); 
+                return protocol.WriteAsync(InsertMessageWriter, insertMessage, token); 
             }
             ThrowHelper.CursorException(message.GetType().ToString());
             return default;

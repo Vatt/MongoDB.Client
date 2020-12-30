@@ -106,5 +106,24 @@ namespace MongoDB.Client.Connection
             }
             */
         }
+        public async ValueTask<DeleteResult> DeleteAsync(DeleteMessage message, CancellationToken cancellationToken)
+        {
+            if (_connections.Count == 0)
+            {
+                await Init();
+            }
+            ManualResetValueTaskSource<IParserResult> taskSource;
+            if (_queue.TryDequeue(out taskSource) == false)
+            {
+                taskSource = new ManualResetValueTaskSource<IParserResult>();
+            }
+            var request = new DeleteMongoRequest(message, taskSource);
+            request.ParseAsync = DeleteParserCallbackHolder.DeleteParseAsync;
+            await _channelWriter.WriteAsync(request, cancellationToken);
+            var deleteResult = await taskSource.GetValueTask() as DeleteResult;
+            taskSource.Reset();
+            _queue.Enqueue(taskSource);
+            return deleteResult;
+        }
     }
 }

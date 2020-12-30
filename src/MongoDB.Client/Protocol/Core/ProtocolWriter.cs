@@ -72,7 +72,7 @@ namespace MongoDB.Client.Protocol.Core
             IMessageWriter<T2> writer2, T2 msg2,
             CancellationToken cancellationToken = default)
         {
-            await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+           // await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
             try
             {
@@ -99,7 +99,7 @@ namespace MongoDB.Client.Protocol.Core
             }
             finally
             {
-                _semaphore.Release();
+                //_semaphore.Release();
             }
         }
 

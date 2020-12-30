@@ -71,6 +71,13 @@ namespace MongoDB.Client.Connection
                                 request.CompletionSource.TrySetResult(result);
                                 break;
                             }
+                            case RequestType.DeleteRequest:
+                                {
+                                    var deleteRequest = (DeleteMongoRequest)request;
+                                    var result = await deleteRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
+                                    request.CompletionSource.TrySetResult(result);
+                                    break;
+                                }
                             default:
                                 throw new Exception(nameof(StartChannelListerAsync)); //TODO: FIXIT
                         }

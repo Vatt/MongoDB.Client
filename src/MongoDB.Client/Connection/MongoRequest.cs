@@ -12,6 +12,7 @@ namespace MongoDB.Client.Connection
         FindRequest,
         QueryRequest,
         InsertRequest,
+        DeleteRequest,
     }
     internal abstract class MongoReuqestBase
     {
@@ -51,6 +52,15 @@ namespace MongoDB.Client.Connection
             RequestNumber = requestNumber;
             Message = message;
             Type = RequestType.InsertRequest;
+        }
+    }
+    internal class DeleteMongoRequest : MongoReuqestBase
+    {
+        internal DeleteMessage Message;
+        public DeleteMongoRequest(DeleteMessage message, ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
+        {
+            Type = RequestType.DeleteRequest;
+            Message = message;
         }
     }
 }

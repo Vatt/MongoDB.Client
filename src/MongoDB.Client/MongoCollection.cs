@@ -57,27 +57,26 @@ namespace MongoDB.Client
             await _scheduler.InsertAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
-        //public async ValueTask<DeleteResult> DeleteOneAsync(BsonDocument filter, CancellationToken cancellationToken = default)
-        //{
-        //    var channel = await _channelsPool.GetChannelAsync(cancellationToken).ConfigureAwait(false);
-        //    var requestNumber = channel.GetNextRequestNumber();
-        //    var deleteHeader = new DeleteHeader
-        //    {
-        //        Delete = Namespace.CollectionName,
-        //        Ordered = true,
-        //        Db = Namespace.DatabaseName,
-        //        Lsid = SharedSessionIdModel
-        //    };
+        public async ValueTask<DeleteResult> DeleteOneAsync(BsonDocument filter, CancellationToken cancellationToken = default)
+        {
+            var requestNumber = _scheduler.GetNextRequestNumber();
+            var deleteHeader = new DeleteHeader
+            {
+                Delete = Namespace.CollectionName,
+                Ordered = true,
+                Db = Namespace.DatabaseName,
+                Lsid = SharedSessionIdModel
+            };
 
-        //    var deleteBody = new DeleteBody
-        //    {
-        //        Filter = filter,
-        //        Limit = 1
-        //    };
+            var deleteBody = new DeleteBody
+            {
+                Filter = filter,
+                Limit = 1
+            };
 
-        //    var request = new DeleteMessage(requestNumber, deleteHeader, deleteBody);
-        //    return await channel.DeleteAsync(request, cancellationToken).ConfigureAwait(false);
-        //}
+            var request = new DeleteMessage(requestNumber, deleteHeader, deleteBody);
+            return await _scheduler.DeleteAsync(request, cancellationToken).ConfigureAwait(false);
+        }
 
         private static readonly SessionId SharedSessionIdModel = new SessionId { Id = Guid.NewGuid() };
     }
