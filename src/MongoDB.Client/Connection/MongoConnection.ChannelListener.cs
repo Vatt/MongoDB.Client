@@ -22,7 +22,7 @@ namespace MongoDB.Client.Connection
                 {
                     case FindMongoRequest findRequest:
                     {
-                        _completions.GetOrAdd(findRequest.Message.Header.RequestNumber,findRequest);
+                        _completions.GetOrAdd(findRequest.Message.Header.RequestNumber, findRequest);
                         await _protocolWriter!.WriteAsync(ProtocolWriters.FindMessageWriter, findRequest.Message, _shutdownCts.Token).ConfigureAwait(false);
                         _logger.SentCursorMessage(findRequest.Message.Header.RequestNumber);
                         break;

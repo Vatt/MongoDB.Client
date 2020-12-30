@@ -85,7 +85,7 @@ namespace MongoDB.Client
             }
         }
 
-        private MongoConnection _channel;
+        //private MongoConnection _channel;
         private long _cursorId = -1;
 
         public bool HasNext => _cursorId != 0;
@@ -102,7 +102,8 @@ namespace MongoDB.Client
             //    _channel = await _channelPool.GetChannelAsync(cancellationToken).ConfigureAwait(false);
             //}            
 
-            var requestNum = _channel.GetNextRequestNumber();
+            //var requestNum = _channel.GetNextRequestNumber();
+            var requestNum = _scheduler.GetNextRequestNumber();
             var requestDocument = _cursorId == -1 ? CreateFindRequest(_filter) : CreateGetMoreRequest(_cursorId);
             var request = new FindMessage(requestNum, requestDocument);
             //var result = await _channel.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);

@@ -13,7 +13,7 @@ namespace MongoDB.Client.Connection
 
     internal class RequestScheduler
     {
-        private int MaxConnections => 8;
+        private int MaxConnections => 32;
         private readonly MongoConnectionFactory _connectionFactory;
         private readonly List<MongoConnection> _connections;
         private readonly Channel<MongoReuqestBase> _channel;

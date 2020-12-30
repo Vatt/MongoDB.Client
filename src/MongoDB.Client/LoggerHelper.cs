@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Extensions.Logging;
+using MongoDB.Client.Connection;
 using MongoDB.Client.Protocol.Common;
 using MongoDB.Client.Protocol.Readers;
 
