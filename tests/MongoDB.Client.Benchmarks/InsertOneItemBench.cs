@@ -62,8 +62,8 @@ namespace MongoDB.Client.Benchmarks
         [Benchmark]
         public async Task NewClientInsertOneItem()
         {
-            _item.Id = BsonObjectId.NewObjectId();
-            await _collection.InsertAsync(_item);
+            //_item.Id = BsonObjectId.NewObjectId();
+            //await _collection.InsertAsync(_item);
         }
 
         [Benchmark]

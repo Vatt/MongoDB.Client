@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Connection;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Messages;
 using MongoDB.Client.Utils;
@@ -11,7 +12,8 @@ namespace MongoDB.Client
 {
     public class Cursor<T> : IAsyncEnumerable<T>
     {
-        private readonly IConnectionsPool _channelPool;
+        //private readonly IConnectionsPool _channelPool;
+        private readonly RequestScheduler _scheduler;
         private readonly BsonDocument _filter;
         private readonly CollectionNamespace _collectionNamespace;
         private readonly BsonDocument _sessionId;
@@ -20,20 +22,20 @@ namespace MongoDB.Client
 
         public static readonly SessionId SharedSession = new SessionId();
 
-        internal Cursor(IConnectionsPool channelPool, BsonDocument filter, CollectionNamespace collectionNamespace)
+        internal Cursor(RequestScheduler channelPool, BsonDocument filter, CollectionNamespace collectionNamespace)
             : this(channelPool, filter, collectionNamespace, SharedSessionId)
         {
         }
 
-        internal Cursor(IConnectionsPool channelPool, BsonDocument filter, CollectionNamespace collectionNamespace, Guid sessionId)
+        internal Cursor(RequestScheduler channelPool, BsonDocument filter, CollectionNamespace collectionNamespace, Guid sessionId)
             : this(channelPool, filter, collectionNamespace, new BsonDocument("id", BsonBinaryData.Create(sessionId)))
         {
         }
         
-        internal Cursor(IConnectionsPool channelPool, BsonDocument filter, CollectionNamespace collectionNamespace,
-            BsonDocument sessionId)
+        //internal Cursor(IConnectionsPool channelPool, BsonDocument filter, CollectionNamespace collectionNamespace, BsonDocument sessionId)
+        internal Cursor(RequestScheduler scheduler, BsonDocument filter, CollectionNamespace collectionNamespace, BsonDocument sessionId)
         {
-            _channelPool = channelPool;
+            _scheduler = scheduler;
             _filter = filter;
             _collectionNamespace = collectionNamespace;
             _sessionId = sessionId;
@@ -45,12 +47,13 @@ namespace MongoDB.Client
         }
 
         public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken)
-        {
-            var channel = await _channelPool.GetChannelAsync(cancellationToken).ConfigureAwait(false);
-            var requestNum = channel.GetNextRequestNumber();
+        {            
+            //var channel = await _channelPool.GetChannelAsync(cancellationToken).ConfigureAwait(false);
+            var requestNum = _scheduler.GetNextRequestNumber();
             var requestDocument = CreateFindRequest(_filter);
             var request = new FindMessage(requestNum, requestDocument);
-            var result = await channel.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
+            //var result = await channel.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
+            var result = await _scheduler.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
             if (result.ErrorMessage is not null)
             {
                 ThrowHelper.CursorException(result.ErrorMessage);
@@ -64,10 +67,11 @@ namespace MongoDB.Client
             long cursorId = result.MongoCursor.Id;
             while (cursorId != 0)
             {
-                requestNum = channel.GetNextRequestNumber();
+                requestNum = _scheduler.GetNextRequestNumber();
                 requestDocument = CreateGetMoreRequest(cursorId);
                 request = new FindMessage(requestNum, requestDocument);
-                var getMoreResult = await channel.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
+                //var getMoreResult = await channel.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
+                var getMoreResult = await _scheduler.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
                 if (getMoreResult.ErrorMessage is not null)
                 {
                     ThrowHelper.CursorException(getMoreResult.ErrorMessage);
@@ -93,16 +97,16 @@ namespace MongoDB.Client
 
         public async ValueTask<List<T>> GetNextBatchAsync(CancellationToken cancellationToken)
         {
-            if (_channel is null)
-            {
-                _channel = await _channelPool.GetChannelAsync(cancellationToken).ConfigureAwait(false);
-            }
-
+            //if (_channel is null)
+            //{
+            //    _channel = await _channelPool.GetChannelAsync(cancellationToken).ConfigureAwait(false);
+            //}            
 
             var requestNum = _channel.GetNextRequestNumber();
             var requestDocument = _cursorId == -1 ? CreateFindRequest(_filter) : CreateGetMoreRequest(_cursorId);
             var request = new FindMessage(requestNum, requestDocument);
-            var result = await _channel.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
+            //var result = await _channel.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
+            var result = await _scheduler.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
             _cursorId = result.MongoCursor.Id;
             return result.MongoCursor.Items;
         }

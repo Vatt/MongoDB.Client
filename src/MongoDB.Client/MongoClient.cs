@@ -1,14 +1,15 @@
 ﻿using System.Net;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using MongoDB.Client.Connection;
 
 namespace MongoDB.Client
 {
     public class MongoClient
     {
         public MongoClientSettings Settings { get; }
-        private readonly IConnectionsPool _channelsPool;
-
+        //private readonly IConnectionsPool _channelsPool;
+        private readonly RequestScheduler _scheduler;
         public MongoClient()
          : this(new MongoClientSettings(), new NullLoggerFactory())
         {
@@ -32,12 +33,13 @@ namespace MongoDB.Client
         public MongoClient(MongoClientSettings settings, ILoggerFactory loggerFactory)
         {
             Settings = settings;
-            _channelsPool = new NodeConnectionsPool(settings, settings.Endpoints[0], loggerFactory);
+            //_channelsPool = new NodeConnectionsPool(settings, settings.Endpoints[0], loggerFactory);
+            _scheduler = new RequestScheduler(new MongoConnectionFactory(settings.Endpoints[0], loggerFactory));
         }
 
         public MongoDatabase GetDatabase(string name)
         {
-            return new MongoDatabase(this, name, _channelsPool);
+            return new MongoDatabase(this, name, _scheduler);
         }
     }
 }

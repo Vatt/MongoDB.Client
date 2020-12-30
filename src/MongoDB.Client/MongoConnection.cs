@@ -24,7 +24,7 @@ namespace MongoDB.Client
     internal partial class MongoConnection : IAsyncDisposable
     {
         private readonly ILogger _logger;
-        private readonly MongoConnectionFactory _connectionFactory;
+        private readonly NetworkConnectionFactory _connectionFactory;
         private ConnectionContext _connection;
         private ProtocolReader? _reader;
         private ProtocolWriter? _writer;
@@ -49,7 +49,7 @@ namespace MongoDB.Client
         {
             _channelNum = channelNum;
             _logger = loggerFactory.CreateLogger($"Channel: {channelNum}");
-            _connectionFactory = new MongoConnectionFactory(loggerFactory);
+            _connectionFactory = new NetworkConnectionFactory(loggerFactory);
         }
 
         private static int _counter;
@@ -61,8 +61,7 @@ namespace MongoDB.Client
 
         public async Task ConnectAsync(EndPoint endPoint, CancellationToken cancellationToken)
         {
-            _connection = await _connectionFactory.ConnectAsync(endPoint, cancellationToken)
-                .ConfigureAwait(false);
+            _connection = await _connectionFactory.ConnectAsync(endPoint, cancellationToken).ConfigureAwait(false);
             if (_connection is null)
             {
                 ThrowHelper.ConnectionException<bool>(endPoint);
@@ -142,8 +141,7 @@ namespace MongoDB.Client
             }
         }
 
-        public async ValueTask<QueryResult<TResp>> SendQueryAsync<TResp>(QueryMessage message,
-            CancellationToken cancellationToken)
+        public async ValueTask<QueryResult<TResp>> SendQueryAsync<TResp>(QueryMessage message, CancellationToken cancellationToken)
         {
             ManualResetValueTaskSource<IParserResult> taskSource;
             if (_queue.TryDequeue(out taskSource) == false)
@@ -158,8 +156,7 @@ namespace MongoDB.Client
             {
                 await _writer.WriteAsync(_queryWriter, message, cancellationToken).ConfigureAwait(false);
                 var response =
-                    await new ValueTask<IParserResult>(completion.CompletionSource, completion.CompletionSource.Version)
-                        .ConfigureAwait(false);
+                    await new ValueTask<IParserResult>(completion.CompletionSource, completion.CompletionSource.Version).ConfigureAwait(false);
 
                 if (response is QueryResult<TResp> queryResult)
                 {
@@ -206,8 +203,7 @@ namespace MongoDB.Client
 
 
 
-        public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message,
-            CancellationToken cancellationToken)
+        public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken cancellationToken)
         {
             var completion = _completionMap.GetOrAdd(message.Header.RequestNumber, CursorParserCallbackHolder<T>.Completion);
 
@@ -456,8 +452,7 @@ namespace MongoDB.Client
 
         internal readonly struct ParserCompletion
         {
-            public ParserCompletion(ManualResetValueTaskSource<IParserResult> completionSource,
-                Func<ProtocolReader, MongoResponseMessage, ValueTask<IParserResult>> parseAsync)
+            public ParserCompletion(ManualResetValueTaskSource<IParserResult> completionSource, Func<ProtocolReader, MongoResponseMessage, ValueTask<IParserResult>> parseAsync)
             {
                 CompletionSource = completionSource;
                 ParseAsync = parseAsync;

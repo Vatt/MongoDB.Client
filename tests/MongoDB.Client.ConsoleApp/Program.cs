@@ -66,15 +66,15 @@ namespace MongoDB.Client.ConsoleApp
 
             var eq = item.Equals(parsedItem);
         }
-
-        private static async Task InsertItems(MongoCollection<GeoIp> collection, int count)
-        {
-            for (int i = 0; i < count; i++)
-            {
-                var item = CreateItem();
-                await collection.InsertAsync(item);
-            }
-        }
+        //TODO: FIXIT!
+        //private static async Task InsertItems(MongoCollection<GeoIp> collection, int count)
+        //{
+        //    for (int i = 0; i < count; i++)
+        //    {
+        //        var item = CreateItem();
+        //        await collection.InsertAsync(item);
+        //    }
+        //}
 
 
         private static GeoIp CreateItem()

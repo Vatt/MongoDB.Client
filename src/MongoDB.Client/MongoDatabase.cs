@@ -1,21 +1,23 @@
-﻿namespace MongoDB.Client
+﻿using MongoDB.Client.Connection;
+
+namespace MongoDB.Client
 {
     public class MongoDatabase
     {
-        private readonly IConnectionsPool _channelsPool;
+        private readonly RequestScheduler _scheduler;
         public MongoClient Client { get; }
         public string Name { get; }
 
-        internal MongoDatabase(MongoClient client, string name, IConnectionsPool channelsPool)
+        internal MongoDatabase(MongoClient client, string name, RequestScheduler scheduler)
         {
-            _channelsPool = channelsPool;
+            _scheduler = scheduler;
             Client = client;
             Name = name;
         }
 
         public MongoCollection<T> GetCollection<T>(string name)
         {
-            return new MongoCollection<T>(this, name, _channelsPool);
+            return new MongoCollection<T>(this, name, _scheduler);
         }
     }
 }

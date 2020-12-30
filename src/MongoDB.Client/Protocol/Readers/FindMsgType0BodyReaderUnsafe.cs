@@ -1,21 +1,16 @@
-﻿using Microsoft.Extensions.ObjectPool;
+﻿using System;
+using System.Buffers;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Utils;
-using System;
-using System.Buffers;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 
-namespace MongoDB.Client
+namespace MongoDB.Client.Protocol.Readers
 {
-    internal partial class MongoConnection
-    {
-        internal static partial class CursorParserCallbackHolder<T>
-        {
-            private class FindMsgType0BodyReaderUnsafe : IMessageReader<CursorResult<T>>
+            internal class FindMsgType0BodyReaderUnsafe<T> : IMessageReader<CursorResult<T>>
             {
                 private long _modelsReaded;
                 private long _payloadLength;
@@ -94,13 +89,14 @@ namespace MongoDB.Client
 #endif
                             if (bsonReader.TryPeekInt32(out int modelLength) && bsonReader.Remaining >= modelLength)
                             {
-                                bool TryParseResult = default;
+                                bool tryParseResult = default;
                                 T item = default;
                                 unsafe
                                 {
-                                    TryParseResult = TryParseFnPtr(ref bsonReader, out item);
+                                    //TODO: FIX IT
+                                    tryParseResult = SerializerFnPtrProvider<T>.TryParseFnPtr(ref bsonReader, out item);
                                 }
-                                if (TryParseResult)
+                                if (tryParseResult)
                                 {
                                     items.Add(item);
                                     _modelsReaded += bsonReader.BytesConsumed - checkpoint;
@@ -610,7 +606,5 @@ namespace MongoDB.Client
                     Cursor,
                     Complete
                 }
-            }
-        }
-    }
+            }            
 }
