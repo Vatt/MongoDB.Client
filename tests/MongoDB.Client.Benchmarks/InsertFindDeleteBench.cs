@@ -59,10 +59,10 @@ namespace MongoDB.Client.Benchmarks
         [Benchmark]
         public async Task NewClientInsertFindRemove()
         {
-            //_item.Id = BsonObjectId.NewObjectId();
-            //await _collection.InsertAsync(_item);
-            //var result = await _collection.Find(Empty).FirstOrDefaultAsync();
-            //var deleteResult = await _collection.DeleteOneAsync(Empty);
+            _item.Id = MongoDB.Client.Bson.Document.BsonObjectId.NewObjectId();
+            await _collection.InsertAsync(_item);
+            var result = await _collection.Find(Empty).FirstOrDefaultAsync();
+            var deleteResult = await _collection.DeleteOneAsync(Empty);
         }
 
         [Benchmark]

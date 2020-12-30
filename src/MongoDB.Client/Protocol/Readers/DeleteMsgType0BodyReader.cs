@@ -9,15 +9,6 @@ namespace MongoDB.Client.Protocol.Readers
 {
     internal class DeleteMsgType0BodyReader : IMessageReader<DeleteResult>
     {
-        //private static readonly IGenericBsonSerializer<DeleteResult> _resultSerializer;
-
-        //static DeleteMsgType0BodyReader()
-        //{
-        //    SerializersMap.TryGetSerializer(out _resultSerializer!);
-        //}
-
-        public long Consumed { get; private set; }
-
         public bool TryParseMessage(
             in ReadOnlySequence<byte> input,
             ref SequencePosition consumed,
@@ -34,8 +25,6 @@ namespace MongoDB.Client.Protocol.Readers
 
             consumed = bsonReader.Position;
             examined = bsonReader.Position;
-            Consumed = bsonReader.BytesConsumed;
-
             return true;
         }
     }

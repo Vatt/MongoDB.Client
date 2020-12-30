@@ -64,8 +64,8 @@ namespace MongoDB.Client.Connection
             
             var request = new FindMongoRequest(message, taskSource);
             request.ParseAsync = CursorParserCallbackHolder<T>.CursorParseAsync;
-            await _channelWriter.WriteAsync(request, token);
-            var cursor = await taskSource.GetValueTask() as CursorResult<T>;
+            await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            var cursor = await taskSource.GetValueTask().ConfigureAwait(false) as CursorResult<T>;
             taskSource.Reset();
             _queue.Enqueue(taskSource);
             return cursor;
@@ -86,8 +86,8 @@ namespace MongoDB.Client.Connection
             var request = new InsertMongoRequest(message.Header.RequestNumber, message, taskSource);
             request.ParseAsync = InsertParserCallbackHolder<T>.InsertParseAsync;
             request.WriteAsync = InsertParserCallbackHolder<T>.WriteAsync;
-            await _channelWriter.WriteAsync(request, token);
-            var response = await taskSource.GetValueTask() as InsertResult;
+            await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            var response = await taskSource.GetValueTask().ConfigureAwait(false) as InsertResult;
             taskSource.Reset();
             _queue.Enqueue(taskSource);
             if (response is InsertResult result)
@@ -119,8 +119,8 @@ namespace MongoDB.Client.Connection
             }
             var request = new DeleteMongoRequest(message, taskSource);
             request.ParseAsync = DeleteParserCallbackHolder.DeleteParseAsync;
-            await _channelWriter.WriteAsync(request, cancellationToken);
-            var deleteResult = await taskSource.GetValueTask() as DeleteResult;
+            await _channelWriter.WriteAsync(request, cancellationToken).ConfigureAwait(false);
+            var deleteResult = await taskSource.GetValueTask().ConfigureAwait(false) as DeleteResult;
             taskSource.Reset();
             _queue.Enqueue(taskSource);
             return deleteResult;

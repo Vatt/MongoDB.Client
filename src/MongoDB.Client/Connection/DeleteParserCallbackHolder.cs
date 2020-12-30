@@ -1,5 +1,6 @@
 ﻿using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
+using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
 using System;
@@ -17,18 +18,12 @@ namespace MongoDB.Client.Connection
             switch (mongoResponse)
             {
                 case ResponseMsgMessage msgMessage:
-
-                    DeleteMsgType0BodyReader bodyReader;
-                    if (msgMessage.MsgHeader.PayloadType == 0)
-                    {
-                        bodyReader = new DeleteMsgType0BodyReader();
-                    }
-                    else
+                    if (msgMessage.MsgHeader.PayloadType != 0)
                     {
                         return ThrowHelper.InvalidPayloadTypeException<DeleteResult>(msgMessage.MsgHeader.PayloadType);
                     }
 
-                    var result = await reader.ReadAsync(bodyReader).ConfigureAwait(false);
+                    var result = await reader.ReadAsync(ProtocolReaders.DeleteMsgType0BodyReader).ConfigureAwait(false);
                     reader.Advance();
 
                     return result.Message;
