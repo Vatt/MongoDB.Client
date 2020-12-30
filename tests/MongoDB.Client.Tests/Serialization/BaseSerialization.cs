@@ -1,13 +1,4 @@
-﻿using System;
-using System.Buffers;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.IO.Pipelines;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Writer;
@@ -15,6 +6,14 @@ using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
 using MongoDB.Client.Protocol.Writers;
+using System;
+using System.Buffers;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.IO.Pipelines;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace MongoDB.Client.Tests.Serialization
 {
@@ -32,7 +31,7 @@ namespace MongoDB.Client.Tests.Serialization
         private readonly ReplyMessage _replyMessage;
         private readonly QueryResult<T> _result;
 
-        public  UnitTestReplyBodyReader(ReplyMessage replyMessage)
+        public UnitTestReplyBodyReader(ReplyMessage replyMessage)
         {
             _replyMessage = replyMessage;
             _result = new QueryResult<T>(_replyMessage.ReplyHeader.CursorId);
@@ -59,7 +58,7 @@ namespace MongoDB.Client.Tests.Serialization
             return true;
         }
     }
-    public abstract class BaseSerialization 
+    public abstract class BaseSerialization
     {
         [ModuleInitializer]
         public static void TestInit()
@@ -103,7 +102,7 @@ namespace MongoDB.Client.Tests.Serialization
         }
         internal static async Task<T> ReadAsync<T>(PipeReader input, UnitTestReplyBodyReader<T> messageReader)
         {
-            var reader = new ProtocolReader(input);           
+            var reader = new ProtocolReader(input);
             var result = await reader.ReadAsync(messageReader).ConfigureAwait(false);
             reader.Advance();
             return result.Message.FirstOrDefault();
@@ -124,7 +123,7 @@ namespace MongoDB.Client.Tests.Serialization
             {
                 messageReader = new UnitTestReplyBodyReader<T>(new ReplyMessage(default, new ReplyMessageHeader(default, default, default, 1)));
             }
-            
+
             var result = await reader.ReadAsync(messageReader).ConfigureAwait(false);
             reader.Advance();
             return result.Message.FirstOrDefault();

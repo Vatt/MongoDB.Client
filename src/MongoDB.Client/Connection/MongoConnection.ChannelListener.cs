@@ -1,8 +1,7 @@
-﻿using System;
+﻿using MongoDB.Client.Protocol;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using MongoDB.Client.Messages;
-using MongoDB.Client.Protocol;
 
 namespace MongoDB.Client.Connection
 {
@@ -15,25 +14,25 @@ namespace MongoDB.Client.Connection
         }
         private async Task StartChannelListerAsync()
         {
-            while(true)
+            while (true)
             {
                 var request = await _channelReader.ReadAsync();
                 switch (request)
                 {
                     case FindMongoRequest findRequest:
-                    {
-                        _completions.GetOrAdd(findRequest.Message.Header.RequestNumber, findRequest);
-                        await _protocolWriter!.WriteAsync(ProtocolWriters.FindMessageWriter, findRequest.Message, _shutdownCts.Token).ConfigureAwait(false);
-                        _logger.SentCursorMessage(findRequest.Message.Header.RequestNumber);
-                        break;
-                    }
+                        {
+                            _completions.GetOrAdd(findRequest.Message.Header.RequestNumber, findRequest);
+                            await _protocolWriter!.WriteAsync(ProtocolWriters.FindMessageWriter, findRequest.Message, _shutdownCts.Token).ConfigureAwait(false);
+                            _logger.SentCursorMessage(findRequest.Message.Header.RequestNumber);
+                            break;
+                        }
                     case QueryMongoRequest queryRequest:
-                    {
-                        _completions.GetOrAdd(queryRequest.Message.RequestNumber, queryRequest);
-                        await _protocolWriter!.WriteAsync(ProtocolWriters.QueryMessageWriter, queryRequest.Message, _shutdownCts.Token).ConfigureAwait(false);
-                        _logger.SentCursorMessage(queryRequest.Message.RequestNumber);
-                        break;
-                    }
+                        {
+                            _completions.GetOrAdd(queryRequest.Message.RequestNumber, queryRequest);
+                            await _protocolWriter!.WriteAsync(ProtocolWriters.QueryMessageWriter, queryRequest.Message, _shutdownCts.Token).ConfigureAwait(false);
+                            _logger.SentCursorMessage(queryRequest.Message.RequestNumber);
+                            break;
+                        }
                     default:
                         throw new Exception(nameof(StartChannelListerAsync));
                 }

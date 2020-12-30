@@ -1,6 +1,5 @@
-﻿using System.Linq;
+﻿using Microsoft.CodeAnalysis;
 using System.Text;
-using Microsoft.CodeAnalysis;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
@@ -16,7 +15,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             {
                 return true;
             }
-             while (true)
+            while (true)
             {
                 var last = str.LastIndexOf('.');
                 if (last == -1)
@@ -32,7 +31,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     return true;
                 }
 
-            }         
+            }
             return false;
         }
         public static void TypeLibInit(Compilation compilation)
@@ -96,7 +95,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         public static ISymbol System_DateTime;
         public static ISymbol System_Decimal;
         public static ISymbol System_Enum;
-        public static ISymbol System_DateTimeOffset;       
-        public static ISymbol System_Guid;       
+        public static ISymbol System_DateTimeOffset;
+        public static ISymbol System_Guid;
     }
 }

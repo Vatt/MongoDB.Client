@@ -1,12 +1,11 @@
-﻿using System;
-using System.Net;
-using System.Threading.Tasks;
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
 using MongoDB.Bson;
 using MongoDB.Client.Benchmarks.Serialization.Models;
 using MongoDB.Driver;
+using System;
+using System.Net;
+using System.Threading.Tasks;
 using BsonDocument = MongoDB.Client.Bson.Document.BsonDocument;
-using BsonObjectId = MongoDB.Client.Bson.Document.BsonObjectId;
 
 namespace MongoDB.Client.Benchmarks
 {
@@ -48,7 +47,7 @@ namespace MongoDB.Client.Benchmarks
             var oldClient = new MongoDB.Driver.MongoClient($"mongodb://{host}:27017");
             var oldDb = oldClient.GetDatabase(dbName);
             _oldCollection = oldDb.GetCollection<GeoIp>(collectionName);
-      
+
         }
 
         [GlobalCleanup]

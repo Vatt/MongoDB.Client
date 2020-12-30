@@ -1,8 +1,7 @@
-﻿using System;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using MongoDB.Client.Connection;
-using MongoDB.Client.Protocol.Common;
 using MongoDB.Client.Protocol.Readers;
+using System;
 
 namespace MongoDB.Client
 {
@@ -25,7 +24,7 @@ namespace MongoDB.Client
         {
             _gotMessage(logger, requestNum, default!);
         }
-        
+
         private static readonly Action<ILogger, int, Exception> _gotMessageComplete =
             LoggerMessage.Define<int>(LogLevel.Debug, new EventId(1, nameof(MongoConnection)),
                 "Got message '{requestNumber}' complete");
@@ -85,7 +84,7 @@ namespace MongoDB.Client
         private static readonly Action<ILogger, int, Exception> _parsingMsgCompleteMessage =
             LoggerMessage.Define<int>(LogLevel.Trace, new EventId(1, nameof(MongoConnection)),
                 "Parsing msg message '{requestNumber}' complete");
-        
+
         public static void ParsingMsgCompleteMessage(this ILogger logger, int requestNum)
         {
             _parsingMsgCompleteMessage(logger, requestNum, default!);

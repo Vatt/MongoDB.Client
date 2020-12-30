@@ -21,7 +21,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                 {
                     Contexts.Add(new ClassContext(this, node, symbol));
                 }
-                
+
             }
         }
     }

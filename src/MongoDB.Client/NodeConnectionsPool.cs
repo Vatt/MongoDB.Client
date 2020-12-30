@@ -23,7 +23,7 @@
 //            }
 //        }
 //        private static readonly Random Random = new();
-        
+
 //        private readonly MongoClientSettings _settings;
 //        private readonly EndPoint _endPoint;
 //        private readonly ILoggerFactory _loggerFactory;
@@ -46,7 +46,7 @@
 //        {
 //            var idx = Interlocked.Increment(ref _channelCounter);
 //            var channels = _channels;
-            
+
 //            for (int i = 0; i < channels.Length; i++)
 //            {
 //                var current = (idx + i) % channels.Length;
@@ -80,7 +80,7 @@
 //                        return channel;
 //                    }
 //                }
-                
+
 //                if (channels.Length == _settings.ConnectionPoolMaxSize)
 //                {
 //                    var idx = Random.Next(_settings.ConnectionPoolMaxSize);
@@ -88,8 +88,8 @@
 //                }
 
 //                channel = await CreateChannelAsync(cancellationToken);
-                
-                
+
+
 //                _channels = channels.Add(channel);
 //                return channel;
 //            }
@@ -108,8 +108,8 @@
 //            var result = await OpenChannelAsync(channel,token);
 //            return channel;
 //        }
-        
-        
+
+
 //        private readonly BsonDocument _initialDocument;
 //        private async Task<ConnectionInfo> OpenChannelAsync(MongoConnection channel, CancellationToken token)
 //        {
@@ -119,7 +119,7 @@
 //            var hell = await channel.SendQueryAsync<BsonDocument>(buildInfoRequest, token).ConfigureAwait(false);
 //            return new ConnectionInfo(configMessage[0], hell[0]);
 //        }
-        
+
 //        private QueryMessage CreateQueryRequest(BsonDocument document, int number)
 //        {
 //            var doc = CreateWrapperDocument(document);
@@ -150,6 +150,6 @@
 //            }
 //        }
 
-        
+
 //    }
 //}

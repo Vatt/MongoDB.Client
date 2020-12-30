@@ -1,7 +1,7 @@
-﻿using System.Net;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MongoDB.Client.Connection;
+using System.Net;
 
 namespace MongoDB.Client
 {
@@ -19,17 +19,17 @@ namespace MongoDB.Client
         : this(new MongoClientSettings(endPoint), new NullLoggerFactory())
         {
         }
-        
+
         public MongoClient(ILoggerFactory loggerFactory)
             : this(new MongoClientSettings(), loggerFactory)
         {
         }
-        
+
         public MongoClient(EndPoint endPoint, ILoggerFactory loggerFactory)
             : this(new MongoClientSettings(endPoint), loggerFactory)
         {
         }
-        
+
         public MongoClient(MongoClientSettings settings, ILoggerFactory loggerFactory)
         {
             Settings = settings;

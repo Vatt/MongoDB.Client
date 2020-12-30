@@ -1,5 +1,4 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Messages;
+﻿using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Common;
 
 namespace MongoDB.Client.Protocol.Messages
@@ -23,7 +22,7 @@ namespace MongoDB.Client.Protocol.Messages
         public MongoMsgHeader Header { get; }
         public bool MoreToCome { get; }
         public bool ExhaustAllowed { get; }
-        public PayloadType Type { get;}
+        public PayloadType Type { get; }
         public FindRequest Document { get; }
     }
 }

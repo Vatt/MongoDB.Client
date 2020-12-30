@@ -1,8 +1,6 @@
-﻿using System;
+﻿using MongoDB.Client.Tests.Serialization.TestModels;
+using System;
 using System.Threading.Tasks;
-using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization;
-using MongoDB.Client.Tests.Serialization.TestModels;
 using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization
@@ -12,7 +10,7 @@ namespace MongoDB.Client.Tests.Serialization
         [Fact]
         public async Task BsonIdTest()
         {
-            var model = new BsonIdModel(Guid.NewGuid(), Int32.MaxValue);            
+            var model = new BsonIdModel(Guid.NewGuid(), Int32.MaxValue);
             var result = await RoundTripAsync(model);
 
             Assert.Equal(model, result);

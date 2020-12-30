@@ -6,7 +6,7 @@ namespace MongoDB.Client.Exceptions
     {
         public MongoException(string? message) : base(message)
         {
-            
+
         }
     }
 }

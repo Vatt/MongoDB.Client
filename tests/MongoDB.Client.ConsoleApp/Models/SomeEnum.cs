@@ -1,6 +1,4 @@
-﻿using MongoDB.Client.Bson.Serialization.Attributes;
-
-namespace MongoDB.Client.ConsoleApp.Models
+﻿namespace MongoDB.Client.ConsoleApp.Models
 {
     public enum SomeEnum
     {

@@ -9,17 +9,17 @@ namespace MongoDB.Client.Benchmarks.Serialization
         private int _position;
 
         public int Written => _position;
-        
+
         public TestBuffer(int size = 4096)
         {
             _buffer = new byte[size];
         }
-        
+
         public TestBuffer(byte[] buffer)
         {
             _buffer = buffer;
         }
-        
+
         public void Advance(int count)
         {
             _position += count;

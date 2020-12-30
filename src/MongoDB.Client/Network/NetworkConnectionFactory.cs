@@ -4,7 +4,6 @@ using Microsoft.Extensions.Options;
 using MongoDB.Client.Network.Transport.Sockets;
 using System.Diagnostics;
 using System.Net;
-using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 namespace MongoDB.Client.Network

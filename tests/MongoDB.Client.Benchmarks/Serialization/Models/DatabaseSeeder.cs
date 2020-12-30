@@ -1,6 +1,6 @@
-﻿using System;
+﻿using MongoDB.Client.Bson.Document;
+using System;
 using System.Collections.Generic;
-using MongoDB.Client.Bson.Document;
 
 namespace MongoDB.Client.Benchmarks.Serialization.Models
 {

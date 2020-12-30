@@ -1,9 +1,9 @@
-﻿using System;
-using System.Net;
-using System.Threading.Tasks;
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
 using MongoDB.Client.Benchmarks.Serialization;
 using MongoDB.Driver;
+using System;
+using System.Net;
+using System.Threading.Tasks;
 using BsonDocument = MongoDB.Client.Bson.Document.BsonDocument;
 
 namespace MongoDB.Client.Benchmarks
@@ -14,7 +14,7 @@ namespace MongoDB.Client.Benchmarks
         private MongoCollection<SimpleModel> _collection;
         private IMongoCollection<SimpleModel> _oldCollection;
 
-        [Params(256)] 
+        [Params(256)]
         public int RequestsCount { get; set; }
 
         [Params(100)]

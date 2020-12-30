@@ -1,7 +1,5 @@
-﻿using System;
-using System.Buffers;
+﻿using MongoDB.Client.Bson.Serialization.Attributes;
 using System.Collections.Generic;
-using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Benchmarks.Serialization.Models
 {

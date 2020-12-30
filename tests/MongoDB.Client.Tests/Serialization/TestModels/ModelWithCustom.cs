@@ -4,16 +4,13 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Bson.Writer;
 using System;
 using System.Buffers.Binary;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
 
-    public record CustomModel(int A, int B, int C );
+    public record CustomModel(int A, int B, int C);
     public class CustomModelSerializer : IGenericBsonSerializer<CustomModel>
     {
         private static ReadOnlySpan<byte> CustomModelA => new byte[1] { 65 };

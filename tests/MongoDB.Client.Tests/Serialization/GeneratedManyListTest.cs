@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using MongoDB.Client.Tests.Serialization.TestModels;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization;
-using MongoDB.Client.Tests.Serialization.TestModels;
 using Xunit;
 namespace MongoDB.Client.Tests.Serialization
 {
@@ -34,7 +32,7 @@ namespace MongoDB.Client.Tests.Serialization
                                     new List<long> {15, 16, 17, 18, 19},
                                     new List<long> {110, 111, 112, 113, 114}
                                 }
-                                
+
                             },
                             new List<List<List<long>>>()
                             {
@@ -68,7 +66,7 @@ namespace MongoDB.Client.Tests.Serialization
                                     new List<long> {315, 316, 317, 318, 319},
                                     new List<long> {3110, 3111, 3112, 3113, 3114}
                                 }
-                                
+
                             },
                             new List<List<List<long>>>()
                             {

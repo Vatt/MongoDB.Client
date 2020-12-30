@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using Microsoft.Extensions.ObjectPool;
+﻿using Microsoft.Extensions.ObjectPool;
+using System.Collections.Generic;
 
 namespace MongoDB.Client.Utils
 {
@@ -7,7 +7,7 @@ namespace MongoDB.Client.Utils
     {
         public static readonly ObjectPool<List<TPool>> Pool =
             new DefaultObjectPool<List<TPool>>(new PooledListPolicy<TPool>());
-        
+
         private sealed class PooledListPolicy<T> : IPooledObjectPolicy<List<T>>
         {
             public List<T> Create()

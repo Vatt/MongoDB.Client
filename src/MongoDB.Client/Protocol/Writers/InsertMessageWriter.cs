@@ -1,10 +1,10 @@
-﻿using System.Buffers;
-using System.Buffers.Binary;
-using MongoDB.Client.Bson.Serialization;
+﻿using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Writer;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Messages;
+using System.Buffers;
+using System.Buffers.Binary;
 
 namespace MongoDB.Client.Protocol.Writers
 {
@@ -23,12 +23,12 @@ namespace MongoDB.Client.Protocol.Writers
             var writer = new BsonWriter(output);
 
             writer.WriteInt32(0); // size
-            writer.WriteInt32(message.Header.RequestNumber); 
+            writer.WriteInt32(message.Header.RequestNumber);
             writer.WriteInt32(0); // responseTo
             writer.WriteInt32((int)message.Header.Opcode);
-            
+
             writer.WriteInt32((int)CreateFlags(message));
-            
+
             writer.WriteByte((byte)PayloadType.Type0);
 
             InsertHeader.WriteBson(ref writer, message.InsertHeader);
@@ -45,7 +45,7 @@ namespace MongoDB.Client.Protocol.Writers
             {
                 _serializer.WriteBson(ref writer, item);
             }
-            
+
             writer.Commit();
             BinaryPrimitives.WriteInt32LittleEndian(secondSpan, writer.Written - checkpoint);
             BinaryPrimitives.WriteInt32LittleEndian(firstSpan, writer.Written);

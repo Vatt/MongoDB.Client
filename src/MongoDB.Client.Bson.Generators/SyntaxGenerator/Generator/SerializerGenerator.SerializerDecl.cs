@@ -142,7 +142,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                          OpenBraceToken(), new SyntaxList<MemberDeclarationSyntax>().Add(member), CloseBraceToken(), default);
                     return ProcessNested(decl, symbol.ContainingSymbol);
                 }
-                
+
                 switch (((INamedTypeSymbol)symbol).TypeKind)
                 {
                     case TypeKind.Class:

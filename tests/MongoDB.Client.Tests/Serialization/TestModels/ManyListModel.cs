@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.ObjectModel;
-using MongoDB.Client.Bson.Serialization.Attributes;
+﻿using MongoDB.Client.Bson.Serialization.Attributes;
+using System.Collections.Generic;
 
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {

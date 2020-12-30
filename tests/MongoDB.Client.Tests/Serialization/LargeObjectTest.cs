@@ -1,8 +1,6 @@
-using System;
+using MongoDB.Client.Tests.Serialization.TestModels;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using MongoDB.Client.Bson.Serialization;
-using MongoDB.Client.Tests.Serialization.TestModels;
 using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization
@@ -65,7 +63,7 @@ namespace MongoDB.Client.Tests.Serialization
                 TextFieldOne = $"{i}_{i}_{i}",
                 TextFieldTwo = $"{i}-{i}-{i}",
                 TextFieldThree = $"{i}|{i}|{i}",
-                SomeEnumField = (SomeEnum) (i % 3)
+                SomeEnumField = (SomeEnum)(i % 3)
             };
         }
 

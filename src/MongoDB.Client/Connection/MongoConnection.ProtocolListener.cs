@@ -1,11 +1,11 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Common;
 using MongoDB.Client.Protocol.Core;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace MongoDB.Client.Connection
 {
@@ -43,7 +43,7 @@ namespace MongoDB.Client.Connection
                         default:
                             _logger.UnknownOpcodeMessage(header);
                             continue;
-                             //TODO: need to read pipe to end
+                            //TODO: need to read pipe to end
                     }
 
                     if (_completions.TryGetValue(message.Header.ResponseTo, out request))
@@ -81,7 +81,7 @@ namespace MongoDB.Client.Connection
 
             return await task;
         }
-        private async  ValueTask<T> ProtocolReadAsyncPrivate<T>(IMessageReader<T> reader, CancellationToken token)
+        private async ValueTask<T> ProtocolReadAsyncPrivate<T>(IMessageReader<T> reader, CancellationToken token)
         {
 
             var result = await _protocolReader.ReadAsync(reader, token).ConfigureAwait(false);

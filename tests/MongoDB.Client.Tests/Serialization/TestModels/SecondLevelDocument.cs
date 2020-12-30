@@ -1,6 +1,6 @@
-﻿using System;
+﻿using MongoDB.Client.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
-using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
@@ -23,7 +23,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((SecondLevelDocument) obj);
+            return Equals((SecondLevelDocument)obj);
         }
 
         public override int GetHashCode()

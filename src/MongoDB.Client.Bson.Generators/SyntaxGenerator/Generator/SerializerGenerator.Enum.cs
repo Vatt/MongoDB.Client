@@ -1,8 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
+using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
@@ -46,12 +45,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return methods.ToArray();
         }
-                private static MethodDeclarationSyntax ReadStringReprEnumMethod(MemberContext ctx)
+        private static MethodDeclarationSyntax ReadStringReprEnumMethod(MemberContext ctx)
         {
-            var outMessage = SF.Identifier("enumMessage");           
+            var outMessage = SF.Identifier("enumMessage");
             var repr = AttributeHelper.GetEnumRepresentation(ctx.NameSym);
             var metadata = ctx.TypeMetadata as INamedTypeSymbol;
-            if (repr != 1 )
+            if (repr != 1)
             {
                 return default;
             }
@@ -67,13 +66,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 statements.Add(
                     SF.IfStatement(
                         condition: SpanSequenceEqual(stringData, StaticEnumFieldNameToken(metadata, alias)),
-                        statement: 
+                        statement:
                         SF.Block(
                             SimpleAssignExprStatement(outMessage, IdentifierFullName(member)),
                             SF.ReturnStatement(TrueLiteralExpr())
                             )));
             }
-            statements.Add(SF.ReturnStatement(TrueLiteralExpr()));     
+            statements.Add(SF.ReturnStatement(TrueLiteralExpr()));
             return SF.MethodDeclaration(
                     attributeLists: default,
                     modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()),
@@ -101,7 +100,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             List<StatementSyntax> statements = new();
             foreach (var member in metadata.GetMembers().Where(sym => sym.Kind == SymbolKind.Field))
             {
-                var (_, alias) = AttributeHelper.GetMemberAlias(member);               
+                var (_, alias) = AttributeHelper.GetMemberAlias(member);
                 statements.Add(
                     SF.IfStatement(
                         condition: BinaryExprEqualsEquals(ctx.Root.WriterInputVar, IdentifierFullName(member)),
@@ -120,7 +119,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     parameterList: ParameterList(RefParameter(ctx.Root.BsonWriterType, ctx.Root.BsonWriterToken),
                                                  Parameter(ReadOnlySpanByte(), spanNameArg),
                                                  Parameter(TypeFullName(ctx.TypeSym), ctx.Root.WriterInputVarToken)),
-                                                  
+
                     body: default,
                     constraintClauses: default,
                     expressionBody: default,

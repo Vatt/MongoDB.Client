@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using MongoDB.Client.Bson.Serialization.Attributes;
+﻿using MongoDB.Client.Bson.Serialization.Attributes;
+using System.Collections.Generic;
 
 namespace MongoDB.Client.ConsoleApp.Models
 {

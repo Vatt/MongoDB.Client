@@ -1,6 +1,6 @@
-﻿using System;
+﻿using MongoDB.Client.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
-using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
@@ -8,7 +8,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
     public partial class ModelWithArray : IEquatable<ModelWithArray>
     {
         public string Name { get; set; }
-        
+
 
         public List<int> Values { get; set; }
 
@@ -25,7 +25,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((ModelWithArray) obj);
+            return Equals((ModelWithArray)obj);
         }
 
         public override int GetHashCode()

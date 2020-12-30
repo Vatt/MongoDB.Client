@@ -21,14 +21,14 @@ namespace MongoDB.Client
         : this(endpoints, string.Empty, string.Empty)
         {
         }
-        
+
         public MongoClientSettings(EndPoint endpoint)
-            : this(new []{endpoint}, string.Empty, string.Empty)
+            : this(new[] { endpoint }, string.Empty, string.Empty)
         {
         }
-        
+
         public MongoClientSettings()
-            : this(new []{new IPEndPoint(IPAddress.Loopback, 27017)}, string.Empty, string.Empty)
+            : this(new[] { new IPEndPoint(IPAddress.Loopback, 27017) }, string.Empty, string.Empty)
         {
         }
 
@@ -38,7 +38,7 @@ namespace MongoDB.Client
             get => _endpoints;
             init
             {
-                if (value is {Length: 0})
+                if (value is { Length: 0 })
                 {
                     throw new ArgumentException("Endpoints must not be empty");
                 }
@@ -47,8 +47,8 @@ namespace MongoDB.Client
             }
         }
 
-        public string Login { get; init;}
-        public string Password { get; init;}
+        public string Login { get; init; }
+        public string Password { get; init; }
 
         public int ConnectionPoolMaxSize { get; init; } = 100;
         public int MultiplexingTreshold { get; init; } = 2;

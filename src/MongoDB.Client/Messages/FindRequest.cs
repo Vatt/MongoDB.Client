@@ -18,18 +18,18 @@ namespace MongoDB.Client.Messages
         [BsonWriteIgnoreIf("Limit < 1")]
         public int Limit { get; set; }
 
-        
-        
+
+
         [BsonElement("getMore")]
         [BsonWriteIgnoreIf("GetMore < 1")]
         public long GetMore { get; set; }
-        
+
         [BsonElement("collection")]
         [BsonWriteIgnoreIf("Collection is null")]
         public string Collection { get; set; }
-        
-        
-        
+
+
+
         [BsonElement("$db")]
         public string Db { get; set; }
 

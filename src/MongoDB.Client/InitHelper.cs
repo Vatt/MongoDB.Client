@@ -1,6 +1,6 @@
-﻿using System.Runtime.InteropServices;
+﻿using MongoDB.Client.Bson.Document;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using MongoDB.Client.Bson.Document;
 
 namespace MongoDB.Client
 {

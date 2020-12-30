@@ -21,7 +21,7 @@ namespace MongoDB.Client.Bson.Document
             Value = value;
         }
 
-        
+
         public static BsonElement Create(BsonDocument parent, string name, int value)
         {
             return new BsonElement(parent, BsonElementType.Int32, name, value);
@@ -117,7 +117,7 @@ namespace MongoDB.Client.Bson.Document
             {
                 return "null";
             }
-            
+
             if (value is string str)
             {
                 return "\"" + str + "\"";
@@ -125,7 +125,7 @@ namespace MongoDB.Client.Bson.Document
 
             return value.ToString();
         }
-        
+
         public override bool Equals(object? obj)
         {
             return obj is BsonElement element && Equals(element);

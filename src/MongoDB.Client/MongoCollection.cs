@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Messages;
-using MongoDB.Client.Protocol.Messages;
-using MongoDB.Client.Utils;
+using System;
 
 namespace MongoDB.Client
 {
@@ -81,6 +76,6 @@ namespace MongoDB.Client
         //    return await channel.DeleteAsync(request, cancellationToken).ConfigureAwait(false);
         //}
 
-        private static readonly SessionId SharedSessionIdModel = new SessionId {Id = Guid.NewGuid()};
+        private static readonly SessionId SharedSessionIdModel = new SessionId { Id = Guid.NewGuid() };
     }
 }

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using MongoDB.Client.Bson.Serialization.Attributes;
+﻿using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Messages
 {
@@ -8,7 +7,7 @@ namespace MongoDB.Client.Messages
     {
         [BsonElement("n")]
         public int N { get; set; }
-        
+
         [BsonElement("ok")]
         public double Ok { get; set; }
     }

@@ -1,12 +1,10 @@
-﻿using System;
+﻿using MongoDB.Client.Messages;
+using MongoDB.Client.Protocol.Messages;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using MongoDB.Client.Messages;
-using MongoDB.Client.Protocol.Core;
-using MongoDB.Client.Protocol.Messages;
 
 namespace MongoDB.Client.Connection
 {
@@ -31,7 +29,7 @@ namespace MongoDB.Client.Connection
             _channelWriter = _channel.Writer;
             _connections = new List<MongoConnection>();
             _counter = 0;
-        }       
+        }
         public int GetNextRequestNumber()
         {
             return Interlocked.Increment(ref _counter);
@@ -61,10 +59,10 @@ namespace MongoDB.Client.Connection
             {
                 taskSource = new ManualResetValueTaskSource<IParserResult>();
             }
-            var request = new FindMongoRequest(message, taskSource);            
+            var request = new FindMongoRequest(message, taskSource);
             request.ParseAsync = CursorParserCallbackHolder<T>.CursorParseAsync;
             await _channelWriter.WriteAsync(request);
-            var cursor =  await taskSource.GetValueTask() as CursorResult<T>;
+            var cursor = await taskSource.GetValueTask() as CursorResult<T>;
             taskSource.Reset();
             _queue.Enqueue(taskSource);
             return cursor;

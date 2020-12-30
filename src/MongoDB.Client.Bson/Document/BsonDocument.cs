@@ -23,7 +23,7 @@ namespace MongoDB.Client.Bson.Document
         {
             Add(name, value);
         }
-        
+
         public BsonDocument(string name, int value)
             : this()
         {

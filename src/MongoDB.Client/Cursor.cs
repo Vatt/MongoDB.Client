@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Messages;
 using MongoDB.Client.Utils;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace MongoDB.Client
 {
@@ -31,7 +31,7 @@ namespace MongoDB.Client
             : this(channelPool, filter, collectionNamespace, new BsonDocument("id", BsonBinaryData.Create(sessionId)))
         {
         }
-        
+
         //internal Cursor(IConnectionsPool channelPool, BsonDocument filter, CollectionNamespace collectionNamespace, BsonDocument sessionId)
         internal Cursor(RequestScheduler scheduler, BsonDocument filter, CollectionNamespace collectionNamespace, BsonDocument sessionId)
         {
@@ -47,7 +47,7 @@ namespace MongoDB.Client
         }
 
         public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken)
-        {            
+        {
             //var channel = await _channelPool.GetChannelAsync(cancellationToken).ConfigureAwait(false);
             var requestNum = _scheduler.GetNextRequestNumber();
             var requestDocument = CreateFindRequest(_filter);
@@ -78,7 +78,7 @@ namespace MongoDB.Client
                 }
                 cursorId = getMoreResult.MongoCursor.Id;
                 foreach (var item in getMoreResult.MongoCursor.Items)
-                {   
+                {
                     yield return item;
                 }
                 ListsPool<T>.Pool.Return(getMoreResult.MongoCursor.Items);
@@ -117,7 +117,7 @@ namespace MongoDB.Client
             return new FindRequest
             {
                 Find = _collectionNamespace.CollectionName,
-                Filter =  filter,
+                Filter = filter,
                 Limit = _limit,
                 Db = _collectionNamespace.DatabaseName,
                 Lsid = SharedSession

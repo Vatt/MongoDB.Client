@@ -14,7 +14,7 @@ namespace MongoDB.Client.Tests.Serialization
             {
                 return false;
             }
-            
+
             if (list1 is not null && list2 is null)
             {
                 return false;

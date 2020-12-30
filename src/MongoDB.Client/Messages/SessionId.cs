@@ -1,5 +1,5 @@
-﻿using System;
-using MongoDB.Client.Bson.Serialization.Attributes;
+﻿using MongoDB.Client.Bson.Serialization.Attributes;
+using System;
 
 namespace MongoDB.Client.Messages
 {
@@ -15,7 +15,7 @@ namespace MongoDB.Client.Messages
         : this(Guid.NewGuid())
         {
         }
-        
+
         [BsonElement("id")]
         public Guid Id { get; set; }
     }

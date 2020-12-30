@@ -1,22 +1,14 @@
-using System.IO;
-using System.Linq;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Diagnostics.Windows.Configs;
-using MongoDB.Bson;
-using MongoDB.Bson.IO;
-using MongoDB.Bson.Serialization;
 using MongoDB.Client.Benchmarks.Serialization;
 using MongoDB.Client.Benchmarks.Serialization.Models;
-using MongoDB.Client.Bson.Reader;
-using MongoDB.Client.Bson.Serialization;
-using MongoDB.Client.Bson.Writer;
+using System.Linq;
 using BsonReader = MongoDB.Client.Bson.Reader.BsonReader;
 using BsonWriter = MongoDB.Client.Bson.Writer.BsonWriter;
-using SmallGenericDocument = MongoDB.Client.Benchmarks.Serialization.Models.SmallGenericDocument<MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<int>, MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<string>>;
-using GenericDocument = MongoDB.Client.Benchmarks.Serialization.Models.GenericDocument<double, string, MongoDB.Client.Bson.Document.BsonDocument, MongoDB.Client.Bson.Document.BsonObjectId, int, long, 
-                                                                                        System.DateTimeOffset, System.Guid, 
-                                                                                        MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<int>, 
+using GenericDocument = MongoDB.Client.Benchmarks.Serialization.Models.GenericDocument<double, string, MongoDB.Client.Bson.Document.BsonDocument, MongoDB.Client.Bson.Document.BsonObjectId, int, long,
+                                                                                        System.DateTimeOffset, System.Guid,
+                                                                                        MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<int>,
                                                                                         MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<string>>;
+using SmallGenericDocument = MongoDB.Client.Benchmarks.Serialization.Models.SmallGenericDocument<MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<int>, MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<string>>;
 namespace MongoDB.Client.Benchmarks
 {
     [MemoryDiagnoser]

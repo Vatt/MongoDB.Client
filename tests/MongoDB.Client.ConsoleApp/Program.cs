@@ -1,19 +1,16 @@
+using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Reader;
+using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Bson.Writer;
+using MongoDB.Client.ConsoleApp.Models;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using MongoDB.Client.ConsoleApp.Models;
-using MongoDB.Client.Exceptions;
-using MongoDB.Client.Bson.Serialization.Attributes;
-using MongoDB.Client.Bson.Serialization;
-using System.Buffers;
-using MongoDB.Client.Bson.Writer;
-using MongoDB.Client.Bson.Reader;
 
 namespace MongoDB.Client.ConsoleApp
 {
@@ -41,10 +38,10 @@ namespace MongoDB.Client.ConsoleApp
             var seeder = new DatabaseSeeder();
             var item = seeder.GenerateSeed().First();
 
-            
+
             var result = await InMemorySerialization.RoundTripAsync(item);
 
-           // await collection1.InsertAsync(item);
+            // await collection1.InsertAsync(item);
 
             Console.WriteLine("Done");
         }
@@ -54,7 +51,7 @@ namespace MongoDB.Client.ConsoleApp
             var seeder = new DatabaseSeeder();
             var item = seeder.GenerateSeed().First();
             SerializersMap.TryGetSerializer<RootDocument>(out var serializer);
-            var pipe = new ArrayBufferWriter<byte>(1024*1024);
+            var pipe = new ArrayBufferWriter<byte>(1024 * 1024);
 
 
             var writer = new BsonWriter(pipe);

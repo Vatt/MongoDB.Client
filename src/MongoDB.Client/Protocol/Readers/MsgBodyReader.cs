@@ -1,10 +1,10 @@
-﻿using System;
-using System.Buffers;
-using System.Diagnostics.CodeAnalysis;
-using MongoDB.Client.Bson.Serialization;
+﻿using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Utils;
+using System;
+using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MongoDB.Client.Protocol.Readers
 {
@@ -15,10 +15,10 @@ namespace MongoDB.Client.Protocol.Readers
         protected readonly ResponseMsgMessage Message;
         public bool Complete { get; protected set; }
 
-        
+
         protected long _readed;
         public long Readed => _readed;
-        
+
         public MsgBodyReader(IGenericBsonSerializer<T> serializer, ResponseMsgMessage message)
         {
             Serializer = serializer;

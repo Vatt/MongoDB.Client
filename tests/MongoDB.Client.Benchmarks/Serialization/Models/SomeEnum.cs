@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using MongoDB.Client.Bson.Serialization.Attributes;
-
-namespace MongoDB.Client.Benchmarks.Serialization.Models
+﻿namespace MongoDB.Client.Benchmarks.Serialization.Models
 {
     public enum SomeEnum
     {

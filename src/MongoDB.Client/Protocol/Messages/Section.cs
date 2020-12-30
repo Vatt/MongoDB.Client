@@ -7,6 +7,6 @@ namespace MongoDB.Client.Protocol.Messages
             Type = type;
         }
 
-        public PayloadType Type { get;}
+        public PayloadType Type { get; }
     }
 }

@@ -1,9 +1,9 @@
-﻿using MongoDB.Client.Protocol.Common;
+﻿using MongoDB.Client.Exceptions;
+using MongoDB.Client.Protocol.Common;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
-using MongoDB.Client.Exceptions;
 
 namespace MongoDB.Client
 {
@@ -170,7 +170,7 @@ namespace MongoDB.Client
         {
             throw new OperationCanceledException();
         }
-        
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         [DoesNotReturn]
         public static void CursorException(string message)

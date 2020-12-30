@@ -1,10 +1,9 @@
 ﻿using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Bson.Serialization.Exceptions;
 using System;
 using System.Buffers.Text;
 using System.Runtime.CompilerServices;
-using MongoDB.Client.Bson.Serialization;
-using MongoDB.Client.Bson.Serialization.Exceptions;
-using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Bson.Writer
 {
@@ -75,12 +74,12 @@ namespace MongoDB.Client.Bson.Writer
                     WriteInt64(value);
                     typeReserved.Write(18);
                     return;
-                //default:
-                //    System.Diagnostics.Debugger.Break();
-                //    break;
+                    //default:
+                    //    System.Diagnostics.Debugger.Break();
+                    //    break;
             }
 
-        //SERIALIZABLE:
+            //SERIALIZABLE:
             var writer = SerializerFnPtrProvider<T>.WriteFnPtr;
             if (writer != default)
             {

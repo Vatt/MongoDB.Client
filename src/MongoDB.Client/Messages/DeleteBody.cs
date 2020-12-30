@@ -12,7 +12,7 @@ namespace MongoDB.Client.Messages
         [BsonElement("limit")]
         public int Limit { get; set; }
 
-        
+
         //TODO: Collation object
         //[BsonElementField(ElementName = "collation")]
         //[BsonWriteIgnoreIf("Collation is null")]

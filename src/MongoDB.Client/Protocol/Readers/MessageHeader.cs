@@ -1,6 +1,4 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using MongoDB.Client.Protocol.Common;
+﻿using MongoDB.Client.Protocol.Common;
 
 namespace MongoDB.Client.Protocol.Readers
 {
@@ -10,7 +8,7 @@ namespace MongoDB.Client.Protocol.Readers
         public readonly int RequestId;
         public readonly int ResponseTo;
         public readonly Opcode Opcode;
-        
+
         public MessageHeader(int messageLength, int requestId, int responseTo, int opcode)
         {
             MessageLength = messageLength;

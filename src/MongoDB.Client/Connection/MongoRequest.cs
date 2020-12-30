@@ -1,12 +1,8 @@
-﻿using MongoDB.Client.Bson.Writer;
-using MongoDB.Client.Messages;
-using MongoDB.Client.Protocol;
+﻿using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Messages;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using MongoDB.Client.Bson.Reader;
 
 namespace MongoDB.Client.Connection
 {
@@ -27,7 +23,6 @@ namespace MongoDB.Client.Connection
             Message = message;
         }
     }
-
     internal class QueryMongoRequest : MongoReuqestBase
     {
         internal QueryMessage Message;

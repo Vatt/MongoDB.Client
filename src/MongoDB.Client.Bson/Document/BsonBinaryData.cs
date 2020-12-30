@@ -21,7 +21,7 @@ namespace MongoDB.Client.Bson.Document
             Type = type;
             Value = value;
         }
-        
+
         public static BsonBinaryData Create(Guid guid)
         {
             return new BsonBinaryData(BsonBinaryDataType.UUID, guid);
@@ -31,7 +31,7 @@ namespace MongoDB.Client.Bson.Document
         {
             return new BsonBinaryData(BsonBinaryDataType.Generic, data);
         }
-        
+
         public bool Equals(BsonBinaryData other)
         {
             return Type == other.Type && Value.Equals(other.Value);

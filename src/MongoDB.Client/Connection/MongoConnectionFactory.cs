@@ -1,12 +1,11 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using MongoDB.Client.Network;
+using MongoDB.Client.Network.Transport.Sockets.Internal;
+using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using MongoDB.Client.Messages;
-using MongoDB.Client.Network;
-using MongoDB.Client.Network.Transport.Sockets.Internal;
 
 namespace MongoDB.Client.Connection
 {
@@ -31,7 +30,7 @@ namespace MongoDB.Client.Connection
                 ThrowHelper.ConnectionException<SocketConnection>(_endPoint);
             }
             var id = Interlocked.Increment(ref CONNECTION_ID);
-            var connection =  new MongoConnection(id, _loggerFactory.CreateLogger(String.Empty), reader);
+            var connection = new MongoConnection(id, _loggerFactory.CreateLogger(String.Empty), reader);
             await connection.StartAsync(context);
             return connection;
         }

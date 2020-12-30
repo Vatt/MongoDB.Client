@@ -1,9 +1,13 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Connections;
+﻿using Microsoft.AspNetCore.Connections;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Messages;
+using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Messages;
+using MongoDB.Client.Protocol.Readers;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace MongoDB.Client.Connection
 {
@@ -55,6 +59,53 @@ namespace MongoDB.Client.Connection
             {
                 return doc;
             }
+        }
+        public async ValueTask<QueryResult<TResp>> SendQueryAsync<TResp>(QueryMessage message, CancellationToken cancellationToken)
+        {
+            ManualResetValueTaskSource<IParserResult> taskSource;
+            if (_queue.TryDequeue(out taskSource) == false)
+            {
+                taskSource = new ManualResetValueTaskSource<IParserResult>();
+            }
+
+            var completion = new QueryMongoRequest(message, taskSource);
+            completion.ParseAsync = ParseAsync<TResp>;
+            _completions.GetOrAdd(completion.Message.RequestNumber, completion);
+            try
+            {
+                await _protocolWriter.WriteAsync(ProtocolWriters.QueryMessageWriter, message, cancellationToken).ConfigureAwait(false);
+                var response = await new ValueTask<IParserResult>(completion.CompletionSource, completion.CompletionSource.Version).ConfigureAwait(false);
+
+                if (response is QueryResult<TResp> queryResult)
+                {
+                    return queryResult;
+                }
+
+                return default!;
+            }
+            finally
+            {
+                _completions.TryRemove(message.RequestNumber, out _);
+                taskSource.Reset();
+                _queue.Enqueue(taskSource);
+            }
+
+            async ValueTask<IParserResult> ParseAsync<T>(ProtocolReader reader, MongoResponseMessage mongoResponse)
+            {
+                switch (mongoResponse)
+                {
+                    case ReplyMessage replyMessage:
+                        var bodyReader = new ReplyBodyReader<T>(new BsonDocumentSerializer() as IGenericBsonSerializer<T>, replyMessage);
+                        var bodyResult = await reader.ReadAsync(bodyReader, default).ConfigureAwait(false);
+                        reader.Advance();
+                        return bodyResult.Message;
+
+                        return ThrowHelper.UnsupportedTypeException<QueryResult<T>>(typeof(T));
+                    default:
+                        return ThrowHelper.UnsupportedTypeException<QueryResult<T>>(typeof(T));
+                }
+            }
+            return default;
         }
     }
 }

@@ -1,9 +1,9 @@
-﻿using System;
-using System.Net;
-using System.Threading.Tasks;
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
 using MongoDB.Client.Benchmarks.Serialization.Models;
 using MongoDB.Driver;
+using System;
+using System.Net;
+using System.Threading.Tasks;
 using BsonDocument = MongoDB.Client.Bson.Document.BsonDocument;
 
 namespace MongoDB.Client.Benchmarks
@@ -16,14 +16,14 @@ namespace MongoDB.Client.Benchmarks
 
         [Params(1, 10, 100, 1000, 10000)]
         public int ItemsCount { get; set; }
-        
+
         [GlobalSetup]
         public void Setup()
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
             var dbName = "BenchmarkDb";
             var collectionName = GetType().Name;
-            
+
             var client = new MongoClient(new DnsEndPoint(host, 27017));
             var db = client.GetDatabase(dbName);
             _collection = db.GetCollection<GeoIp>(collectionName);
@@ -60,9 +60,9 @@ namespace MongoDB.Client.Benchmarks
         {
             _oldCollection.DeleteMany(FilterDefinition<GeoIp>.Empty);
         }
-        
+
         private static readonly BsonDocument EmptyFilter = new BsonDocument();
-        
+
         [Benchmark]
         public async Task<int> NewClientToList()
         {

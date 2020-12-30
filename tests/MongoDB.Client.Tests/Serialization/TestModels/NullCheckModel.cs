@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using MongoDB.Client.Bson.Serialization.Attributes;
+﻿using MongoDB.Client.Bson.Serialization.Attributes;
+using System.Collections.Generic;
 
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
@@ -35,7 +35,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
             {
                 return false;
             }
-            if ( (other.Data is null && Data is not null) || (Data is null && other.Data is not null) )
+            if ((other.Data is null && Data is not null) || (Data is null && other.Data is not null))
             {
                 return false;
             }

@@ -2,9 +2,9 @@
 
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
-    
-    
-    
+
+
+
     public enum Int32Enum
     {
         EnumInt32Value1,
@@ -14,7 +14,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         EnumInt32Value5,
     }
 
-    
+
     public enum Int64Enum
     {
         EnumInt64Value1,
@@ -33,7 +33,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         public Int64Enum Int64EnumValue;
         public override bool Equals(object? obj)
         {
-            return obj is not null &&  obj is NumericEnumsModel other && Name.Equals(other.Name) && 
+            return obj is not null && obj is NumericEnumsModel other && Name.Equals(other.Name) &&
                    Int32EnumValue == other.Int32EnumValue && Int64EnumValue == other.Int64EnumValue;
         }
     }

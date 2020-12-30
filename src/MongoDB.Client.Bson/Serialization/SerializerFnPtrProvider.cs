@@ -71,16 +71,16 @@ namespace MongoDB.Client.Bson.Serialization
             {
                 TryParseFnPtr = (delegate*<ref BsonReader, out T, bool>)tryParseMethod.MethodHandle.GetFunctionPointer();
             }
-            
-            if(writeMethod == null)
-            {                
+
+            if (writeMethod == null)
+            {
                 WriteFnPtr = default;
             }
             else
             {
                 WriteFnPtr = (delegate*<ref BsonWriter, in T, void>)writeMethod.MethodHandle.GetFunctionPointer();
             }
-            if ( ( TryParseFnPtr != default && WriteFnPtr != default ) || SerializersMap.TryGetSerializer<T>(out var _))
+            if ((TryParseFnPtr != default && WriteFnPtr != default) || SerializersMap.TryGetSerializer<T>(out var _))
             {
                 IsSerializable = true;
                 IsSimpleBsonType = false;
@@ -123,7 +123,7 @@ namespace MongoDB.Client.Bson.Serialization
             if (!reader.TryParseDocument(out tempArray)) { return false; }
             genericValue = (T)(object)tempArray;
             return true;
-        }    
+        }
         private static bool TryParseBsonDocument(ref BsonReader reader, int bsonType, out T genericValue)
         {
             genericValue = default(T);

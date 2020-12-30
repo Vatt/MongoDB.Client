@@ -1,10 +1,10 @@
-﻿using System;
+﻿using MongoDB.Client.Bson.Utils;
+using System;
 using System.Buffers.Binary;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
-using MongoDB.Client.Bson.Utils;
 
 namespace MongoDB.Client.Bson.Document
 {
@@ -77,7 +77,7 @@ namespace MongoDB.Client.Bson.Document
 
         public static BsonObjectId NewObjectId()
         {
-            var timestamp = (int) DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var timestamp = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             var increment = Interlocked.Increment(ref _increment);
             var a = timestamp;
             var b = (int)(_random >> 8); // first 4 bytes of random
@@ -136,7 +136,7 @@ namespace MongoDB.Client.Bson.Document
         /// <returns>The hex character.</returns>
         private static char ToHexChar(int value)
         {
-            return (char) (value + (value < 10 ? '0' : 'a' - 10));
+            return (char)(value + (value < 10 ? '0' : 'a' - 10));
         }
 
         public bool Equals(BsonObjectId other)
@@ -144,7 +144,7 @@ namespace MongoDB.Client.Bson.Document
             return Part1 == other.Part1 && Part2 == other.Part2 && Part3 == other.Part3;
         }
 
-        public static bool operator == (BsonObjectId left, BsonObjectId rigth)
+        public static bool operator ==(BsonObjectId left, BsonObjectId rigth)
         {
             return left.Equals(rigth);
         }

@@ -14,7 +14,7 @@ namespace MongoDB.Client
         public TaskCompletionSourceWithCancellation(TaskCreationOptions options) : base(options)
         {
         }
-        
+
         private void OnCancellation()
         {
             TrySetCanceled(_cancellationToken);

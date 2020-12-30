@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using MongoDB.Client.Tests.Serialization.TestModels;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using MongoDB.Client.Bson.Serialization;
-using MongoDB.Client.Tests.Serialization.TestModels;
 using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization
@@ -20,6 +19,6 @@ namespace MongoDB.Client.Tests.Serialization
             var result = await RoundTripAsync<NullCheckModel>(model);
 
             Assert.Equal(result, model);
-        } 
+        }
     }
 }

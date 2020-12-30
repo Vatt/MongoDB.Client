@@ -1,17 +1,17 @@
-﻿using System.IO.Pipelines;
-using System.Linq;
-using System.Threading.Tasks;
-using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
 using MongoDB.Client.Protocol.Writers;
+using System.IO.Pipelines;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MongoDB.Client.ConsoleApp
 {
 
-    public static class InMemorySerialization 
+    public static class InMemorySerialization
     {
         public static async Task<T> RoundTripAsync<T>(T message)
         {
@@ -39,12 +39,12 @@ namespace MongoDB.Client.ConsoleApp
             await WriteAsync(pipe.Writer, message, writerSerializer);
             return await ReadAsync(pipe.Reader, readerSerializer);
         }
-        
+
         public static async Task<T> ReadAsync<T>(PipeReader input, IGenericBsonSerializer<T> serializer)
         {
             var reader = new ProtocolReader(input);
 
-            var messageReader =  new ReplyBodyReader<T>(serializer, new ReplyMessage(default, new ReplyMessageHeader(default, default, default, 1)));
+            var messageReader = new ReplyBodyReader<T>(serializer, new ReplyMessage(default, new ReplyMessageHeader(default, default, default, 1)));
             var result = await reader.ReadAsync(messageReader).ConfigureAwait(false);
             reader.Advance();
             return result.Message.FirstOrDefault();
