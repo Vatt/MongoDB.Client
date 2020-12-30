@@ -177,5 +177,12 @@ namespace MongoDB.Client
         {
             throw new MongoCursorException(message);
         }
+        
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
+        public static void InsertException(string message)
+        {
+            throw new MongoInsertException(message);
+        }
     }
 }

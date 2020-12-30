@@ -50,7 +50,7 @@ namespace MongoDB.Client
         public string Login { get; init; }
         public string Password { get; init; }
 
-        public int ConnectionPoolMaxSize { get; init; } = 100;
+        public int ConnectionPoolMaxSize { get; init; } = 16;
         public int MultiplexingTreshold { get; init; } = 2;
     }
 }

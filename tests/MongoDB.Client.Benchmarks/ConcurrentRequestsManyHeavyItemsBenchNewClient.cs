@@ -12,7 +12,7 @@ namespace MongoDB.Client.Benchmarks
     public class ConcurrentRequestsManyHeavyItemsBenchNewClient
     {
         private MongoCollection<RootDocument> _collection;
-        private IMongoCollection<RootDocument> _oldCollection;
+        //private IMongoCollection<RootDocument> _oldCollection;
 
         [Params(256)]
         public int RequestsCount { get; set; }
@@ -25,7 +25,7 @@ namespace MongoDB.Client.Benchmarks
 
 
         [GlobalSetup]
-        public void Setup()
+        public async Task Setup()
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
             var dbName = "BenchmarkDb";
@@ -34,23 +34,22 @@ namespace MongoDB.Client.Benchmarks
             var db = client.GetDatabase(dbName);
             _collection = db.GetCollection<RootDocument>(collectionName);
 
-            var oldClient = new MongoDB.Driver.MongoClient($"mongodb://{host}:27017");
-            var oldDb = oldClient.GetDatabase(dbName);
-            _oldCollection = oldDb.GetCollection<RootDocument>(collectionName);
-
-            oldDb.DropCollection(collectionName);
+            // var oldClient = new MongoDB.Driver.MongoClient($"mongodb://{host}:27017");
+            // var oldDb = oldClient.GetDatabase(dbName);
+            // _oldCollection = oldDb.GetCollection<RootDocument>(collectionName);
+            //oldDb.DropCollection(collectionName);
             var seeder = new DatabaseSeeder();
             foreach (var item in seeder.GenerateSeed(ItemInDb))
             {
-                _oldCollection.InsertOne(item);
+                await _collection.InsertAsync(item);
             }
         }
 
-        [GlobalCleanup]
-        public void Clean()
-        {
-            _oldCollection.Database.DropCollection(GetType().Name);
-        }
+        // [GlobalCleanup]
+        // public void Clean()
+        // {
+        //     _oldCollection.Database.DropCollection(GetType().Name);
+        // }
 
         private static readonly BsonDocument EmptyFilter = new BsonDocument();
 

@@ -12,5 +12,9 @@ namespace MongoDB.Client.Exceptions
         {
             Errors = errors;
         }
+        public MongoInsertException(string error) : base(error)
+        {
+
+        }
     }
 }

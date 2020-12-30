@@ -2,16 +2,18 @@
 using MongoDB.Client.Protocol.Messages;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using MongoDB.Client.Exceptions;
 
 namespace MongoDB.Client.Connection
 {
 
     internal class RequestScheduler
     {
-        private int MaxConnections => 32;
+        private int MaxConnections => 16;
         private readonly MongoConnectionFactory _connectionFactory;
         private readonly List<MongoConnection> _connections;
         private readonly Channel<MongoReuqestBase> _channel;
@@ -59,14 +61,50 @@ namespace MongoDB.Client.Connection
             {
                 taskSource = new ManualResetValueTaskSource<IParserResult>();
             }
+            
             var request = new FindMongoRequest(message, taskSource);
             request.ParseAsync = CursorParserCallbackHolder<T>.CursorParseAsync;
-            await _channelWriter.WriteAsync(request);
+            await _channelWriter.WriteAsync(request, token);
             var cursor = await taskSource.GetValueTask() as CursorResult<T>;
             taskSource.Reset();
             _queue.Enqueue(taskSource);
             return cursor;
         }
 
+        internal async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token = default)
+        {
+            if (_connections.Count == 0)
+            {
+                await Init();
+            }
+            ManualResetValueTaskSource<IParserResult> taskSource;
+            if (_queue.TryDequeue(out taskSource) == false)
+            {
+                taskSource = new ManualResetValueTaskSource<IParserResult>();
+            }
+            
+            var request = new InsertMongoRequest(message.Header.RequestNumber, message, taskSource);
+            request.ParseAsync = InsertParserCallbackHolder<T>.InsertParseAsync;
+            request.WriteAsync = InsertParserCallbackHolder<T>.WriteAsync;
+            await _channelWriter.WriteAsync(request, token);
+            var response = await taskSource.GetValueTask() as InsertResult;
+            taskSource.Reset();
+            _queue.Enqueue(taskSource);
+            if (response is InsertResult result)
+            {
+                if (result.WriteErrors is null || result.WriteErrors.Count == 0)
+                {
+                    return;
+                }
+
+                throw new MongoInsertException(result.WriteErrors);
+            }
+            //TODO: FIXIT
+            /*else if (response is BsonParseResult bson)
+            {
+                Debugger.Break();
+            }
+            */
+        }
     }
 }

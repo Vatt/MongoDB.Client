@@ -48,17 +48,32 @@ namespace MongoDB.Client.Connection
 
                     if (_completions.TryGetValue(message.Header.ResponseTo, out request))
                     {
-                        if (request is FindMongoRequest findRequest)
+                        switch (request.Type)
                         {
-                            var result = await findRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
-                            request.CompletionSource.TrySetResult(result);
+                            case RequestType.FindRequest:
+                            {
+                                var findRequest = (FindMongoRequest) request;
+                                var result = await findRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
+                                request.CompletionSource.TrySetResult(result);
+                                break;
+                            }
+                            case RequestType.QueryRequest:
+                            {
+                                var queryRequest = (QueryMongoRequest) request;
+                                var result = await queryRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
+                                request.CompletionSource.TrySetResult(result);
+                                break;
+                            }
+                            case RequestType.InsertRequest:
+                            {
+                                var insertRequest = (InsertMongoRequest)request;
+                                var result = await insertRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
+                                request.CompletionSource.TrySetResult(result);
+                                break;
+                            }
+                            default:
+                                throw new Exception(nameof(StartChannelListerAsync)); //TODO: FIXIT
                         }
-                        if (request is QueryMongoRequest queryRequest)
-                        {
-                            var result = await queryRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
-                            request.CompletionSource.TrySetResult(result);
-                        }
-
                     }
                     else
                     {

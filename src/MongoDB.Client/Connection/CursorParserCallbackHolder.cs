@@ -12,7 +12,6 @@ namespace MongoDB.Client.Connection
     {
         private static readonly Func<ProtocolReader, MongoResponseMessage, ValueTask<IParserResult>> _parser;
         private static readonly IGenericBsonSerializer<T> _serializer;
-        private static readonly ConcurrentQueue<ManualResetValueTaskSource<IParserResult>> _queue = new();
         internal static readonly unsafe delegate*<ref Bson.Reader.BsonReader, out T, bool> TryParseFnPtr;
         static CursorParserCallbackHolder()
         {
@@ -30,14 +29,18 @@ namespace MongoDB.Client.Connection
                 IMessageReader<CursorResult<T>> bodyReader;
                 if (msgMessage.MsgHeader.PayloadType == 0)
                 {
-                    if (_serializer == null)
+                    unsafe
                     {
-                        bodyReader = new FindMsgType0BodyReaderUnsafe<T>(msgMessage);
+                        if (TryParseFnPtr != default)
+                        {
+                            bodyReader = new FindMsgType0BodyReaderUnsafe<T>(msgMessage);
+                        }
+                        else
+                        {
+                            bodyReader = new FindMsgType0BodyReader<T>(_serializer, msgMessage);
+                        }
                     }
-                    else
-                    {
-                        bodyReader = new FindMsgType0BodyReader<T>(_serializer, msgMessage);
-                    }
+  
                     var result = await reader.ReadAsync(bodyReader).ConfigureAwait(false);
                     reader.Advance();
                     return result.Message;
