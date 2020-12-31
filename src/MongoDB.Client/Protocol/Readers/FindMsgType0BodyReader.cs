@@ -1,5 +1,6 @@
 ﻿using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using System;
 using System.Buffers;
@@ -446,7 +447,7 @@ namespace MongoDB.Client.Protocol.Readers
                         }
                     }
 
-                    return Client.ThrowHelper.MissedDocumentEndMarkerException<bool>();
+                    return ThrowHelper.MissedDocumentEndMarkerException<bool>();
                 }
 
 
@@ -485,7 +486,7 @@ namespace MongoDB.Client.Protocol.Readers
             {
                 return true;
             }
-            return Client.ThrowHelper.MissedDocumentEndMarkerException<bool>();
+            return ThrowHelper.MissedDocumentEndMarkerException<bool>();
         }
 
         private bool TryReadCursorEnd(ref BsonReader reader)
@@ -510,7 +511,7 @@ namespace MongoDB.Client.Protocol.Readers
                 }
             }
 
-            return Client.ThrowHelper.MissedDocumentEndMarkerException<bool>();
+            return ThrowHelper.MissedDocumentEndMarkerException<bool>();
         }
 
         private static bool TryGetName(ref BsonReader breader, out ReadOnlySpan<byte> name)
@@ -557,7 +558,7 @@ namespace MongoDB.Client.Protocol.Readers
                 }
             }
 
-            return Client.ThrowHelper.UnknownCursorFieldException<bool>(System.Text.Encoding.UTF8.GetString(name));
+            return ThrowHelper.UnknownCursorFieldException<bool>(System.Text.Encoding.UTF8.GetString(name));
         }
 #endif
 

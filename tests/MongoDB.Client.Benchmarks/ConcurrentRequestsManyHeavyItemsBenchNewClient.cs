@@ -1,8 +1,8 @@
 ﻿using BenchmarkDotNet.Attributes;
 using MongoDB.Client.Benchmarks.Serialization.Models;
-using MongoDB.Driver;
 using System;
 using System.Net;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using BsonDocument = MongoDB.Client.Bson.Document.BsonDocument;
 
@@ -75,6 +75,44 @@ namespace MongoDB.Client.Benchmarks
                     }
 
                     await Task.WhenAll(tasks);
+                }
+            }
+        }
+        [Benchmark]
+        public async Task NewClientToListChannel()
+        {
+            if (Parallelism == 1)
+            {
+                for (int i = 0; i < RequestsCount; i++)
+                {
+                    await _collection.Find(EmptyFilter).FirstOrDefaultAsync();
+                }
+            }
+            else
+            {
+                var channel = Channel.CreateUnbounded<BsonDocument>(new UnboundedChannelOptions { SingleWriter = true });
+                var tasks = new Task[Parallelism];
+                for (int i = 0; i < Parallelism; i++)
+                {
+                    tasks[i] = Worker(_collection, channel.Reader);
+                }
+
+                for (int i = 0; i < RequestsCount; i++)
+                {
+                    channel.Writer.TryWrite(EmptyFilter);
+                }
+                channel.Writer.Complete();
+                await Task.WhenAll(tasks);
+            }
+
+            static async Task Worker(MongoCollection<RootDocument> collection, ChannelReader<BsonDocument> reader)
+            {
+                while (await reader.WaitToReadAsync())
+                {
+                    while (reader.TryRead(out var filter))
+                    {
+                        await collection.Find(filter).FirstOrDefaultAsync();
+                    }
                 }
             }
         }

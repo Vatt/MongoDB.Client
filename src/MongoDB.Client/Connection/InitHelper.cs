@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
-namespace MongoDB.Client
+namespace MongoDB.Client.Connection
 {
     internal static class InitHelper
     {

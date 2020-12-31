@@ -14,7 +14,7 @@ namespace MongoDB.Client.Connection
         }
         private async Task StartChannelListerAsync()
         {
-            while (true)
+            while (!_shutdownCts.IsCancellationRequested)
             {
                 var request = await _channelReader.ReadAsync();
                 switch (request.Type)
@@ -52,7 +52,9 @@ namespace MongoDB.Client.Connection
                             break;
                         }
                     default:
-                        throw new Exception(nameof(StartChannelListerAsync)); // TODO: FIXIT
+                        _logger.UnknownRequestType(request.Type);
+                        request.CompletionSource.SetException(new NotSupportedException($"Request type '{request.Type}' not supported"));
+                        break;
                 }
             }
         }

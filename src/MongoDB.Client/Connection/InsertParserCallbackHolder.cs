@@ -1,15 +1,13 @@
 ﻿using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Writer;
+using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
-using MongoDB.Client.Protocol.Messages;
+using MongoDB.Client.Protocol.Readers;
 using MongoDB.Client.Protocol.Writers;
 using System;
-using System.Buffers;
-using System.Buffers.Binary;
 using System.Threading;
 using System.Threading.Tasks;
-using MongoDB.Client.Protocol.Readers;
 
 namespace MongoDB.Client.Connection
 {
@@ -49,7 +47,7 @@ namespace MongoDB.Client.Connection
         {
             if (message is InsertMessage<T> insertMessage)
             {
-                return protocol.WriteAsync(InsertMessageWriter, insertMessage, token); 
+                return protocol.WriteAsync(InsertMessageWriter, insertMessage, token);
             }
             ThrowHelper.CursorException(message.GetType().ToString());
             return default;

@@ -47,11 +47,17 @@ namespace MongoDB.Client
             LoggerMessage.Define<MessageHeader>(LogLevel.Error, new EventId(1, nameof(MongoConnection)),
                 "Unknown opcode: {message}");
 
+        private static readonly Action<ILogger, RequestType, Exception> _unknownRequestType =
+            LoggerMessage.Define<RequestType>(LogLevel.Error, new EventId(1, nameof(MongoConnection)),
+                "Unknown request type: {message}");
         public static void UnknownOpcodeMessage(this ILogger logger, MessageHeader opcode)
         {
             _unknownOpcodeMessage(logger, opcode, default!);
         }
-
+        public static void UnknownRequestType(this ILogger logger, RequestType requestType)
+        {
+            _unknownRequestType(logger, requestType, default!);
+        }
 
         private static readonly Action<ILogger, int, Exception> _sentCursorMessage =
             LoggerMessage.Define<int>(LogLevel.Trace, new EventId(1, nameof(MongoConnection)),

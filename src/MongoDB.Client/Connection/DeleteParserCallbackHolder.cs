@@ -1,12 +1,7 @@
-﻿using MongoDB.Client.Bson.Serialization;
+﻿using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Core;
-using MongoDB.Client.Protocol.Readers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace MongoDB.Client.Connection

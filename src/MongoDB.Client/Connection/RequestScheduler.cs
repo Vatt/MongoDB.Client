@@ -1,12 +1,11 @@
-﻿using MongoDB.Client.Messages;
+﻿using MongoDB.Client.Exceptions;
+using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Messages;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using MongoDB.Client.Exceptions;
 
 namespace MongoDB.Client.Connection
 {
@@ -61,7 +60,7 @@ namespace MongoDB.Client.Connection
             {
                 taskSource = new ManualResetValueTaskSource<IParserResult>();
             }
-            
+
             var request = new FindMongoRequest(message, taskSource);
             request.ParseAsync = CursorParserCallbackHolder<T>.CursorParseAsync;
             await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
@@ -82,9 +81,9 @@ namespace MongoDB.Client.Connection
             {
                 taskSource = new ManualResetValueTaskSource<IParserResult>();
             }
-            
+
             var request = new InsertMongoRequest(message.Header.RequestNumber, message, taskSource);
-            request.ParseAsync = InsertParserCallbackHolder<T>.InsertParseAsync;
+            request.ParseAsync = InsertParserCallbackHolder<T>.InsertParseAsync; //TODO: Try FIXIT
             request.WriteAsync = InsertParserCallbackHolder<T>.WriteAsync;
             await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
             var response = await taskSource.GetValueTask().ConfigureAwait(false) as InsertResult;
@@ -97,7 +96,7 @@ namespace MongoDB.Client.Connection
                     return;
                 }
 
-                throw new MongoInsertException(result.WriteErrors);
+                ThrowHelper.InsertException(result.WriteErrors);
             }
             //TODO: FIXIT
             /*else if (response is BsonParseResult bson)

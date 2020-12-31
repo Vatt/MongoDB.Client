@@ -42,8 +42,13 @@ namespace MongoDB.Client.Connection
                         case Opcode.Compressed:
                         default:
                             _logger.UnknownOpcodeMessage(header);
+                            if (_completions.TryRemove(header.ResponseTo, out request))
+                            {
+                                request.CompletionSource.SetException(new NotSupportedException($"Opcode '{header.Opcode}' not supported"));
+                            }
                             continue;
                             //TODO: need to read pipe to end
+                            break;
                     }
 
                     if (_completions.TryRemove(message.Header.ResponseTo, out request))
@@ -79,7 +84,9 @@ namespace MongoDB.Client.Connection
                                     break;
                                 }
                             default:
-                                throw new Exception(nameof(StartChannelListerAsync)); //TODO: FIXIT
+                                _logger.UnknownRequestType(request.Type);
+                                request.CompletionSource.SetException(new NotSupportedException($"Request type '{request.Type}' not supported"));
+                                break;
                         }
                     }
                     else

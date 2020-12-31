@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MongoDB.Client.Exceptions;
+using System;
 using System.Buffers;
 using System.IO;
 using System.IO.Pipelines;

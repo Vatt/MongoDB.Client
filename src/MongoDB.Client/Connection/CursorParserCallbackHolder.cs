@@ -1,9 +1,9 @@
 ﻿using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
 using System;
-using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
 namespace MongoDB.Client.Connection
@@ -40,7 +40,7 @@ namespace MongoDB.Client.Connection
                             bodyReader = new FindMsgType0BodyReader<T>(_serializer, msgMessage);
                         }
                     }
-  
+
                     var result = await reader.ReadAsync(bodyReader).ConfigureAwait(false);
                     reader.Advance();
                     return result.Message;

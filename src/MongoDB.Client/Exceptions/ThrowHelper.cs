@@ -1,11 +1,12 @@
-﻿using MongoDB.Client.Exceptions;
+﻿using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Common;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
 
-namespace MongoDB.Client
+namespace MongoDB.Client.Exceptions
 {
     internal static class ThrowHelper
     {
@@ -177,12 +178,18 @@ namespace MongoDB.Client
         {
             throw new MongoCursorException(message);
         }
-        
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         [DoesNotReturn]
         public static void InsertException(string message)
         {
             throw new MongoInsertException(message);
+        }
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
+        public static void InsertException(List<InsertError> errors)
+        {
+            throw new MongoInsertException(errors);
         }
     }
 }
