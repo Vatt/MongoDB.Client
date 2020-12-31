@@ -84,7 +84,7 @@ namespace MongoDB.Client.Connection
 
             var request = new InsertMongoRequest(message.Header.RequestNumber, message, taskSource);
             request.ParseAsync = InsertParserCallbackHolder<T>.InsertParseAsync; //TODO: Try FIXIT
-            request.WriteAsync = InsertParserCallbackHolder<T>.WriteAsync<InsertMessage<T>>;
+            request.WriteAsync = InsertParserCallbackHolder<T>.WriteAsync;
             await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
             var response = await taskSource.GetValueTask().ConfigureAwait(false) as InsertResult;
             taskSource.Reset();

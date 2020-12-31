@@ -43,9 +43,9 @@ namespace MongoDB.Client.Connection
             }
         }
 
-        public static ValueTask WriteAsync<TMessage>(IMongoInsertMessage message, ProtocolWriter protocol, CancellationToken token) where TMessage : IMongoInsertMessage
+        public static ValueTask WriteAsync(IMongoInsertMessage message, ProtocolWriter protocol, CancellationToken token) 
         {
-            var insertMessage = (InsertMessage<T>)message;
+            var insertMessage = message as InsertMessage<T>;
             if (message != null)
             {
                 return protocol.WriteAsync(InsertMessageWriter, insertMessage, token);
