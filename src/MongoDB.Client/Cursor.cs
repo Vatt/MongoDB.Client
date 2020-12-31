@@ -13,7 +13,6 @@ namespace MongoDB.Client
 {
     public class Cursor<T> : IAsyncEnumerable<T>
     {
-        //private readonly IConnectionsPool _channelPool;
         private readonly RequestScheduler _scheduler;
         private readonly BsonDocument _filter;
         private readonly CollectionNamespace _collectionNamespace;
@@ -32,8 +31,6 @@ namespace MongoDB.Client
             : this(channelPool, filter, collectionNamespace, new BsonDocument("id", BsonBinaryData.Create(sessionId)))
         {
         }
-
-        //internal Cursor(IConnectionsPool channelPool, BsonDocument filter, CollectionNamespace collectionNamespace, BsonDocument sessionId)
         internal Cursor(RequestScheduler scheduler, BsonDocument filter, CollectionNamespace collectionNamespace, BsonDocument sessionId)
         {
             _scheduler = scheduler;

@@ -8,7 +8,6 @@ namespace MongoDB.Client
     public class MongoClient
     {
         public MongoClientSettings Settings { get; }
-        //private readonly IConnectionsPool _channelsPool;
         private readonly RequestScheduler _scheduler;
         public MongoClient()
          : this(new MongoClientSettings(), new NullLoggerFactory())

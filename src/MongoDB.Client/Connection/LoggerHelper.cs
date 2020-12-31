@@ -1,9 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
-using MongoDB.Client.Connection;
 using MongoDB.Client.Protocol.Readers;
 using System;
 
-namespace MongoDB.Client
+namespace MongoDB.Client.Connection
 {
     internal static class LoggerHelper
     {
