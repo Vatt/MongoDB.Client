@@ -44,10 +44,10 @@ namespace MongoDB.Client.Connection
     }
     internal class InsertMongoRequest : MongoReuqestBase
     {
-        internal object Message;
+        internal IMongoInsertMessage Message;
         internal int RequestNumber;
-        public Func<object, ProtocolWriter, CancellationToken, ValueTask> WriteAsync { get; set; }
-        public InsertMongoRequest(int requestNumber, object message, ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
+        public Func<IMongoInsertMessage, ProtocolWriter, CancellationToken, ValueTask> WriteAsync { get; set; }
+        public InsertMongoRequest(int requestNumber, IMongoInsertMessage message, ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
         {
             RequestNumber = requestNumber;
             Message = message;
