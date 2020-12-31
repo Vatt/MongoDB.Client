@@ -10,7 +10,7 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
         [BsonIgnore]
         public ObjectId OldId { get; set; }
 
-        [BsonElement("_id")]
+        [BsonId]
         [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
         public Bson.Document.BsonObjectId Id { get; set; }
 
