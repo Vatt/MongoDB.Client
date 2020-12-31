@@ -46,31 +46,31 @@ namespace MongoDB.Client.Connection
                             //TODO: need to read pipe to end
                     }
 
-                    if (_completions.TryGetValue(message.Header.ResponseTo, out request))
+                    if (_completions.TryRemove(message.Header.ResponseTo, out request))
                     {
                         switch (request.Type)
                         {
                             case RequestType.FindRequest:
-                            {
-                                var findRequest = (FindMongoRequest) request;
-                                var result = await findRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
-                                request.CompletionSource.TrySetResult(result);
-                                break;
-                            }
+                                {
+                                    var findRequest = (FindMongoRequest)request;
+                                    var result = await findRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
+                                    request.CompletionSource.TrySetResult(result);
+                                    break;
+                                }
                             case RequestType.QueryRequest:
-                            {
-                                var queryRequest = (QueryMongoRequest) request;
-                                var result = await queryRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
-                                request.CompletionSource.TrySetResult(result);
-                                break;
-                            }
+                                {
+                                    var queryRequest = (QueryMongoRequest)request;
+                                    var result = await queryRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
+                                    request.CompletionSource.TrySetResult(result);
+                                    break;
+                                }
                             case RequestType.InsertRequest:
-                            {
-                                var insertRequest = (InsertMongoRequest)request;
-                                var result = await insertRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
-                                request.CompletionSource.TrySetResult(result);
-                                break;
-                            }
+                                {
+                                    var insertRequest = (InsertMongoRequest)request;
+                                    var result = await insertRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
+                                    request.CompletionSource.TrySetResult(result);
+                                    break;
+                                }
                             case RequestType.DeleteRequest:
                                 {
                                     var deleteRequest = (DeleteMongoRequest)request;
