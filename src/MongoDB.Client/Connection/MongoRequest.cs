@@ -27,6 +27,10 @@ namespace MongoDB.Client.Connection
     internal class FindMongoRequest : MongoReuqestBase
     {
         internal FindMessage Message;
+        public FindMongoRequest(ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
+        {
+            Type = RequestType.FindRequest;
+        }
         public FindMongoRequest(FindMessage message, ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
         {
             Type = RequestType.FindRequest;
@@ -47,6 +51,10 @@ namespace MongoDB.Client.Connection
         internal IMongoInsertMessage Message;
         internal int RequestNumber;
         public Func<IMongoInsertMessage, ProtocolWriter, CancellationToken, ValueTask> WriteAsync { get; set; }
+        public InsertMongoRequest(ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
+        {
+            Type = RequestType.InsertRequest;
+        }
         public InsertMongoRequest(int requestNumber, IMongoInsertMessage message, ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
         {
             RequestNumber = requestNumber;
@@ -57,6 +65,10 @@ namespace MongoDB.Client.Connection
     internal class DeleteMongoRequest : MongoReuqestBase
     {
         internal DeleteMessage Message;
+        public DeleteMongoRequest(ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
+        {
+            Type = RequestType.DeleteRequest;
+        }
         public DeleteMongoRequest(DeleteMessage message, ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
         {
             Type = RequestType.DeleteRequest;

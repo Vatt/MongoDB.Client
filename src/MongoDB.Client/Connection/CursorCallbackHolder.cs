@@ -8,12 +8,11 @@ using System.Threading.Tasks;
 
 namespace MongoDB.Client.Connection
 {
-    internal static partial class CursorParserCallbackHolder<T>
+    internal static partial class CursorCallbackHolder<T>
     {
-        private static readonly Func<ProtocolReader, MongoResponseMessage, ValueTask<IParserResult>> _parser;
         private static readonly IGenericBsonSerializer<T> _serializer;
         internal static readonly unsafe delegate*<ref Bson.Reader.BsonReader, out T, bool> TryParseFnPtr;
-        static CursorParserCallbackHolder()
+        static CursorCallbackHolder()
         {
             SerializersMap.TryGetSerializer(out _serializer);
             unsafe

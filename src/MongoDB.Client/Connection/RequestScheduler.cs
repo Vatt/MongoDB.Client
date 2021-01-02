@@ -1,6 +1,8 @@
-﻿using MongoDB.Client.Exceptions;
+﻿using Microsoft.Extensions.ObjectPool;
+using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Messages;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
@@ -10,8 +12,66 @@ using System.Threading.Tasks;
 namespace MongoDB.Client.Connection
 {
 
-    internal class RequestScheduler
+    internal class RequestScheduler : IAsyncDisposable
     {
+        private class FindRequestMessagePolicy : IPooledObjectPolicy<FindMongoRequest>
+        {
+            public FindMongoRequest Create()
+            {
+                return new FindMongoRequest(new ManualResetValueTaskSource<IParserResult>());
+            }
+
+            public bool Return(FindMongoRequest obj)
+            {
+                obj.CompletionSource.Reset();
+                obj.Message = default;
+                obj.ParseAsync = default;
+                return true;
+            }
+        }
+        private class InsertRequestMessagePolicy : IPooledObjectPolicy<InsertMongoRequest>
+        {
+            public InsertMongoRequest Create()
+            {
+                return new InsertMongoRequest(new ManualResetValueTaskSource<IParserResult>());
+            }
+
+            public bool Return(InsertMongoRequest obj)
+            {
+                obj.CompletionSource.Reset();
+                obj.Message = default;
+                obj.RequestNumber = default;
+                obj.ParseAsync = default;
+                obj.WriteAsync = default;
+                return true;
+            }
+        }
+        private class DeleteRequestMessagePolicy : IPooledObjectPolicy<DeleteMongoRequest>
+        {
+            public DeleteMongoRequest Create()
+            {
+                return new DeleteMongoRequest(new ManualResetValueTaskSource<IParserResult>());
+            }
+
+            public bool Return(DeleteMongoRequest obj)
+            {
+                obj.CompletionSource.Reset();
+                obj.Message = default;
+                obj.ParseAsync = default;
+                return true;
+            }
+        }
+        private static ObjectPool<FindMongoRequest> FindMongoRequestPool => _findMongoRequestPool ??= new DefaultObjectPool<FindMongoRequest>(new FindRequestMessagePolicy());
+        [ThreadStatic]
+        private static ObjectPool<FindMongoRequest>? _findMongoRequestPool;
+        
+        private static ObjectPool<InsertMongoRequest> InsertMongoRequestPool => _insertMongoRequestPool ??= new DefaultObjectPool<InsertMongoRequest>(new InsertRequestMessagePolicy());
+        [ThreadStatic]
+        private static ObjectPool<InsertMongoRequest>? _insertMongoRequestPool;
+
+        private static ObjectPool<DeleteMongoRequest> DeleteMongoRequestPool => _deleteMongoRequestPool ??= new DefaultObjectPool<DeleteMongoRequest>(new DeleteRequestMessagePolicy());
+        [ThreadStatic]
+        private static ObjectPool<DeleteMongoRequest>? _deleteMongoRequestPool;
         private int MaxConnections => 16;
         private readonly MongoConnectionFactory _connectionFactory;
         private readonly List<MongoConnection> _connections;
@@ -19,6 +79,8 @@ namespace MongoDB.Client.Connection
         private readonly ChannelWriter<MongoReuqestBase> _channelWriter;
         private static int _counter;
         private readonly ConcurrentQueue<ManualResetValueTaskSource<IParserResult>> _queue = new();
+        
+
         public RequestScheduler(MongoConnectionFactory connectionFactory)
         {
             _connectionFactory = connectionFactory;
@@ -55,18 +117,14 @@ namespace MongoDB.Client.Connection
             {
                 await Init();
             }
-            ManualResetValueTaskSource<IParserResult> taskSource;
-            if (_queue.TryDequeue(out taskSource) == false)
-            {
-                taskSource = new ManualResetValueTaskSource<IParserResult>();
-            }
-
-            var request = new FindMongoRequest(message, taskSource);
-            request.ParseAsync = CursorParserCallbackHolder<T>.CursorParseAsync;
+            
+            var request = FindMongoRequestPool.Get();
+            var taskSrc = request.CompletionSource;
+            request.Message = message;
+            request.ParseAsync = CursorCallbackHolder<T>.CursorParseAsync;
             await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
-            var cursor = await taskSource.GetValueTask().ConfigureAwait(false) as CursorResult<T>;
-            taskSource.Reset();
-            _queue.Enqueue(taskSource);
+            var cursor = await taskSrc.GetValueTask().ConfigureAwait(false) as CursorResult<T>;
+            FindMongoRequestPool.Return(request);
             return cursor;
         }
 
@@ -76,19 +134,15 @@ namespace MongoDB.Client.Connection
             {
                 await Init();
             }
-            ManualResetValueTaskSource<IParserResult> taskSource;
-            if (_queue.TryDequeue(out taskSource) == false)
-            {
-                taskSource = new ManualResetValueTaskSource<IParserResult>();
-            }
-
-            var request = new InsertMongoRequest(message.Header.RequestNumber, message, taskSource);
+            var request = InsertMongoRequestPool.Get();
+            var taskSource = request.CompletionSource;
+            request.RequestNumber = message.Header.RequestNumber;
+            request.Message = message;
             request.ParseAsync = InsertParserCallbackHolder<T>.InsertParseAsync; //TODO: Try FIXIT
             request.WriteAsync = InsertParserCallbackHolder<T>.WriteAsync<InsertMessage<T>>;
             await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
             var response = await taskSource.GetValueTask().ConfigureAwait(false) as InsertResult;
-            taskSource.Reset();
-            _queue.Enqueue(taskSource);
+            InsertMongoRequestPool.Return(request);
             if (response is InsertResult result)
             {
                 if (result.WriteErrors is null || result.WriteErrors.Count == 0)
@@ -111,18 +165,27 @@ namespace MongoDB.Client.Connection
             {
                 await Init();
             }
-            ManualResetValueTaskSource<IParserResult> taskSource;
-            if (_queue.TryDequeue(out taskSource) == false)
-            {
-                taskSource = new ManualResetValueTaskSource<IParserResult>();
-            }
-            var request = new DeleteMongoRequest(message, taskSource);
+            //ManualResetValueTaskSource<IParserResult> taskSource;
+            //if (_queue.TryDequeue(out taskSource) == false)
+            //{
+            //    taskSource = new ManualResetValueTaskSource<IParserResult>();
+            //}
+            var request = DeleteMongoRequestPool.Get();//new DeleteMongoRequest(message, taskSource);
+            var taskSource = request.CompletionSource;
             request.ParseAsync = DeleteParserCallbackHolder.DeleteParseAsync;
             await _channelWriter.WriteAsync(request, cancellationToken).ConfigureAwait(false);
             var deleteResult = await taskSource.GetValueTask().ConfigureAwait(false) as DeleteResult;
-            taskSource.Reset();
-            _queue.Enqueue(taskSource);
+            DeleteMongoRequestPool.Return(request);
             return deleteResult;
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            _channelWriter.Complete();
+            foreach(var connection in _connections)
+            {
+                await connection.DisposeAsync().ConfigureAwait(false);
+            }
         }
     }
 }
