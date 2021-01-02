@@ -165,14 +165,10 @@ namespace MongoDB.Client.Connection
             {
                 await Init();
             }
-            //ManualResetValueTaskSource<IParserResult> taskSource;
-            //if (_queue.TryDequeue(out taskSource) == false)
-            //{
-            //    taskSource = new ManualResetValueTaskSource<IParserResult>();
-            //}
             var request = DeleteMongoRequestPool.Get();//new DeleteMongoRequest(message, taskSource);
             var taskSource = request.CompletionSource;
             request.ParseAsync = DeleteParserCallbackHolder.DeleteParseAsync;
+            request.Message = message;
             await _channelWriter.WriteAsync(request, cancellationToken).ConfigureAwait(false);
             var deleteResult = await taskSource.GetValueTask().ConfigureAwait(false) as DeleteResult;
             DeleteMongoRequestPool.Return(request);
