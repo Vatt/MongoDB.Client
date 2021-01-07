@@ -1,4 +1,5 @@
-﻿using MongoDB.Client.Protocol;
+﻿using Microsoft.Extensions.Logging;
+using MongoDB.Client.Protocol;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ namespace MongoDB.Client.Connection
     public sealed partial class MongoConnection
     {
         private int _requestId = 0;
+        private int _requestsInWork = 0;
         private int GetNextRequestNumber()
         {
             return Interlocked.Increment(ref _requestId);
@@ -16,13 +18,19 @@ namespace MongoDB.Client.Connection
         {
             while (!_shutdownCts.IsCancellationRequested)
             {
+                if (_requestsInWork == Threshold)
+                {
+                    //Console.WriteLine($"Connection {ConnectionId}: Threshold lock");
+                    await _channelListenerLock.WaitAsync();
+                }
                 var request = await _channelReader.ReadAsync();
+                Interlocked.Increment(ref _requestsInWork);
                 switch (request.Type)
                 {
                     case RequestType.FindRequest:
                         {
                             var findRequest = (FindMongoRequest)request;
-                            _completions.GetOrAdd(findRequest.Message.Header.RequestNumber, findRequest);
+                            _completions.GetOrAdd(findRequest.RequestNumber, findRequest);
                             await _protocolWriter!.WriteAsync(ProtocolWriters.FindMessageWriter, findRequest.Message, _shutdownCts.Token).ConfigureAwait(false);
                             _logger.SentCursorMessage(findRequest.Message.Header.RequestNumber);
                             break;
@@ -30,7 +38,7 @@ namespace MongoDB.Client.Connection
                     case RequestType.QueryRequest:
                         {
                             var queryRequest = (QueryMongoRequest)request;
-                            _completions.GetOrAdd(queryRequest.Message.RequestNumber, queryRequest);
+                            _completions.GetOrAdd(queryRequest.RequestNumber, queryRequest);
                             await _protocolWriter!.WriteAsync(ProtocolWriters.QueryMessageWriter, queryRequest.Message, _shutdownCts.Token).ConfigureAwait(false);
                             _logger.SentCursorMessage(queryRequest.Message.RequestNumber);
                             break;
@@ -46,12 +54,13 @@ namespace MongoDB.Client.Connection
                     case RequestType.DeleteRequest:
                         {
                             var deleteRequest = (DeleteMongoRequest)request;
-                            _completions.GetOrAdd(deleteRequest.Message.Header.RequestNumber, deleteRequest);
+                            _completions.GetOrAdd(deleteRequest.RequestNumber, deleteRequest);
                             await _protocolWriter!.WriteAsync(ProtocolWriters.DeleteMessageWriter, deleteRequest.Message, _shutdownCts.Token).ConfigureAwait(false);
                             _logger.SentCursorMessage(deleteRequest.Message.Header.RequestNumber);
                             break;
                         }
                     default:
+                        Interlocked.Decrement(ref _requestsInWork);
                         _logger.UnknownRequestType(request.Type);
                         request.CompletionSource.SetException(new NotSupportedException($"Request type '{request.Type}' not supported"));
                         break;

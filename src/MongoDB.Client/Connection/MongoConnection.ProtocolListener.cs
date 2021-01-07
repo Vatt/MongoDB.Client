@@ -44,7 +44,13 @@ namespace MongoDB.Client.Connection
                             _logger.UnknownOpcodeMessage(header);
                             if (_completions.TryRemove(header.ResponseTo, out request))
                             {
-                                request.CompletionSource.SetException(new NotSupportedException($"Opcode '{header.Opcode}' not supported"));
+                                var oldRequestsInWork = _requestsInWork;
+                                Interlocked.Decrement(ref _requestsInWork);
+                                if (oldRequestsInWork == Threshold && _requestsInWork < Threshold)
+                                {
+                                    _channelListenerLock.Release();
+                                    request.CompletionSource.SetException(new NotSupportedException($"Opcode '{header.Opcode}' not supported"));
+                                }
                             }
                             continue;
                             //TODO: need to read pipe to end
@@ -53,6 +59,13 @@ namespace MongoDB.Client.Connection
 
                     if (_completions.TryRemove(message.Header.ResponseTo, out request))
                     {
+                        var oldRequestsInWork = _requestsInWork;
+                        Interlocked.Decrement(ref _requestsInWork);
+                        if (oldRequestsInWork == Threshold && _requestsInWork < Threshold)
+                        {
+                            //Console.WriteLine($"Connection {ConnectionId}: Threshold unlock");
+                            _channelListenerLock.Release();
+                        }
                         switch (request.Type)
                         {
                             case RequestType.FindRequest:

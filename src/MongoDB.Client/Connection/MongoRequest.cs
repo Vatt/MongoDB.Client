@@ -17,6 +17,7 @@ namespace MongoDB.Client.Connection
     internal abstract class MongoReuqestBase
     {
         public RequestType Type { get; init; }
+        internal int RequestNumber;
         public MongoReuqestBase(ManualResetValueTaskSource<IParserResult> completionSource)
         {
             CompletionSource = completionSource;
@@ -27,6 +28,7 @@ namespace MongoDB.Client.Connection
     internal class FindMongoRequest : MongoReuqestBase
     {
         internal FindMessage Message;
+        
         public FindMongoRequest(ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
         {
             Type = RequestType.FindRequest;
@@ -49,7 +51,6 @@ namespace MongoDB.Client.Connection
     internal class InsertMongoRequest : MongoReuqestBase
     {
         internal IMongoInsertMessage Message;
-        internal int RequestNumber;
         public Func<IMongoInsertMessage, ProtocolWriter, CancellationToken, ValueTask> WriteAsync { get; set; }
         public InsertMongoRequest(ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
         {

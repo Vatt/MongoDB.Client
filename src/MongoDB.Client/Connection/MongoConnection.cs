@@ -13,7 +13,7 @@ namespace MongoDB.Client.Connection
     public sealed partial class MongoConnection : IAsyncDisposable
     {
         public int ConnectionId { get; }
-        public int Threshold => 8;
+        public int Threshold => 4;
         private ConnectionContext _connection;
         private ILogger _logger;
         private ConcurrentDictionary<long, MongoReuqestBase> _completions;
@@ -24,6 +24,7 @@ namespace MongoDB.Client.Connection
         private Task? _protocolListenerTask;
         private Task? _channelListenerTask;
         private readonly ConcurrentQueue<ManualResetValueTaskSource<IParserResult>> _queue = new();
+        private readonly SemaphoreSlim _channelListenerLock = new(0);
         internal MongoConnection(int connectionId, ILogger logger, ChannelReader<MongoReuqestBase> channelReader)
         {
             ConnectionId = connectionId;

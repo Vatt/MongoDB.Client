@@ -24,6 +24,7 @@ namespace MongoDB.Client.Connection
             public bool Return(FindMongoRequest obj)
             {
                 obj.CompletionSource.Reset();
+                obj.RequestNumber = default;
                 obj.Message = default;
                 obj.ParseAsync = default;
                 return true;
@@ -39,6 +40,7 @@ namespace MongoDB.Client.Connection
             public bool Return(InsertMongoRequest obj)
             {
                 obj.CompletionSource.Reset();
+                obj.RequestNumber = default;
                 obj.Message = default;
                 obj.RequestNumber = default;
                 obj.ParseAsync = default;
@@ -56,6 +58,7 @@ namespace MongoDB.Client.Connection
             public bool Return(DeleteMongoRequest obj)
             {
                 obj.CompletionSource.Reset();
+                obj.RequestNumber = default;
                 obj.Message = default;
                 obj.ParseAsync = default;
                 return true;
@@ -72,7 +75,7 @@ namespace MongoDB.Client.Connection
         private static ObjectPool<DeleteMongoRequest> DeleteMongoRequestPool => _deleteMongoRequestPool ??= new DefaultObjectPool<DeleteMongoRequest>(new DeleteRequestMessagePolicy());
         [ThreadStatic]
         private static ObjectPool<DeleteMongoRequest>? _deleteMongoRequestPool;
-        private int MaxConnections => 16;
+        private int MaxConnections => Environment.ProcessorCount;
         private readonly MongoConnectionFactory _connectionFactory;
         private readonly List<MongoConnection> _connections;
         private readonly Channel<MongoReuqestBase> _channel;
@@ -117,11 +120,11 @@ namespace MongoDB.Client.Connection
             {
                 await Init();
             }
-            
             var request = FindMongoRequestPool.Get();
             var taskSrc = request.CompletionSource;
             request.Message = message;
             request.ParseAsync = CursorCallbackHolder<T>.CursorParseAsync;
+            request.RequestNumber = message.Header.RequestNumber;
             await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
             var cursor = await taskSrc.GetValueTask().ConfigureAwait(false) as CursorResult<T>;
             FindMongoRequestPool.Return(request);
@@ -169,6 +172,7 @@ namespace MongoDB.Client.Connection
             var taskSource = request.CompletionSource;
             request.ParseAsync = DeleteParserCallbackHolder.DeleteParseAsync;
             request.Message = message;
+            request.RequestNumber = message.Header.RequestNumber;
             await _channelWriter.WriteAsync(request, cancellationToken).ConfigureAwait(false);
             var deleteResult = await taskSource.GetValueTask().ConfigureAwait(false) as DeleteResult;
             DeleteMongoRequestPool.Return(request);
