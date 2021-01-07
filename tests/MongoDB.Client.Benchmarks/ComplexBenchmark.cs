@@ -14,7 +14,8 @@ namespace MongoDB.Client.Benchmarks
     public class ComplexBenchmark
     {
         private MongoCollection<RootDocument> _findCollection;
-        private MongoCollection<GeoIp> _insertDeleteCollection;
+        private MongoCollection<GeoIp> _deleteCollection;
+        private MongoCollection<GeoIp> _insertCollection;
         private List<GeoIp> _insertDocs;
         [Params(1024)]
         public int RequestsCount { get; set; }
@@ -33,44 +34,37 @@ namespace MongoDB.Client.Benchmarks
             var db = client.GetDatabase(dbName);
 
             _findCollection = db.GetCollection<RootDocument>(Guid.NewGuid().ToString());
-            _insertDeleteCollection = db.GetCollection<GeoIp>("InsertDelete" + Guid.NewGuid().ToString());
+            _insertCollection = db.GetCollection<GeoIp>("Insert" + Guid.NewGuid().ToString());
+            _deleteCollection = db.GetCollection<GeoIp>("Delete" + Guid.NewGuid().ToString());
             var seeder = new DatabaseSeeder();
             var geoipseeder = new GeoIpSeeder();
             _insertDocs = geoipseeder.GenerateSeed(ItemInDb).ToList();
+            foreach (var item in _insertDocs)
+            {
+                await _deleteCollection.InsertAsync(item);
+            }
             foreach (var item in seeder.GenerateSeed(ItemInDb))
             {
                 await _findCollection.InsertAsync(item);
             }
         }
+
         [Benchmark]
         public async Task ComplexBenchmarkNewClient()
         {
-            Channel<BsonObjectId> deleteChannel;
-            if (Parallelism == 1)
-            {
-                deleteChannel = Channel.CreateUnbounded<BsonObjectId>(new UnboundedChannelOptions { SingleReader = true, SingleWriter = true });
-            }
-            else
-            {
-                deleteChannel = Channel.CreateUnbounded<BsonObjectId>(new UnboundedChannelOptions { SingleReader = false, SingleWriter = false });
-            }
-
-            await Task.WhenAll(StartFind(), StartDelete(deleteChannel), StartInsert(deleteChannel));
+            await Task.WhenAll(StartFind(), StartDelete(), StartInsert());
         }
-        public async Task StartInsert(Channel<BsonObjectId> deleteChannel)
+        public async Task StartInsert()
         {
             if (Parallelism == 1)
             {
-                var writer = deleteChannel.Writer;
                 for (int i = 0; i < ItemInDb; i++)
                 {
                     var item = _insertDocs[i];
                     item.Id = BsonObjectId.NewObjectId();
-                    await _insertDeleteCollection.InsertAsync(item);
-                    await writer.WriteAsync(item.Id);
-
+                    await _insertCollection.InsertAsync(item);
+                    await _insertCollection.DeleteOneAsync(BsonDocument.Empty);
                 }
-                writer.Complete();
             }
             else
             {
@@ -78,7 +72,7 @@ namespace MongoDB.Client.Benchmarks
                 var tasks = new Task[Parallelism];
                 for (int i = 0; i < Parallelism; i++)
                 {
-                    tasks[i] = Worker(_insertDeleteCollection, deleteChannel.Writer, channel.Reader);
+                    tasks[i] = Worker(_insertCollection, channel.Reader);
                 }
 
                 for (int i = 0; i < ItemInDb; i++)
@@ -89,46 +83,47 @@ namespace MongoDB.Client.Benchmarks
                 }
                 channel.Writer.Complete();
                 await Task.WhenAll(tasks);
-                deleteChannel.Writer.Complete();
             }
 
-            static async Task Worker(MongoCollection<GeoIp> collection, ChannelWriter<BsonObjectId> deleteWriter, ChannelReader<GeoIp> reader)
+            static async Task Worker(MongoCollection<GeoIp> collection, ChannelReader<GeoIp> reader)
             {
                 while (await reader.WaitToReadAsync())
                 {
                     while (reader.TryRead(out var item))
                     {
-
                         await collection.InsertAsync(item);
-                        await deleteWriter.WriteAsync(item.Id);
+                        await collection.DeleteOneAsync(BsonDocument.Empty);
                     }
                 }
             }
         }
-        public async Task StartDelete(Channel<BsonObjectId> deleteChannel)
+        public async Task StartDelete()
         {
             if (Parallelism == 1)
             {
-                var reader = deleteChannel.Reader;
-                while (await reader.WaitToReadAsync())
+                for (int i = 0; i < ItemInDb; i++)
                 {
-                    while (reader.TryRead(out var item))
-                    {
-                        await _insertDeleteCollection.DeleteOneAsync(BsonDocument.Empty/*new BsonDocument("Id", id)*/);
-                    }
-
+                    var item = _insertDocs[i];
+                    await _deleteCollection.DeleteOneAsync(BsonDocument.Empty);
                 }
             }
             else
             {
+                var channel = Channel.CreateUnbounded<GeoIp>(new UnboundedChannelOptions { SingleWriter = true });
                 var tasks = new Task[Parallelism];
                 for (int i = 0; i < Parallelism; i++)
                 {
-                    tasks[i] = Worker(_insertDeleteCollection, deleteChannel.Reader);
+                    tasks[i] = Worker(_deleteCollection, channel.Reader);
                 }
+                for (int i = 0; i < ItemInDb; i++)
+                {
+                    var item = _insertDocs[i];
+                    await channel.Writer.WriteAsync(item);
+                }
+                channel.Writer.Complete();
                 await Task.WhenAll(tasks);
             }
-            static async Task Worker(MongoCollection<GeoIp> collection, ChannelReader<BsonObjectId> reader)
+            static async Task Worker(MongoCollection<GeoIp> collection, ChannelReader<GeoIp> reader)
             {
                 while (await reader.WaitToReadAsync())
                 {
