@@ -25,14 +25,14 @@ namespace MongoDB.Client.Connection
 
         public async ValueTask<MongoConnection> Create(ChannelReader<MongoReuqestBase> reader)
         {
-            var context = await _networkFactory.ConnectAsync(_endPoint);
+            var context = await _networkFactory.ConnectAsync(_endPoint).ConfigureAwait(false);
             if (context is null)
             {
                 ThrowHelper.ConnectionException<SocketConnection>(_endPoint);
             }
             var id = Interlocked.Increment(ref CONNECTION_ID);
             var connection = new MongoConnection(id, _loggerFactory.CreateLogger(String.Empty), reader);
-            await connection.StartAsync(context);
+            await connection.StartAsync(context).ConfigureAwait(false);
             return connection;
         }
     }

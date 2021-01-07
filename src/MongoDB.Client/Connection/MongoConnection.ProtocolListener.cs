@@ -121,7 +121,7 @@ namespace MongoDB.Client.Connection
                 return task.Result;
             }
 
-            return await task;
+            return await task.ConfigureAwait(false);
         }
         private async ValueTask<T> ProtocolReadAsyncPrivate<T>(IMessageReader<T> reader, CancellationToken token)
         {

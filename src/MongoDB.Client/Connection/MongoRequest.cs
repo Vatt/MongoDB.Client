@@ -28,7 +28,7 @@ namespace MongoDB.Client.Connection
     internal class FindMongoRequest : MongoReuqestBase
     {
         internal FindMessage Message;
-        
+
         public FindMongoRequest(ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
         {
             Type = RequestType.FindRequest;

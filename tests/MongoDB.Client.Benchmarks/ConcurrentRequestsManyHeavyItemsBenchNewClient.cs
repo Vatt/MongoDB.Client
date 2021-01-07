@@ -12,7 +12,7 @@ namespace MongoDB.Client.Benchmarks
     public class ConcurrentRequestsManyHeavyItemsBenchNewClient
     {
         private MongoCollection<RootDocument> _collection;
-        
+
         [Params(256)]
         public int RequestsCount { get; set; }
 

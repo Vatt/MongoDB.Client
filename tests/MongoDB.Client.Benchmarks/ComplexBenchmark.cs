@@ -1,14 +1,10 @@
 ﻿using BenchmarkDotNet.Attributes;
 using MongoDB.Client.Benchmarks.Serialization.Models;
 using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Messages;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
@@ -35,7 +31,7 @@ namespace MongoDB.Client.Benchmarks
             var dbName = "BenchmarkDb";
             var client = new MongoClient(new DnsEndPoint(host, 27017));
             var db = client.GetDatabase(dbName);
-            
+
             _findCollection = db.GetCollection<RootDocument>(Guid.NewGuid().ToString());
             _insertDeleteCollection = db.GetCollection<GeoIp>("InsertDelete" + Guid.NewGuid().ToString());
             var seeder = new DatabaseSeeder();
@@ -58,10 +54,10 @@ namespace MongoDB.Client.Benchmarks
             {
                 deleteChannel = Channel.CreateUnbounded<BsonObjectId>(new UnboundedChannelOptions { SingleReader = false, SingleWriter = false });
             }
-            
+
             await Task.WhenAll(StartFind(), StartDelete(deleteChannel), StartInsert(deleteChannel));
         }
-        public async Task StartInsert(Channel<BsonObjectId>  deleteChannel)
+        public async Task StartInsert(Channel<BsonObjectId> deleteChannel)
         {
             if (Parallelism == 1)
             {
@@ -120,7 +116,7 @@ namespace MongoDB.Client.Benchmarks
                     {
                         await _insertDeleteCollection.DeleteOneAsync(BsonDocument.Empty/*new BsonDocument("Id", id)*/);
                     }
-                        
+
                 }
             }
             else
@@ -139,7 +135,7 @@ namespace MongoDB.Client.Benchmarks
                     while (reader.TryRead(out var item))
                     {
                         await collection.DeleteOneAsync(BsonDocument.Empty/*new BsonDocument("Id", id)*/);
-                    }                    
+                    }
                 }
             }
         }

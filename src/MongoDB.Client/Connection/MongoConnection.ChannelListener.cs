@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using MongoDB.Client.Protocol;
+﻿using MongoDB.Client.Protocol;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,9 +20,9 @@ namespace MongoDB.Client.Connection
                 if (_requestsInWork == Threshold)
                 {
                     //Console.WriteLine($"Connection {ConnectionId}: Threshold lock");
-                    await _channelListenerLock.WaitAsync();
+                    await _channelListenerLock.WaitAsync().ConfigureAwait(false);
                 }
-                var request = await _channelReader.ReadAsync();
+                var request = await _channelReader.ReadAsync().ConfigureAwait(false);
                 Interlocked.Increment(ref _requestsInWork);
                 switch (request.Type)
                 {

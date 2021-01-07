@@ -3,7 +3,6 @@ using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
-using System;
 using System.Threading.Tasks;
 
 namespace MongoDB.Client.Connection

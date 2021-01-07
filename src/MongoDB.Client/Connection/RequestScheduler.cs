@@ -67,7 +67,7 @@ namespace MongoDB.Client.Connection
         private static ObjectPool<FindMongoRequest> FindMongoRequestPool => _findMongoRequestPool ??= new DefaultObjectPool<FindMongoRequest>(new FindRequestMessagePolicy());
         [ThreadStatic]
         private static ObjectPool<FindMongoRequest>? _findMongoRequestPool;
-        
+
         private static ObjectPool<InsertMongoRequest> InsertMongoRequestPool => _insertMongoRequestPool ??= new DefaultObjectPool<InsertMongoRequest>(new InsertRequestMessagePolicy());
         [ThreadStatic]
         private static ObjectPool<InsertMongoRequest>? _insertMongoRequestPool;
@@ -82,7 +82,7 @@ namespace MongoDB.Client.Connection
         private readonly ChannelWriter<MongoReuqestBase> _channelWriter;
         private static int _counter;
         private readonly ConcurrentQueue<ManualResetValueTaskSource<IParserResult>> _queue = new();
-        
+
 
         public RequestScheduler(MongoConnectionFactory connectionFactory)
         {
@@ -182,7 +182,7 @@ namespace MongoDB.Client.Connection
         public async ValueTask DisposeAsync()
         {
             _channelWriter.Complete();
-            foreach(var connection in _connections)
+            foreach (var connection in _connections)
             {
                 await connection.DisposeAsync().ConfigureAwait(false);
             }
