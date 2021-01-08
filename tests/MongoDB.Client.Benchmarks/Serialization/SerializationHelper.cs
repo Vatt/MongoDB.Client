@@ -35,7 +35,7 @@ namespace MongoDB.Client.Benchmarks.Serialization
             var writer = new ProtocolWriter(output);
 
             var messageWriter = new ReplyBodyWriter<T>(serializer);
-            await writer.WriteAsync(messageWriter, message).ConfigureAwait(false);
+            await writer.WriteUnsafeAsync(messageWriter, message).ConfigureAwait(false);
         }
     }
 }

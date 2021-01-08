@@ -11,13 +11,13 @@ using System.Threading.Tasks;
 
 namespace MongoDB.Client.Connection
 {
-    internal static class InsertParserCallbackHolder<T>
+    internal static class InsertCallbackHolder<T>
     {
         private static unsafe readonly delegate*<ref BsonWriter, in T, void> WriterFnPtr;
         public static Func<ProtocolReader, MongoResponseMessage, ValueTask<IParserResult>>? Parser;
         private static readonly IMessageWriter<InsertMessage<T>> InsertMessageWriter;
         private static readonly InsertMsgType0BodyReader InsertBodyReader = new InsertMsgType0BodyReader();
-        static unsafe InsertParserCallbackHolder()
+        static unsafe InsertCallbackHolder()
         {
             SerializersMap.TryGetSerializer<T>(out var serializer);
             WriterFnPtr = SerializerFnPtrProvider<T>.WriteFnPtr;
@@ -48,7 +48,7 @@ namespace MongoDB.Client.Connection
             var insertMessage = (InsertMessage<T>)message;
             if (message != null)
             {
-                return protocol.WriteAsync(InsertMessageWriter, insertMessage, token);
+                return protocol.WriteUnsafeAsync(InsertMessageWriter, insertMessage, token);
             }
             ThrowHelper.InsertException(message.GetType().ToString());
             return default;

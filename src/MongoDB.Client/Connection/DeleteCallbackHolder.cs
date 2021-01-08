@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MongoDB.Client.Connection
 {
-    internal static class DeleteParserCallbackHolder
+    internal static class DeleteCallbackHolder
     {
         internal static async ValueTask<IParserResult> DeleteParseAsync(ProtocolReader reader, MongoResponseMessage mongoResponse)
         {

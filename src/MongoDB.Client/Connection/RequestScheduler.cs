@@ -20,8 +20,6 @@ namespace MongoDB.Client.Connection
         private readonly Channel<MongoReuqestBase> _channel;
         private readonly ChannelWriter<MongoReuqestBase> _channelWriter;
         private static int _counter;
-        private readonly ConcurrentQueue<ManualResetValueTaskSource<IParserResult>> _queue = new();
-
 
         public RequestScheduler(MongoConnectionFactory connectionFactory)
         {
@@ -80,8 +78,8 @@ namespace MongoDB.Client.Connection
             var taskSource = request.CompletionSource;
             request.RequestNumber = message.Header.RequestNumber;
             request.Message = message;
-            request.ParseAsync = InsertParserCallbackHolder<T>.InsertParseAsync; //TODO: Try FIXIT
-            request.WriteAsync = InsertParserCallbackHolder<T>.WriteAsync<InsertMessage<T>>;
+            request.ParseAsync = InsertCallbackHolder<T>.InsertParseAsync; //TODO: Try FIXIT
+            request.WriteAsync = InsertCallbackHolder<T>.WriteAsync<InsertMessage<T>>;
             await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
             var response = await taskSource.GetValueTask().ConfigureAwait(false) as InsertResult;
             InsertMongoRequestPool.Return(request);
@@ -109,7 +107,7 @@ namespace MongoDB.Client.Connection
             }
             var request = DeleteMongoRequestPool.Get();//new DeleteMongoRequest(message, taskSource);
             var taskSource = request.CompletionSource;
-            request.ParseAsync = DeleteParserCallbackHolder.DeleteParseAsync;
+            request.ParseAsync = DeleteCallbackHolder.DeleteParseAsync;
             request.Message = message;
             request.RequestNumber = message.Header.RequestNumber;
             await _channelWriter.WriteAsync(request, cancellationToken).ConfigureAwait(false);

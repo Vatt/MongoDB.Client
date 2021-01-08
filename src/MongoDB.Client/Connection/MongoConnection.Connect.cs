@@ -74,7 +74,7 @@ namespace MongoDB.Client.Connection
             _completions.GetOrAdd(completion.Message.RequestNumber, completion);
             try
             {
-                await _protocolWriter.WriteAsync(ProtocolWriters.QueryMessageWriter, message, cancellationToken).ConfigureAwait(false);
+                await _protocolWriter.WriteUnsafeAsync(ProtocolWriters.QueryMessageWriter, message, cancellationToken).ConfigureAwait(false);
                 var response = await new ValueTask<IParserResult>(completion.CompletionSource, completion.CompletionSource.Version).ConfigureAwait(false);
 
                 if (response is QueryResult<TResp> queryResult)
