@@ -14,11 +14,13 @@ namespace MongoDB.Client.Connection
 
     internal partial class RequestScheduler : IAsyncDisposable
     {
-        private int MaxConnections => Environment.ProcessorCount * 2;
+        private int MaxConnections => 100;// Environment.ProcessorCount * 2;
         private readonly MongoConnectionFactory _connectionFactory;
         private readonly List<MongoConnection> _connections;
         private readonly Channel<MongoReuqestBase> _channel;
+        private readonly Channel<FindMongoRequest> _findChannel;
         private readonly ChannelWriter<MongoReuqestBase> _channelWriter;
+        private readonly ChannelWriter<FindMongoRequest> _cursorChannel;
         private static int _counter;
 
         public RequestScheduler(MongoConnectionFactory connectionFactory)
@@ -29,7 +31,9 @@ namespace MongoDB.Client.Connection
             options.SingleReader = false;
             options.AllowSynchronousContinuations = true;
             _channel = Channel.CreateUnbounded<MongoReuqestBase>(options);
+            _findChannel = Channel.CreateUnbounded<FindMongoRequest>(options);
             _channelWriter = _channel.Writer;
+            _cursorChannel = _findChannel.Writer;
             _connections = new List<MongoConnection>();
             _counter = 0;
         }
@@ -49,7 +53,7 @@ namespace MongoDB.Client.Connection
         }
         private ValueTask<MongoConnection> CreateNewConnection()
         {
-            return _connectionFactory.Create(_channel.Reader);
+            return _connectionFactory.Create(_channel.Reader, _findChannel.Reader);
         }
         internal async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token = default)
         {
@@ -62,7 +66,8 @@ namespace MongoDB.Client.Connection
             request.Message = message;
             request.ParseAsync = CursorCallbackHolder<T>.CursorParseAsync;
             request.RequestNumber = message.Header.RequestNumber;
-            await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            //await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            await _cursorChannel.WriteAsync(request, token).ConfigureAwait(false);
             var cursor = await taskSrc.GetValueTask().ConfigureAwait(false) as CursorResult<T>;
             FindMongoRequestPool.Return(request);
             return cursor;

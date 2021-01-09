@@ -4,6 +4,7 @@ using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -20,17 +21,20 @@ namespace MongoDB.Client.Connection
         private ProtocolReader _protocolReader;
         private ProtocolWriter _protocolWriter;
         private readonly ChannelReader<MongoReuqestBase> _channelReader;
+        private readonly ChannelReader<FindMongoRequest> _findReader;
         private CancellationTokenSource _shutdownCts = new CancellationTokenSource();
         private Task? _protocolListenerTask;
         private Task? _channelListenerTask;
+        private Task? _channelFindListenerTask;
         private readonly ConcurrentQueue<ManualResetValueTaskSource<IParserResult>> _queue = new();
-//        private readonly SemaphoreSlim _channelListenerLock = new(0);
-        internal MongoConnection(int connectionId, ILogger logger, ChannelReader<MongoReuqestBase> channelReader)
+        private readonly SemaphoreSlim _channelListenerLock = new(0);
+        internal MongoConnection(int connectionId, ILogger logger, ChannelReader<MongoReuqestBase> channelReader, ChannelReader<FindMongoRequest> findReader)
         {
             ConnectionId = connectionId;
             _completions = new ConcurrentDictionary<long, MongoReuqestBase>();
             _logger = logger;
             _channelReader = channelReader;
+            _findReader = findReader;
         }
 
         public async ValueTask DisposeAsync()
@@ -38,6 +42,7 @@ namespace MongoDB.Client.Connection
             _shutdownCts.Cancel();
             if (_channelListenerTask is not null)
             {
+                await _channelFindListenerTask.ConfigureAwait(false);
                 await _channelListenerTask.ConfigureAwait(false);
                 await _protocolWriter.DisposeAsync().ConfigureAwait(false);
             }

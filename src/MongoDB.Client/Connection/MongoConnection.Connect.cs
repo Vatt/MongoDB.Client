@@ -24,6 +24,7 @@ namespace MongoDB.Client.Connection
             _protocolListenerTask = StartProtocolListenerAsync();
             _connectionInfo = await DoConnectAsync(cancellationToken).ConfigureAwait(false);
             _channelListenerTask = StartChannelListerAsync();
+            _channelFindListenerTask = StartFindChannelListerAsync();
             async Task<ConnectionInfo> DoConnectAsync(CancellationToken token)
             {
                 var connectRequest = CreateQueryRequest(_initialDocument, GetNextRequestNumber());
@@ -86,7 +87,7 @@ namespace MongoDB.Client.Connection
             }
             finally
             {
-                _completions.TryRemove(message.RequestNumber, out _);
+                _completions.TryRemove(message.RequestNumber, out _);                
                 taskSource.Reset();
                 _queue.Enqueue(taskSource);
             }

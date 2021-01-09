@@ -48,7 +48,7 @@ namespace MongoDB.Client.Connection
             var insertMessage = (InsertMessage<T>)message;
             if (message != null)
             {
-                return protocol.WriteUnsafeAsync(InsertMessageWriter, insertMessage, token);
+                return protocol.WriteAsync(InsertMessageWriter, insertMessage, token);
             }
             ThrowHelper.InsertException(message.GetType().ToString());
             return default;
