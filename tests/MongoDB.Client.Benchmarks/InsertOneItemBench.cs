@@ -34,13 +34,14 @@ namespace MongoDB.Client.Benchmarks
 
 
         [GlobalSetup]
-        public void Setup()
+        public async Task Setup()
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
             var dbName = "BenchmarkDb";
             var collectionName = GetType().Name;
 
             var client = new MongoClient(new DnsEndPoint(host, 27017));
+            await client.InitAsync();
             var db = client.GetDatabase(dbName);
             _collection = db.GetCollection<GeoIp>(collectionName);
 

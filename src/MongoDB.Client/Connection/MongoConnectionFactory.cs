@@ -12,7 +12,7 @@ namespace MongoDB.Client.Connection
 {
     internal class MongoConnectionFactory
     {
-        private static int CONNECTION_ID = 0;
+        internal static int CONNECTION_ID = 0;
         private readonly NetworkConnectionFactory _networkFactory;
         private readonly EndPoint _endPoint;
         private readonly ILoggerFactory _loggerFactory;

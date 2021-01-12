@@ -76,7 +76,7 @@ namespace MongoDB.Client.Connection
             {
                 //if (_requestsInWork == Threshold)
                 //{
-                ////    //Console.WriteLine($"Connection {ConnectionId}: Threshold lock");
+                //    //    //Console.WriteLine($"Connection {ConnectionId}: Threshold lock");
                 //    await _channelListenerLock.WaitAsync().ConfigureAwait(false);
                 //}
                 var request = await _findReader.ReadAsync().ConfigureAwait(false);

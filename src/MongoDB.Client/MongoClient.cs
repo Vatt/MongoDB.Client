@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using MongoDB.Client.Connection;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace MongoDB.Client
 {
@@ -39,6 +40,10 @@ namespace MongoDB.Client
         public MongoDatabase GetDatabase(string name)
         {
             return new MongoDatabase(this, name, _scheduler);
+        }
+        public ValueTask InitAsync()
+        {
+            return _scheduler.InitAsync();
         }
     }
 }

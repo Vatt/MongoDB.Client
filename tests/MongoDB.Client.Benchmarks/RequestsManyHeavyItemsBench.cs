@@ -18,13 +18,14 @@ namespace MongoDB.Client.Benchmarks
         public int ItemsCount { get; set; }
 
         [GlobalSetup]
-        public void Setup()
+        public async Task Setup()
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
             var dbName = "BenchmarkDb";
             var collectionName = GetType().Name;
 
             var client = new MongoClient(new DnsEndPoint(host, 27017));
+            await client.InitAsync();
             var db = client.GetDatabase(dbName);
             _collection = db.GetCollection<RootDocument>(collectionName);
 

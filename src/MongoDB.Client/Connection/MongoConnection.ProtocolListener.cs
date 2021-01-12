@@ -71,11 +71,11 @@ namespace MongoDB.Client.Connection
                         {
                             case RequestType.FindRequest:
                                 {
-                                    var oldRequestsInWork = _requestsInWork;
+                                    //var oldRequestsInWork = _requestsInWork;
                                     //Interlocked.Decrement(ref _requestsInWork);
                                     //if (oldRequestsInWork == Threshold && _requestsInWork < Threshold)
                                     //{
-                                    //    //Console.WriteLine($"Connection {ConnectionId}: Threshold unlock");
+                                    //    Console.WriteLine($"Connection {ConnectionId}: Threshold unlock");
                                     //    _channelListenerLock.Release();
                                     //}
                                     var findRequest = (FindMongoRequest)request;

@@ -21,8 +21,9 @@ namespace MongoDB.Client.Connection
         private readonly Channel<FindMongoRequest> _findChannel;
         private readonly ChannelWriter<MongoReuqestBase> _channelWriter;
         private readonly ChannelWriter<FindMongoRequest> _cursorChannel;
+        private readonly object _initLock = new object();
         private static int _counter;
-
+        private int _requestsInChannel = 0;
         public RequestScheduler(MongoConnectionFactory connectionFactory)
         {
             _connectionFactory = connectionFactory;
@@ -41,7 +42,7 @@ namespace MongoDB.Client.Connection
         {
             return Interlocked.Increment(ref _counter);
         }
-        internal async ValueTask Init()
+        internal async ValueTask InitAsync()
         {
             if (_connections.Count == 0)
             {
@@ -57,17 +58,12 @@ namespace MongoDB.Client.Connection
         }
         internal async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token = default)
         {
-            if (_connections.Count == 0)
-            {
-                await Init();
-            }
             var request = FindMongoRequestPool.Get();
             var taskSrc = request.CompletionSource;
             request.Message = message;
             request.ParseAsync = CursorCallbackHolder<T>.CursorParseAsync;
             request.RequestNumber = message.Header.RequestNumber;
-            //await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
-            await _cursorChannel.WriteAsync(request, token).ConfigureAwait(false);
+            await _cursorChannel.WriteAsync(request, token).ConfigureAwait(false);            
             var cursor = await taskSrc.GetValueTask().ConfigureAwait(false) as CursorResult<T>;
             FindMongoRequestPool.Return(request);
             return cursor;
@@ -75,10 +71,6 @@ namespace MongoDB.Client.Connection
 
         internal async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token = default)
         {
-            if (_connections.Count == 0)
-            {
-                await Init();
-            }
             var request = InsertMongoRequestPool.Get();
             var taskSource = request.CompletionSource;
             request.RequestNumber = message.Header.RequestNumber;
@@ -106,10 +98,6 @@ namespace MongoDB.Client.Connection
         }
         public async ValueTask<DeleteResult> DeleteAsync(DeleteMessage message, CancellationToken cancellationToken)
         {
-            if (_connections.Count == 0)
-            {
-                await Init();
-            }
             var request = DeleteMongoRequestPool.Get();//new DeleteMongoRequest(message, taskSource);
             var taskSource = request.CompletionSource;
             request.ParseAsync = DeleteCallbackHolder.DeleteParseAsync;
