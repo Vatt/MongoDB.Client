@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  mongo-rs0:
+    hostname: mongo-rs0
+    container_name: mongo-rs0
+    image: mongo:4.4
+    ports:
+    - "27017:27017"
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
+
+  mongo-rs1:
+    hostname: mongo-rs1
+    container_name: mongo-rs1
+    image: mongo:4.4
+    ports:
+    - "27018:27017"
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
+
+  mongo-rs2:
+    hostname: mongo-rs2
+    container_name: mongo-rs2
+    image: mongo:4.4
+    ports:
+    - "27019:27017"
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
