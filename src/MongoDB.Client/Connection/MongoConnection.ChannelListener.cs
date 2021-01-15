@@ -17,17 +17,7 @@ namespace MongoDB.Client.Connection
         {
             while (!_shutdownCts.IsCancellationRequested)
             {
-                //if (_requestsInWork == Threshold)
-                //{
-                //    //Console.WriteLine($"Connection {ConnectionId}: Threshold lock");
-                //    await _channelListenerLock.WaitAsync().ConfigureAwait(false);
-                //}
-                //if (_requestsInWork >= Threshold)
-                //{
-                //    Console.WriteLine($"Connection {ConnectionId}: {_requestsInWork}");
-                //}
                 var request = await _channelReader.ReadAsync().ConfigureAwait(false);
-                //Interlocked.Increment(ref _requestsInWork);
                 switch (request.Type)
                 {
                     case RequestType.FindRequest:
@@ -63,7 +53,6 @@ namespace MongoDB.Client.Connection
                             break;
                         }
                     default:
-                        //Interlocked.Decrement(ref _requestsInWork);
                         _logger.UnknownRequestType(request.Type);
                         request.CompletionSource.SetException(new NotSupportedException($"Request type '{request.Type}' not supported"));
                         break;
@@ -74,13 +63,7 @@ namespace MongoDB.Client.Connection
         {
             while (!_shutdownCts.IsCancellationRequested)
             {
-                //if (_requestsInWork == Threshold)
-                //{
-                //    //    //Console.WriteLine($"Connection {ConnectionId}: Threshold lock");
-                //    await _channelListenerLock.WaitAsync().ConfigureAwait(false);
-                //}
                 var request = await _findReader.ReadAsync().ConfigureAwait(false);
-                //Interlocked.Increment(ref _requestsInWork);
                 switch (request.Type)
                 {
                     case RequestType.FindRequest:

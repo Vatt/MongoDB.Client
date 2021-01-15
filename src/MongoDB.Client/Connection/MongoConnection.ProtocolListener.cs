@@ -44,13 +44,6 @@ namespace MongoDB.Client.Connection
                             _logger.UnknownOpcodeMessage(header);
                             if (_completions.TryRemove(header.ResponseTo, out request))
                             {
-                                //var oldRequestsInWork = _requestsInWork;
-                                //Interlocked.Decrement(ref _requestsInWork);
-                                //if (oldRequestsInWork == Threshold && _requestsInWork < Threshold)
-                                //{
-                                //    _channelListenerLock.Release();
-                                //    request.CompletionSource.SetException(new NotSupportedException($"Opcode '{header.Opcode}' not supported"));
-                                //}
                                 request.CompletionSource.SetException(new NotSupportedException($"Opcode '{header.Opcode}' not supported"));
                             }
                             continue;
@@ -60,24 +53,10 @@ namespace MongoDB.Client.Connection
 
                     if (_completions.TryRemove(message.Header.ResponseTo, out request))                    
                     {
-                        //var oldRequestsInWork = _requestsInWork;
-                        //Interlocked.Decrement(ref _requestsInWork);
-                        //if (oldRequestsInWork == Threshold && _requestsInWork < Threshold)
-                        //{
-                        //    //Console.WriteLine($"Connection {ConnectionId}: Threshold unlock");
-                        //    _channelListenerLock.Release();
-                        //}
                         switch (request.Type)
                         {
                             case RequestType.FindRequest:
                                 {
-                                    //var oldRequestsInWork = _requestsInWork;
-                                    //Interlocked.Decrement(ref _requestsInWork);
-                                    //if (oldRequestsInWork == Threshold && _requestsInWork < Threshold)
-                                    //{
-                                    //    Console.WriteLine($"Connection {ConnectionId}: Threshold unlock");
-                                    //    _channelListenerLock.Release();
-                                    //}
                                     var findRequest = (FindMongoRequest)request;
                                     var result = await findRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
                                     request.CompletionSource.TrySetResult(result);
@@ -124,17 +103,6 @@ namespace MongoDB.Client.Connection
         
         private async ValueTask<T> ReadAsyncPrivate<T>(IMessageReader<T> reader, CancellationToken token)
         {
-            var task = ProtocolReadAsyncPrivate(reader, token);
-            if (task.IsCompleted)
-            {
-                return task.Result;
-            }
-
-            return await task.ConfigureAwait(false);
-        }
-        private async ValueTask<T> ProtocolReadAsyncPrivate<T>(IMessageReader<T> reader, CancellationToken token)
-        {
-
             var result = await _protocolReader.ReadAsync(reader, token).ConfigureAwait(false);
             _protocolReader.Advance();
             if (result.IsCanceled || result.IsCompleted)

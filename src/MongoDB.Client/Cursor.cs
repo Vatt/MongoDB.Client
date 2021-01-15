@@ -46,11 +46,9 @@ namespace MongoDB.Client
 
         public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken)
         {
-            //var channel = await _channelPool.GetChannelAsync(cancellationToken).ConfigureAwait(false);
             var requestNum = _scheduler.GetNextRequestNumber();
             var requestDocument = CreateFindRequest(_filter);
             var request = new FindMessage(requestNum, requestDocument);
-            //var result = await channel.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
             var result = await _scheduler.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
             if (result.ErrorMessage is not null)
             {
@@ -68,7 +66,6 @@ namespace MongoDB.Client
                 requestNum = _scheduler.GetNextRequestNumber();
                 requestDocument = CreateGetMoreRequest(cursorId);
                 request = new FindMessage(requestNum, requestDocument);
-                //var getMoreResult = await channel.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
                 var getMoreResult = await _scheduler.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
                 if (getMoreResult.ErrorMessage is not null)
                 {
@@ -83,7 +80,6 @@ namespace MongoDB.Client
             }
         }
 
-        //private MongoConnection _channel;
         private long _cursorId = -1;
 
         public bool HasNext => _cursorId != 0;
@@ -100,11 +96,9 @@ namespace MongoDB.Client
             //    _channel = await _channelPool.GetChannelAsync(cancellationToken).ConfigureAwait(false);
             //}            
 
-            //var requestNum = _channel.GetNextRequestNumber();
             var requestNum = _scheduler.GetNextRequestNumber();
             var requestDocument = _cursorId == -1 ? CreateFindRequest(_filter) : CreateGetMoreRequest(_cursorId);
             var request = new FindMessage(requestNum, requestDocument);
-            //var result = await _channel.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
             var result = await _scheduler.GetCursorAsync<T>(request, cancellationToken).ConfigureAwait(false);
             _cursorId = result.MongoCursor.Id;
             return result.MongoCursor.Items;

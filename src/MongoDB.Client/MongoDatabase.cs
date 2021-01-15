@@ -6,7 +6,7 @@ namespace MongoDB.Client
     {
         private readonly RequestScheduler _scheduler;
         public MongoClient Client { get; }
-        public string Name { get; }
+        public string Name { get; } //TODO: byte[] mb?
 
         internal MongoDatabase(MongoClient client, string name, RequestScheduler scheduler)
         {

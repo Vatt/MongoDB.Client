@@ -14,17 +14,16 @@ namespace MongoDB.Client.Connection
 
     internal partial class RequestScheduler : IAsyncDisposable
     {
-        private int MaxConnections => 100;// Environment.ProcessorCount * 2;
         private readonly MongoConnectionFactory _connectionFactory;
         private readonly List<MongoConnection> _connections;
         private readonly Channel<MongoReuqestBase> _channel;
         private readonly Channel<FindMongoRequest> _findChannel;
         private readonly ChannelWriter<MongoReuqestBase> _channelWriter;
         private readonly ChannelWriter<FindMongoRequest> _cursorChannel;
+        private readonly MongoClientSettings _settings;
         private readonly object _initLock = new object();
-        private static int _counter;
-        private int _requestsInChannel = 0;
-        public RequestScheduler(MongoConnectionFactory connectionFactory)
+        private static int _counter;       
+        public RequestScheduler(MongoClientSettings settings, MongoConnectionFactory connectionFactory)
         {
             _connectionFactory = connectionFactory;
             var options = new UnboundedChannelOptions();
@@ -36,6 +35,7 @@ namespace MongoDB.Client.Connection
             _channelWriter = _channel.Writer;
             _cursorChannel = _findChannel.Writer;
             _connections = new List<MongoConnection>();
+            _settings = settings;
             _counter = 0;
         }
         public int GetNextRequestNumber()
@@ -46,7 +46,7 @@ namespace MongoDB.Client.Connection
         {
             if (_connections.Count == 0)
             {
-                for (int i = 0; i < MaxConnections; i++)
+                for (int i = 0; i < _settings.ConnectionPoolMaxSize; i++)
                 {
                     _connections.Add(await CreateNewConnection());
                 }
