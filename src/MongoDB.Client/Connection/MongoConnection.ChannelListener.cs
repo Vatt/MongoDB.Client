@@ -33,7 +33,7 @@ namespace MongoDB.Client.Connection
                             var queryRequest = (QueryMongoRequest)request;
                             _completions.GetOrAdd(queryRequest.RequestNumber, queryRequest);
                             await _protocolWriter!.WriteAsync(ProtocolWriters.QueryMessageWriter, queryRequest.Message, _shutdownCts.Token).ConfigureAwait(false);
-                            _logger.SentCursorMessage(queryRequest.Message.RequestNumber);
+                         //   _logger.SentCursorMessage(queryRequest.Message.RequestNumber);
                             break;
                         }
                     case RequestType.InsertRequest:
@@ -49,7 +49,15 @@ namespace MongoDB.Client.Connection
                             var deleteRequest = (DeleteMongoRequest)request;
                             _completions.GetOrAdd(deleteRequest.RequestNumber, deleteRequest);
                             await _protocolWriter!.WriteAsync(ProtocolWriters.DeleteMessageWriter, deleteRequest.Message, _shutdownCts.Token).ConfigureAwait(false);
-                            _logger.SentCursorMessage(deleteRequest.Message.Header.RequestNumber);
+                          //  _logger.SentCursorMessage(deleteRequest.Message.Header.RequestNumber);
+                            break;
+                        }
+                    case RequestType.DropCollectionRequest:
+                        {
+                            var dropCollectionRequest = (DropCollectionMongoRequest)request;
+                            _completions.GetOrAdd(dropCollectionRequest.RequestNumber, dropCollectionRequest);
+                            await _protocolWriter!.WriteAsync(ProtocolWriters.DropCollectionMessageWriter, dropCollectionRequest.Message, _shutdownCts.Token).ConfigureAwait(false);
+                          //  _logger.SentCursorMessage(dropCollectionRequest.Message.Header.RequestNumber);
                             break;
                         }
                     default:

@@ -78,6 +78,21 @@ namespace MongoDB.Client
             return await _scheduler.DeleteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
+        internal async ValueTask DropAsync(CancellationToken cancellationToken)
+        {
+            var requestNumber = _scheduler.GetNextRequestNumber();
+            var dropCollectionHeader = new DropCollectionHeader
+            {
+                CollectionName = Namespace.CollectionName,
+                Db = Namespace.DatabaseName,
+                Lsid = SharedSessionIdModel
+            };
+            var request = new DropCollectionMessage(requestNumber, dropCollectionHeader);
+            var result = await _scheduler.DropCollectionAsync(request, cancellationToken).ConfigureAwait(false);
+
+            Console.WriteLine();
+        }
+
         private static readonly SessionId SharedSessionIdModel = new SessionId { Id = Guid.NewGuid() };
     }
 }

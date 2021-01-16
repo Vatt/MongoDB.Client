@@ -107,6 +107,19 @@ namespace MongoDB.Client.Connection
             return deleteResult;
         }
 
+        public async ValueTask<BsonParseResult> DropCollectionAsync(DropCollectionMessage message, CancellationToken cancellationToken)
+        {
+            var taskSource = new ManualResetValueTaskSource<IParserResult>();
+            var request = new DropCollectionMongoRequest(message, taskSource);
+            
+            request.ParseAsync = DropCollectionCallbackHolder.DropCollectionParseAsync;
+            request.Message = message;
+            request.RequestNumber = message.Header.RequestNumber;
+            await _channelWriter.WriteAsync(request, cancellationToken).ConfigureAwait(false);
+            var dropCollectionResult = await taskSource.GetValueTask().ConfigureAwait(false) as BsonParseResult;
+            return dropCollectionResult;
+        }
+        
         public async ValueTask DisposeAsync()
         {
             _channelWriter.Complete();

@@ -83,6 +83,13 @@ namespace MongoDB.Client.Connection
                                     request.CompletionSource.TrySetResult(result);
                                     break;
                                 }
+                            case RequestType.DropCollectionRequest:
+                                {
+                                    var deleteRequest = (DeleteMongoRequest)request;
+                                    var result = await deleteRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
+                                    request.CompletionSource.TrySetResult(result);
+                                    break;
+                                }
                             default:
                                 _logger.UnknownRequestType(request.Type);
                                 request.CompletionSource.SetException(new NotSupportedException($"Request type '{request.Type}' not supported"));

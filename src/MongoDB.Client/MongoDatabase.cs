@@ -1,4 +1,6 @@
-﻿using MongoDB.Client.Connection;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using MongoDB.Client.Connection;
 
 namespace MongoDB.Client
 {
@@ -18,6 +20,12 @@ namespace MongoDB.Client
         public MongoCollection<T> GetCollection<T>(string name)
         {
             return new MongoCollection<T>(this, name, _scheduler);
+        }
+
+        public ValueTask DropCollectionAsync(string collectionName, CancellationToken cancellationToken = default)
+        {
+            var collection = GetCollection<object>(collectionName);
+            return collection.DropAsync(cancellationToken);
         }
     }
 }
