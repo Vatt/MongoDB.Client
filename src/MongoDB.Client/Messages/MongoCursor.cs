@@ -21,7 +21,7 @@ namespace MongoDB.Client.Messages
         public string Namespace { get; set; }
 
         public List<T> Items { get; set; }
-        
+
         public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
         {
             throw new System.NotImplementedException();

@@ -14,14 +14,14 @@ namespace MongoDB.Client.Bson.Document
             counter++;
         }
 
-        public void Add( int value)
+        public void Add(int value)
         {
             base.Add(counter.ToString(), value);
             counter++;
         }
 
 
-        public void Add( bool value)
+        public void Add(bool value)
         {
             base.Add(counter.ToString(), value);
             counter++;

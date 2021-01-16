@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using MongoDB.Client.Bson.Serialization.Attributes;
+﻿using MongoDB.Client.Bson.Serialization.Attributes;
+using System.Collections.Generic;
 
 namespace MongoDB.Client.Messages
 {
@@ -8,20 +8,20 @@ namespace MongoDB.Client.Messages
     {
         [BsonElement("n")]
         public int N { get; set; }
-        
+
         [BsonElement("ok")]
         public double Ok { get; set; }
 
         [BsonElement("writeErrors")]
         public List<InsertError> WriteErrors { get; set; }
     }
-    
+
     [BsonSerializable]
     public partial class InsertError
     {
         [BsonElement("index")]
         public int Index { get; set; }
-        
+
         [BsonElement("code")]
         public int Code { get; set; }
 

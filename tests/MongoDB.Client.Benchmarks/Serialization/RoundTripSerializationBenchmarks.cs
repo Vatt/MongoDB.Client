@@ -1,7 +1,7 @@
-﻿using System.Threading.Tasks;
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
+using System.Threading.Tasks;
 
 namespace MongoDB.Client.Benchmarks.Serialization
 {
@@ -9,7 +9,7 @@ namespace MongoDB.Client.Benchmarks.Serialization
     public class RoundTripSerializationBenchmarks
     {
         private static readonly BsonDocumentSerializer _serializer = new BsonDocumentSerializer();
-        
+
         [Benchmark]
         public async Task<BsonDocument> BsonSerialization()
         {

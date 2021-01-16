@@ -1,11 +1,8 @@
-﻿using MongoDB.Client.Bson.Serialization.Attributes;
+﻿using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using MongoDB.Client.Bson.Document;
 
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
@@ -29,25 +26,25 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
 
             public bool Equals(ListModel other)
             {
-                return Bools.SequenceEqual(other.Bools) && 
-                       Items.SequenceEqual(other.Items) && 
-                       Doubles.SequenceEqual(other.Doubles) && 
-                       Strings.SequenceEqual(other.Strings) && 
-                       Documents.SequenceEqual(other.Documents) && 
-                       BsonObjectIds.SequenceEqual(other.BsonObjectIds) && 
-                       Ints.SequenceEqual(other.Ints) && 
-                       Longs.SequenceEqual(other.Longs) && 
+                return Bools.SequenceEqual(other.Bools) &&
+                       Items.SequenceEqual(other.Items) &&
+                       Doubles.SequenceEqual(other.Doubles) &&
+                       Strings.SequenceEqual(other.Strings) &&
+                       Documents.SequenceEqual(other.Documents) &&
+                       BsonObjectIds.SequenceEqual(other.BsonObjectIds) &&
+                       Ints.SequenceEqual(other.Ints) &&
+                       Longs.SequenceEqual(other.Longs) &&
                        //Guids.SequenceEqual(other.Guids) && 
                        //Dates.SequenceEquals(other.Dates)
                        Items.SequenceEqual(other.Items);
             }
-            
+
             public override bool Equals(object obj)
             {
                 if (ReferenceEquals(null, obj)) return false;
                 if (ReferenceEquals(this, obj)) return true;
                 if (obj.GetType() != this.GetType()) return false;
-                return Equals((ListModel) obj);
+                return Equals((ListModel)obj);
             }
 
             public override int GetHashCode()
@@ -104,7 +101,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
                 {
                     if (ReferenceEquals(null, other)) return false;
                     if (ReferenceEquals(this, other)) return true;
-                    return A == other.A && B == other.B && C == other.C && 
+                    return A == other.A && B == other.B && C == other.C &&
                            PlanetModel.Equals(other.PlanetModel) &&
                            NumericModel.Equals(other.NumericModel);
                 }
@@ -114,7 +111,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
                     if (ReferenceEquals(null, obj)) return false;
                     if (ReferenceEquals(this, obj)) return true;
                     if (obj.GetType() != this.GetType()) return false;
-                    return Equals((InnerItem) obj);
+                    return Equals((InnerItem)obj);
                 }
 
                 public override int GetHashCode()
@@ -147,7 +144,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
                 if (ReferenceEquals(null, obj)) return false;
                 if (ReferenceEquals(this, obj)) return true;
                 if (obj.GetType() != this.GetType()) return false;
-                return Equals((ListItem) obj);
+                return Equals((ListItem)obj);
             }
 
             public override int GetHashCode()
@@ -174,15 +171,15 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return BsonObjectIdValue.Equals(other.BsonObjectIdValue) && 
-                   BooleanValue == other.BooleanValue && 
-                   DoubleValue.Equals(other.DoubleValue) && 
-                   StringValue == other.StringValue && 
+            return BsonObjectIdValue.Equals(other.BsonObjectIdValue) &&
+                   BooleanValue == other.BooleanValue &&
+                   DoubleValue.Equals(other.DoubleValue) &&
+                   StringValue == other.StringValue &&
                    BsonDocumentValue.Equals(other.BsonDocumentValue) &&
                    //DateTimeOffsetValue.Equals(other.DateTimeOffsetValue) && 
-                   GuidValue.Equals(other.GuidValue) && 
-                   IntValue == other.IntValue && 
-                   LongValue == other.LongValue && 
+                   GuidValue.Equals(other.GuidValue) &&
+                   IntValue == other.IntValue &&
+                   LongValue == other.LongValue &&
                    List.Equals(other.List);
         }
 
@@ -191,7 +188,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((ModelForGenerated) obj);
+            return Equals((ModelForGenerated)obj);
         }
 
         public override int GetHashCode()

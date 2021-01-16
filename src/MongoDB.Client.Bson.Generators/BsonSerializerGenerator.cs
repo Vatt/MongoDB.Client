@@ -2,9 +2,9 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
 using System.Collections.Generic;
 using System.Text;
-using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators
 {
@@ -49,7 +49,7 @@ namespace MongoDB.Client.Bson.Generators
 
         private List<(SyntaxNode, INamedTypeSymbol)> CollectSymbols(GeneratorExecutionContext context)
         {
-            List<(SyntaxNode, INamedTypeSymbol)> symbols = new ();
+            List<(SyntaxNode, INamedTypeSymbol)> symbols = new();
             foreach (var tree in context.Compilation.SyntaxTrees)
             {
                 foreach (var node in tree.GetRoot().DescendantNodes())

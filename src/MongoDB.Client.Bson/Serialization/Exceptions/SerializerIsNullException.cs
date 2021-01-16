@@ -6,7 +6,7 @@ namespace MongoDB.Client.Bson.Serialization.Exceptions
     {
         public SerializerIsNullException(string serializer) : base($"{serializer}: is null)")
         {
-            
+
         }
     }
 }

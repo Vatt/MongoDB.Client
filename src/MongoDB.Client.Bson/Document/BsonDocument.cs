@@ -10,6 +10,7 @@ namespace MongoDB.Client.Bson.Document
     [DebuggerTypeProxy(typeof(CollectionDebugView<>))]
     public class BsonDocument : IEnumerable<BsonElement>, IEquatable<BsonDocument>
     {
+        public static BsonDocument Empty => new BsonDocument();
 
         private readonly List<BsonElement> _elements;
 
@@ -23,7 +24,7 @@ namespace MongoDB.Client.Bson.Document
         {
             Add(name, value);
         }
-        
+
         public BsonDocument(string name, int value)
             : this()
         {

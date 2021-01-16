@@ -1,7 +1,7 @@
-﻿using System.Buffers;
-using MongoDB.Client.Bson.Serialization;
+﻿using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Writer;
 using MongoDB.Client.Protocol.Core;
+using System.Buffers;
 
 namespace MongoDB.Client.Protocol.Writers
 {

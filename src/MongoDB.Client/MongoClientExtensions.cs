@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using MongoDB.Client.Messages;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using MongoDB.Client.Messages;
 
 namespace MongoDB.Client
 {
@@ -18,7 +18,7 @@ namespace MongoDB.Client
             var cursorResult = await cursorTask.ConfigureAwait(false);
             return cursorResult.MongoCursor.Items.FirstOrDefault();
         }
-        
+
         public static List<T> ToList<T>(this MongoCursor<T> mongoCursor)
         {
             return mongoCursor.Items;

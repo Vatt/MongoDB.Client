@@ -61,7 +61,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 }
                 if (member.TypeSym.IsReferenceType)
                 {
-                    writeStatement = 
+                    writeStatement =
                         Statements(
                             SF.IfStatement(
                                 condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
@@ -79,7 +79,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     }
                     writeStatement = WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget);
                 }
-CONDITION_CHECK:
+            CONDITION_CHECK:
                 if (condition != null)
                 {
                     statements.Add(IfNot(condition, SF.Block(writeStatement)));
@@ -119,7 +119,7 @@ CONDITION_CHECK:
                 (
                     VarLocalDeclarationStatement(SF.Identifier($"{name}genericReserved"), WriterReserve(1)),
                     Statement(WriteCString(StaticFieldNameToken(ctx))),
-                    Statement(WriteGeneric(writeTarget, SF.IdentifierName($"{name}genericReserved"))) 
+                    Statement(WriteGeneric(writeTarget, SF.IdentifierName($"{name}genericReserved")))
                 );
             }
             if (trueType is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)
@@ -186,11 +186,11 @@ CONDITION_CHECK:
                 case SpecialType.System_Int64:
                     expr = Write_Type_Name_Value(bsonName, writeTarget);
                     return true;
-                //case SpecialType.System_DateTime:
-                //    expr = Write_Type_Name_Value(bsonName, writeTarget);
-                //    return true;
+                    //case SpecialType.System_DateTime:
+                    //    expr = Write_Type_Name_Value(bsonName, writeTarget);
+                    //    return true;
             }
-            if(TypeLib.IsBsonDocument(typeSymbol))
+            if (TypeLib.IsBsonDocument(typeSymbol))
             {
                 expr = Write_Type_Name_Value(bsonName, writeTarget);
                 return true;

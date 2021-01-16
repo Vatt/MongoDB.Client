@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Bson;
 using MongoDB.Client.Bson.Serialization.Attributes;
+using System.Collections.Generic;
 
 namespace MongoDB.Client.Benchmarks.Serialization.Models
 {
@@ -12,7 +10,7 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
         [MongoDB.Bson.Serialization.Attributes.BsonId]
         [Bson.Serialization.Attributes.BsonIgnore]
         public ObjectId OldId { get; set; }
-        
+
         [Bson.Serialization.Attributes.BsonId]
         [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
         public MongoDB.Client.Bson.Document.BsonObjectId Id { get; set; }

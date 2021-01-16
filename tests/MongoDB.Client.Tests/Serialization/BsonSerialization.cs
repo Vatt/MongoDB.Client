@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
-using MongoDB.Client.Tests.Serialization;
-using MongoDB.Client.Tests.Serialization.TestModels;
+using System;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization
@@ -80,7 +77,7 @@ namespace MongoDB.Client.Tests.Serialization
             var result = await RoundTripWithBsonAsync(doc);
 
 
-           
+
             Assert.Equal("Database", result["$db"].AsString);
         }
 

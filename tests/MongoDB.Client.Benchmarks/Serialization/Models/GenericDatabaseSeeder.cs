@@ -1,11 +1,11 @@
 ﻿using MongoDB.Client.Bson.Document;
 using System;
 using System.Collections.Generic;
-using SmallGenericDocument = MongoDB.Client.Benchmarks.Serialization.Models.SmallGenericDocument<MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<int>, MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<string>>;
 using GenericDocument = MongoDB.Client.Benchmarks.Serialization.Models.GenericDocument<double, string, MongoDB.Client.Bson.Document.BsonDocument, MongoDB.Client.Bson.Document.BsonObjectId, int, long,
                                                                                         System.DateTimeOffset, System.Guid,
                                                                                         MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<int>,
                                                                                         MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<string>>;
+using SmallGenericDocument = MongoDB.Client.Benchmarks.Serialization.Models.SmallGenericDocument<MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<int>, MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<string>>;
 namespace MongoDB.Client.Benchmarks.Serialization.Models
 {
 
@@ -33,14 +33,28 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
         }
         private NonGenericDocument CreateTestDocument(int itemsInList)
         {
-            NonGenericDocument doc = new ()
+            NonGenericDocument doc = new()
             {
-                Field0 = 100500, Field1 = "100500", Field2 = new BsonDocument("SomeElement", "SomeElementValue"),
-                Field3 = BsonObjectId.NewObjectId(), Field4 = 42, Field5 = 42, Field6 = DateTimeOffset.UtcNow,
-                Field7 = Guid.NewGuid(), Field8 = new AnotherNonGenericModel0(42, 42, 42),
+                Field0 = 100500,
+                Field1 = "100500",
+                Field2 = new BsonDocument("SomeElement", "SomeElementValue"),
+                Field3 = BsonObjectId.NewObjectId(),
+                Field4 = 42,
+                Field5 = 42,
+                Field6 = DateTimeOffset.UtcNow,
+                Field7 = Guid.NewGuid(),
+                Field8 = new AnotherNonGenericModel0(42, 42, 42),
                 Field9 = new AnotherNonGenericModel1("42", "42", "42"),
-                List0 = new(), List1 = new(), List2 = new(), List3 = new(), List4 = new(), List5 = new(), List6 = new(),
-                List7 = new(), List8 = new(), List9 = new()
+                List0 = new(),
+                List1 = new(),
+                List2 = new(),
+                List3 = new(),
+                List4 = new(),
+                List5 = new(),
+                List6 = new(),
+                List7 = new(),
+                List8 = new(),
+                List9 = new()
             };
 
             for (int i = 0; i < itemsInList; i++)

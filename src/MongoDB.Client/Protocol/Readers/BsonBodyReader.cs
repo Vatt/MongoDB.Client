@@ -1,11 +1,11 @@
-﻿using System;
-using System.Buffers;
-using System.Diagnostics.CodeAnalysis;
-using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
+using System;
+using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MongoDB.Client.Protocol.Readers
 {
@@ -16,7 +16,7 @@ namespace MongoDB.Client.Protocol.Readers
         public long Consumed { get; private set; }
 
         public bool TryParseMessage(
-            in ReadOnlySequence<byte> input, 
+            in ReadOnlySequence<byte> input,
             ref SequencePosition consumed,
             ref SequencePosition examined,
             [MaybeNullWhen(false)] out BsonParseResult message)
@@ -29,7 +29,7 @@ namespace MongoDB.Client.Protocol.Readers
                 message = default;
                 return false;
             }
-            
+
             consumed = bsonReader.Position;
             examined = bsonReader.Position;
             Consumed = bsonReader.BytesConsumed;

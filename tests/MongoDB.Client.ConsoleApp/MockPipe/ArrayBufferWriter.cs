@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Buffers;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MongoDB.Client.ConsoleApp.MockPipe
 {
@@ -12,7 +8,7 @@ namespace MongoDB.Client.ConsoleApp.MockPipe
         private byte[] _buffer;
         private int _position;
 
-        public ArrayBufferWriter(int bufferSize = 1024*1024)
+        public ArrayBufferWriter(int bufferSize = 1024 * 1024)
         {
             _buffer = new byte[bufferSize];
         }

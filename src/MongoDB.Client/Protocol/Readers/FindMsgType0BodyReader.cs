@@ -1,10 +1,11 @@
-﻿using System;
+﻿using MongoDB.Client.Bson.Reader;
+using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Exceptions;
+using MongoDB.Client.Messages;
+using System;
 using System.Buffers;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using MongoDB.Client.Bson.Reader;
-using MongoDB.Client.Bson.Serialization;
-using MongoDB.Client.Messages;
 
 namespace MongoDB.Client.Protocol.Readers
 {
@@ -415,13 +416,13 @@ namespace MongoDB.Client.Protocol.Readers
             if (!reader.TryGetInt32(out docLength)) { return false; }
             do
             {
-                
+
                 if (TryGetName(ref reader, out name) == false) { return false; }
                 if (name.SequenceEqual(CursorSpan))
                 {
                     var initConsumed = reader.BytesConsumed;
                     if (!reader.TryGetInt32(out var cursorLength)) { return false; }
-                    
+
                     while (reader.BytesConsumed - initConsumed < cursorLength - 1)
                     {
                         if (TryGetName(ref reader, out name) == false) { return false; }
@@ -446,7 +447,7 @@ namespace MongoDB.Client.Protocol.Readers
                         }
                     }
 
-                    return Client.ThrowHelper.MissedDocumentEndMarkerException<bool>();
+                    return ThrowHelper.MissedDocumentEndMarkerException<bool>();
                 }
 
 
@@ -485,7 +486,7 @@ namespace MongoDB.Client.Protocol.Readers
             {
                 return true;
             }
-            return Client.ThrowHelper.MissedDocumentEndMarkerException<bool>();
+            return ThrowHelper.MissedDocumentEndMarkerException<bool>();
         }
 
         private bool TryReadCursorEnd(ref BsonReader reader)
@@ -510,7 +511,7 @@ namespace MongoDB.Client.Protocol.Readers
                 }
             }
 
-            return Client.ThrowHelper.MissedDocumentEndMarkerException<bool>();
+            return ThrowHelper.MissedDocumentEndMarkerException<bool>();
         }
 
         private static bool TryGetName(ref BsonReader breader, out ReadOnlySpan<byte> name)
@@ -557,25 +558,25 @@ namespace MongoDB.Client.Protocol.Readers
                 }
             }
 
-            return Client.ThrowHelper.UnknownCursorFieldException<bool>(System.Text.Encoding.UTF8.GetString(name));
+            return ThrowHelper.UnknownCursorFieldException<bool>(System.Text.Encoding.UTF8.GetString(name));
         }
 #endif
 
 
-        private static ReadOnlySpan<byte> CursorSpan => new byte[] {99, 117, 114, 115, 111, 114}; // cursor
+        private static ReadOnlySpan<byte> CursorSpan => new byte[] { 99, 117, 114, 115, 111, 114 }; // cursor
 
         private static ReadOnlySpan<byte> FirstBatchSpan =>
-            new byte[] {102, 105, 114, 115, 116, 66, 97, 116, 99, 104}; // firstBatch
+            new byte[] { 102, 105, 114, 115, 116, 66, 97, 116, 99, 104 }; // firstBatch
 
         private static ReadOnlySpan<byte> NextBatchSpan =>
-            new byte[] {110, 101, 120, 116, 66, 97, 116, 99, 104}; // nextBatch
-        
-        private static ReadOnlySpan<byte> IdSpan => new byte[] {105, 100}; // id
-        private static ReadOnlySpan<byte> NsSpan => new byte[] {110, 115}; // ns
-        private static ReadOnlySpan<byte> OkSpan => new byte[] {111, 107}; // ok
-        private static ReadOnlySpan<byte> ErrorMessageSpan => new byte[] {101, 114, 114, 109, 115, 103}; // errmsg
-        private static ReadOnlySpan<byte> CodeSpan => new byte[] {99, 111, 100, 101}; // code
-        private static ReadOnlySpan<byte> CodeNameSpan => new byte[] {99, 111, 100, 101, 78, 97, 109, 101}; // codeName
+            new byte[] { 110, 101, 120, 116, 66, 97, 116, 99, 104 }; // nextBatch
+
+        private static ReadOnlySpan<byte> IdSpan => new byte[] { 105, 100 }; // id
+        private static ReadOnlySpan<byte> NsSpan => new byte[] { 110, 115 }; // ns
+        private static ReadOnlySpan<byte> OkSpan => new byte[] { 111, 107 }; // ok
+        private static ReadOnlySpan<byte> ErrorMessageSpan => new byte[] { 101, 114, 114, 109, 115, 103 }; // errmsg
+        private static ReadOnlySpan<byte> CodeSpan => new byte[] { 99, 111, 100, 101 }; // code
+        private static ReadOnlySpan<byte> CodeNameSpan => new byte[] { 99, 111, 100, 101, 78, 97, 109, 101 }; // codeName
 
         private enum ParserState
         {

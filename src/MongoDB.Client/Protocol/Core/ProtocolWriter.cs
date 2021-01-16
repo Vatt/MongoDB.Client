@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MongoDB.Client.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipelines;
@@ -33,7 +34,27 @@ namespace MongoDB.Client.Protocol.Core
             _semaphore = semaphore;
         }
 
+        public async ValueTask WriteUnsafeAsync<TWriteMessage>(IMessageWriter<TWriteMessage> writer, TWriteMessage protocolMessage, CancellationToken cancellationToken = default)
+        {
+            if (_disposed)
+            {
+                return;
+            }
 
+            writer.WriteMessage(protocolMessage, _writer);
+
+            var result = await _writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+
+            if (result.IsCanceled)
+            {
+                ThrowHelper.CancelledException();
+            }
+
+            if (result.IsCompleted)
+            {
+                _disposed = true;
+            }
+        }
         public async ValueTask WriteAsync<TWriteMessage>(IMessageWriter<TWriteMessage> writer, TWriteMessage protocolMessage, CancellationToken cancellationToken = default)
         {
             await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);

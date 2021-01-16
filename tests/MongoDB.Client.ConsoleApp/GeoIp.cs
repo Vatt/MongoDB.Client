@@ -1,6 +1,4 @@
-﻿using System;
-using System.Net.Mail;
-using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.ConsoleApp

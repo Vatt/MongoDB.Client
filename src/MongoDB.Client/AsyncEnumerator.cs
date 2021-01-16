@@ -1,10 +1,7 @@
-﻿using System;
+﻿using MongoDB.Client.Utils;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using MongoDB.Client.Utils;
 
 namespace MongoDB.Client
 {

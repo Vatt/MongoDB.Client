@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using System.Threading.Tasks.Sources;
 
-namespace MongoDB.Client
+namespace MongoDB.Client.Connection
 {
     public sealed class ManualResetValueTaskSource<T> : IValueTaskSource<T>, IValueTaskSource
     {

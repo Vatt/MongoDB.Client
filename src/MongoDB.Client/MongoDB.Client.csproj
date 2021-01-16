@@ -13,6 +13,7 @@
 		<DefineConstants>DEBUG;TRACE</DefineConstants>
 	</PropertyGroup>
 
+
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Connections.Abstractions" Version="5.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
@@ -37,10 +38,5 @@
       <_Parameter1>MongoDB.Client.ConsoleApp</_Parameter1>
     </AssemblyAttribute>
 	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Network\Transport.Sockets\Intenral\" />
-	</ItemGroup>
-
 
 </Project>

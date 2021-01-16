@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MongoDB.Client
+namespace MongoDB.Client.Utils
 {
     internal class TaskCompletionSourceWithCancellation<T> : TaskCompletionSource<T>
     {
@@ -14,7 +14,7 @@ namespace MongoDB.Client
         public TaskCompletionSourceWithCancellation(TaskCreationOptions options) : base(options)
         {
         }
-        
+
         private void OnCancellation()
         {
             TrySetCanceled(_cancellationToken);

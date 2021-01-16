@@ -1,19 +1,15 @@
+using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Reader;
+using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Bson.Writer;
+using MongoDB.Client.ConsoleApp.Models;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using MongoDB.Client.ConsoleApp.Models;
-using MongoDB.Client.Exceptions;
-using MongoDB.Client.Bson.Serialization.Attributes;
-using MongoDB.Client.Bson.Serialization;
-using System.Buffers;
-using MongoDB.Client.Bson.Writer;
-using MongoDB.Client.Bson.Reader;
 
 namespace MongoDB.Client.ConsoleApp
 {
@@ -21,17 +17,15 @@ namespace MongoDB.Client.ConsoleApp
     {
         static async Task Main(string[] args)
         {
-            var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
-
             var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder
                     .SetMinimumLevel(LogLevel.Error)
                     .AddConsole();
             });
-
-            var client = new MongoClient(new DnsEndPoint(host, 27017), loggerFactory);
-
+            //var client = new MongoClient("mongodb://centos1.mshome.net, centos2.mshome.net, centos3.mshome.net/?replicaSet=rs0&maxPoolSize=32&appName=MongoDB.Client.ConsoleApp", loggerFactory);
+            var client = new MongoClient("mongodb://centos0.mshome.net/?maxPoolSize=32&appName=MongoDB.Client.ConsoleApp", loggerFactory);
+            await client.InitAsync();
             var db = client.GetDatabase("TestDb");
             var collection1 = db.GetCollection<RootDocument>("HeavyItems");
 
@@ -41,12 +35,47 @@ namespace MongoDB.Client.ConsoleApp
             var seeder = new DatabaseSeeder();
             var item = seeder.GenerateSeed().First();
 
-            
-            var result = await InMemorySerialization.RoundTripAsync(item);
-
-           // await collection1.InsertAsync(item);
+            await collection1.InsertAsync(item);
 
             Console.WriteLine("Done");
+            //var item = seeder.GenerateSeed().First();
+            //var settings = 
+            //     MongoClientSettings.FromConnectionString(
+            //         @"mongodb://login:password@10.19.10.19:27117,10.19.10.19:27118,10.19.10.19:27119/?
+            //         readPreference=primary&replicaSet=rs0&connectTimeoutMS=300000&socketTimeoutMS=30000&
+            //         ssl=false&maxPoolSize=100");
+            //var settings = MongoClientSettings.FromConnectionString("mongodb://%2Ftmp%2Fmongodb-27017.sock");
+            //var settings = MongoClientSettings.FromConnectionString("mongodb://login:password@10.19.10.19:27117,10.19.10.19:27118,10.19.10.19:27119");
+            //var settings = MongoClientSettings.FromConnectionString("mongodb://10.19.10.19:27117,10.19.10.19:27118,10.19.10.19:27119");
+            //var settings = MongoClientSettings.FromConnectionString("mongodb://10.19.10.19:27117,10.19.10.19,10.19.10.19:27119");
+            //var settings = MongoClientSettings.FromConnectionString("mongodb://10.19.10.19:27117");
+
+            //var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
+
+            //var loggerFactory = LoggerFactory.Create(builder =>
+            //{
+            //    builder
+            //        .SetMinimumLevel(LogLevel.Error)
+            //        .AddConsole();
+            //});
+
+            //var client = new MongoClient(new DnsEndPoint(host, 27017), loggerFactory);
+
+            //var db = client.GetDatabase("TestDb");
+            //var collection1 = db.GetCollection<RootDocument>("HeavyItems");
+
+
+            //var filter = new BsonDocument();
+
+            //var seeder = new DatabaseSeeder();
+            //var item = seeder.GenerateSeed().First();
+
+
+            //var result = await InMemorySerialization.RoundTripAsync(item);
+
+            //// await collection1.InsertAsync(item);
+
+            //Console.WriteLine("Done");
         }
 
         public static void TestMockPipe()
@@ -54,7 +83,7 @@ namespace MongoDB.Client.ConsoleApp
             var seeder = new DatabaseSeeder();
             var item = seeder.GenerateSeed().First();
             SerializersMap.TryGetSerializer<RootDocument>(out var serializer);
-            var pipe = new ArrayBufferWriter<byte>(1024*1024);
+            var pipe = new ArrayBufferWriter<byte>(1024 * 1024);
 
 
             var writer = new BsonWriter(pipe);
@@ -66,15 +95,15 @@ namespace MongoDB.Client.ConsoleApp
 
             var eq = item.Equals(parsedItem);
         }
-
-        private static async Task InsertItems(MongoCollection<GeoIp> collection, int count)
-        {
-            for (int i = 0; i < count; i++)
-            {
-                var item = CreateItem();
-                await collection.InsertAsync(item);
-            }
-        }
+        //TODO: FIXIT!
+        //private static async Task InsertItems(MongoCollection<GeoIp> collection, int count)
+        //{
+        //    for (int i = 0; i < count; i++)
+        //    {
+        //        var item = CreateItem();
+        //        await collection.InsertAsync(item);
+        //    }
+        //}
 
 
         private static GeoIp CreateItem()

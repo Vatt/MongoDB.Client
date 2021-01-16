@@ -1,6 +1,4 @@
-﻿using MongoDB.Client.Bson.Serialization.Attributes;
-
-namespace MongoDB.Client.Tests.Serialization.TestModels
+﻿namespace MongoDB.Client.Tests.Serialization.TestModels
 {
     public enum SomeEnum
     {

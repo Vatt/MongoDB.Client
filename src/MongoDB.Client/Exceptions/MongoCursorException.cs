@@ -4,7 +4,7 @@ namespace MongoDB.Client.Exceptions
     {
         public MongoCursorException(string message) : base(message)
         {
-            
+
         }
     }
 }

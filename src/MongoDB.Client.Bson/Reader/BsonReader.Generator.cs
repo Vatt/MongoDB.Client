@@ -1,10 +1,9 @@
-﻿using System;
-using System.Runtime.CompilerServices;
-using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
-using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Bson.Serialization.Exceptions;
 using MongoDB.Client.Bson.Utils;
+using System;
+using System.Runtime.CompilerServices;
 
 namespace MongoDB.Client.Bson.Reader
 {

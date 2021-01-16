@@ -159,7 +159,7 @@ namespace MongoDB.Client.Bson.Writer
                 Advance(source.Length);
                 return;
             }
-            
+
             SlowWriteBytes(source);
         }
 
@@ -246,8 +246,8 @@ namespace MongoDB.Client.Bson.Writer
             long longValue = BitConverter.DoubleToInt64Bits(value);
             WriteInt64(longValue);
         }
-        
-        
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteCString(ReadOnlySpan<char> value)
         {
@@ -262,7 +262,7 @@ namespace MongoDB.Client.Bson.Writer
 
             SlowWriteCString(value);
         }
-        
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void SlowWriteCString(ReadOnlySpan<char> chars)
         {
@@ -275,8 +275,8 @@ namespace MongoDB.Client.Bson.Writer
                 Advance(bytesWrittenJustNow);
             } while (!chars.IsEmpty);
         }
-        
-        
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteString(ReadOnlySpan<char> value)
         {
@@ -376,7 +376,7 @@ namespace MongoDB.Client.Bson.Writer
             try
             {
                 _ = guid.TryFormat(buffer, out var written);
-                WriteString(buffer.AsSpan(0,32));
+                WriteString(buffer.AsSpan(0, 32));
             }
             finally
             {

@@ -40,6 +40,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             }
 
             return false;
-        }       
-    }    
+        }
+    }
 }

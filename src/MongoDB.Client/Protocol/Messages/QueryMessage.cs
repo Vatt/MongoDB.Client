@@ -14,9 +14,9 @@ namespace MongoDB.Client.Protocol.Messages
             : this(requestNumber, fullCollectionName, Opcode.Query, 0, -1, false, false, true, false, false, document)
         {
         }
-        
+
         public QueryMessage(
-            int requestNumber, 
+            int requestNumber,
             string fullCollectionName,
             Opcode opcode,
             int numberToSkip,

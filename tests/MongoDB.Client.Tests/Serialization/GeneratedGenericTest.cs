@@ -1,8 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
+﻿using MongoDB.Client.Tests.Serialization.TestModels;
 using System.Threading.Tasks;
-using MongoDB.Client.Bson.Serialization;
-using MongoDB.Client.Tests.Serialization.TestModels;
 using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization

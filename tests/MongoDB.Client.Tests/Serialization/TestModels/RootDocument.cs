@@ -1,6 +1,6 @@
-﻿using System;
+﻿using MongoDB.Client.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
-using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
@@ -41,13 +41,13 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((RootDocument) obj);
+            return Equals((RootDocument)obj);
         }
 
         public override int GetHashCode()
         {
             return HashCode.Combine(Id, TextFieldOne, TextFieldTwo, TextFieldThree, IntField, DoubleField,
-                InnerDocuments, (int) SomeEnumField);
+                InnerDocuments, (int)SomeEnumField);
         }
     }
 }

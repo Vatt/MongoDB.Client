@@ -1,11 +1,11 @@
-﻿using System.IO.Pipelines;
-using System.Linq;
-using System.Threading.Tasks;
-using MongoDB.Client.Bson.Serialization;
+﻿using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
 using MongoDB.Client.Protocol.Writers;
+using System.IO.Pipelines;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MongoDB.Client.Benchmarks.Serialization
 {
@@ -35,7 +35,7 @@ namespace MongoDB.Client.Benchmarks.Serialization
             var writer = new ProtocolWriter(output);
 
             var messageWriter = new ReplyBodyWriter<T>(serializer);
-            await writer.WriteAsync(messageWriter, message).ConfigureAwait(false);
+            await writer.WriteUnsafeAsync(messageWriter, message).ConfigureAwait(false);
         }
     }
 }

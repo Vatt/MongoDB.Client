@@ -1,12 +1,11 @@
-﻿using System;
-using System.Net;
-using System.Threading.Tasks;
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
 using MongoDB.Bson;
 using MongoDB.Client.Benchmarks.Serialization.Models;
 using MongoDB.Driver;
+using System;
+using System.Net;
+using System.Threading.Tasks;
 using BsonDocument = MongoDB.Client.Bson.Document.BsonDocument;
-using BsonObjectId = MongoDB.Client.Bson.Document.BsonObjectId;
 
 namespace MongoDB.Client.Benchmarks
 {
@@ -34,13 +33,14 @@ namespace MongoDB.Client.Benchmarks
         };
 
         [GlobalSetup]
-        public void Setup()
+        public async Task Setup()
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
             var dbName = "BenchmarkDb";
             var collectionName = GetType().Name;
 
             var client = new MongoClient(new DnsEndPoint(host, 27017));
+            await client.InitAsync();
             var db = client.GetDatabase(dbName);
             _collection = db.GetCollection<GeoIp>(collectionName);
 
@@ -60,7 +60,7 @@ namespace MongoDB.Client.Benchmarks
         [Benchmark]
         public async Task NewClientInsertFindRemove()
         {
-            _item.Id = BsonObjectId.NewObjectId();
+            _item.Id = MongoDB.Client.Bson.Document.BsonObjectId.NewObjectId();
             await _collection.InsertAsync(_item);
             var result = await _collection.Find(Empty).FirstOrDefaultAsync();
             var deleteResult = await _collection.DeleteOneAsync(Empty);

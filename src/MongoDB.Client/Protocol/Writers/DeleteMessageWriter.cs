@@ -1,10 +1,9 @@
-﻿using System.Buffers;
-using System.Buffers.Binary;
-using MongoDB.Client.Bson.Serialization;
-using MongoDB.Client.Bson.Writer;
+﻿using MongoDB.Client.Bson.Writer;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Messages;
+using System.Buffers;
+using System.Buffers.Binary;
 
 namespace MongoDB.Client.Protocol.Writers
 {
@@ -18,16 +17,16 @@ namespace MongoDB.Client.Protocol.Writers
             writer.WriteInt32(0); // size
             writer.WriteInt32(message.Header.RequestNumber);
             writer.WriteInt32(0); // responseTo
-            writer.WriteInt32((int) message.Header.Opcode);
+            writer.WriteInt32((int)message.Header.Opcode);
 
-            writer.WriteInt32((int) CreateFlags(message));
+            writer.WriteInt32((int)CreateFlags(message));
 
-            writer.WriteByte((byte) PayloadType.Type0);
+            writer.WriteByte((byte)PayloadType.Type0);
 
             DeleteHeader.WriteBson(ref writer, message.DeleteHeader);
 
 
-            writer.WriteByte((byte) PayloadType.Type1);
+            writer.WriteByte((byte)PayloadType.Type1);
             writer.Commit();
             var checkpoint = writer.Written;
             var secondSpan = output.GetSpan();

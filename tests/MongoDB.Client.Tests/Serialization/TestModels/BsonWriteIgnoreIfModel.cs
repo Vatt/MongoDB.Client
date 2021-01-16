@@ -1,9 +1,5 @@
 ﻿using MongoDB.Client.Bson.Serialization.Attributes;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
@@ -13,7 +9,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         public int Field { get; set; }
 
         [BsonWriteIgnoreIf("Field==42")]
-        public string IgnoredField0{ get; set; }
+        public string IgnoredField0 { get; set; }
 
         [BsonWriteIgnoreIf("Field==42")]
         public List<int> ListValue { get; set; }

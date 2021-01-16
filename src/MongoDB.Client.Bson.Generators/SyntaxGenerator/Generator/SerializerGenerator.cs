@@ -10,7 +10,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
     {
         public static StatementSyntax[] Statements(params ExpressionSyntax[] expressions)
         {
-            return expressions.Select( expr => Statement(expr) ).ToArray();
+            return expressions.Select(expr => Statement(expr)).ToArray();
         }
         public static StatementSyntax[] Statements(params StatementSyntax[] statements)
         {

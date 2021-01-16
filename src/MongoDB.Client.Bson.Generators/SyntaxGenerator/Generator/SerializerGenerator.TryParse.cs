@@ -40,7 +40,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                           BinaryExprLessThan(
                               BinaryExprMinus(IdentifierName(unreadedToken), ReaderRemaining()),
                               BinaryExprMinus(IdentifierName(docLenToken), NumericLiteralExpr(1))),
-                          statement: 
+                          statement:
                           SF.Block(
                               IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(bsonTypeToken))),
                               IfNotReturnFalse(TryGetCStringAsSpan(VarVariableDeclarationExpr(bsonNameToken))))
@@ -49,7 +49,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                               .AddStatements(IfNotReturnFalse(TrySkip(IdentifierName(bsonTypeToken))))),
                       IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
                       SF.IfStatement(
-                          condition: 
+                          condition:
                               BinaryExprNotEquals(endMarkerToken, NumericLiteralExpr((byte)'\x00')),
                           statement: SF.Block(SF.ExpressionStatement(SerializerEndMarkerException(ctx.Declaration, IdentifierName(endMarkerToken))))))
                     .AddStatements(CreateMessage(ctx))
@@ -111,16 +111,16 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             var decl = ctx.Declaration;
             var members = ctx.Members;
-            
+
             List<StatementSyntax> statements = new();
-            
+
             foreach (var member in members)
             {
                 if (member.TypeSym.TypeKind == TypeKind.Enum)
                 {
                     var localReadEnumVar = SF.Identifier($"{member.AssignedVariable}Temp");
                     int repr = AttributeHelper.GetEnumRepresentation(member.NameSym);
-                    if (repr == -1 ) { repr = 2; }
+                    if (repr == -1) { repr = 2; }
                     if (repr != 1)
                     {
                         statements.Add(
@@ -151,7 +151,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 else
                 {
                     var operation = ReadOperation(ctx, member.NameSym, member.TypeSym, ctx.BsonReaderId, IdentifierName(member.AssignedVariable), bsonType);
-                    if(operation != default)
+                    if (operation != default)
                     {
                         statements.Add(
                             SF.IfStatement(
@@ -232,9 +232,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 case SpecialType.System_Int64:
                     expr = TryGetInt64(variable);
                     return true;
-                //case SpecialType.System_DateTime:
-                //    expr = TryGetDateTimeWithBsonType(bsonType, variable);
-                //    return true;
+                    //case SpecialType.System_DateTime:
+                    //    expr = TryGetDateTimeWithBsonType(bsonType, variable);
+                    //    return true;
             }
             if (TypeLib.IsBsonDocument(typeSymbol))
             {

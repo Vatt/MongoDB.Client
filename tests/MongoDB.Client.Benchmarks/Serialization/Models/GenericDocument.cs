@@ -1,7 +1,6 @@
+using MongoDB.Client.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
-using MongoDB.Bson;
-using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Benchmarks.Serialization.Models
 {
@@ -49,11 +48,11 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
         public List<AnotherNonGenericModel0> List8 { get; set; }
         public List<AnotherNonGenericModel1> List9 { get; set; }
     }
-    
+
     [BsonSerializable]
     public partial record AnotherGenericModel<T>(T A, T B, T C);
-    
-    
+
+
     [BsonSerializable]
     public partial class GenericDocument<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>
     {
@@ -92,4 +91,4 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
         public T0 Field8 { get; set; }
         public T1 Field9 { get; set; }
     }
-    }
+}

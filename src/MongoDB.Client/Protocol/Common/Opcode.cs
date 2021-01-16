@@ -1,6 +1,6 @@
 namespace MongoDB.Client.Protocol.Common
 {
-    public enum Opcode 
+    public enum Opcode
     {
         Reply = 1,
         Message = 1000,

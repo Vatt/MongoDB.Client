@@ -1,9 +1,9 @@
-﻿using System;
-using System.Net;
-using System.Threading.Tasks;
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
 using MongoDB.Client.Benchmarks.Serialization;
 using MongoDB.Driver;
+using System;
+using System.Net;
+using System.Threading.Tasks;
 using BsonDocument = MongoDB.Client.Bson.Document.BsonDocument;
 
 namespace MongoDB.Client.Benchmarks
@@ -21,13 +21,14 @@ namespace MongoDB.Client.Benchmarks
         public int RequestsCount { get; set; }
 
         [GlobalSetup]
-        public void Setup()
+        public async Task Setup()
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
             var dbName = "BenchmarkDb";
             var collectionName = GetType().Name;
 
             var client = new MongoClient(new DnsEndPoint(host, 27017));
+            await client.InitAsync();
             var db = client.GetDatabase(dbName);
             _collection = db.GetCollection<SimpleModel>(collectionName);
 

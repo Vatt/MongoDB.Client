@@ -1,8 +1,8 @@
-﻿using System.IO;
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Client.Bson.Document;
+using System.IO;
 using BsonWriter = MongoDB.Client.Bson.Writer.BsonWriter;
 
 namespace MongoDB.Client.Benchmarks.Serialization
@@ -13,7 +13,7 @@ namespace MongoDB.Client.Benchmarks.Serialization
         private static readonly byte[] ArrayBuffer = new byte[4096];
         private BsonDocument _document;
         private MongoDB.Bson.BsonDocument _bsonDocument;
-        
+
         [GlobalSetup]
         public void GlobalInit()
         {
@@ -63,7 +63,7 @@ namespace MongoDB.Client.Benchmarks.Serialization
             using (var writer = new BsonBinaryWriter(stream))
             {
                 BsonSerializer.Serialize(writer, _bsonDocument);
-                return (int) stream.Position;
+                return (int)stream.Position;
             }
         }
     }

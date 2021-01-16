@@ -11,8 +11,8 @@ namespace MongoDB.Client.Messages
         private IList<T>? _other;
 
         // Static lists to store real length (-1 field in struct)
-        private static readonly IList<T> LengthIs1 = new List<T> {default};
-        private static readonly IList<T> LengthIs2 = new List<T> {default, default};
+        private static readonly IList<T> LengthIs1 = new List<T> { default };
+        private static readonly IList<T> LengthIs2 = new List<T> { default, default };
 
         public QueryResult(long cursorId)
         {
@@ -20,7 +20,7 @@ namespace MongoDB.Client.Messages
         }
 
         public const int Capacity = 2;
-        
+
         public void Add(T item)
         {
             if (_other == null)

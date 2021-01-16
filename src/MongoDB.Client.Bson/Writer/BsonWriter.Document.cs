@@ -99,7 +99,7 @@ namespace MongoDB.Client.Bson.Writer
         public void WriteDocument(BsonDocument document)
         {
             var docStartPoint = _written;
-            var reserved = Reserve(4); 
+            var reserved = Reserve(4);
             for (var i = 0; i < document.Count; i++)
             {
                 WriteElement(document[i]);

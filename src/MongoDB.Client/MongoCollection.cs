@@ -1,21 +1,21 @@
-﻿using System;
+﻿using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Connection;
+using MongoDB.Client.Messages;
+using MongoDB.Client.Utils;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Messages;
-using MongoDB.Client.Protocol.Messages;
-using MongoDB.Client.Utils;
 
 namespace MongoDB.Client
 {
     public class MongoCollection<T>
     {
-        private readonly IConnectionsPool _channelsPool;
+        private readonly RequestScheduler _scheduler;
 
-        internal MongoCollection(MongoDatabase database, string name, IConnectionsPool channelsPool)
+        internal MongoCollection(MongoDatabase database, string name, RequestScheduler scheduler)
         {
-            _channelsPool = channelsPool;
+            _scheduler = scheduler;
             Database = database;
             Namespace = new CollectionNamespace(database.Name, name);
         }
@@ -26,7 +26,7 @@ namespace MongoDB.Client
 
         public Cursor<T> Find(BsonDocument filter)
         {
-            return new Cursor<T>(_channelsPool, filter, Namespace);
+            return new Cursor<T>(_scheduler, filter, Namespace);
         }
 
         public async ValueTask InsertAsync(T item, CancellationToken cancellationToken = default)
@@ -45,8 +45,7 @@ namespace MongoDB.Client
 
         public async ValueTask InsertAsync(IEnumerable<T> items, CancellationToken cancellationToken = default)
         {
-            var channel = await _channelsPool.GetChannelAsync(cancellationToken).ConfigureAwait(false);
-            var requestNumber = channel.GetNextRequestNumber();
+            var requestNumber = _scheduler.GetNextRequestNumber();
             var insertHeader = new InsertHeader
             {
                 Insert = Namespace.CollectionName,
@@ -55,13 +54,12 @@ namespace MongoDB.Client
                 Lsid = SharedSessionIdModel
             };
             var request = new InsertMessage<T>(requestNumber, insertHeader, items);
-            await channel.InsertAsync(request, cancellationToken).ConfigureAwait(false);
+            await _scheduler.InsertAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
         public async ValueTask<DeleteResult> DeleteOneAsync(BsonDocument filter, CancellationToken cancellationToken = default)
         {
-            var channel = await _channelsPool.GetChannelAsync(cancellationToken).ConfigureAwait(false);
-            var requestNumber = channel.GetNextRequestNumber();
+            var requestNumber = _scheduler.GetNextRequestNumber();
             var deleteHeader = new DeleteHeader
             {
                 Delete = Namespace.CollectionName,
@@ -77,9 +75,9 @@ namespace MongoDB.Client
             };
 
             var request = new DeleteMessage(requestNumber, deleteHeader, deleteBody);
-            return await channel.DeleteAsync(request, cancellationToken).ConfigureAwait(false);
+            return await _scheduler.DeleteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
-        private static readonly SessionId SharedSessionIdModel = new SessionId {Id = Guid.NewGuid()};
+        private static readonly SessionId SharedSessionIdModel = new SessionId { Id = Guid.NewGuid() };
     }
 }

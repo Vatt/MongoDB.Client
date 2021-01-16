@@ -4,15 +4,14 @@ using Microsoft.Extensions.Options;
 using MongoDB.Client.Network.Transport.Sockets;
 using System.Diagnostics;
 using System.Net;
-using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 namespace MongoDB.Client.Network
 {
-    public class MongoConnectionFactory
+    public class NetworkConnectionFactory
     {
         IConnectionFactory _factory;
-        public MongoConnectionFactory(ILoggerFactory loggerFactory)
+        public NetworkConnectionFactory(ILoggerFactory loggerFactory)
         {
             _factory = new SocketConnectionFactory(Options.Create(new SocketTransportOptions()), loggerFactory);
         }

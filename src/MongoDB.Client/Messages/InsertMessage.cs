@@ -1,10 +1,14 @@
-﻿using System.Collections.Generic;
-using MongoDB.Client.Protocol.Common;
+﻿using MongoDB.Client.Protocol.Common;
 using MongoDB.Client.Protocol.Messages;
+using System.Collections.Generic;
 
 namespace MongoDB.Client.Messages
 {
-    public class InsertMessage<T>
+    public interface IMongoInsertMessage
+    {
+
+    }
+    public class InsertMessage<T> : IMongoInsertMessage
     {
         public InsertMessage(int requestNumber, InsertHeader insertHeader, IEnumerable<T> items)
              : this(requestNumber, Opcode.OpMsg, false, false, insertHeader, items)
