@@ -23,9 +23,22 @@ namespace MongoDB.Client.ConsoleApp
                     .SetMinimumLevel(LogLevel.Error)
                     .AddConsole();
             });
-            var client = new MongoClient("mongodb://centos1.mshome.net, centos2.mshome.net, centos3.mshome.net/?replicaSet=rs0&maxPoolSize=32&appName=MongoDB.Client.ConsoleApp", loggerFactory);
-            //var client = new MongoClient("mongodb://centos0.mshome.net/?maxPoolSize=32&appName=MongoDB.Client.ConsoleApp", loggerFactory);
+            //var client = new MongoClient("mongodb://centos1.mshome.net, centos2.mshome.net, centos3.mshome.net/?replicaSet=rs0&maxPoolSize=32&appName=MongoDB.Client.ConsoleApp", loggerFactory);
+            var client = new MongoClient("mongodb://centos0.mshome.net/?maxPoolSize=32&appName=MongoDB.Client.ConsoleApp", loggerFactory);
             await client.InitAsync();
+            var db = client.GetDatabase("TestDb");
+            var collection1 = db.GetCollection<RootDocument>("HeavyItems");
+
+
+            var filter = new BsonDocument();
+
+            var seeder = new DatabaseSeeder();
+            var item = seeder.GenerateSeed().First();
+
+            await collection1.InsertAsync(item);
+
+            Console.WriteLine("Done");
+            //var item = seeder.GenerateSeed().First();
             //var settings = 
             //     MongoClientSettings.FromConnectionString(
             //         @"mongodb://login:password@10.19.10.19:27117,10.19.10.19:27118,10.19.10.19:27119/?
