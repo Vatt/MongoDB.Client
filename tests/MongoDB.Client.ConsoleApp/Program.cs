@@ -9,7 +9,6 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace MongoDB.Client.ConsoleApp
@@ -18,32 +17,52 @@ namespace MongoDB.Client.ConsoleApp
     {
         static async Task Main(string[] args)
         {
-            var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
-
             var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder
                     .SetMinimumLevel(LogLevel.Error)
                     .AddConsole();
             });
+            var client = new MongoClient("mongodb://centos1.mshome.net, centos2.mshome.net, centos3.mshome.net/?replicaSet=rs0&maxPoolSize=32&appName=MongoDB.Client.ConsoleApp", loggerFactory);
+            //var client = new MongoClient("mongodb://centos0.mshome.net/?maxPoolSize=32&appName=MongoDB.Client.ConsoleApp", loggerFactory);
+            await client.InitAsync();
+            //var settings = 
+            //     MongoClientSettings.FromConnectionString(
+            //         @"mongodb://login:password@10.19.10.19:27117,10.19.10.19:27118,10.19.10.19:27119/?
+            //         readPreference=primary&replicaSet=rs0&connectTimeoutMS=300000&socketTimeoutMS=30000&
+            //         ssl=false&maxPoolSize=100");
+            //var settings = MongoClientSettings.FromConnectionString("mongodb://%2Ftmp%2Fmongodb-27017.sock");
+            //var settings = MongoClientSettings.FromConnectionString("mongodb://login:password@10.19.10.19:27117,10.19.10.19:27118,10.19.10.19:27119");
+            //var settings = MongoClientSettings.FromConnectionString("mongodb://10.19.10.19:27117,10.19.10.19:27118,10.19.10.19:27119");
+            //var settings = MongoClientSettings.FromConnectionString("mongodb://10.19.10.19:27117,10.19.10.19,10.19.10.19:27119");
+            //var settings = MongoClientSettings.FromConnectionString("mongodb://10.19.10.19:27117");
 
-            var client = new MongoClient(new DnsEndPoint(host, 27017), loggerFactory);
+            //var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
 
-            var db = client.GetDatabase("TestDb");
-            var collection1 = db.GetCollection<RootDocument>("HeavyItems");
+            //var loggerFactory = LoggerFactory.Create(builder =>
+            //{
+            //    builder
+            //        .SetMinimumLevel(LogLevel.Error)
+            //        .AddConsole();
+            //});
+
+            //var client = new MongoClient(new DnsEndPoint(host, 27017), loggerFactory);
+
+            //var db = client.GetDatabase("TestDb");
+            //var collection1 = db.GetCollection<RootDocument>("HeavyItems");
 
 
-            var filter = new BsonDocument();
+            //var filter = new BsonDocument();
 
-            var seeder = new DatabaseSeeder();
-            var item = seeder.GenerateSeed().First();
+            //var seeder = new DatabaseSeeder();
+            //var item = seeder.GenerateSeed().First();
 
 
-            var result = await InMemorySerialization.RoundTripAsync(item);
+            //var result = await InMemorySerialization.RoundTripAsync(item);
 
-            // await collection1.InsertAsync(item);
+            //// await collection1.InsertAsync(item);
 
-            Console.WriteLine("Done");
+            //Console.WriteLine("Done");
         }
 
         public static void TestMockPipe()

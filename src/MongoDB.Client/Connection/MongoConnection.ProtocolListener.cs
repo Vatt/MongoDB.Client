@@ -51,7 +51,7 @@ namespace MongoDB.Client.Connection
                             break;
                     }
 
-                    if (_completions.TryRemove(message.Header.ResponseTo, out request))                    
+                    if (_completions.TryRemove(message.Header.ResponseTo, out request))
                     {
                         switch (request.Type)
                         {
@@ -100,7 +100,7 @@ namespace MongoDB.Client.Connection
                 }
             }
         }
-        
+
         private async ValueTask<T> ReadAsyncPrivate<T>(IMessageReader<T> reader, CancellationToken token)
         {
             var result = await _protocolReader.ReadAsync(reader, token).ConfigureAwait(false);

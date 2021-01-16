@@ -15,7 +15,6 @@ namespace MongoDB.Client.Connection
     public sealed partial class MongoConnection
     {
         private ConnectionInfo? _connectionInfo;
-        private readonly BsonDocument _initialDocument = InitHelper.CreateInitialCommand();
         internal async ValueTask StartAsync(ConnectionContext connection, CancellationToken cancellationToken = default)
         {
             _connection = connection;
@@ -27,6 +26,7 @@ namespace MongoDB.Client.Connection
             _channelFindListenerTask = StartFindChannelListerAsync();
             async Task<ConnectionInfo> DoConnectAsync(CancellationToken token)
             {
+                var _initialDocument = InitHelper.CreateInitialCommand(_settings);
                 var connectRequest = CreateQueryRequest(_initialDocument, GetNextRequestNumber());
                 var configMessage = await SendQueryAsync<BsonDocument>(connectRequest, token).ConfigureAwait(false);
                 var buildInfoRequest = CreateQueryRequest(new BsonDocument("buildInfo", 1), GetNextRequestNumber());
@@ -87,7 +87,7 @@ namespace MongoDB.Client.Connection
             }
             finally
             {
-                _completions.TryRemove(message.RequestNumber, out _);                
+                _completions.TryRemove(message.RequestNumber, out _);
                 taskSource.Reset();
                 _queue.Enqueue(taskSource);
             }

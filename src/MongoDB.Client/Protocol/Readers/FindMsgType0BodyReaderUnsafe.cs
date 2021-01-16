@@ -71,15 +71,15 @@ namespace MongoDB.Client.Protocol.Readers
                 {
                     var checkpoint = bsonReader.BytesConsumed;
 #if DEBUG
-                        if (bsonReader.TryGetByte(out var type) == false)
-                        {
-                            return false;
-                        }
+                    if (bsonReader.TryGetByte(out var type) == false)
+                    {
+                        return false;
+                    }
 
-                        if (bsonReader.TryGetCString(out var name) == false)
-                        {
-                            return false;
-                        }
+                    if (bsonReader.TryGetCString(out var name) == false)
+                    {
+                        return false;
+                    }
 #else
                     // if (bsonReader.TryGetByte(out _) == false) { return false; }
                     // if (bsonReader.TryGetCStringAsSpan(out _) == false) { return false; }
@@ -157,181 +157,54 @@ namespace MongoDB.Client.Protocol.Readers
         }
 
 #if DEBUG
-            private bool TryReadCursorStart(ref BsonReader reader, out int modelsLength, out int docLength,
-                out bool hasBatch)
+        private bool TryReadCursorStart(ref BsonReader reader, out int modelsLength, out int docLength,
+            out bool hasBatch)
+        {
+            modelsLength = 0;
+            hasBatch = false;
+            string name;
+            byte endMarker;
+            bool hasItems;
+            var checkpoint = reader.BytesConsumed;
+            if (!reader.TryGetInt32(out docLength))
             {
-                modelsLength = 0;
-                hasBatch = false;
-                string name;
-                byte endMarker;
-                bool hasItems;
-                var checkpoint = reader.BytesConsumed;
-                if (!reader.TryGetInt32(out docLength))
-                {
-                    return false;
-                }
-
-                do
-                {
-                    if (TryGetName(ref reader, out name) == false)
-                    {
-                        return false;
-                    }
-
-                    if (name == "cursor")
-                    {
-                        var initConsumed = reader.BytesConsumed;
-                        if (!reader.TryGetInt32(out var cursorLength))
-                        {
-                            return false;
-                        }
-
-                        while (reader.BytesConsumed - initConsumed < cursorLength - 1)
-                        {
-                            if (TryGetName(ref reader, out name) == false)
-                            {
-                                return false;
-                            }
-
-                            if (TryParseValue(ref reader, name, out hasItems, out modelsLength) == false)
-                            {
-                                return false;
-                            }
-
-                            if (hasItems)
-                            {
-                                hasBatch = true;
-                                return true;
-                            }
-                        }
-
-
-                        if (!reader.TryGetByte(out endMarker))
-                        {
-                            return false;
-                        }
-
-                        if (endMarker is 0)
-                        {
-                            if (TryGetName(ref reader, out name) == false)
-                            {
-                                return false;
-                            }
-
-                            if (TryParseValue(ref reader, name, out _, out modelsLength) == false)
-                            {
-                                return false;
-                            }
-
-                            if (!reader.TryGetByte(out endMarker))
-                            {
-                                return false;
-                            }
-
-                            if (endMarker is 0)
-                            {
-                                return true;
-                            }
-                        }
-
-                        return ThrowHelper.MissedDocumentEndMarkerException<bool>();
-                    }
-
-
-                    if (name == "ok")
-                    {
-                        if (!reader.TryGetDouble(out var okValue))
-                        {
-                            return false;
-                        }
-
-                        _cursorResult.Ok = okValue;
-                    }
-
-                    if (name == "errmsg")
-                    {
-                        if (!reader.TryGetString(out var errorValue))
-                        {
-                            return false;
-                        }
-
-                        _cursorResult.ErrorMessage = errorValue;
-                    }
-
-                    if (name == "code")
-                    {
-                        if (!reader.TryGetInt32(out var codeValue))
-                        {
-                            return false;
-                        }
-
-                        _cursorResult.Code = codeValue;
-                    }
-
-                    if (name == "codeName")
-                    {
-                        if (!reader.TryGetString(out var codeNameValue))
-                        {
-                            return false;
-                        }
-
-                        _cursorResult.CodeName = codeNameValue;
-                    }
-                } while (reader.BytesConsumed - checkpoint < docLength - 1);
-
-                if (!reader.TryGetByte(out endMarker))
-                {
-                    return false;
-                }
-
-                if (endMarker is 0)
-                {
-                    return true;
-                }
-
-                return ThrowHelper.MissedDocumentEndMarkerException<bool>();
+                return false;
             }
 
-            private bool TryReadCursorEnd(ref BsonReader reader)
+            do
             {
-                string name;
                 if (TryGetName(ref reader, out name) == false)
                 {
                     return false;
                 }
 
-                if (TryParseValue(ref reader, name, out _, out _) == false)
+                if (name == "cursor")
                 {
-                    return false;
-                }
-
-                if (TryGetName(ref reader, out name) == false)
-                {
-                    return false;
-                }
-
-                if (TryParseValue(ref reader, name, out _, out _) == false)
-                {
-                    return false;
-                }
-
-                byte endMarker;
-                if (!reader.TryGetByte(out endMarker))
-                {
-                    return false;
-                }
-
-                if (endMarker is 0)
-                {
-                    if (TryGetName(ref reader, out name) == false)
+                    var initConsumed = reader.BytesConsumed;
+                    if (!reader.TryGetInt32(out var cursorLength))
                     {
                         return false;
                     }
 
-                    if (TryParseValue(ref reader, name, out _, out _) == false)
+                    while (reader.BytesConsumed - initConsumed < cursorLength - 1)
                     {
-                        return false;
+                        if (TryGetName(ref reader, out name) == false)
+                        {
+                            return false;
+                        }
+
+                        if (TryParseValue(ref reader, name, out hasItems, out modelsLength) == false)
+                        {
+                            return false;
+                        }
+
+                        if (hasItems)
+                        {
+                            hasBatch = true;
+                            return true;
+                        }
                     }
+
 
                     if (!reader.TryGetByte(out endMarker))
                     {
@@ -340,54 +213,30 @@ namespace MongoDB.Client.Protocol.Readers
 
                     if (endMarker is 0)
                     {
-                        return true;
-                    }
-                }
+                        if (TryGetName(ref reader, out name) == false)
+                        {
+                            return false;
+                        }
 
-                return ThrowHelper.MissedDocumentEndMarkerException<bool>();
-            }
+                        if (TryParseValue(ref reader, name, out _, out modelsLength) == false)
+                        {
+                            return false;
+                        }
 
-            private static bool TryGetName(ref BsonReader reader, [MaybeNullWhen(false)] out string name)
-            {
-                if (!reader.TryGetByte(out _))
-                {
-                    name = default;
-                    return false;
-                }
+                        if (!reader.TryGetByte(out endMarker))
+                        {
+                            return false;
+                        }
 
-                if (!reader.TryGetCString(out name))
-                {
-                    return false;
-                }
-
-                return true;
-            }
-
-            private bool TryParseValue(ref BsonReader reader, string name, out bool hasItems, out int modelsLength)
-            {
-                hasItems = false;
-                modelsLength = 0;
-                if (name == "id")
-                {
-                    if (!reader.TryGetInt64(out var idValue))
-                    {
-                        return false;
+                        if (endMarker is 0)
+                        {
+                            return true;
+                        }
                     }
 
-                    _cursorResult.MongoCursor.Id = idValue;
-                    return true;
+                    return ThrowHelper.MissedDocumentEndMarkerException<bool>();
                 }
 
-                if (name == "ns")
-                {
-                    if (!reader.TryGetString(out var nsValue))
-                    {
-                        return false;
-                    }
-
-                    _cursorResult.MongoCursor.Namespace = nsValue;
-                    return true;
-                }
 
                 if (name == "ok")
                 {
@@ -397,34 +246,185 @@ namespace MongoDB.Client.Protocol.Readers
                     }
 
                     _cursorResult.Ok = okValue;
-                    return true;
                 }
 
-                if (name == "firstBatch" || name == "nextBatch")
+                if (name == "errmsg")
                 {
-                    if (!reader.TryGetInt32(out modelsLength))
+                    if (!reader.TryGetString(out var errorValue))
                     {
                         return false;
                     }
 
-                    if (modelsLength == 5)
-                    {
-                        if (!reader.TryGetByte(out var endMarker))
-                        {
-                            return false;
-                        }
-
-                        return true;
-                    }
-                    else
-                    {
-                        hasItems = true;
-                        return true;
-                    }
+                    _cursorResult.ErrorMessage = errorValue;
                 }
 
-                return ThrowHelper.UnknownCursorFieldException<bool>(name);
+                if (name == "code")
+                {
+                    if (!reader.TryGetInt32(out var codeValue))
+                    {
+                        return false;
+                    }
+
+                    _cursorResult.Code = codeValue;
+                }
+
+                if (name == "codeName")
+                {
+                    if (!reader.TryGetString(out var codeNameValue))
+                    {
+                        return false;
+                    }
+
+                    _cursorResult.CodeName = codeNameValue;
+                }
+            } while (reader.BytesConsumed - checkpoint < docLength - 1);
+
+            if (!reader.TryGetByte(out endMarker))
+            {
+                return false;
             }
+
+            if (endMarker is 0)
+            {
+                return true;
+            }
+
+            return ThrowHelper.MissedDocumentEndMarkerException<bool>();
+        }
+
+        private bool TryReadCursorEnd(ref BsonReader reader)
+        {
+            string name;
+            if (TryGetName(ref reader, out name) == false)
+            {
+                return false;
+            }
+
+            if (TryParseValue(ref reader, name, out _, out _) == false)
+            {
+                return false;
+            }
+
+            if (TryGetName(ref reader, out name) == false)
+            {
+                return false;
+            }
+
+            if (TryParseValue(ref reader, name, out _, out _) == false)
+            {
+                return false;
+            }
+
+            byte endMarker;
+            if (!reader.TryGetByte(out endMarker))
+            {
+                return false;
+            }
+
+            if (endMarker is 0)
+            {
+                if (TryGetName(ref reader, out name) == false)
+                {
+                    return false;
+                }
+
+                if (TryParseValue(ref reader, name, out _, out _) == false)
+                {
+                    return false;
+                }
+
+                if (!reader.TryGetByte(out endMarker))
+                {
+                    return false;
+                }
+
+                if (endMarker is 0)
+                {
+                    return true;
+                }
+            }
+
+            return ThrowHelper.MissedDocumentEndMarkerException<bool>();
+        }
+
+        private static bool TryGetName(ref BsonReader reader, [MaybeNullWhen(false)] out string name)
+        {
+            if (!reader.TryGetByte(out _))
+            {
+                name = default;
+                return false;
+            }
+
+            if (!reader.TryGetCString(out name))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool TryParseValue(ref BsonReader reader, string name, out bool hasItems, out int modelsLength)
+        {
+            hasItems = false;
+            modelsLength = 0;
+            if (name == "id")
+            {
+                if (!reader.TryGetInt64(out var idValue))
+                {
+                    return false;
+                }
+
+                _cursorResult.MongoCursor.Id = idValue;
+                return true;
+            }
+
+            if (name == "ns")
+            {
+                if (!reader.TryGetString(out var nsValue))
+                {
+                    return false;
+                }
+
+                _cursorResult.MongoCursor.Namespace = nsValue;
+                return true;
+            }
+
+            if (name == "ok")
+            {
+                if (!reader.TryGetDouble(out var okValue))
+                {
+                    return false;
+                }
+
+                _cursorResult.Ok = okValue;
+                return true;
+            }
+
+            if (name == "firstBatch" || name == "nextBatch")
+            {
+                if (!reader.TryGetInt32(out modelsLength))
+                {
+                    return false;
+                }
+
+                if (modelsLength == 5)
+                {
+                    if (!reader.TryGetByte(out var endMarker))
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+                else
+                {
+                    hasItems = true;
+                    return true;
+                }
+            }
+
+            return ThrowHelper.UnknownCursorFieldException<bool>(name);
+        }
 #else
         private bool TryReadCursorStart(ref BsonReader reader, out int modelsLength, out int docLength, out bool hasBatch)
         {

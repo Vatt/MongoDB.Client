@@ -36,7 +36,11 @@ namespace MongoDB.Client
             //_channelsPool = new NodeConnectionsPool(settings, settings.Endpoints[0], loggerFactory);
             _scheduler = new RequestScheduler(settings, new MongoConnectionFactory(settings.Endpoints[0], loggerFactory));
         }
+        public MongoClient(string connectionString, ILoggerFactory loggerFactory)
+            : this(MongoClientSettings.FromConnectionString(connectionString), loggerFactory)
+        {
 
+        }
         public MongoDatabase GetDatabase(string name)
         {
             return new MongoDatabase(this, name, _scheduler);

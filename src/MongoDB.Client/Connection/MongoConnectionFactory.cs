@@ -23,7 +23,7 @@ namespace MongoDB.Client.Connection
             _loggerFactory = loggerFactory;
         }
 
-        public async ValueTask<MongoConnection> Create(ChannelReader<MongoReuqestBase> reader, ChannelReader<FindMongoRequest> findReader)
+        public async ValueTask<MongoConnection> Create(MongoClientSettings settings, ChannelReader<MongoReuqestBase> reader, ChannelReader<FindMongoRequest> findReader)
         {
             var context = await _networkFactory.ConnectAsync(_endPoint).ConfigureAwait(false);
             if (context is null)
@@ -31,7 +31,7 @@ namespace MongoDB.Client.Connection
                 ThrowHelper.ConnectionException<SocketConnection>(_endPoint);
             }
             var id = Interlocked.Increment(ref CONNECTION_ID);
-            var connection = new MongoConnection(id, _loggerFactory.CreateLogger(String.Empty), reader, findReader);
+            var connection = new MongoConnection(id, settings, _loggerFactory.CreateLogger(String.Empty), reader, findReader);
             await connection.StartAsync(context).ConfigureAwait(false);
             return connection;
         }

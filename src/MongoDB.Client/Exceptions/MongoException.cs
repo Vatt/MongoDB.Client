@@ -8,5 +8,9 @@ namespace MongoDB.Client.Exceptions
         {
 
         }
+        public MongoException(string? message, Exception ex) : base(message, ex)
+        {
+
+        }
     }
 }

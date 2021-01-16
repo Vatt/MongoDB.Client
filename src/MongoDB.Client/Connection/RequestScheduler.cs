@@ -1,9 +1,7 @@
-﻿using Microsoft.Extensions.ObjectPool;
-using MongoDB.Client.Exceptions;
+﻿using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Messages;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
@@ -22,7 +20,7 @@ namespace MongoDB.Client.Connection
         private readonly ChannelWriter<FindMongoRequest> _cursorChannel;
         private readonly MongoClientSettings _settings;
         private readonly object _initLock = new object();
-        private static int _counter;       
+        private static int _counter;
         public RequestScheduler(MongoClientSettings settings, MongoConnectionFactory connectionFactory)
         {
             _connectionFactory = connectionFactory;
@@ -54,7 +52,7 @@ namespace MongoDB.Client.Connection
         }
         private ValueTask<MongoConnection> CreateNewConnection()
         {
-            return _connectionFactory.Create(_channel.Reader, _findChannel.Reader);
+            return _connectionFactory.Create(_settings, _channel.Reader, _findChannel.Reader);
         }
         internal async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token = default)
         {
@@ -63,7 +61,7 @@ namespace MongoDB.Client.Connection
             request.Message = message;
             request.ParseAsync = CursorCallbackHolder<T>.CursorParseAsync;
             request.RequestNumber = message.Header.RequestNumber;
-            await _cursorChannel.WriteAsync(request, token).ConfigureAwait(false);            
+            await _cursorChannel.WriteAsync(request, token).ConfigureAwait(false);
             var cursor = await taskSrc.GetValueTask().ConfigureAwait(false) as CursorResult<T>;
             FindMongoRequestPool.Return(request);
             return cursor;

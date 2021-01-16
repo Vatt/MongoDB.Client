@@ -4,7 +4,6 @@ using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -28,13 +27,15 @@ namespace MongoDB.Client.Connection
         private Task? _channelFindListenerTask;
         private readonly ConcurrentQueue<ManualResetValueTaskSource<IParserResult>> _queue = new();
         private readonly SemaphoreSlim _channelListenerLock = new(0);
-        internal MongoConnection(int connectionId, ILogger logger, ChannelReader<MongoReuqestBase> channelReader, ChannelReader<FindMongoRequest> findReader)
+        private readonly MongoClientSettings _settings;
+        internal MongoConnection(int connectionId, MongoClientSettings settings, ILogger logger, ChannelReader<MongoReuqestBase> channelReader, ChannelReader<FindMongoRequest> findReader)
         {
             ConnectionId = connectionId;
             _completions = new ConcurrentDictionary<long, MongoReuqestBase>();
             _logger = logger;
             _channelReader = channelReader;
             _findReader = findReader;
+            _settings = settings;
         }
 
         public async ValueTask DisposeAsync()

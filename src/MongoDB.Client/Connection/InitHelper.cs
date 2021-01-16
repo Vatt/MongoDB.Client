@@ -6,17 +6,17 @@ namespace MongoDB.Client.Connection
 {
     internal static class InitHelper
     {
-        public static BsonDocument CreateInitialCommand()
+        public static BsonDocument CreateInitialCommand(MongoClientSettings settings)
         {
-            var command = CreateCommand();
-            AddClientDocumentToCommand(command);
+            var command = CreateCommand(settings.ConnectTimeoutMs);
+            AddClientDocumentToCommand(command, settings.ApplicationName ?? string.Empty);
             AddCompressorsToCommand(command, Compressors);
             return command;
         }
 
-        private static void AddClientDocumentToCommand(BsonDocument command)
+        private static void AddClientDocumentToCommand(BsonDocument command, string appname)
         {
-            var clientDocument = CreateClientDocument("testapp");
+            var clientDocument = CreateClientDocument(appname);
             command.Add("client", clientDocument);
         }
 
@@ -25,10 +25,10 @@ namespace MongoDB.Client.Connection
             command.Add("compression", compressors);
         }
 
-        private static BsonDocument CreateCommand()
+        private static BsonDocument CreateCommand(long? maxAwaitTimeMS)
         {
             BsonDocument? topologyVersion = null;
-            long? maxAwaitTimeMS = null;
+            //long? maxAwaitTimeMS = null;
             return new BsonDocument
             {
                 { "isMaster", 1 },
