@@ -185,11 +185,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         SF.IfStatement(
                             condition: BinaryExprEqualsEquals(ElementAccessExpr(array, index), NullLiteralExpr()),
                             statement: SF.Block(Statement(WriteBsonNull(index))),
-                            @else: SF.ElseClause(SF.Block(WriteOperation(ctx, index, typeArg, classCtx.BsonWriterId, ElementAccessExpr(array, index))))));
+                            @else: SF.ElseClause(SF.Block(WriteOperation(ctx, index, ctx.NameSym, typeArg, classCtx.BsonWriterId, ElementAccessExpr(array, index))))));
             }
             else
             {
-                writeOperation = WriteOperation(ctx, index, typeArg, classCtx.BsonWriterId, ElementAccessExpr(IdentifierName(array), index));
+                writeOperation = WriteOperation(ctx, index, ctx.NameSym, typeArg, classCtx.BsonWriterId, ElementAccessExpr(IdentifierName(array), index));
             }
             return SF.MethodDeclaration(
                     attributeLists: default,

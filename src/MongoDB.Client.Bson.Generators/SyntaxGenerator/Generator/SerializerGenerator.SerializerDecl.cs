@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -197,6 +198,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         continue;
                     }
                     var typedMetadata = member.TypeMetadata as INamedTypeSymbol;
+                    if (typedMetadata == null)
+                    {
+                        GeneratorDiagnostics.ReportUnhandledException(nameof(GenerateEnumsStaticNamesSpansIfHave), member.NameSym);
+                    }
                     declarations[member.TypeSym] = new();
                     foreach (var enumMember in typedMetadata.GetMembers().Where(sym => sym.Kind == SymbolKind.Field))
                     {
