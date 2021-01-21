@@ -9,7 +9,7 @@ namespace MongoDB.Client.Tests.Serialization
         [Fact]
         public async Task CustomModelTest()
         {
-            var model = new ModelWithCustom("CustomModelTest", new CustomModel(42, 42, 42));
+            var model = new ModelWithCustom("CustomModelTest", new CustomModel(42, 42, 42), new CustomModel2(24, 24, 24));
 
             var result = await RoundTripAsync(model);
             Assert.Equal(result, model);
