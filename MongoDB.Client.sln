@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MongoDB.Client.Tests", "tes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MongoDB.Client.Benchmarks", "tests\MongoDB.Client.Benchmarks\MongoDB.Client.Benchmarks.csproj", "{ED9F906C-6B91-436D-A552-9AC0AEB6F9F8}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MongoDB.Client.Tests.Models", "tests\MongoDB.Client.Tests.Models\MongoDB.Client.Tests.Models.csproj", "{F3D768D8-29DB-4A9D-B86F-C6340FC38316}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -101,6 +103,18 @@ Global
 		{ED9F906C-6B91-436D-A552-9AC0AEB6F9F8}.Release|x64.Build.0 = Release|Any CPU
 		{ED9F906C-6B91-436D-A552-9AC0AEB6F9F8}.Release|x86.ActiveCfg = Release|Any CPU
 		{ED9F906C-6B91-436D-A552-9AC0AEB6F9F8}.Release|x86.Build.0 = Release|Any CPU
+		{F3D768D8-29DB-4A9D-B86F-C6340FC38316}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3D768D8-29DB-4A9D-B86F-C6340FC38316}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3D768D8-29DB-4A9D-B86F-C6340FC38316}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F3D768D8-29DB-4A9D-B86F-C6340FC38316}.Debug|x64.Build.0 = Debug|Any CPU
+		{F3D768D8-29DB-4A9D-B86F-C6340FC38316}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F3D768D8-29DB-4A9D-B86F-C6340FC38316}.Debug|x86.Build.0 = Debug|Any CPU
+		{F3D768D8-29DB-4A9D-B86F-C6340FC38316}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3D768D8-29DB-4A9D-B86F-C6340FC38316}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3D768D8-29DB-4A9D-B86F-C6340FC38316}.Release|x64.ActiveCfg = Release|Any CPU
+		{F3D768D8-29DB-4A9D-B86F-C6340FC38316}.Release|x64.Build.0 = Release|Any CPU
+		{F3D768D8-29DB-4A9D-B86F-C6340FC38316}.Release|x86.ActiveCfg = Release|Any CPU
+		{F3D768D8-29DB-4A9D-B86F-C6340FC38316}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -112,6 +126,7 @@ Global
 		{F033AD7E-A404-4F2E-A079-80C78EAE5C31} = {51435157-D166-4612-B64D-320345EE1E0F}
 		{DEA2FAA7-81B3-4396-9C59-FA9A85161499} = {51435157-D166-4612-B64D-320345EE1E0F}
 		{ED9F906C-6B91-436D-A552-9AC0AEB6F9F8} = {51435157-D166-4612-B64D-320345EE1E0F}
+		{F3D768D8-29DB-4A9D-B86F-C6340FC38316} = {51435157-D166-4612-B64D-320345EE1E0F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3DCA0BC6-AA12-4A4B-91D9-ECD003470CA9}
