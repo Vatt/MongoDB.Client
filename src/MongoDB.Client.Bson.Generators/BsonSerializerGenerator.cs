@@ -2,7 +2,9 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -16,18 +18,27 @@ namespace MongoDB.Client.Bson.Generators
         {
             //System.Diagnostics.Debugger.Launch();
             TypeLib.TypeLibInit(context.Compilation);
-            var masterContext = new MasterContext(CollectSymbols(context));
-            var units = Create(masterContext);
-            for (int index = 0; index < units.Length; index++)
+            GeneratorDiagnostics.Init(context);
+            try
             {
-                if (context.CancellationToken.IsCancellationRequested)
+                var masterContext = new MasterContext(CollectSymbols(context));
+                var units = Create(masterContext);
+                for (int index = 0; index < units.Length; index++)
                 {
-                    return;
+                    if (context.CancellationToken.IsCancellationRequested)
+                    {
+                        return;
+                    }
+                    var source = units[index].NormalizeWhitespace().ToString();
+                    context.AddSource(SerializerGenerator.SerializerName(masterContext.Contexts[index]), SourceText.From(source, Encoding.UTF8));
+                    //System.Diagnostics.Debugger.Break();
                 }
-                var source = units[index].NormalizeWhitespace().ToString();
-                context.AddSource(SerializerGenerator.SerializerName(masterContext.Contexts[index]), SourceText.From(source, Encoding.UTF8));
-                //System.Diagnostics.Debugger.Break();
             }
+            catch(Exception ex)
+            {
+                GeneratorDiagnostics.ReportUnhandledException(ex);
+            }
+
         }
         public static CompilationUnitSyntax[] Create(MasterContext master)
         {

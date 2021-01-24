@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -111,7 +112,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             var decl = ctx.Declaration;
             var members = ctx.Members;
-
             List<StatementSyntax> statements = new();
 
             foreach (var member in members)
@@ -161,6 +161,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     }
                     else
                     {
+                        //TODO: проверять по сигнатуре метода, могут быт ьвручную реализованые методы
                         if (AttributeHelper.IsBsonSerializable(member.TypeSym))
                         {
                             var condition = InvocationExpr(IdentifierName(SelfFullName(member.TypeSym)), IdentifierName("TryParseBson"), RefArgument(ctx.BsonReaderId), OutArgument(IdentifierName(member.AssignedVariable)));
@@ -172,6 +173,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         }
                         else
                         {
+                            GeneratorDiagnostics.ReportSerializationMapUsingWarning(member.NameSym);
                             statements.Add(
                                            SF.IfStatement(
                                                condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
@@ -194,7 +196,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             ITypeSymbol trueType = typeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol)typeSym).TypeParameters[0] : typeSym;
 
-            if (TryGetSimpleReadOperation(trueType, IdentifierName(bsonType), readTarget, out var simpleOperation))
+            if (TryGetSimpleReadOperation(nameSym, trueType, IdentifierName(bsonType), readTarget, out var simpleOperation))
             {
                 return simpleOperation;
             }
@@ -209,10 +211,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     return InvocationExpr(IdentifierName(ReadArrayMethodName(nameSym, trueType)), RefArgument(readerId), OutArgument(readTarget));
                 }
-            }
+            }            
             return default;
         }
-        private static bool TryGetSimpleReadOperation(ITypeSymbol typeSymbol, ExpressionSyntax bsonType, ExpressionSyntax variable, out InvocationExpressionSyntax expr)
+        private static bool TryGetSimpleReadOperation(ISymbol nameSym, ITypeSymbol typeSymbol, ExpressionSyntax bsonType, ExpressionSyntax variable, out InvocationExpressionSyntax expr)
         {
             expr = default;
             switch (typeSymbol.SpecialType)
@@ -260,6 +262,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 expr = TryGetDateTimeWithBsonType(bsonType, variable);
                 return true;
+            }
+            if (typeSymbol.SpecialType != SpecialType.None)
+            {
+                GeneratorDiagnostics.ReportUnsuporterTypeError(nameSym, typeSymbol);
             }
             return false;
         }

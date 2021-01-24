@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -66,7 +67,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                             SF.IfStatement(
                                 condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
                                 statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
-                                @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget)))));
+                                @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget)))));
                 }
                 else
                 {
@@ -77,7 +78,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                 BinaryExprEqualsEquals(writeTarget, Default(TypeFullName(member.TypeSym))),
                                 SF.Block(SimpleAssignExprStatement(writeTarget, NewBsonObjectId()))));
                     }
-                    writeStatement = WriteOperation(member, StaticFieldNameToken(member), member.TypeSym, ctx.BsonWriterId, writeTarget);
+                    writeStatement = WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget);
                 }
             CONDITION_CHECK:
                 if (condition != null)
@@ -105,10 +106,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     );
         }
 
-        public static StatementSyntax[] WriteOperation(MemberContext ctx, SyntaxToken name, ITypeSymbol typeSym, ExpressionSyntax writerId, ExpressionSyntax writeTarget)
+        public static StatementSyntax[] WriteOperation(MemberContext ctx, SyntaxToken name, ISymbol nameSym, ITypeSymbol typeSym, ExpressionSyntax writerId, ExpressionSyntax writeTarget)
         {
             ITypeSymbol trueType = typeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol)typeSym).TypeParameters[0] : typeSym;
-            if (TryGetSimpleWriteOperation(trueType, name, writeTarget, out var expr))
+            if (TryGetSimpleWriteOperation(nameSym, trueType, name, writeTarget, out var expr))
             {
 
                 return new StatementSyntax[] { Statement(expr) };
@@ -137,15 +138,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 foreach (var context in ctx.Root.Root.Contexts)
                 {
-                    //TODO: если сериализатор не из ЭТОЙ сборки, добавить ветку с мапой с проверкой на нуль
-                    //if (context.Declaration.ToString().Equals(trueType.ToString()))
-                    //{
-                    //    return Statements
-                    //    (
-                    //            Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
-                    //            Statement(GeneratedSerializerWrite(context, writerId, writeTarget))
-                    //    );
-                    //}
+                    //TODO: проверять по сигнатуре метода, могут быт ьвручную реализованые методы
                     if (AttributeHelper.IsBsonSerializable(typeSym))
                     {
                         return Statements
@@ -156,6 +149,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     }
                     else
                     {
+                        GeneratorDiagnostics.ReportSerializationMapUsingWarning(ctx.NameSym);
                         return Statements(
                                 Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
                                 OtherWriteBson(ctx)
@@ -165,7 +159,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return default;
         }
-        private static bool TryGetSimpleWriteOperation(ITypeSymbol typeSymbol, SyntaxToken bsonNameToken, ExpressionSyntax writeTarget, out InvocationExpressionSyntax expr)
+        private static bool TryGetSimpleWriteOperation(ISymbol nameSym, ITypeSymbol typeSymbol, SyntaxToken bsonNameToken, ExpressionSyntax writeTarget, out InvocationExpressionSyntax expr)
         {
             expr = default;
             var bsonName = IdentifierName(bsonNameToken);
@@ -214,6 +208,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 expr = Write_Type_Name_Value(bsonName, writeTarget);
                 return true;
+            }
+            if (typeSymbol.SpecialType != SpecialType.None)
+            {
+                GeneratorDiagnostics.ReportUnsuporterTypeError(nameSym, typeSymbol);
             }
             return false;
         }
