@@ -29,7 +29,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static StatementSyntax GenerateWriteEnum(ContextCore ctx, MemberContext member, ExpressionSyntax writeTarget)
         {
-            int repr = AttributeHelper.GetEnumRepresentation(member.NameSym);
+            int repr = Helper.GetEnumRepresentation(member.NameSym);
             if (repr == -1) { repr = 2; }
             if (repr != 1)
             {
@@ -54,7 +54,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 StatementSyntax[] writeStatement;
                 var writeTarget = SimpleMemberAccess(ctx.WriterInputVar, IdentifierName(member.NameSym));
                 ITypeSymbol trueType = member.TypeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol)member.TypeSym).TypeParameters[0] : member.TypeSym;
-                AttributeHelper.TryGetBsonWriteIgnoreIfAttr(member, out var condition);
+                Helper.TryGetBsonWriteIgnoreIfAttr(member, out var condition);
                 if (member.TypeSym.TypeKind == TypeKind.Enum)
                 {
                     writeStatement = Statements(GenerateWriteEnum(ctx, member, writeTarget));
@@ -139,7 +139,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 foreach (var context in ctx.Root.Root.Contexts)
                 {
                     //TODO: проверять по сигнатуре метода, могут быт ьвручную реализованые методы
-                    if (AttributeHelper.IsBsonSerializable(typeSym))
+                    if (Helper.IsBsonSerializable(typeSym))
                     {
                         return Statements
                         (
