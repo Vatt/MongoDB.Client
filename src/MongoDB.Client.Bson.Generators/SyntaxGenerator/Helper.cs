@@ -1,9 +1,10 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
-    internal static class AttributeHelper
+    internal static class Helper
     {
         public static string BsonSerializableAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonSerializableAttribute";
         public static string BsonEnumAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonEnumAttribute";
@@ -14,10 +15,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         public static string BsonWriteIgnoreIfAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonWriteIgnoreIfAttribute";
         public static bool IsBsonSerializable(ISymbol symbol)
         {
-            if (symbol.GetAttributes().Length == 0)
-            {
-                return false;
-            }
+            //if (symbol.GetAttributes().Length == 0)
+            //{
+            //    return false;
+            //}
             foreach (var attr in symbol.GetAttributes())
             {
                 if (attr.AttributeClass.ToString().Equals(BsonSerializableAttr))
@@ -25,6 +26,75 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     return true;
                 }
             }
+            if (symbol is INamedTypeSymbol namedSym)
+            {
+                var parseMethod = namedSym.GetMembers()
+                    .Where(member => member.Kind == SymbolKind.Method)
+                    .Where(method => method.Name.Equals("TryParseBson") && method.Kind == SymbolKind.Method && method.IsStatic && method.DeclaredAccessibility == Accessibility.Public)
+                    .Where(method =>
+                    {
+
+                        var parseMethodSym = method as IMethodSymbol;
+                        if(parseMethodSym.ReturnType.SpecialType != SpecialType.System_Boolean)
+                        {
+                            return false;
+                        }
+                        if(parseMethodSym!.Parameters.Length != 2)
+                        {
+                            return false;
+                        }
+                        bool haveReader = false;
+                        bool haveResult = false;
+                        if(parseMethodSym.Parameters[0].RefKind == RefKind.Ref && parseMethodSym.Parameters[0].Type.ToString().Equals("MongoDB.Client.Bson.Reader.BsonReader"))
+                        {
+                            haveReader = true;
+                        }
+                        if (parseMethodSym.Parameters[1].RefKind == RefKind.Out && parseMethodSym.Parameters[1].Type.ToString().Equals(symbol.ToString()))
+                        {
+                            haveResult = true;
+                        }
+                        if (haveReader && haveResult)
+                        {
+                            return true;
+                        }
+                        return false;
+                    })
+                    .FirstOrDefault();
+                var writeMethod = namedSym.GetMembers()
+                    .Where(member => member.Kind == SymbolKind.Method)
+                    .Where(method => method.Name.Equals("WriteBson") && method.Kind == SymbolKind.Method && method.IsStatic && method.DeclaredAccessibility == Accessibility.Public)
+                    .Where(method =>
+                    {
+                        var writeMethodSym = method as IMethodSymbol;
+                        if (writeMethodSym.ReturnType.SpecialType != SpecialType.System_Void)
+                        {
+                            return false;
+                        }
+                        if (writeMethodSym!.Parameters.Length != 2)
+                        {
+                            return false;
+                        }
+                        bool haveReader = false;
+                        bool haveResult = false;
+                        if (writeMethodSym.Parameters[0].RefKind == RefKind.Ref && writeMethodSym.Parameters[0].Type.ToString().Equals("MongoDB.Client.Bson.Writer.BsonWriter"))
+                        {
+                            haveReader = true;
+                        }
+                        if (writeMethodSym.Parameters[1].RefKind == RefKind.In && writeMethodSym.Parameters[1].Type.ToString().Equals(symbol.ToString()))
+                        {
+                            haveResult = true;
+                        }
+                        if (haveReader && haveResult)
+                        {
+                            return true;
+                        }
+                        return false;
+                    })
+                    .FirstOrDefault();
+                return parseMethod != default && writeMethod != default;
+
+            }
+
             return false;
         }
         public static bool TryGetBsonWriteIgnoreIfAttr(MemberContext ctx, out ExpressionSyntax expr)

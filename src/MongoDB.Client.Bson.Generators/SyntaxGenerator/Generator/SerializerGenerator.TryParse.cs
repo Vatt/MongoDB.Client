@@ -119,7 +119,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 if (member.TypeSym.TypeKind == TypeKind.Enum)
                 {
                     var localReadEnumVar = SF.Identifier($"{member.AssignedVariable}Temp");
-                    int repr = AttributeHelper.GetEnumRepresentation(member.NameSym);
+                    int repr = Helper.GetEnumRepresentation(member.NameSym);
                     if (repr == -1) { repr = 2; }
                     if (repr != 1)
                     {
@@ -161,8 +161,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     }
                     else
                     {
-                        //TODO: проверять по сигнатуре метода, могут быт ьвручную реализованые методы
-                        if (AttributeHelper.IsBsonSerializable(member.TypeSym))
+                        if (Helper.IsBsonSerializable(member.TypeSym))
                         {
                             var condition = InvocationExpr(IdentifierName(SelfFullName(member.TypeSym)), IdentifierName("TryParseBson"), RefArgument(ctx.BsonReaderId), OutArgument(IdentifierName(member.AssignedVariable)));
                             statements.Add(

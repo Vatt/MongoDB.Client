@@ -188,7 +188,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
                 if (member.TypeSym.TypeKind == TypeKind.Enum)
                 {
-                    int repr = AttributeHelper.GetEnumRepresentation(member.NameSym);
+                    int repr = Helper.GetEnumRepresentation(member.NameSym);
                     if (repr != 1) // static name spans only for string representation
                     {
                         continue;
@@ -206,7 +206,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     foreach (var enumMember in typedMetadata.GetMembers().Where(sym => sym.Kind == SymbolKind.Field))
                     {
                         var list = new List<MemberDeclarationSyntax>();
-                        var (bsonValue, bsonAlias) = AttributeHelper.GetMemberAlias(enumMember);
+                        var (bsonValue, bsonAlias) = Helper.GetMemberAlias(enumMember);
                         var bytes = Encoding.UTF8.GetBytes(bsonValue);
                         declarations[member.TypeSym].Add(
                             SF.PropertyDeclaration(

@@ -41,7 +41,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                 TypeGenericArgs = namedType.TypeArguments.IsEmpty ? null : namedType.TypeArguments;
             }
 
-            (BsonElementValue, BsonElementAlias) = AttributeHelper.GetMemberAlias(NameSym);
+            (BsonElementValue, BsonElementAlias) = Helper.GetMemberAlias(NameSym);
         }
 
     }

@@ -9,12 +9,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
     {
         private static SyntaxToken ReadStringReprEnumMethodName(ContextCore ctx, ISymbol enumTypeName, ISymbol fieldOrPropertyName)
         {
-            var (_, alias) = AttributeHelper.GetMemberAlias(fieldOrPropertyName);
+            var (_, alias) = Helper.GetMemberAlias(fieldOrPropertyName);
             return SF.Identifier($"TryParse{enumTypeName.Name}");
         }
         private static SyntaxToken WriteStringReprEnumMethodName(ContextCore ctx, ISymbol enumTypeName, ISymbol fieldOrPropertyName)
         {
-            var (_, alias) = AttributeHelper.GetMemberAlias(fieldOrPropertyName);
+            var (_, alias) = Helper.GetMemberAlias(fieldOrPropertyName);
             return SF.Identifier($"Write{enumTypeName.Name}");
         }
         private static MethodDeclarationSyntax[] GenerateWriteStringReprEnumMethods(ContextCore ctx)
@@ -23,7 +23,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             foreach (var member in ctx.Members.Where(member => member.TypeSym.TypeKind == TypeKind.Enum))
             {
-                var repr = AttributeHelper.GetEnumRepresentation(member.NameSym);
+                var repr = Helper.GetEnumRepresentation(member.NameSym);
                 if (repr == 1)
                 {
                     methods.Add(WriteStringReprEnumMethod(member));
@@ -37,7 +37,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             foreach (var member in ctx.Members.Where(member => member.TypeSym.TypeKind == TypeKind.Enum))
             {
-                var repr = AttributeHelper.GetEnumRepresentation(member.NameSym);
+                var repr = Helper.GetEnumRepresentation(member.NameSym);
                 if (repr == 1)
                 {
                     methods.Add(ReadStringReprEnumMethod(member));
@@ -48,7 +48,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static MethodDeclarationSyntax ReadStringReprEnumMethod(MemberContext ctx)
         {
             var outMessage = SF.Identifier("enumMessage");
-            var repr = AttributeHelper.GetEnumRepresentation(ctx.NameSym);
+            var repr = Helper.GetEnumRepresentation(ctx.NameSym);
             var metadata = ctx.TypeMetadata as INamedTypeSymbol;
             if (repr != 1)
             {
@@ -62,7 +62,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             };
             foreach (var member in metadata.GetMembers().Where(sym => sym.Kind == SymbolKind.Field))
             {
-                var (_, alias) = AttributeHelper.GetMemberAlias(member);
+                var (_, alias) = Helper.GetMemberAlias(member);
                 statements.Add(
                     SF.IfStatement(
                         condition: SpanSequenceEqual(stringData, StaticEnumFieldNameToken(metadata, alias)),
@@ -92,7 +92,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             var spanNameArg = SF.Identifier("name");
             var metadata = ctx.TypeMetadata as INamedTypeSymbol;
-            var repr = AttributeHelper.GetEnumRepresentation(ctx.NameSym);
+            var repr = Helper.GetEnumRepresentation(ctx.NameSym);
             if (repr != 1)
             {
                 return default;
@@ -100,7 +100,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             List<StatementSyntax> statements = new();
             foreach (var member in metadata.GetMembers().Where(sym => sym.Kind == SymbolKind.Field))
             {
-                var (_, alias) = AttributeHelper.GetMemberAlias(member);
+                var (_, alias) = Helper.GetMemberAlias(member);
                 statements.Add(
                     SF.IfStatement(
                         condition: BinaryExprEqualsEquals(ctx.Root.WriterInputVar, IdentifierFullName(member)),
