@@ -27,5 +27,11 @@ namespace MongoDB.Client
             var collection = GetCollection<object>(collectionName);
             return collection.DropAsync(cancellationToken);
         }
+
+        public ValueTask CreateCollectionAsync(string collectionName, CancellationToken cancellationToken = default)
+        {
+            var collection = GetCollection<object>(collectionName);
+            return collection.CreateAsync(cancellationToken);
+        }
     }
 }

@@ -57,36 +57,43 @@ namespace MongoDB.Client.Connection
                         {
                             case RequestType.FindRequest:
                                 {
-                                    var findRequest = (FindMongoRequest)request;
-                                    var result = await findRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
+                                    var mongoRequest = (FindMongoRequest)request;
+                                    var result = await mongoRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
                                     request.CompletionSource.TrySetResult(result);
                                     break;
                                 }
                             case RequestType.QueryRequest:
                                 {
-                                    var queryRequest = (QueryMongoRequest)request;
-                                    var result = await queryRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
+                                    var mongoRequest = (QueryMongoRequest)request;
+                                    var result = await mongoRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
                                     request.CompletionSource.TrySetResult(result);
                                     break;
                                 }
                             case RequestType.InsertRequest:
                                 {
-                                    var insertRequest = (InsertMongoRequest)request;
-                                    var result = await insertRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
+                                    var mongoRequest = (InsertMongoRequest)request;
+                                    var result = await mongoRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
                                     request.CompletionSource.TrySetResult(result);
                                     break;
                                 }
                             case RequestType.DeleteRequest:
                                 {
-                                    var deleteRequest = (DeleteMongoRequest)request;
-                                    var result = await deleteRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
+                                    var mongoRequest = (DeleteMongoRequest)request;
+                                    var result = await mongoRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
                                     request.CompletionSource.TrySetResult(result);
                                     break;
                                 }
                             case RequestType.DropCollectionRequest:
                                 {
-                                    var deleteRequest = (DropCollectionMongoRequest)request;
-                                    var result = await deleteRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
+                                    var mongoRequest = (DropCollectionMongoRequest)request;
+                                    var result = await mongoRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
+                                    request.CompletionSource.TrySetResult(result);
+                                    break;
+                                }
+                            case RequestType.CreateCollectionRequest:
+                                {
+                                    var mongoRequest = (CreateCollectionMongoRequest)request;
+                                    var result = await mongoRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
                                     request.CompletionSource.TrySetResult(result);
                                     break;
                                 }

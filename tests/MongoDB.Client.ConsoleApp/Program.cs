@@ -62,8 +62,13 @@ namespace MongoDB.Client.ConsoleApp
             
             var client = new MongoClient(new DnsEndPoint(host, 27017), loggerFactory);
             await client.InitAsync();
-            var db = client.GetDatabase("TestDb");
-            
+            var db = client.GetDatabase("TestDb2");
+
+            await db.CreateCollectionAsync("TestColl2");
+            await db.DropCollectionAsync("TestColl2");
+
+            Console.WriteLine("Done");
+
             var collection1 = db.GetCollection<RootDocument>("TestColl");
             var collection2 = db.GetCollection<RootDocument>("TestColl2");
 

@@ -9,5 +9,7 @@ namespace MongoDB.Client.Protocol
         public static readonly ReplyMessageReader ReplyMessageReader = new ReplyMessageReader();
         public static readonly MsgMessageReader MsgMessageReader = new MsgMessageReader();
         public static readonly DeleteMsgType0BodyReader DeleteMsgType0BodyReader = new DeleteMsgType0BodyReader();
+        public static readonly DropCollectionBodyReader DropCollectionBodyReader = new DropCollectionBodyReader();
+        public static readonly CreateCollectionBodyReader CreateCollectionBodyReader = new CreateCollectionBodyReader();
     }
 }

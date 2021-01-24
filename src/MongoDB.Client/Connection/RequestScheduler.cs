@@ -24,10 +24,7 @@ namespace MongoDB.Client.Connection
         public RequestScheduler(MongoClientSettings settings, MongoConnectionFactory connectionFactory)
         {
             _connectionFactory = connectionFactory;
-            var options = new UnboundedChannelOptions();
-            options.SingleWriter = true;
-            options.SingleReader = false;
-            options.AllowSynchronousContinuations = true;
+            var options = new UnboundedChannelOptions { SingleWriter = true };
             _channel = Channel.CreateUnbounded<MongoReuqestBase>(options);
             _findChannel = Channel.CreateUnbounded<FindMongoRequest>(options);
             _channelWriter = _channel.Writer;
@@ -104,22 +101,39 @@ namespace MongoDB.Client.Connection
             await _channelWriter.WriteAsync(request, cancellationToken).ConfigureAwait(false);
             var deleteResult = await taskSource.GetValueTask().ConfigureAwait(false) as DeleteResult;
             DeleteMongoRequestPool.Return(request);
-            return deleteResult;
+            return deleteResult!;
         }
 
-        public async ValueTask<BsonParseResult> DropCollectionAsync(DropCollectionMessage message, CancellationToken cancellationToken)
+        public async ValueTask DropCollectionAsync(DropCollectionMessage message, CancellationToken cancellationToken)
         {
             var taskSource = new ManualResetValueTaskSource<IParserResult>();
             var request = new DropCollectionMongoRequest(message, taskSource);
-            
-            request.ParseAsync = DropCollectionCallbackHolder.DropCollectionParseAsync;
-            request.Message = message;
-            request.RequestNumber = message.Header.RequestNumber;
             await _channelWriter.WriteAsync(request, cancellationToken).ConfigureAwait(false);
-            var dropCollectionResult = await taskSource.GetValueTask().ConfigureAwait(false) as BsonParseResult;
-            return dropCollectionResult;
+            var result = await taskSource.GetValueTask().ConfigureAwait(false);
+            if (result is DropCollectionResult dropCollectionResult)
+            {
+                if (dropCollectionResult.Ok != 1)
+                {
+                    ThrowHelper.DropCollectionException(dropCollectionResult.ErrorMessage!);
+                }
+            }
         }
-        
+
+        public async ValueTask CreateCollectionAsync(CreateCollectionMessage message, CancellationToken cancellationToken)
+        {
+            var taskSource = new ManualResetValueTaskSource<IParserResult>();
+            var request = new CreateCollectionMongoRequest(message, taskSource);
+            await _channelWriter.WriteAsync(request, cancellationToken).ConfigureAwait(false);
+            var result = await taskSource.GetValueTask().ConfigureAwait(false);
+            if (result is CreateCollectionResult CreateCollectionResult)
+            {
+                if (CreateCollectionResult.Ok != 1)
+                {
+                    ThrowHelper.CreateCollectionException(CreateCollectionResult.ErrorMessage!, CreateCollectionResult.Code, CreateCollectionResult.CodeName!);
+                }
+            }
+        }
+
         public async ValueTask DisposeAsync()
         {
             _channelWriter.Complete();

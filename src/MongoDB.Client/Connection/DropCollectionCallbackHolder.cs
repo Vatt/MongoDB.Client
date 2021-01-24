@@ -1,9 +1,8 @@
 ﻿using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
-using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Core;
 using System.Threading.Tasks;
-using MongoDB.Client.Protocol.Readers;
+using MongoDB.Client.Protocol;
 
 namespace MongoDB.Client.Connection
 {
@@ -16,15 +15,15 @@ namespace MongoDB.Client.Connection
                 case ResponseMsgMessage msgMessage:
                     if (msgMessage.MsgHeader.PayloadType != 0)
                     {
-                        return ThrowHelper.InvalidPayloadTypeException<BsonParseResult>(msgMessage.MsgHeader.PayloadType);
+                        return ThrowHelper.InvalidPayloadTypeException<DropCollectionResult>(msgMessage.MsgHeader.PayloadType);
                     }
 
-                    var result = await reader.ReadAsync(new BsonBodyReader()).ConfigureAwait(false);
+                    var result = await reader.ReadAsync(ProtocolReaders.DropCollectionBodyReader).ConfigureAwait(false);
                     reader.Advance();
 
                     return result.Message;
                 default:
-                    return ThrowHelper.UnsupportedTypeException<BsonParseResult>(typeof(BsonParseResult));
+                    return ThrowHelper.UnsupportedTypeException<DropCollectionResult>(typeof(DropCollectionResult));
             }
         }
     }

@@ -88,9 +88,20 @@ namespace MongoDB.Client
                 Lsid = SharedSessionIdModel
             };
             var request = new DropCollectionMessage(requestNumber, dropCollectionHeader);
-            var result = await _scheduler.DropCollectionAsync(request, cancellationToken).ConfigureAwait(false);
+            await _scheduler.DropCollectionAsync(request, cancellationToken).ConfigureAwait(false);
+        }
 
-            Console.WriteLine();
+        internal async ValueTask CreateAsync(CancellationToken cancellationToken)
+        {
+            var requestNumber = _scheduler.GetNextRequestNumber();
+            var createCollectionHeader = new CreateCollectionHeader
+            {
+                CollectionName = Namespace.CollectionName,
+                Db = Namespace.DatabaseName,
+                Lsid = SharedSessionIdModel
+            };
+            var request = new CreateCollectionMessage(requestNumber, createCollectionHeader);
+            await _scheduler.CreateCollectionAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
         private static readonly SessionId SharedSessionIdModel = new SessionId { Id = Guid.NewGuid() };

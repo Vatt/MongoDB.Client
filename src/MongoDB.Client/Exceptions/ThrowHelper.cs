@@ -191,5 +191,19 @@ namespace MongoDB.Client.Exceptions
         {
             throw new MongoInsertException(errors);
         }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
+        public static void DropCollectionException(string errors)
+        {
+            throw new MongoDropCollectionException(errors);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
+        public static void CreateCollectionException(string errorMessage, int code, string codename)
+        {
+            throw new MongoCommandException(errorMessage, code, codename);
+        }
     }
 }

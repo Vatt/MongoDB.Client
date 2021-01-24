@@ -13,7 +13,8 @@ namespace MongoDB.Client.Connection
         QueryRequest,
         InsertRequest,
         DeleteRequest,
-        DropCollectionRequest
+        DropCollectionRequest,
+        CreateCollectionRequest
     }
     internal abstract class MongoReuqestBase
     {
@@ -81,14 +82,26 @@ namespace MongoDB.Client.Connection
     internal class DropCollectionMongoRequest : MongoReuqestBase
     {
         internal DropCollectionMessage Message;
-        public DropCollectionMongoRequest(ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
-        {
-            Type = RequestType.DropCollectionRequest;
-        }
+ 
         public DropCollectionMongoRequest(DropCollectionMessage message, ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
         {
             Type = RequestType.DropCollectionRequest;
             Message = message;
+            RequestNumber = message.Header.RequestNumber;
+            ParseAsync = DropCollectionCallbackHolder.DropCollectionParseAsync;
+        }
+    }
+
+    internal class CreateCollectionMongoRequest : MongoReuqestBase
+    {
+        internal CreateCollectionMessage Message;
+
+        public CreateCollectionMongoRequest(CreateCollectionMessage message, ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
+        {
+            Type = RequestType.CreateCollectionRequest;
+            Message = message;
+            RequestNumber = message.Header.RequestNumber;
+            ParseAsync = CreateCollectionCallbackHolder.CreateCollectionParseAsync;
         }
     }
 }
