@@ -65,6 +65,7 @@ namespace MongoDB.Client.ConsoleApp
             var db = client.GetDatabase("TestDb");
             
             var collection1 = db.GetCollection<RootDocument>("TestColl");
+            var collection2 = db.GetCollection<RootDocument>("TestColl2");
 
 
             var filter = new BsonDocument();
@@ -73,6 +74,7 @@ namespace MongoDB.Client.ConsoleApp
             var item = seeder.GenerateSeed().First();
 
             await collection1.InsertAsync(item);
+            await collection2.InsertAsync(item);
             await db.DropCollectionAsync("TestColl");
 
             Console.WriteLine("Done");

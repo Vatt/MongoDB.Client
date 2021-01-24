@@ -85,7 +85,7 @@ namespace MongoDB.Client.Connection
                                 }
                             case RequestType.DropCollectionRequest:
                                 {
-                                    var deleteRequest = (DeleteMongoRequest)request;
+                                    var deleteRequest = (DropCollectionMongoRequest)request;
                                     var result = await deleteRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
                                     request.CompletionSource.TrySetResult(result);
                                     break;
