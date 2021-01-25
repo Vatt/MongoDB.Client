@@ -58,7 +58,7 @@ namespace MongoDB.Client.Connection
             request.ParseAsync = CursorCallbackHolder<T>.CursorParseAsync;
             request.WriteAsync = CursorCallbackHolder<T>.WriteAsync;
             request.RequestNumber = message.Header.RequestNumber;
-            await _cursorChannel.WriteAsync(request, token).ConfigureAwait(false);
+            _cursorChannel.TryWrite(request);
             var cursor = await taskSrc.GetValueTask().ConfigureAwait(false) as CursorResult<T>;
             FindMongoRequestPool.Return(request);
             return cursor;
@@ -72,7 +72,7 @@ namespace MongoDB.Client.Connection
             request.Message = message;
             request.ParseAsync = InsertCallbackHolder<T>.InsertParseAsync; //TODO: Try FIXIT
             request.WriteAsync = InsertCallbackHolder<T>.WriteAsync;
-            await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            _channelWriter.TryWrite(request);
             var response = await taskSource.GetValueTask().ConfigureAwait(false) as InsertResult;
             InsertMongoRequestPool.Return(request);
             if (response is InsertResult result)
@@ -97,7 +97,7 @@ namespace MongoDB.Client.Connection
             var taskSource = request.CompletionSource;
             request.Message = message;
             request.RequestNumber = message.Header.RequestNumber;
-            await _channelWriter.WriteAsync(request, cancellationToken).ConfigureAwait(false);
+            _channelWriter.TryWrite(request);
             var deleteResult = await taskSource.GetValueTask().ConfigureAwait(false) as DeleteResult;
             DeleteMongoRequestPool.Return(request);
             return deleteResult!;
@@ -107,7 +107,7 @@ namespace MongoDB.Client.Connection
         {
             var taskSource = new ManualResetValueTaskSource<IParserResult>();
             var request = new DropCollectionMongoRequest(message, taskSource);
-            await _channelWriter.WriteAsync(request, cancellationToken).ConfigureAwait(false);
+            _channelWriter.TryWrite(request);
             var result = await taskSource.GetValueTask().ConfigureAwait(false);
             if (result is DropCollectionResult dropCollectionResult)
             {
@@ -122,7 +122,7 @@ namespace MongoDB.Client.Connection
         {
             var taskSource = new ManualResetValueTaskSource<IParserResult>();
             var request = new CreateCollectionMongoRequest(message, taskSource);
-            await _channelWriter.WriteAsync(request, cancellationToken).ConfigureAwait(false);
+            _channelWriter.TryWrite(request);
             var result = await taskSource.GetValueTask().ConfigureAwait(false);
             if (result is CreateCollectionResult CreateCollectionResult)
             {
