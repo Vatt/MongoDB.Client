@@ -31,7 +31,7 @@ namespace MongoDB.Client.Connection
                 ThrowHelper.ConnectionException<SocketConnection>(_endPoint);
             }
             var id = Interlocked.Increment(ref CONNECTION_ID);
-            var connection = new MongoConnection(id, settings, _loggerFactory.CreateLogger(String.Empty), reader, findReader);
+            var connection = new MongoConnection(id, settings, _loggerFactory.CreateLogger<MongoConnection>(), reader, findReader);
             await connection.StartAsync(context).ConfigureAwait(false);
             return connection;
         }
