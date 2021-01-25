@@ -78,7 +78,7 @@ namespace MongoDB.Client
             return await _scheduler.DeleteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
-        internal async ValueTask DropAsync(CancellationToken cancellationToken)
+        internal async ValueTask DropAsync(CancellationToken cancellationToken = default)
         {
             var requestNumber = _scheduler.GetNextRequestNumber();
             var dropCollectionHeader = new DropCollectionHeader
@@ -91,7 +91,7 @@ namespace MongoDB.Client
             await _scheduler.DropCollectionAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
-        internal async ValueTask CreateAsync(CancellationToken cancellationToken)
+        internal async ValueTask CreateAsync(CancellationToken cancellationToken = default)
         {
             var requestNumber = _scheduler.GetNextRequestNumber();
             var createCollectionHeader = new CreateCollectionHeader

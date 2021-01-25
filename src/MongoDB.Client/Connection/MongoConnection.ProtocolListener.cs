@@ -14,7 +14,7 @@ namespace MongoDB.Client.Connection
         private async Task StartProtocolListenerAsync()
         {
             MongoResponseMessage message;
-            MongoReuqestBase? request;
+            MongoRequestBase? request;
             while (!_shutdownCts.IsCancellationRequested)
             {
                 try
@@ -53,55 +53,57 @@ namespace MongoDB.Client.Connection
 
                     if (_completions.TryRemove(message.Header.ResponseTo, out request))
                     {
-                        switch (request.Type)
-                        {
-                            case RequestType.FindRequest:
-                                {
-                                    var mongoRequest = (FindMongoRequest)request;
-                                    var result = await mongoRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
-                                    request.CompletionSource.TrySetResult(result);
-                                    break;
-                                }
-                            case RequestType.QueryRequest:
-                                {
-                                    var mongoRequest = (QueryMongoRequest)request;
-                                    var result = await mongoRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
-                                    request.CompletionSource.TrySetResult(result);
-                                    break;
-                                }
-                            case RequestType.InsertRequest:
-                                {
-                                    var mongoRequest = (InsertMongoRequest)request;
-                                    var result = await mongoRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
-                                    request.CompletionSource.TrySetResult(result);
-                                    break;
-                                }
-                            case RequestType.DeleteRequest:
-                                {
-                                    var mongoRequest = (DeleteMongoRequest)request;
-                                    var result = await mongoRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
-                                    request.CompletionSource.TrySetResult(result);
-                                    break;
-                                }
-                            case RequestType.DropCollectionRequest:
-                                {
-                                    var mongoRequest = (DropCollectionMongoRequest)request;
-                                    var result = await mongoRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
-                                    request.CompletionSource.TrySetResult(result);
-                                    break;
-                                }
-                            case RequestType.CreateCollectionRequest:
-                                {
-                                    var mongoRequest = (CreateCollectionMongoRequest)request;
-                                    var result = await mongoRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
-                                    request.CompletionSource.TrySetResult(result);
-                                    break;
-                                }
-                            default:
-                                _logger.UnknownRequestType(request.Type);
-                                request.CompletionSource.SetException(new NotSupportedException($"Request type '{request.Type}' not supported"));
-                                break;
-                        }
+                        var result = await request.ParseAsync(_protocolReader, message).ConfigureAwait(false);
+                        request.CompletionSource.TrySetResult(result);
+                        //switch (request.Type)
+                        //{
+                        //    case RequestType.FindRequest:
+                        //        {
+                        //            var mongoRequest = (FindMongoRequest)request;
+                        //            var result = await mongoRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
+                        //            request.CompletionSource.TrySetResult(result);
+                        //            break;
+                        //        }
+                        //    case RequestType.QueryRequest:
+                        //        {
+                        //            var mongoRequest = (QueryMongoRequest)request;
+                        //            var result = await mongoRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
+                        //            request.CompletionSource.TrySetResult(result);
+                        //            break;
+                        //        }
+                        //    case RequestType.InsertRequest:
+                        //        {
+                        //            var mongoRequest = (InsertMongoRequest)request;
+                        //            var result = await mongoRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
+                        //            request.CompletionSource.TrySetResult(result);
+                        //            break;
+                        //        }
+                        //    case RequestType.DeleteRequest:
+                        //        {
+                        //            var mongoRequest = (DeleteMongoRequest)request;
+                        //            var result = await mongoRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
+                        //            request.CompletionSource.TrySetResult(result);
+                        //            break;
+                        //        }
+                        //    case RequestType.DropCollectionRequest:
+                        //        {
+                        //            var mongoRequest = (DropCollectionMongoRequest)request;
+                        //            var result = await mongoRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
+                        //            request.CompletionSource.TrySetResult(result);
+                        //            break;
+                        //        }
+                        //    case RequestType.CreateCollectionRequest:
+                        //        {
+                        //            var mongoRequest = (CreateCollectionMongoRequest)request;
+                        //            var result = await mongoRequest.ParseAsync(_protocolReader, message).ConfigureAwait(false);
+                        //            request.CompletionSource.TrySetResult(result);
+                        //            break;
+                        //        }
+                        //    default:
+                        //        _logger.UnknownRequestType(request.Type);
+                        //        request.CompletionSource.SetException(new NotSupportedException($"Request type '{request.Type}' not supported"));
+                        //        break;
+                        //}
                     }
                     else
                     {

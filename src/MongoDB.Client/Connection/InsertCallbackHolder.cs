@@ -43,14 +43,14 @@ namespace MongoDB.Client.Connection
             }
         }
 
-        public static ValueTask WriteAsync<TMessage>(IMongoInsertMessage message, ProtocolWriter protocol, CancellationToken token) where TMessage : IMongoInsertMessage
+        public static ValueTask WriteAsync(MongoRequestBase request, ProtocolWriter protocol, CancellationToken token)
         {
-            var insertMessage = (InsertMessage<T>)message;
-            if (message != null)
+            var insertMessage = ((InsertMongoRequest)request).Message as InsertMessage<T>;
+            if (insertMessage != null)
             {
                 return protocol.WriteAsync(InsertMessageWriter, insertMessage, token);
             }
-            ThrowHelper.InsertException(message.GetType().ToString());
+            ThrowHelper.InsertException(request.GetType().ToString());
             return default;
         }
     }

@@ -1,8 +1,10 @@
 ﻿using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
+using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MongoDB.Client.Connection
@@ -46,6 +48,16 @@ namespace MongoDB.Client.Connection
                 return ThrowHelper.InvalidPayloadTypeException<CursorResult<T>>(msgMessage.MsgHeader.PayloadType);
             }
             return ThrowHelper.UnsupportedTypeException<CursorResult<T>>(typeof(T));
+        }
+        public static ValueTask WriteAsync(MongoRequestBase request, ProtocolWriter protocol, CancellationToken token)
+        {
+            var message = ((FindMongoRequest)request).Message;
+            if (message != null)
+            {
+                return protocol.WriteAsync(ProtocolWriters.FindMessageWriter, message, token);
+            }
+            ThrowHelper.InsertException(request.GetType().ToString());
+            return default;
         }
     }
 }

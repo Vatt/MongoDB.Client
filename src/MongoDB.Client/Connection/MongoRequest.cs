@@ -7,101 +7,78 @@ using System.Threading.Tasks;
 
 namespace MongoDB.Client.Connection
 {
-    internal enum RequestType : byte
+    internal abstract class MongoRequestBase
     {
-        FindRequest,
-        QueryRequest,
-        InsertRequest,
-        DeleteRequest,
-        DropCollectionRequest,
-        CreateCollectionRequest
-    }
-    internal abstract class MongoReuqestBase
-    {
-        public RequestType Type { get; init; }
         internal int RequestNumber;
-        public MongoReuqestBase(ManualResetValueTaskSource<IParserResult> completionSource)
+        public MongoRequestBase(ManualResetValueTaskSource<IParserResult> completionSource)
         {
             CompletionSource = completionSource;
         }
         public ManualResetValueTaskSource<IParserResult> CompletionSource { get; }
         public Func<ProtocolReader, MongoResponseMessage, ValueTask<IParserResult>> ParseAsync { get; set; } //TODO: FIXIT
+        public Func<MongoRequestBase, ProtocolWriter, CancellationToken, ValueTask> WriteAsync { get; set; }
     }
-    internal class FindMongoRequest : MongoReuqestBase
+    internal class FindMongoRequest : MongoRequestBase
     {
         internal FindMessage Message;
 
         public FindMongoRequest(ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
         {
-            Type = RequestType.FindRequest;
-        }
-        public FindMongoRequest(FindMessage message, ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
-        {
-            Type = RequestType.FindRequest;
-            Message = message;
         }
     }
-    internal class QueryMongoRequest : MongoReuqestBase
+    internal class QueryMongoRequest : MongoRequestBase
     {
         internal QueryMessage Message;
         public QueryMongoRequest(QueryMessage message, ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
         {
-            Type = RequestType.QueryRequest;
             Message = message;
         }
     }
-    internal class InsertMongoRequest : MongoReuqestBase
+    internal class InsertMongoRequest : MongoRequestBase
     {
         internal IMongoInsertMessage Message;
-        public Func<IMongoInsertMessage, ProtocolWriter, CancellationToken, ValueTask> WriteAsync { get; set; }
         public InsertMongoRequest(ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
         {
-            Type = RequestType.InsertRequest;
         }
         public InsertMongoRequest(int requestNumber, IMongoInsertMessage message, ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
         {
             RequestNumber = requestNumber;
             Message = message;
-            Type = RequestType.InsertRequest;
         }
     }
-    internal class DeleteMongoRequest : MongoReuqestBase
+    internal class DeleteMongoRequest : MongoRequestBase
     {
         internal DeleteMessage Message;
         public DeleteMongoRequest(ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
         {
-            Type = RequestType.DeleteRequest;
-        }
-        public DeleteMongoRequest(DeleteMessage message, ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
-        {
-            Type = RequestType.DeleteRequest;
-            Message = message;
+            ParseAsync = DeleteCallbackHolder.DeleteParseAsync;
+            WriteAsync = DeleteCallbackHolder.WriteAsync;
         }
     }
     
-    internal class DropCollectionMongoRequest : MongoReuqestBase
+    internal class DropCollectionMongoRequest : MongoRequestBase
     {
         internal DropCollectionMessage Message;
  
         public DropCollectionMongoRequest(DropCollectionMessage message, ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
         {
-            Type = RequestType.DropCollectionRequest;
             Message = message;
             RequestNumber = message.Header.RequestNumber;
             ParseAsync = DropCollectionCallbackHolder.DropCollectionParseAsync;
+            WriteAsync = DropCollectionCallbackHolder.WriteAsync;
         }
     }
 
-    internal class CreateCollectionMongoRequest : MongoReuqestBase
+    internal class CreateCollectionMongoRequest : MongoRequestBase
     {
         internal CreateCollectionMessage Message;
 
         public CreateCollectionMongoRequest(CreateCollectionMessage message, ManualResetValueTaskSource<IParserResult> completionSource) : base(completionSource)
         {
-            Type = RequestType.CreateCollectionRequest;
             Message = message;
             RequestNumber = message.Header.RequestNumber;
             ParseAsync = CreateCollectionCallbackHolder.CreateCollectionParseAsync;
+            WriteAsync = CreateCollectionCallbackHolder.WriteAsync;
         }
     }
 }

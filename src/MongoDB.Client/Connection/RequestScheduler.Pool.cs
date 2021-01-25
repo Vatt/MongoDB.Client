@@ -52,7 +52,6 @@ namespace MongoDB.Client.Connection
                 obj.CompletionSource.Reset();
                 obj.RequestNumber = default;
                 obj.Message = default;
-                obj.ParseAsync = default;
                 return true;
             }
         }

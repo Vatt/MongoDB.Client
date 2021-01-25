@@ -14,18 +14,17 @@ namespace MongoDB.Client.Connection
     {
         private readonly MongoConnectionFactory _connectionFactory;
         private readonly List<MongoConnection> _connections;
-        private readonly Channel<MongoReuqestBase> _channel;
+        private readonly Channel<MongoRequestBase> _channel;
         private readonly Channel<FindMongoRequest> _findChannel;
-        private readonly ChannelWriter<MongoReuqestBase> _channelWriter;
+        private readonly ChannelWriter<MongoRequestBase> _channelWriter;
         private readonly ChannelWriter<FindMongoRequest> _cursorChannel;
         private readonly MongoClientSettings _settings;
-        private readonly object _initLock = new object();
         private static int _counter;
         public RequestScheduler(MongoClientSettings settings, MongoConnectionFactory connectionFactory)
         {
             _connectionFactory = connectionFactory;
             var options = new UnboundedChannelOptions { SingleWriter = true };
-            _channel = Channel.CreateUnbounded<MongoReuqestBase>(options);
+            _channel = Channel.CreateUnbounded<MongoRequestBase>(options);
             _findChannel = Channel.CreateUnbounded<FindMongoRequest>(options);
             _channelWriter = _channel.Writer;
             _cursorChannel = _findChannel.Writer;
@@ -57,6 +56,7 @@ namespace MongoDB.Client.Connection
             var taskSrc = request.CompletionSource;
             request.Message = message;
             request.ParseAsync = CursorCallbackHolder<T>.CursorParseAsync;
+            request.WriteAsync = CursorCallbackHolder<T>.WriteAsync;
             request.RequestNumber = message.Header.RequestNumber;
             await _cursorChannel.WriteAsync(request, token).ConfigureAwait(false);
             var cursor = await taskSrc.GetValueTask().ConfigureAwait(false) as CursorResult<T>;
@@ -71,7 +71,7 @@ namespace MongoDB.Client.Connection
             request.RequestNumber = message.Header.RequestNumber;
             request.Message = message;
             request.ParseAsync = InsertCallbackHolder<T>.InsertParseAsync; //TODO: Try FIXIT
-            request.WriteAsync = InsertCallbackHolder<T>.WriteAsync<InsertMessage<T>>;
+            request.WriteAsync = InsertCallbackHolder<T>.WriteAsync;
             await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
             var response = await taskSource.GetValueTask().ConfigureAwait(false) as InsertResult;
             InsertMongoRequestPool.Return(request);
@@ -95,7 +95,6 @@ namespace MongoDB.Client.Connection
         {
             var request = DeleteMongoRequestPool.Get();//new DeleteMongoRequest(message, taskSource);
             var taskSource = request.CompletionSource;
-            request.ParseAsync = DeleteCallbackHolder.DeleteParseAsync;
             request.Message = message;
             request.RequestNumber = message.Header.RequestNumber;
             await _channelWriter.WriteAsync(request, cancellationToken).ConfigureAwait(false);

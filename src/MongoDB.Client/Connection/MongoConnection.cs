@@ -16,10 +16,10 @@ namespace MongoDB.Client.Connection
         public int Threshold => 4;
         private ConnectionContext _connection;
         private ILogger _logger;
-        private ConcurrentDictionary<long, MongoReuqestBase> _completions;
+        private ConcurrentDictionary<long, MongoRequestBase> _completions;
         private ProtocolReader _protocolReader;
         private ProtocolWriter _protocolWriter;
-        private readonly ChannelReader<MongoReuqestBase> _channelReader;
+        private readonly ChannelReader<MongoRequestBase> _channelReader;
         private readonly ChannelReader<FindMongoRequest> _findReader;
         private CancellationTokenSource _shutdownCts = new CancellationTokenSource();
         private Task? _protocolListenerTask;
@@ -28,10 +28,10 @@ namespace MongoDB.Client.Connection
         private readonly ConcurrentQueue<ManualResetValueTaskSource<IParserResult>> _queue = new();
         private readonly SemaphoreSlim _channelListenerLock = new(0);
         private readonly MongoClientSettings _settings;
-        internal MongoConnection(int connectionId, MongoClientSettings settings, ILogger logger, ChannelReader<MongoReuqestBase> channelReader, ChannelReader<FindMongoRequest> findReader)
+        internal MongoConnection(int connectionId, MongoClientSettings settings, ILogger logger, ChannelReader<MongoRequestBase> channelReader, ChannelReader<FindMongoRequest> findReader)
         {
             ConnectionId = connectionId;
-            _completions = new ConcurrentDictionary<long, MongoReuqestBase>();
+            _completions = new ConcurrentDictionary<long, MongoRequestBase>();
             _logger = logger;
             _channelReader = channelReader;
             _findReader = findReader;

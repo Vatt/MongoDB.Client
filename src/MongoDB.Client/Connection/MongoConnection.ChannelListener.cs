@@ -21,61 +21,64 @@ namespace MongoDB.Client.Connection
                 {
                     while (_channelReader.TryRead(out var request))
                     {
-                        switch (request.Type)
-                        {
-                            case RequestType.FindRequest:
-                                {
-                                    var findRequest = (FindMongoRequest)request;
-                                    _completions.GetOrAdd(findRequest.RequestNumber, findRequest);
-                                    await _protocolWriter!.WriteAsync(ProtocolWriters.FindMessageWriter, findRequest.Message, _shutdownCts.Token).ConfigureAwait(false);
-                                    _logger.SentCursorMessage(findRequest.Message.Header.RequestNumber);
-                                    break;
-                                }
-                            case RequestType.QueryRequest:
-                                {
-                                    var queryRequest = (QueryMongoRequest)request;
-                                    _completions.GetOrAdd(queryRequest.RequestNumber, queryRequest);
-                                    await _protocolWriter!.WriteAsync(ProtocolWriters.QueryMessageWriter, queryRequest.Message, _shutdownCts.Token).ConfigureAwait(false);
-                                    //   _logger.SentCursorMessage(queryRequest.Message.RequestNumber);
-                                    break;
-                                }
-                            case RequestType.InsertRequest:
-                                {
-                                    var insertRequest = (InsertMongoRequest)request;
-                                    _completions.GetOrAdd(insertRequest.RequestNumber, insertRequest);
-                                    await insertRequest.WriteAsync(insertRequest.Message, _protocolWriter, _shutdownCts.Token).ConfigureAwait(false);
-                                    _logger.SentInsertMessage(insertRequest.RequestNumber);
-                                    break;
-                                }
-                            case RequestType.DeleteRequest:
-                                {
-                                    var deleteRequest = (DeleteMongoRequest)request;
-                                    _completions.GetOrAdd(deleteRequest.RequestNumber, deleteRequest);
-                                    await _protocolWriter!.WriteAsync(ProtocolWriters.DeleteMessageWriter, deleteRequest.Message, _shutdownCts.Token).ConfigureAwait(false);
-                                    //  _logger.SentCursorMessage(deleteRequest.Message.Header.RequestNumber);
-                                    break;
-                                }
-                            case RequestType.DropCollectionRequest:
-                                {
-                                    var dropCollectionRequest = (DropCollectionMongoRequest)request;
-                                    _completions.GetOrAdd(dropCollectionRequest.RequestNumber, dropCollectionRequest);
-                                    await _protocolWriter!.WriteAsync(ProtocolWriters.DropCollectionMessageWriter, dropCollectionRequest.Message, _shutdownCts.Token).ConfigureAwait(false);
-                                    //  _logger.SentCursorMessage(dropCollectionRequest.Message.Header.RequestNumber);
-                                    break;
-                                }
-                            case RequestType.CreateCollectionRequest:
-                                {
-                                    var CreateCollectionRequest = (CreateCollectionMongoRequest)request;
-                                    _completions.GetOrAdd(CreateCollectionRequest.RequestNumber, CreateCollectionRequest);
-                                    await _protocolWriter!.WriteAsync(ProtocolWriters.CreateCollectionMessageWriter, CreateCollectionRequest.Message, _shutdownCts.Token).ConfigureAwait(false);
-                                    //  _logger.SentCursorMessage(dropCollectionRequest.Message.Header.RequestNumber);
-                                    break;
-                                }
-                            default:
-                                _logger.UnknownRequestType(request.Type);
-                                request.CompletionSource.SetException(new NotSupportedException($"Request type '{request.Type}' not supported"));
-                                break;
-                        }
+                        _completions.GetOrAdd(request.RequestNumber, request);
+                        await request.WriteAsync(request, _protocolWriter, _shutdownCts.Token).ConfigureAwait(false);
+                        _logger.SentInsertMessage(request.RequestNumber);
+                        //switch (request.Type)
+                        //{
+                        //    case RequestType.FindRequest:
+                        //        {
+                        //            var findRequest = (FindMongoRequest)request;
+                        //            _completions.GetOrAdd(findRequest.RequestNumber, findRequest);
+                        //            await _protocolWriter!.WriteAsync(ProtocolWriters.FindMessageWriter, findRequest.Message, _shutdownCts.Token).ConfigureAwait(false);
+                        //            _logger.SentCursorMessage(findRequest.Message.Header.RequestNumber);
+                        //            break;
+                        //        }
+                        //    case RequestType.QueryRequest:
+                        //        {
+                        //            var queryRequest = (QueryMongoRequest)request;
+                        //            _completions.GetOrAdd(queryRequest.RequestNumber, queryRequest);
+                        //            await _protocolWriter!.WriteAsync(ProtocolWriters.QueryMessageWriter, queryRequest.Message, _shutdownCts.Token).ConfigureAwait(false);
+                        //            //   _logger.SentCursorMessage(queryRequest.Message.RequestNumber);
+                        //            break;
+                        //        }
+                        //    case RequestType.InsertRequest:
+                        //        {
+                        //            var insertRequest = (InsertMongoRequest)request;
+                        //            _completions.GetOrAdd(insertRequest.RequestNumber, insertRequest);
+                        //            await insertRequest.WriteAsync(insertRequest.Message, _protocolWriter, _shutdownCts.Token).ConfigureAwait(false);
+                        //            _logger.SentInsertMessage(insertRequest.RequestNumber);
+                        //            break;
+                        //        }
+                        //    case RequestType.DeleteRequest:
+                        //        {
+                        //            var deleteRequest = (DeleteMongoRequest)request;
+                        //            _completions.GetOrAdd(deleteRequest.RequestNumber, deleteRequest);
+                        //            await _protocolWriter!.WriteAsync(ProtocolWriters.DeleteMessageWriter, deleteRequest.Message, _shutdownCts.Token).ConfigureAwait(false);
+                        //            //  _logger.SentCursorMessage(deleteRequest.Message.Header.RequestNumber);
+                        //            break;
+                        //        }
+                        //    case RequestType.DropCollectionRequest:
+                        //        {
+                        //            var dropCollectionRequest = (DropCollectionMongoRequest)request;
+                        //            _completions.GetOrAdd(dropCollectionRequest.RequestNumber, dropCollectionRequest);
+                        //            await _protocolWriter!.WriteAsync(ProtocolWriters.DropCollectionMessageWriter, dropCollectionRequest.Message, _shutdownCts.Token).ConfigureAwait(false);
+                        //            //  _logger.SentCursorMessage(dropCollectionRequest.Message.Header.RequestNumber);
+                        //            break;
+                        //        }
+                        //    case RequestType.CreateCollectionRequest:
+                        //        {
+                        //            var CreateCollectionRequest = (CreateCollectionMongoRequest)request;
+                        //            _completions.GetOrAdd(CreateCollectionRequest.RequestNumber, CreateCollectionRequest);
+                        //            await _protocolWriter!.WriteAsync(ProtocolWriters.CreateCollectionMessageWriter, CreateCollectionRequest.Message, _shutdownCts.Token).ConfigureAwait(false);
+                        //            //  _logger.SentCursorMessage(dropCollectionRequest.Message.Header.RequestNumber);
+                        //            break;
+                        //        }
+                        //    default:
+                        //        _logger.UnknownRequestType(request.Type);
+                        //        request.CompletionSource.SetException(new NotSupportedException($"Request type '{request.Type}' not supported"));
+                        //        break;
+                        //}
                     }
                 }
             }
@@ -85,21 +88,30 @@ namespace MongoDB.Client.Connection
         {
             while (!_shutdownCts.IsCancellationRequested)
             {
-                var request = await _findReader.ReadAsync().ConfigureAwait(false);
-                switch (request.Type)
+                while (await _findReader.WaitToReadAsync().ConfigureAwait(false))
                 {
-                    case RequestType.FindRequest:
-                        {
-                            _completions.GetOrAdd(request.RequestNumber, request);
-                            await _protocolWriter!.WriteAsync(ProtocolWriters.FindMessageWriter, request.Message, _shutdownCts.Token).ConfigureAwait(false);
-                            _logger.SentCursorMessage(request.Message.Header.RequestNumber);
-                            break;
-                        }
-                    default:
-                        _logger.UnknownRequestType(request.Type);
-                        request.CompletionSource.SetException(new NotSupportedException($"Request type '{request.Type}' not supported"));
-                        break;
+                    while (_findReader.TryRead(out var request))
+                    {
+                        _completions.GetOrAdd(request.RequestNumber, request);
+                        await request.WriteAsync(request, _protocolWriter, _shutdownCts.Token).ConfigureAwait(false);
+                        _logger.SentInsertMessage(request.RequestNumber);
+                    }
                 }
+
+                //switch (request.Type)
+                //{
+                //    case RequestType.FindRequest:
+                //        {
+                //            _completions.GetOrAdd(request.RequestNumber, request);
+                //            await _protocolWriter!.WriteAsync(ProtocolWriters.FindMessageWriter, request.Message, _shutdownCts.Token).ConfigureAwait(false);
+                //            _logger.SentCursorMessage(request.Message.Header.RequestNumber);
+                //            break;
+                //        }
+                //    default:
+                //        _logger.UnknownRequestType(request.Type);
+                //        request.CompletionSource.SetException(new NotSupportedException($"Request type '{request.Type}' not supported"));
+                //        break;
+                //}
             }
         }
     }

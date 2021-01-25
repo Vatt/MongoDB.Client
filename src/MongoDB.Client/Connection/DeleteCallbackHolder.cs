@@ -2,6 +2,7 @@
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Core;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MongoDB.Client.Connection
@@ -25,6 +26,16 @@ namespace MongoDB.Client.Connection
                 default:
                     return ThrowHelper.UnsupportedTypeException<DeleteResult>(typeof(DeleteResult));
             }
+        }
+        public static ValueTask WriteAsync(MongoRequestBase request, ProtocolWriter protocol, CancellationToken token)
+        {
+            var message = ((DeleteMongoRequest)request).Message;
+            if (message != null)
+            {
+                return protocol.WriteAsync(ProtocolWriters.DeleteMessageWriter, message, token);
+            }
+            ThrowHelper.InsertException(request.GetType().ToString());
+            return default;
         }
     }
 }

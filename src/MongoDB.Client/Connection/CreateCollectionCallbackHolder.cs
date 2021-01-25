@@ -3,6 +3,7 @@ using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using System.Threading.Tasks;
 using MongoDB.Client.Protocol;
+using System.Threading;
 
 namespace MongoDB.Client.Connection
 {
@@ -25,6 +26,16 @@ namespace MongoDB.Client.Connection
                 default:
                     return ThrowHelper.UnsupportedTypeException<CreateCollectionResult>(typeof(CreateCollectionResult));
             }
+        }
+        public static ValueTask WriteAsync(MongoRequestBase request, ProtocolWriter protocol, CancellationToken token)
+        {
+            var message = ((CreateCollectionMongoRequest)request).Message;
+            if (message != null)
+            {
+                return protocol.WriteAsync(ProtocolWriters.CreateCollectionMessageWriter, message, token);
+            }
+            ThrowHelper.InsertException(request.GetType().ToString());
+            return default;
         }
     }
 }
