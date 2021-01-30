@@ -55,7 +55,7 @@ namespace MongoDB.Client
         public int? SocketTimeoutMs { get; private set; }
         public string? ReadPreference { get; private set; }
         public bool TlsOrSslEnable { get; private set; }
-        public int ConnectionPoolMaxSize { get; private set; } = 100;
+        public int ConnectionPoolMaxSize { get; private set; } = 16;
         //public int ConnectionPoolMinSize { get; private set; } = 0;
         //public int MultiplexingTreshold { get; init; } = 2;
 
@@ -155,6 +155,14 @@ namespace MongoDB.Client
             }
         }
         private static MongoClientSettings CreateStandalone(string uriString)
+        {
+            return default;
+        }
+        private static MongoClientSettings CreateReplicaSet(string uriString)
+        {
+            return default;
+        }
+        private static MongoClientSettings CreateSharded(string uriString)
         {
             return default;
         }

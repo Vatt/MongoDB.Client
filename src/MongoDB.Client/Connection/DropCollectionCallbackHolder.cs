@@ -3,6 +3,7 @@ using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using System.Threading.Tasks;
 using MongoDB.Client.Protocol;
+using System.Threading;
 
 namespace MongoDB.Client.Connection
 {

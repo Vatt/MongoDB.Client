@@ -80,7 +80,12 @@ namespace MongoDB.Client.ConsoleApp
 
             await collection1.InsertAsync(item);
             await collection2.InsertAsync(item);
+            await collection1.Find(BsonDocument.Empty).FirstOrDefaultAsync(default);
+            await collection2.Find(BsonDocument.Empty).FirstOrDefaultAsync(default);
+            await collection1.DeleteOneAsync(BsonDocument.Empty);
+            await collection2.DeleteOneAsync(BsonDocument.Empty);
             await db.DropCollectionAsync("TestColl");
+            await db.DropCollectionAsync("TestColl2");
 
             Console.WriteLine("Done");
         }
