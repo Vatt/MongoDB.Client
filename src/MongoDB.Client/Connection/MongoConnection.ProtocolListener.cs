@@ -14,7 +14,7 @@ namespace MongoDB.Client.Connection
         private async Task StartProtocolListenerAsync()
         {
             MongoResponseMessage message;
-            MongoRequestBase? request;
+            MongoRequest? request;
             while (!_shutdownCts.IsCancellationRequested)
             {
                 try

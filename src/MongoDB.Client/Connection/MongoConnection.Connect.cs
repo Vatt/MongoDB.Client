@@ -70,9 +70,10 @@ namespace MongoDB.Client.Connection
                 taskSource = new ManualResetValueTaskSource<IParserResult>();
             }
 
-            var completion = new QueryMongoRequest(message, taskSource);
+            var completion = new MongoRequest(taskSource);
+            completion.RequestNumber = message.RequestNumber;
             completion.ParseAsync = ParseAsync<TResp>;
-            _completions.GetOrAdd(completion.Message.RequestNumber, completion);
+            _completions.GetOrAdd(completion.RequestNumber, completion);
             try
             {
                 await _protocolWriter.WriteUnsafeAsync(ProtocolWriters.QueryMessageWriter, message, cancellationToken).ConfigureAwait(false);

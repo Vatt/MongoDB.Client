@@ -27,15 +27,5 @@ namespace MongoDB.Client.Connection
                     return ThrowHelper.UnsupportedTypeException<DropCollectionResult>(typeof(DropCollectionResult));
             }
         }
-        public static ValueTask WriteAsync(MongoRequestBase request, ProtocolWriter protocol, CancellationToken token)
-        {
-            var message = ((DropCollectionMongoRequest)request).Message;
-            if (message != null)
-            {
-                return protocol.WriteAsync(ProtocolWriters.DropCollectionMessageWriter, message, token);
-            }
-            ThrowHelper.InsertException(request.GetType().ToString());
-            return default;
-        }
     }
 }

@@ -27,7 +27,7 @@ namespace MongoDB.Client.Connection
             {
                 var request = await _channelReader.ReadAsync(_shutdownCts.Token).ConfigureAwait(false);
                 _completions.GetOrAdd(request.RequestNumber, request);
-                await request.WriteAsync(request, _protocolWriter, _shutdownCts.Token).ConfigureAwait(false);
+                await request.WriteAsync(_protocolWriter, _shutdownCts.Token).ConfigureAwait(false);
             }
         }
 
@@ -48,7 +48,7 @@ namespace MongoDB.Client.Connection
             {
                 var request = await _findReader.ReadAsync(_shutdownCts.Token).ConfigureAwait(false);
                 _completions.GetOrAdd(request.RequestNumber, request);
-                await request.WriteAsync(request, _protocolWriter, _shutdownCts.Token).ConfigureAwait(false);
+                await request.WriteAsync(_protocolWriter, _shutdownCts.Token).ConfigureAwait(false);
             }
 
         }
