@@ -20,14 +20,15 @@ namespace MongoDB.Client.Tests.Client
         }
         protected async Task<T> InsertFindDeleteAsync<T>(T data)
         {
-            await Client.InitAsync();
-            var collection = Client.GetDatabase(DB).GetCollection<T>(Collection);
-            await collection.CreateAsync();
-            await collection.InsertAsync(data);
-            var findResult = await collection.Find(BsonDocument.Empty).FirstOrDefaultAsync();
-            await collection.DeleteOneAsync(BsonDocument.Empty);
-            await collection.DropAsync();
-            return findResult;
+            //await Client.InitAsync();
+            //var collection = Client.GetDatabase(DB).GetCollection<T>(Collection);
+            //await collection.CreateAsync();
+            //await collection.InsertAsync(data);
+            //var findResult = await collection.Find(BsonDocument.Empty).FirstOrDefaultAsync();
+            //await collection.DeleteOneAsync(BsonDocument.Empty);
+            //await collection.DropAsync();
+            //return findResult;
+            return default;
         }
     }
 }

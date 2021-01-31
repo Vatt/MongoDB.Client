@@ -5,18 +5,16 @@ using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
 using MongoDB.Client.Protocol.Writers;
-using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace MongoDB.Client.Connection
 {
     internal static class InsertCallbackHolder<T>
     {
-        private static unsafe readonly delegate*<ref BsonWriter, in T, void> WriterFnPtr;
-        public static Func<ProtocolReader, MongoResponseMessage, ValueTask<IParserResult>>? Parser;
-        private static readonly IMessageWriter<InsertMessage<T>> InsertMessageWriter;
         private static readonly InsertMsgType0BodyReader InsertBodyReader = new InsertMsgType0BodyReader();
+        private static unsafe readonly delegate*<ref BsonWriter, in T, void> WriterFnPtr;
+        public static readonly IMessageWriter<InsertMessage<T>> InsertMessageWriter;
+        public static RequestCompletion CreateCompletion(ManualResetValueTaskSource<IParserResult> src) => new RequestCompletion(src, InsertParseAsync); 
         static unsafe InsertCallbackHolder()
         {
             SerializersMap.TryGetSerializer<T>(out var serializer);
@@ -41,11 +39,6 @@ namespace MongoDB.Client.Connection
                 default:
                     return ThrowHelper.UnsupportedTypeException<InsertResult>(typeof(T));
             }
-        }
-
-        public static ValueTask WriteAsync(InsertMessage<T> message, ProtocolWriter protocol, CancellationToken token)
-        {
-            return protocol.WriteAsync(InsertMessageWriter, message, token);
         }
     }
 }

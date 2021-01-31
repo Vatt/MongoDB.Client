@@ -6,24 +6,21 @@ namespace MongoDB.Client.Connection
 {
     internal partial class RequestScheduler
     {
-        private class MongoRequestPolicy : IPooledObjectPolicy<MongoRequest>
+        private class Policy : IPooledObjectPolicy<ManualResetValueTaskSource<IParserResult>>
         {
-            public MongoRequest Create()
+            public ManualResetValueTaskSource<IParserResult> Create()
             {
-                return new MongoRequest(new ManualResetValueTaskSource<IParserResult>());
+                return new ManualResetValueTaskSource<IParserResult>();
             }
 
-            public bool Return(MongoRequest obj)
+            public bool Return(ManualResetValueTaskSource<IParserResult> obj)
             {
-                obj.CompletionSource.Reset();
-                obj.RequestNumber = default;;
-                obj.ParseAsync = default;
-                obj.WriteAsync = default;
+                obj.Reset();
                 return true;
             }
         }
-        private static ObjectPool<MongoRequest> MongoRequestPool => _mongoRequestPool ??= new DefaultObjectPool<MongoRequest>(new MongoRequestPolicy());
+        private static ObjectPool<ManualResetValueTaskSource<IParserResult>> TaskSrcPool => _taskSrcPool ??= new DefaultObjectPool<ManualResetValueTaskSource<IParserResult>>(new Policy());
         [ThreadStatic]
-        private static ObjectPool<MongoRequest>? _mongoRequestPool;
+        private static ObjectPool<ManualResetValueTaskSource<IParserResult>>? _taskSrcPool;
     }
 }

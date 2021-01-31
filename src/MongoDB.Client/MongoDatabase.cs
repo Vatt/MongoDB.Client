@@ -22,16 +22,16 @@ namespace MongoDB.Client
             return new MongoCollection<T>(this, name, _scheduler);
         }
 
-        public ValueTask DropCollectionAsync(string collectionName, CancellationToken cancellationToken = default)
-        {
-            var collection = GetCollection<object>(collectionName);
-            return collection.DropAsync(cancellationToken);
-        }
+        //public ValueTask DropCollectionAsync(string collectionName, CancellationToken cancellationToken = default)
+        //{
+        //    var collection = GetCollection<object>(collectionName);
+        //    return collection.DropAsync(cancellationToken);
+        //}
 
-        public ValueTask CreateCollectionAsync(string collectionName, CancellationToken cancellationToken = default)
-        {
-            var collection = GetCollection<object>(collectionName);
-            return collection.CreateAsync(cancellationToken);
-        }
+        //public ValueTask CreateCollectionAsync(string collectionName, CancellationToken cancellationToken = default)
+        //{
+        //    var collection = GetCollection<object>(collectionName);
+        //    return collection.CreateAsync(cancellationToken);
+        //}
     }
 }

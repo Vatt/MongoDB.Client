@@ -51,43 +51,43 @@ namespace MongoDB.Client.ConsoleApp
             // //var settings = MongoClientSettings.FromConnectionString("mongodb://10.19.10.19:27117,10.19.10.19,10.19.10.19:27119");
             // //var settings = MongoClientSettings.FromConnectionString("mongodb://10.19.10.19:27117");
 
-            var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
+            //var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
 
-            var loggerFactory = LoggerFactory.Create(builder =>
-            {
-                builder
-                    .SetMinimumLevel(LogLevel.Error)
-                    .AddConsole();
-            });
+            //var loggerFactory = LoggerFactory.Create(builder =>
+            //{
+            //    builder
+            //        .SetMinimumLevel(LogLevel.Error)
+            //        .AddConsole();
+            //});
             
-            var client = new MongoClient(new DnsEndPoint(host, 27017), loggerFactory);
-            await client.InitAsync();
-            var db = client.GetDatabase("TestDb2");
+            //var client = new MongoClient(new DnsEndPoint(host, 27017), loggerFactory);
+            //await client.InitAsync();
+            //var db = client.GetDatabase("TestDb2");
 
-            await db.CreateCollectionAsync("TestColl2");
-            await db.DropCollectionAsync("TestColl2");
+            //await db.CreateCollectionAsync("TestColl2");
+            //await db.DropCollectionAsync("TestColl2");
 
-            Console.WriteLine("Done");
+            //Console.WriteLine("Done");
 
-            var collection1 = db.GetCollection<RootDocument>("TestColl");
-            var collection2 = db.GetCollection<RootDocument>("TestColl2");
+            //var collection1 = db.GetCollection<RootDocument>("TestColl");
+            //var collection2 = db.GetCollection<RootDocument>("TestColl2");
 
 
-            var filter = new BsonDocument();
+            //var filter = new BsonDocument();
 
-            var seeder = new DatabaseSeeder();
-            var item = seeder.GenerateSeed().First();
+            //var seeder = new DatabaseSeeder();
+            //var item = seeder.GenerateSeed().First();
 
-            await collection1.InsertAsync(item);
-            await collection2.InsertAsync(item);
-            await collection1.Find(BsonDocument.Empty).FirstOrDefaultAsync(default);
-            await collection2.Find(BsonDocument.Empty).FirstOrDefaultAsync(default);
-            await collection1.DeleteOneAsync(BsonDocument.Empty);
-            await collection2.DeleteOneAsync(BsonDocument.Empty);
-            await db.DropCollectionAsync("TestColl");
-            await db.DropCollectionAsync("TestColl2");
+            //await collection1.InsertAsync(item);
+            //await collection2.InsertAsync(item);
+            //await collection1.Find(BsonDocument.Empty).FirstOrDefaultAsync(default);
+            //await collection2.Find(BsonDocument.Empty).FirstOrDefaultAsync(default);
+            //await collection1.DeleteOneAsync(BsonDocument.Empty);
+            //await collection2.DeleteOneAsync(BsonDocument.Empty);
+            //await db.DropCollectionAsync("TestColl");
+            //await db.DropCollectionAsync("TestColl2");
 
-            Console.WriteLine("Done");
+            //Console.WriteLine("Done");
         }
 
         public static void TestMockPipe()

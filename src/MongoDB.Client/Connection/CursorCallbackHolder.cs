@@ -5,6 +5,7 @@ using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Messages;
 using MongoDB.Client.Protocol.Readers;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,8 +23,8 @@ namespace MongoDB.Client.Connection
                 TryParseFnPtr = SerializerFnPtrProvider<T>.TryParseFnPtr;
             }
         }
-
-        internal static async ValueTask<IParserResult> CursorParseAsync(ProtocolReader reader, MongoResponseMessage mongoResponse)
+        internal static RequestCompletion CreateCompletion(ManualResetValueTaskSource<IParserResult> src) => new RequestCompletion(src, CursorParseAsync);
+        private static async ValueTask<IParserResult> CursorParseAsync(ProtocolReader reader, MongoResponseMessage mongoResponse)
         {
             if (mongoResponse is ResponseMsgMessage msgMessage)
             {
