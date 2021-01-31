@@ -110,10 +110,12 @@ namespace MongoDB.Client.Connection
                 if (LeftConnection.RequestsInWork < RequestsInWork)
                 {
                     await LeftConnection.InsertAsync(message, true, token).ConfigureAwait(false);
+                    return;
                 }
                 if (RigthConnection.RequestsInWork < RequestsInWork)
                 {
                     await RigthConnection.InsertAsync(message, true, token).ConfigureAwait(false);
+                    return;
                 }
             }
             ManualResetValueTaskSource<IParserResult> src = GetTaskSrc();
