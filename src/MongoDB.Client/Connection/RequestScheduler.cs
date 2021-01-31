@@ -15,13 +15,14 @@ namespace MongoDB.Client.Connection
     internal partial class RequestScheduler //: IAsyncDisposable
     {
         private readonly MongoConnectionFactory _connectionFactory;
-        private readonly ConcurrentQueue<MongoConnection> _connections;        
+        private readonly Channel<MongoConnection> _connections;        
         private readonly MongoClientSettings _settings;
         private static int _counter;
+        private int _connectionsCount;
         public RequestScheduler(MongoClientSettings settings, MongoConnectionFactory connectionFactory)
         {
             _connectionFactory = connectionFactory;
-            _connections = new ConcurrentQueue<MongoConnection>();
+            _connections = Channel.CreateUnbounded<MongoConnection>(new UnboundedChannelOptions { AllowSynchronousContinuations = false, SingleReader = false, SingleWriter = false });
 
 
             _settings = settings;
@@ -33,20 +34,29 @@ namespace MongoDB.Client.Connection
         }
         internal async ValueTask InitAsync()
         {
-            _connections.Enqueue(await CreateNewConnection());
-            _connections.Enqueue(await CreateNewConnection());
-            _connections.Enqueue(await CreateNewConnection());
-            _connections.Enqueue(await CreateNewConnection());
+            for(int i = 0; i< _settings.ConnectionPoolMinSize; i++)
+            {
+                _connections.Writer.TryWrite(await CreateNewConnection());
+            }
         }
         private async ValueTask<MongoConnection> GetConnection()
         {
-            if(_connections.TryDequeue(out var connection))
+            if(_connections.Reader.TryRead(out var connection))
             {
                 return connection;
             }
-            var newConnection = await CreateNewConnection();
-            _connections.Enqueue(newConnection);
-            return newConnection;
+            if(_connectionsCount <= _settings.ConnectionPoolMaxSize)
+            {
+                Interlocked.Increment(ref _connectionsCount);
+                var newConnection = await CreateNewConnection();
+                if(!_connections.Writer.TryWrite(newConnection))
+                {
+                    await _connections.Writer.WriteAsync(newConnection);
+                }
+                return newConnection;
+            }
+            return await _connections.Reader.ReadAsync();
+
         }
         private async ValueTask<MongoConnection> CreateNewConnection()
         {
@@ -58,7 +68,7 @@ namespace MongoDB.Client.Connection
         {
             var connection = await GetConnection();
             var result = await connection.GetCursorAsync<T>(message, token);
-            _connections.Enqueue(connection);
+            _connections.Writer.TryWrite(connection);
             return result;
         }
 
@@ -66,13 +76,13 @@ namespace MongoDB.Client.Connection
         {
             var connection = await GetConnection();
             await connection.InsertAsync(message, token);
-            _connections.Enqueue(connection);
+            _connections.Writer.TryWrite(connection);
         }
         public async ValueTask<DeleteResult> DeleteAsync(DeleteMessage message, CancellationToken token)
         {
             var connection = await GetConnection();
             var result = await connection.DeleteAsync(message, token);
-            _connections.Enqueue(connection);
+            _connections.Writer.TryWrite(connection);
             return result;
         }
 

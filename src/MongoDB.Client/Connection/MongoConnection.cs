@@ -28,7 +28,6 @@ namespace MongoDB.Client.Connection
     {
 
         public int ConnectionId { get; }
-        public int Threshold { get; }
         public int RequestsInWork => _completions.Count;
         private ConnectionContext _connection;
         private ILogger _logger;
@@ -48,7 +47,6 @@ namespace MongoDB.Client.Connection
             _completions = new ConcurrentDictionary<int, RequestCompletion>();
             _logger = logger;
             _settings = settings;
-            Threshold = settings.MultiplexingTreshold;
         }
 
         public async ValueTask DisposeAsync()
