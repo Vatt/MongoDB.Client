@@ -68,20 +68,8 @@ namespace MongoDB.Client.Connection
             }
             return src;
         }
-        public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, bool force, CancellationToken token = default)
+        public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token = default)
         {
-            if (force == false && _completions.Count >= Threshold)
-            {
-                if(LeftConnection.RequestsInWork < RequestsInWork)
-                {
-                    return await LeftConnection.GetCursorAsync<T>(message, true, token).ConfigureAwait(false);
-                }
-                if(RigthConnection.RequestsInWork < RequestsInWork)
-                {
-                    return await RigthConnection.GetCursorAsync<T>(message, true, token).ConfigureAwait(false);
-                }
-            }
-
             ManualResetValueTaskSource<IParserResult> src = GetTaskSrc();
             _completions.GetOrAdd(message.Header.RequestNumber, CursorCallbackHolder<T>.CreateCompletion(src));
             try
@@ -103,21 +91,9 @@ namespace MongoDB.Client.Connection
             }
 
         }
-        public async ValueTask InsertAsync<T>(InsertMessage<T> message, bool force, CancellationToken token = default)
+        public async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token = default)
         {
-            if (force == false && _completions.Count >= Threshold)
-            {
-                if (LeftConnection.RequestsInWork < RequestsInWork)
-                {
-                    await LeftConnection.InsertAsync(message, true, token).ConfigureAwait(false);
-                    return;
-                }
-                if (RigthConnection.RequestsInWork < RequestsInWork)
-                {
-                    await RigthConnection.InsertAsync(message, true, token).ConfigureAwait(false);
-                    return;
-                }
-            }
+
             ManualResetValueTaskSource<IParserResult> src = GetTaskSrc();
             _completions.GetOrAdd(message.Header.RequestNumber, InsertCallbackHolder<T>.CreateCompletion(src));
             try
@@ -140,19 +116,9 @@ namespace MongoDB.Client.Connection
                 _queue.Enqueue(src);
             }
         }
-        public async ValueTask<DeleteResult> DeleteAsync(DeleteMessage message, bool force, CancellationToken token)
+        public async ValueTask<DeleteResult> DeleteAsync(DeleteMessage message, CancellationToken token)
         {
-            if (force == false && _completions.Count >= Threshold)
-            {
-                if (LeftConnection.RequestsInWork < RequestsInWork)
-                {
-                    return await LeftConnection.DeleteAsync(message, true, token).ConfigureAwait(false);
-                }
-                if (RigthConnection.RequestsInWork < RequestsInWork)
-                {
-                    return await RigthConnection.DeleteAsync(message, true, token).ConfigureAwait(false);
-                }
-            }
+
             var src = GetTaskSrc();
             _completions.GetOrAdd(message.Header.RequestNumber, DeleteCallbackHolder.CreateCompletion(src));
             try

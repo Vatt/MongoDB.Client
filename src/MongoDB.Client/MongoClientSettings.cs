@@ -57,7 +57,7 @@ namespace MongoDB.Client
         public bool TlsOrSslEnable { get; private set; }
         public int ConnectionPoolMaxSize { get; private set; } = 16;
         public int ConnectionPoolMinSize { get; private set; } = 2;
-        public int MultiplexingTreshold { get; init; } = 2;
+        public int MultiplexingTreshold { get; init; } = 4;
 
         public static MongoClientSettings FromConnectionString(string uriString)
         {

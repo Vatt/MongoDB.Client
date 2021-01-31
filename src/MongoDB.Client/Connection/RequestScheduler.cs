@@ -3,6 +3,7 @@ using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Messages;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
@@ -14,17 +15,15 @@ namespace MongoDB.Client.Connection
     internal partial class RequestScheduler //: IAsyncDisposable
     {
         private readonly MongoConnectionFactory _connectionFactory;
-        private readonly List<MongoConnection> _connections;
-        
+        private readonly ConcurrentQueue<MongoConnection> _connections;        
         private readonly MongoClientSettings _settings;
         private static int _counter;
-        private MongoConnection First;
-        private MongoConnection Last;
-        private MongoConnection Current;
         public RequestScheduler(MongoClientSettings settings, MongoConnectionFactory connectionFactory)
         {
             _connectionFactory = connectionFactory;
-            _connections = new List<MongoConnection>();
+            _connections = new ConcurrentQueue<MongoConnection>();
+
+
             _settings = settings;
             _counter = 10;
         }
@@ -34,109 +33,47 @@ namespace MongoDB.Client.Connection
         }
         internal async ValueTask InitAsync()
         {
-            var conn1 = await CreateNewConnection(); 
-            var conn2 = await CreateNewConnection(); 
-            var conn3 = await CreateNewConnection(); 
-            var conn4 = await CreateNewConnection(); 
-            var conn5 = await CreateNewConnection(); 
-            var conn6 = await CreateNewConnection(); 
-            var conn7 = await CreateNewConnection(); 
-            var conn8 = await CreateNewConnection(); 
-            var conn9 = await CreateNewConnection(); 
-            var conn10 = await CreateNewConnection();
-            var conn11 = await CreateNewConnection();
-            var conn12 = await CreateNewConnection();
-            var conn13 = await CreateNewConnection();
-            var conn14 = await CreateNewConnection();
-            var conn15 = await CreateNewConnection();
-            var conn16 = await CreateNewConnection();
-            var conn17 = await CreateNewConnection();
-            var conn18 = await CreateNewConnection();
-            var conn19 = await CreateNewConnection();
-            var conn20 = await CreateNewConnection();
-
-            conn1.LeftConnection = conn20;
-            conn1.RigthConnection = conn2;
-            conn2.LeftConnection = conn1;
-            conn2.RigthConnection = conn3;
-            conn3.LeftConnection = conn2;
-            conn3.RigthConnection = conn4;
-            conn4.LeftConnection = conn3;
-            conn4.RigthConnection = conn5;
-            conn5.LeftConnection = conn4;
-            conn5.RigthConnection = conn6;
-            conn6.LeftConnection = conn5;
-            conn6.RigthConnection = conn7;
-            conn7.LeftConnection = conn6;
-            conn7.RigthConnection = conn8;
-            conn8.LeftConnection = conn7;
-            conn8.RigthConnection = conn8;
-            conn9.LeftConnection = conn8;
-            conn9.RigthConnection = conn9;
-            conn10.LeftConnection = conn9;
-            conn10.RigthConnection = conn11;
-            conn11.LeftConnection = conn10;
-            conn11.RigthConnection = conn12;
-            conn12.LeftConnection = conn11;
-            conn12.RigthConnection = conn13;
-            conn13.LeftConnection = conn12;
-            conn13.RigthConnection = conn14;
-            conn14.LeftConnection = conn13;
-            conn14.RigthConnection = conn15;
-            conn15.LeftConnection = conn14;
-            conn15.RigthConnection = conn16;
-            conn16.LeftConnection = conn15;
-            conn16.RigthConnection = conn17;
-            conn17.LeftConnection = conn16;
-            conn17.RigthConnection = conn18;
-            conn18.LeftConnection = conn17;
-            conn18.RigthConnection = conn19;
-            conn19.LeftConnection = conn18;
-            conn19.RigthConnection = conn20;
-            conn20.LeftConnection = conn19;
-            conn20.RigthConnection = conn1;
-            _connections.Add(conn1);
-            _connections.Add(conn2);
-            _connections.Add(conn3);
-            _connections.Add(conn4);
-            _connections.Add(conn5);
-            _connections.Add(conn6);
-            _connections.Add(conn7);
-            _connections.Add(conn8);
-            _connections.Add(conn9);
-            _connections.Add(conn10);
-            _connections.Add(conn11);
-            _connections.Add(conn12);
-            _connections.Add(conn13);
-            _connections.Add(conn14);
-            _connections.Add(conn15);
-            _connections.Add(conn16);
-            _connections.Add(conn17);
-            _connections.Add(conn18);
-            _connections.Add(conn19);
-            _connections.Add(conn20);
+            _connections.Enqueue(await CreateNewConnection());
+            _connections.Enqueue(await CreateNewConnection());
+            _connections.Enqueue(await CreateNewConnection());
+            _connections.Enqueue(await CreateNewConnection());
         }
-        private MongoConnection GetConnection()
+        private async ValueTask<MongoConnection> GetConnection()
         {
-            var rnd = new Random();
-            return _connections[rnd.Next(0, 19)];
+            if(_connections.TryDequeue(out var connection))
+            {
+                return connection;
+            }
+            var newConnection = await CreateNewConnection();
+            _connections.Enqueue(newConnection);
+            return newConnection;
         }
-        private ValueTask<MongoConnection> CreateNewConnection()
+        private async ValueTask<MongoConnection> CreateNewConnection()
         {
-            return _connectionFactory.Create(_settings);
+            var connection = await _connectionFactory.Create(_settings);
+            Console.WriteLine($"Connection {connection.ConnectionId} created");
+            return connection;
         }
-        internal ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token = default)
+        internal async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token = default)
         {
-            return GetConnection().GetCursorAsync<T>(message, false, token);
+            var connection = await GetConnection();
+            var result = await connection.GetCursorAsync<T>(message, token);
+            _connections.Enqueue(connection);
+            return result;
         }
 
-        internal ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token = default)
+        internal async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token = default)
         {
-            return GetConnection().InsertAsync(message, false, token);
+            var connection = await GetConnection();
+            await connection.InsertAsync(message, token);
+            _connections.Enqueue(connection);
         }
-        public ValueTask<DeleteResult> DeleteAsync(DeleteMessage message, CancellationToken token)
+        public async ValueTask<DeleteResult> DeleteAsync(DeleteMessage message, CancellationToken token)
         {
-            return GetConnection().DeleteAsync(message, false, token);
+            var connection = await GetConnection();
+            var result = await connection.DeleteAsync(message, token);
+            _connections.Enqueue(connection);
+            return result;
         }
 
         //public async ValueTask DropCollectionAsync(DropCollectionMessage message, CancellationToken cancellationToken)
