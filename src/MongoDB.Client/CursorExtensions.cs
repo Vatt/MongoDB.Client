@@ -18,30 +18,6 @@ namespace MongoDB.Client
             return list;
         }
 
-        public static async ValueTask<List<T>> ToListAsync2<T>(this Cursor<T> cursor, CancellationToken token = default)
-        {
-            var list = new List<T>();
-
-            await using var enumerator = cursor.GetAsyncEnumerator2(token);
-
-            var next = await enumerator.MoveNextAsync();
-            while (next)
-            {
-                list.Add(enumerator.Current);
-                var nextTask = enumerator.MoveNextAsync();
-                if (nextTask.IsCompletedSuccessfully)
-                {
-                    next = nextTask.Result;
-                }
-                else
-                {
-                    next = await nextTask;
-                }
-            }
-
-            return list;
-        }
-
         public static async ValueTask<T?> FirstOrDefaultAsync<T>(this Cursor<T> cursor, CancellationToken token = default)
         {
             cursor.AddLimit(1);
