@@ -9,9 +9,10 @@ using System.Threading.Tasks;
 namespace MongoDB.Client.Benchmarks
 {
     [MemoryDiagnoser]
-    public class ComplexBenchmark
+    public class ComplexBenchmarkWithLargeFind
     {
         private MongoCollection<GeoIp> _collection;
+        private MongoCollection<GeoIp> _findCollection;
         private GeoIp[] _items;
 
         [Params(1024)]
@@ -29,7 +30,8 @@ namespace MongoDB.Client.Benchmarks
             var db = client.GetDatabase(dbName);
 
  
-            _collection = db.GetCollection<GeoIp>("Insert" + Guid.NewGuid().ToString());
+            _collection = db.GetCollection<GeoIp>(Guid.NewGuid().ToString());
+            _findCollection = db.GetCollection<GeoIp>("Find" + Guid.NewGuid().ToString());
 
             _items = new GeoIp[RequestsCount];
             for (int i = 0; i < RequestsCount; i++)
@@ -52,6 +54,8 @@ namespace MongoDB.Client.Benchmarks
                     zip = 190000
                 };
             }
+
+            await _findCollection.InsertAsync(_items);
         }
 
 
@@ -75,7 +79,7 @@ namespace MongoDB.Client.Benchmarks
             {
                 foreach (var item in _items)
                 {
-                    await Work(_collection, item);
+                    await Work(_collection, _findCollection, item);
                 }
             }
             else
@@ -84,7 +88,7 @@ namespace MongoDB.Client.Benchmarks
                 var tasks = new Task[Parallelism];
                 for (int i = 0; i < Parallelism; i++)
                 {
-                    tasks[i] = Worker(_collection, channel.Reader);
+                    tasks[i] = Worker(_collection, _findCollection, channel.Reader);
                 }
 
                 foreach (var item in _items)
@@ -96,21 +100,21 @@ namespace MongoDB.Client.Benchmarks
                 await Task.WhenAll(tasks);
             }
 
-            static async Task Work(MongoCollection<GeoIp> collection, GeoIp item)
+            static async Task Work(MongoCollection<GeoIp> collection, MongoCollection<GeoIp> findCollection, GeoIp item)
             {
                 var filter = new BsonDocument("_id", item.Id);
                 await collection.InsertAsync(item);
-                await collection.Find(filter).FirstOrDefaultAsync();
+                await findCollection.Find(filter).ToListAsync();
                 await collection.DeleteOneAsync(filter);
             }
 
-            static async Task Worker(MongoCollection<GeoIp> collection, ChannelReader<GeoIp> reader)
+            static async Task Worker(MongoCollection<GeoIp> collection, MongoCollection<GeoIp> findCollection, ChannelReader<GeoIp> reader)
             {
                 while (await reader.WaitToReadAsync())
                 {
                     while (reader.TryRead(out var item))
                     {
-                        await Work(collection, item);
+                        await Work(collection, findCollection, item);
                     }
                 }
             }
