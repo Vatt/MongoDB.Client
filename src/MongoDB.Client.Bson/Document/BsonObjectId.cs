@@ -87,32 +87,36 @@ namespace MongoDB.Client.Bson.Document
 
         public override string ToString()
         {
-            Span<char> c = stackalloc char[24];
-            c[0] = ToHexChar((Part1 >> 28) & 0x0f);
-            c[1] = ToHexChar((Part1 >> 24) & 0x0f);
-            c[2] = ToHexChar((Part1 >> 20) & 0x0f);
-            c[3] = ToHexChar((Part1 >> 16) & 0x0f);
-            c[4] = ToHexChar((Part1 >> 12) & 0x0f);
-            c[5] = ToHexChar((Part1 >> 8) & 0x0f);
-            c[6] = ToHexChar((Part1 >> 4) & 0x0f);
-            c[7] = ToHexChar(Part1 & 0x0f);
-            c[8] = ToHexChar((Part2 >> 28) & 0x0f);
-            c[9] = ToHexChar((Part2 >> 24) & 0x0f);
-            c[10] = ToHexChar((Part2 >> 20) & 0x0f);
-            c[11] = ToHexChar((Part2 >> 16) & 0x0f);
-            c[12] = ToHexChar((Part2 >> 12) & 0x0f);
-            c[13] = ToHexChar((Part2 >> 8) & 0x0f);
-            c[14] = ToHexChar((Part2 >> 4) & 0x0f);
-            c[15] = ToHexChar(Part2 & 0x0f);
-            c[16] = ToHexChar((Part3 >> 28) & 0x0f);
-            c[17] = ToHexChar((Part3 >> 24) & 0x0f);
-            c[18] = ToHexChar((Part3 >> 20) & 0x0f);
-            c[19] = ToHexChar((Part3 >> 16) & 0x0f);
-            c[20] = ToHexChar((Part3 >> 12) & 0x0f);
-            c[21] = ToHexChar((Part3 >> 8) & 0x0f);
-            c[22] = ToHexChar((Part3 >> 4) & 0x0f);
-            c[23] = ToHexChar(Part3 & 0x0f);
-            return "\"" + new string(c) + "\"";
+            Span<char> c = stackalloc char[26];
+
+            c[0] = '\"';
+            c[1] = ToHexChar((Part1 >> 28) & 0x0f);
+            c[2] = ToHexChar((Part1 >> 24) & 0x0f);
+            c[3] = ToHexChar((Part1 >> 20) & 0x0f);
+            c[4] = ToHexChar((Part1 >> 16) & 0x0f);
+            c[5] = ToHexChar((Part1 >> 12) & 0x0f);
+            c[6] = ToHexChar((Part1 >> 8) & 0x0f);
+            c[7] = ToHexChar((Part1 >> 4) & 0x0f);
+            c[8] = ToHexChar(Part1 & 0x0f);
+            c[9] = ToHexChar((Part2 >> 28) & 0x0f);
+            c[10] = ToHexChar((Part2 >> 24) & 0x0f);
+            c[11] = ToHexChar((Part2 >> 20) & 0x0f);
+            c[12] = ToHexChar((Part2 >> 16) & 0x0f);
+            c[13] = ToHexChar((Part2 >> 12) & 0x0f);
+            c[14] = ToHexChar((Part2 >> 8) & 0x0f);
+            c[15] = ToHexChar((Part2 >> 4) & 0x0f);
+            c[16] = ToHexChar(Part2 & 0x0f);
+            c[17] = ToHexChar((Part3 >> 28) & 0x0f);
+            c[18] = ToHexChar((Part3 >> 24) & 0x0f);
+            c[19] = ToHexChar((Part3 >> 20) & 0x0f);
+            c[20] = ToHexChar((Part3 >> 16) & 0x0f);
+            c[21] = ToHexChar((Part3 >> 12) & 0x0f);
+            c[22] = ToHexChar((Part3 >> 8) & 0x0f);
+            c[23] = ToHexChar((Part3 >> 4) & 0x0f);
+            c[24] = ToHexChar(Part3 & 0x0f);
+            c[25] = '\"';
+
+            return new string(c);
         }
 
         public bool TryWriteBytes(Span<byte> destination)
@@ -152,6 +156,16 @@ namespace MongoDB.Client.Bson.Document
         public static bool operator !=(BsonObjectId left, BsonObjectId rigth)
         {
             return left.Equals(rigth) == false;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is BsonObjectId && Equals((BsonObjectId)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Part1, Part2, Part3);
         }
     }
 }
