@@ -9,7 +9,9 @@ namespace MongoDB.Client.Connection
 {
     internal static class DeleteCallbackHolder
     {
-        internal static async ValueTask<IParserResult> DeleteParseAsync(ProtocolReader reader, MongoResponseMessage mongoResponse)
+
+        public static RequestCompletion CreateCompletion(ManualResetValueTaskSource<IParserResult> src) => new RequestCompletion(src, DeleteParseAsync);
+        private static async ValueTask<IParserResult> DeleteParseAsync(ProtocolReader reader, MongoResponseMessage mongoResponse)
         {
             switch (mongoResponse)
             {

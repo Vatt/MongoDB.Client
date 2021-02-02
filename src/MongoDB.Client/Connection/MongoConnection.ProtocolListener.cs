@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace MongoDB.Client.Connection
 {
-    public sealed partial class MongoConnection
+    internal sealed partial class MongoConnection
     {
         private async Task StartProtocolListenerAsync()
         {
             MongoResponseMessage message;
-            MongoRequest? request;
+            RequestCompletion request;
             while (!_shutdownCts.IsCancellationRequested)
             {
                 try

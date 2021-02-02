@@ -9,6 +9,7 @@ namespace MongoDB.Client.Connection
 {
     internal static class CreateCollectionCallbackHolder
     {
+        public static RequestCompletion CreateCompletion(ManualResetValueTaskSource<IParserResult> src) => new RequestCompletion(src, CreateCollectionParseAsync);
         internal static async ValueTask<IParserResult> CreateCollectionParseAsync(ProtocolReader reader, MongoResponseMessage mongoResponse)
         {
             switch (mongoResponse)

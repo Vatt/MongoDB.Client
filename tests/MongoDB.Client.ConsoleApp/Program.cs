@@ -59,7 +59,7 @@ namespace MongoDB.Client.ConsoleApp
                     .SetMinimumLevel(LogLevel.Error)
                     .AddConsole();
             });
-            
+
             var client = new MongoClient(new DnsEndPoint(host, 27017), loggerFactory);
             await client.InitAsync();
             var db = client.GetDatabase("TestDb2");

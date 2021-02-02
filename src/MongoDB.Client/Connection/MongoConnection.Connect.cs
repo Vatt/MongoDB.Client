@@ -12,9 +12,14 @@ using System.Threading.Tasks;
 
 namespace MongoDB.Client.Connection
 {
-    public sealed partial class MongoConnection
+    internal sealed partial class MongoConnection
     {
         private ConnectionInfo? _connectionInfo;
+        private int _counter;
+        private int GetNextRequestNumber()
+        {
+            return Interlocked.Increment(ref _counter);
+        }
         internal async ValueTask StartAsync(ConnectionContext connection, CancellationToken cancellationToken = default)
         {
             _connection = connection;
@@ -22,8 +27,6 @@ namespace MongoDB.Client.Connection
             _protocolWriter = _connection.CreateWriter();
             _protocolListenerTask = StartProtocolListenerAsync();
             _connectionInfo = await DoConnectAsync(cancellationToken).ConfigureAwait(false);
-            _channelListenerTask = StartChannelListerAsync();
-            _channelFindListenerTask = StartFindChannelListerAsync();
             async Task<ConnectionInfo> DoConnectAsync(CancellationToken token)
             {
                 var _initialDocument = InitHelper.CreateInitialCommand(_settings);
@@ -70,10 +73,8 @@ namespace MongoDB.Client.Connection
                 taskSource = new ManualResetValueTaskSource<IParserResult>();
             }
 
-            var completion = new MongoRequest(taskSource);
-            completion.RequestNumber = message.RequestNumber;
-            completion.ParseAsync = ParseAsync<TResp>;
-            _completions.GetOrAdd(completion.RequestNumber, completion);
+            var completion = new RequestCompletion(taskSource, ParseAsync<TResp>);
+            _completions.GetOrAdd(message.RequestNumber, completion);
             try
             {
                 await _protocolWriter.WriteUnsafeAsync(ProtocolWriters.QueryMessageWriter, message, cancellationToken).ConfigureAwait(false);

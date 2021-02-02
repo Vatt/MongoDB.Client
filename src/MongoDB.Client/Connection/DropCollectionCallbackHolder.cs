@@ -9,7 +9,8 @@ namespace MongoDB.Client.Connection
 {
     internal static class DropCollectionCallbackHolder
     {
-        internal static async ValueTask<IParserResult> DropCollectionParseAsync(ProtocolReader reader, MongoResponseMessage mongoResponse)
+        public static RequestCompletion CreateCompletion(ManualResetValueTaskSource<IParserResult> src) => new RequestCompletion(src, DropCollectionParseAsync);
+        private static async ValueTask<IParserResult> DropCollectionParseAsync(ProtocolReader reader, MongoResponseMessage mongoResponse)
         {
             switch (mongoResponse)
             {

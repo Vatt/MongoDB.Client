@@ -3,7 +3,9 @@ using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Messages;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -11,161 +13,132 @@ using System.Threading.Tasks;
 namespace MongoDB.Client.Connection
 {
 
-    internal partial class RequestScheduler : IAsyncDisposable
+    internal partial class RequestScheduler //: IAsyncDisposable
     {
         private readonly MongoConnectionFactory _connectionFactory;
-        private readonly List<MongoConnection> _connections;
-        private readonly Channel<MongoRequest> _channel;
-        private readonly Channel<MongoRequest> _findChannel;
-        private readonly ChannelWriter<MongoRequest> _channelWriter;
-        private readonly ChannelWriter<MongoRequest> _cursorChannel;
+        private ImmutableArray<MongoConnection> _connections = ImmutableArray<MongoConnection>.Empty;
         private readonly MongoClientSettings _settings;
         private static int _counter;
+        private int _connectionsCount;
+        private int _channelNumber;
+        private static readonly Random Random = new();
+        private readonly SemaphoreSlim _channelAllocateLock = new(1);
         public RequestScheduler(MongoClientSettings settings, MongoConnectionFactory connectionFactory)
         {
             _connectionFactory = connectionFactory;
-            //var options = new UnboundedChannelOptions(settings.ConnectionPoolMaxSize){ FullMode = BoundedChannelFullMode.Wait};
-            var options = new UnboundedChannelOptions();
-            options.SingleWriter = true;
-            options.SingleReader = false;
-            options.AllowSynchronousContinuations = true;
-            _channel = Channel.CreateUnbounded<MongoRequest>(options);
-            _findChannel = Channel.CreateUnbounded<MongoRequest>(options);
-            _channelWriter = _channel.Writer;
-            _cursorChannel = _findChannel.Writer;
-            _connections = new List<MongoConnection>();
             _settings = settings;
-            _counter = 0;
+            _counter = 10;
         }
         public int GetNextRequestNumber()
         {
             return Interlocked.Increment(ref _counter);
         }
-        internal async ValueTask InitAsync()
+        internal ValueTask InitAsync()
         {
-            if (_connections.Count == 0)
+            return default;
+        }
+        private ValueTask<MongoConnection> GetConnection()
+        {
+            var idx = Interlocked.Increment(ref _connectionsCount);
+            var connections = _connections;
+
+            for (int i = 0; i < connections.Length; i++)
             {
-                for (int i = 0; i < _settings.ConnectionPoolMaxSize; i++)
+                var current = (idx + i) % connections.Length;
+                var connection = connections[current];
+                if (connection.RequestsInProgress < 2)
                 {
-                    _connections.Add(await CreateNewConnection());
+                    return new ValueTask<MongoConnection>(connection);
                 }
             }
+
+            if (connections.Length == _settings.ConnectionPoolMaxSize)
+            {
+                idx = Random.Next(_settings.ConnectionPoolMaxSize);
+                return new ValueTask<MongoConnection>(connections[idx]);
+            }
+            return CreateNewConnection(default);
+
         }
-        private ValueTask<MongoConnection> CreateNewConnection()
+
+        private async ValueTask<MongoConnection> CreateNewConnection(CancellationToken cancellationToken)
         {
-            return _connectionFactory.Create(_settings, _channel.Reader, _findChannel.Reader);
+            await _channelAllocateLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                MongoConnection channel;
+                var channels = _connections;
+                for (int i = 0; i < channels.Length; i++)
+                {
+                    channel = channels[i];
+                    if (channel.RequestsInProgress < 2)
+                    {
+                        return channel;
+                    }
+                }
+
+                if (channels.Length == _settings.ConnectionPoolMaxSize)
+                {
+                    var idx = Random.Next(_settings.ConnectionPoolMaxSize);
+                    return channels[idx];
+                }
+
+                channel = await CreateChannelAsync(cancellationToken);
+
+
+                _connections = channels.Add(channel);
+                return channel;
+            }
+            finally
+            {
+                _channelAllocateLock.Release();
+            }
+        }
+
+        private async Task<MongoConnection> CreateChannelAsync(CancellationToken token)
+        {
+            var channelNum = Interlocked.Increment(ref _channelNumber);
+            var channel = await _connectionFactory.Create(_settings);
+            return channel;
         }
         internal async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token = default)
         {
-            var request = MongoRequestPool.Get();
-            var taskSrc = request.CompletionSource;
-            request.RequestNumber = message.Header.RequestNumber;
-            request.ParseAsync = CursorCallbackHolder<T>.CursorParseAsync;
-            request.WriteAsync = (protocol, token) =>
-            {
-                return protocol.WriteAsync(ProtocolWriters.FindMessageWriter, message, token);
-            };
-            request.RequestNumber = message.Header.RequestNumber;
-            await _cursorChannel.WriteAsync(request);
-            var cursor = await taskSrc.GetValueTask().ConfigureAwait(false) as CursorResult<T>;
-            MongoRequestPool.Return(request);
-            return cursor;
+            var connection = await GetConnection();
+            var result = await connection.GetCursorAsync<T>(message, token);
+            return result;
         }
 
         internal async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token = default)
         {
-            var request = MongoRequestPool.Get();
-            var taskSource = request.CompletionSource;
-            request.RequestNumber = message.Header.RequestNumber;
-            request.ParseAsync = InsertCallbackHolder<T>.InsertParseAsync; //TODO: Try FIXIT
-            request.WriteAsync = (protocol, token) =>
-            {
-                return InsertCallbackHolder<T>.WriteAsync(message, protocol, token);
-            };
-            await _channelWriter.WriteAsync(request);
-            var response = await taskSource.GetValueTask().ConfigureAwait(false) as InsertResult;
-            MongoRequestPool.Return(request);
-            if (response is InsertResult result)
-            {
-                if (result.WriteErrors is null || result.WriteErrors.Count == 0)
-                {
-                    return;
-                }
-
-                ThrowHelper.InsertException(result.WriteErrors);
-            }
-            //TODO: FIXIT
-            /*else if (response is BsonParseResult bson)
-            {
-                Debugger.Break();
-            }
-            */
+            var connection = await GetConnection();
+            await connection.InsertAsync(message, token);
         }
-        public async ValueTask<DeleteResult> DeleteAsync(DeleteMessage message, CancellationToken cancellationToken)
+        public async ValueTask<DeleteResult> DeleteAsync(DeleteMessage message, CancellationToken token)
         {
-            var request = MongoRequestPool.Get();//new DeleteMongoRequest(message, taskSource);
-            var taskSource = request.CompletionSource;
-            request.RequestNumber = message.Header.RequestNumber;
-            request.ParseAsync = DeleteCallbackHolder.DeleteParseAsync;
-            request.WriteAsync = (protocol, token) =>
-            {
-                return protocol.WriteAsync(ProtocolWriters.DeleteMessageWriter, message, token);
-            };
-            await _channelWriter.WriteAsync(request);
-            var deleteResult = await taskSource.GetValueTask().ConfigureAwait(false) as DeleteResult;
-            MongoRequestPool.Return(request);
-            return deleteResult!;
+            var connection = await GetConnection();
+            var result = await connection.DeleteAsync(message, token);
+            return result;
         }
 
-        public async ValueTask DropCollectionAsync(DropCollectionMessage message, CancellationToken cancellationToken)
+        public async ValueTask DropCollectionAsync(DropCollectionMessage message, CancellationToken token)
         {
-            var taskSource = new ManualResetValueTaskSource<IParserResult>();
-            var request = new MongoRequest(taskSource);
-            request.RequestNumber = message.Header.RequestNumber;
-            request.ParseAsync = DropCollectionCallbackHolder.DropCollectionParseAsync;
-            request.WriteAsync = (protocol, token) =>
-            {
-                return protocol.WriteAsync(ProtocolWriters.DropCollectionMessageWriter, message, token);
-            };
-            await _channelWriter.WriteAsync(request);
-            var result = await taskSource.GetValueTask().ConfigureAwait(false);
-            if (result is DropCollectionResult dropCollectionResult)
-            {
-                if (dropCollectionResult.Ok != 1)
-                {
-                    ThrowHelper.DropCollectionException(dropCollectionResult.ErrorMessage!);
-                }
-            }
+            var connection = await GetConnection();
+            await connection.DropCollectionAsync(message, token);
         }
 
-        public async ValueTask CreateCollectionAsync(CreateCollectionMessage message, CancellationToken cancellationToken)
+        public async ValueTask CreateCollectionAsync(CreateCollectionMessage message, CancellationToken token)
         {
-            var taskSource = new ManualResetValueTaskSource<IParserResult>();
-            var request = new MongoRequest(taskSource);
-            request.RequestNumber = message.Header.RequestNumber;
-            request.ParseAsync = CreateCollectionCallbackHolder.CreateCollectionParseAsync;
-            request.WriteAsync = (protocol, token) =>
-            {
-                return protocol.WriteAsync(ProtocolWriters.CreateCollectionMessageWriter, message, token);
-            };
-            await _channelWriter.WriteAsync(request);
-            var result = await taskSource.GetValueTask().ConfigureAwait(false);
-            if (result is CreateCollectionResult CreateCollectionResult)
-            {
-                if (CreateCollectionResult.Ok != 1)
-                {
-                    ThrowHelper.CreateCollectionException(CreateCollectionResult.ErrorMessage!, CreateCollectionResult.Code, CreateCollectionResult.CodeName!);
-                }
-            }
+            var connection = await GetConnection();
+            await connection.CreateCollectionAsync(message, token);
         }
 
-        public async ValueTask DisposeAsync()
-        {
-            _channelWriter.Complete();
-            foreach (var connection in _connections)
-            {
-                await connection.DisposeAsync().ConfigureAwait(false);
-            }
-        }
+        //public async ValueTask DisposeAsync()
+        //{
+        //    _channelWriter.Complete();
+        //    foreach (var connection in _connections)
+        //    {
+        //        await connection.DisposeAsync().ConfigureAwait(false);
+        //    }
+        //}
     }
 }
