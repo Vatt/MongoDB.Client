@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace MongoDB.Client.Benchmarks
 {
     [MemoryDiagnoser]
-    public class BestComplexBenchmark
+    public class GavboComplexBenchmark
     {
         private MongoCollection<RootDocument> _findCollection;
         private MongoCollection<GeoIp> _deleteCollection;
