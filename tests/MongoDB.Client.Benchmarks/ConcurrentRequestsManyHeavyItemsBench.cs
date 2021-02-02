@@ -40,7 +40,7 @@ namespace MongoDB.Client.Benchmarks
             _oldCollection = oldDb.GetCollection<RootDocument>(collectionName);
 
             oldDb.DropCollection(collectionName);
-            var seeder = new DatabaseSeeder();
+            var seeder = new RootDocumentSeeder();
             foreach (var item in seeder.GenerateSeed(ItemInDb))
             {
                 _oldCollection.InsertOne(item);

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace MongoDB.Client.Benchmarks
 {
     [MemoryDiagnoser]
-    public class BestComplexBenchmark
+    public class GavboComplexBenchmark
     {
         private MongoCollection<RootDocument> _findCollection;
         private MongoCollection<GeoIp> _deleteCollection;
@@ -37,7 +37,7 @@ namespace MongoDB.Client.Benchmarks
             _findCollection = db.GetCollection<RootDocument>(Guid.NewGuid().ToString());
             _insertCollection = db.GetCollection<GeoIp>("Insert" + Guid.NewGuid().ToString());
             _deleteCollection = db.GetCollection<GeoIp>("Delete" + Guid.NewGuid().ToString());
-            var seeder = new DatabaseSeeder();
+            var seeder = new RootDocumentSeeder();
             var geoipseeder = new GeoIpSeeder();
             _insertDocs = geoipseeder.GenerateSeed(ItemInDb).ToList();
             foreach (var item in _insertDocs)

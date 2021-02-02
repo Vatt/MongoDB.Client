@@ -34,7 +34,7 @@ namespace MongoDB.Client.Benchmarks
             _oldCollection = oldDb.GetCollection<RootDocument>(collectionName);
 
             _oldCollection.DeleteMany(FilterDefinition<RootDocument>.Empty);
-            var gen = new DatabaseSeeder();
+            var gen = new RootDocumentSeeder();
             var items = gen.GenerateSeed(ItemsCount);
             foreach (var item in items)
             {
