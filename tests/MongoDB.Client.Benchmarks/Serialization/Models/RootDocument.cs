@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace MongoDB.Client.Benchmarks.Serialization.Models
 {
     [BsonSerializable]
-    public partial class RootDocument
+    public partial class RootDocument : IIdentified
     {
         [MongoDB.Bson.Serialization.Attributes.BsonId]
         [Bson.Serialization.Attributes.BsonIgnore]
