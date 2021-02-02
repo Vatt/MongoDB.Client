@@ -63,6 +63,7 @@ namespace MongoDB.Client.Benchmarks
         public async Task Clean()
         {
             await _collection.DropAsync();
+            await _findCollection.DropAsync();
         }
 
 
