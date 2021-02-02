@@ -1,18 +1,18 @@
-﻿using System;
+﻿using MongoDB.Client.Bson.Document;
+using System;
 using System.Collections.Generic;
 
 namespace MongoDB.Client.Benchmarks.Serialization.Models
 {
     internal class GeoIpSeeder
     {
-        public IEnumerable<GeoIp> GenerateSeed(int count = 500)
+        public IEnumerable<GeoIp> GenerateSeed(int count)
         {
-            Console.WriteLine("Seeding a database for experiment....");
-            var list = new List<GeoIp>();
             for (var i = 0; i < count; i++)
             {
-                list.Add(new GeoIp
+                yield return new GeoIp
                 {
+                    Id = BsonObjectId.NewObjectId(),
                     city = "St Petersburg",
                     country = "Russia",
                     countryCode = "RU",
@@ -26,9 +26,8 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
                     status = "success",
                     timezone = "Europe/Moscow",
                     zip = 190000
-                });
+                };
             }
-            return list;
         }
     }
 }

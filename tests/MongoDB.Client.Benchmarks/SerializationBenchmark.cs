@@ -25,8 +25,8 @@ namespace MongoDB.Client.Benchmarks
         [GlobalSetup]
         public void Setup()
         {
-            var seeder = new DatabaseSeeder();
-            _document = seeder.GenerateSeed().First();
+            var seeder = new RootDocumentSeeder();
+            _document = seeder.GenerateSeed(1).First();
             SerializersMap.TryGetSerializer<RootDocument>(out _serializer);
             _writeBuffer = new ArrayBufferWriter(1024 * 1024);
             _readBuffer = new ArrayBufferWriter(1024 * 1024);
