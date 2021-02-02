@@ -36,7 +36,7 @@ namespace MongoDB.Client.Connection
         private ProtocolWriter _protocolWriter;
         private CancellationTokenSource _shutdownCts = new CancellationTokenSource();
         private Task _protocolListenerTask;
-
+        public int RequestsInProgress => _completions.Count;
         private readonly ConcurrentQueue<ManualResetValueTaskSource<IParserResult>> _queue = new();
         private readonly MongoClientSettings _settings;
         internal MongoConnection LeftConnection;
@@ -135,7 +135,34 @@ namespace MongoDB.Client.Connection
                 src.Reset();
                 _queue.Enqueue(src);
             }
-
+        }
+        public async ValueTask DropCollectionAsync(DropCollectionMessage message, CancellationToken token)
+        {
+            var src = GetTaskSrc();
+            _completions.GetOrAdd(message.Header.RequestNumber, DropCollectionCallbackHolder.CreateCompletion(src));
+            await _protocolWriter.WriteAsync(ProtocolWriters.DropCollectionMessageWriter, message, token).ConfigureAwait(false); ;
+            var result = await src.GetValueTask().ConfigureAwait(false);
+            if (result is DropCollectionResult dropCollectionResult)
+            {
+                if (dropCollectionResult.Ok != 1)
+                {
+                    ThrowHelper.DropCollectionException(dropCollectionResult.ErrorMessage!);
+                }
+            }
+        }
+        public async ValueTask CreateCollectionAsync(CreateCollectionMessage message, CancellationToken token)
+        {
+            var src = GetTaskSrc();
+            _completions.GetOrAdd(message.Header.RequestNumber, CreateCollectionCallbackHolder.CreateCompletion(src));
+            await _protocolWriter.WriteAsync(ProtocolWriters.CreateCollectionMessageWriter, message, token).ConfigureAwait(false);
+            var result = await src.GetValueTask().ConfigureAwait(false);
+            if (result is CreateCollectionResult CreateCollectionResult)
+            {
+                if (CreateCollectionResult.Ok != 1)
+                {
+                    ThrowHelper.CreateCollectionException(CreateCollectionResult.ErrorMessage!, CreateCollectionResult.Code, CreateCollectionResult.CodeName!);
+                }
+            }
         }
     }
 }

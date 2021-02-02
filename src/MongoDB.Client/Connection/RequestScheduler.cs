@@ -5,6 +5,7 @@ using MongoDB.Client.Protocol.Messages;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -15,16 +16,16 @@ namespace MongoDB.Client.Connection
     internal partial class RequestScheduler //: IAsyncDisposable
     {
         private readonly MongoConnectionFactory _connectionFactory;
-        private readonly Channel<MongoConnection> _connections;        
+        private ImmutableArray<MongoConnection> _connections = ImmutableArray<MongoConnection>.Empty;
         private readonly MongoClientSettings _settings;
         private static int _counter;
         private int _connectionsCount;
+        private int _channelNumber;
+        private static readonly Random Random = new();
+        private readonly SemaphoreSlim _channelAllocateLock = new(1);
         public RequestScheduler(MongoClientSettings settings, MongoConnectionFactory connectionFactory)
         {
             _connectionFactory = connectionFactory;
-            _connections = Channel.CreateUnbounded<MongoConnection>(new UnboundedChannelOptions { AllowSynchronousContinuations = false, SingleReader = false, SingleWriter = false });
-
-
             _settings = settings;
             _counter = 10;
         }
@@ -32,43 +33,78 @@ namespace MongoDB.Client.Connection
         {
             return Interlocked.Increment(ref _counter);
         }
-        internal async ValueTask InitAsync()
+        internal ValueTask InitAsync()
         {
-            for(int i = 0; i< _settings.ConnectionPoolMinSize; i++)
-            {
-                _connections.Writer.TryWrite(await CreateNewConnection());
-            }
+            return default;
         }
-        private async ValueTask<MongoConnection> GetConnection()
+        private ValueTask<MongoConnection> GetConnection()
         {
-            if(_connections.Reader.TryRead(out var connection))
+            var idx = Interlocked.Increment(ref _connectionsCount);
+            var connections = _connections;
+
+            for (int i = 0; i < connections.Length; i++)
             {
-                return connection;
-            }
-            if(_connectionsCount <= _settings.ConnectionPoolMaxSize)
-            {
-                Interlocked.Increment(ref _connectionsCount);
-                var newConnection = await CreateNewConnection();
-                if(!_connections.Writer.TryWrite(newConnection))
+                var current = (idx + i) % connections.Length;
+                var connection = connections[current];
+                if (connection.RequestsInProgress < 2)
                 {
-                    await _connections.Writer.WriteAsync(newConnection);
+                    return new ValueTask<MongoConnection>(connection);
                 }
-                return newConnection;
             }
-            return await _connections.Reader.ReadAsync();
+
+            if (connections.Length == _settings.ConnectionPoolMaxSize)
+            {
+                idx = Random.Next(_settings.ConnectionPoolMaxSize);
+                return new ValueTask<MongoConnection>(connections[idx]);
+            }
+            return CreateNewConnection(default);
 
         }
-        private async ValueTask<MongoConnection> CreateNewConnection()
+
+        private async ValueTask<MongoConnection> CreateNewConnection(CancellationToken cancellationToken)
         {
-            var connection = await _connectionFactory.Create(_settings);
-            Console.WriteLine($"Connection {connection.ConnectionId} created");
-            return connection;
+            await _channelAllocateLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                MongoConnection channel;
+                var channels = _connections;
+                for (int i = 0; i < channels.Length; i++)
+                {
+                    channel = channels[i];
+                    if (channel.RequestsInProgress < 2)
+                    {
+                        return channel;
+                    }
+                }
+
+                if (channels.Length == _settings.ConnectionPoolMaxSize)
+                {
+                    var idx = Random.Next(_settings.ConnectionPoolMaxSize);
+                    return channels[idx];
+                }
+
+                channel = await CreateChannelAsync(cancellationToken);
+
+
+                _connections = channels.Add(channel);
+                return channel;
+            }
+            finally
+            {
+                _channelAllocateLock.Release();
+            }
+        }
+
+        private async Task<MongoConnection> CreateChannelAsync(CancellationToken token)
+        {
+            var channelNum = Interlocked.Increment(ref _channelNumber);
+            var channel = await _connectionFactory.Create(_settings);
+            return channel;
         }
         internal async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token = default)
         {
             var connection = await GetConnection();
             var result = await connection.GetCursorAsync<T>(message, token);
-            _connections.Writer.TryWrite(connection);
             return result;
         }
 
@@ -76,57 +112,25 @@ namespace MongoDB.Client.Connection
         {
             var connection = await GetConnection();
             await connection.InsertAsync(message, token);
-            _connections.Writer.TryWrite(connection);
         }
         public async ValueTask<DeleteResult> DeleteAsync(DeleteMessage message, CancellationToken token)
         {
             var connection = await GetConnection();
             var result = await connection.DeleteAsync(message, token);
-            _connections.Writer.TryWrite(connection);
             return result;
         }
 
-        //public async ValueTask DropCollectionAsync(DropCollectionMessage message, CancellationToken cancellationToken)
-        //{
-        //    var taskSource = new ManualResetValueTaskSource<IParserResult>();
-        //    var request = new MongoRequest(taskSource);
-        //    request.RequestNumber = message.Header.RequestNumber;
-        //    request.ParseAsync = DropCollectionCallbackHolder.DropCollectionParseAsync;
-        //    request.WriteAsync = (protocol, token) =>
-        //    {
-        //        return protocol.WriteAsync(ProtocolWriters.DropCollectionMessageWriter, message, token);
-        //    };
-        //    await _channelWriter.WriteAsync(request);
-        //    var result = await taskSource.GetValueTask().ConfigureAwait(false);
-        //    if (result is DropCollectionResult dropCollectionResult)
-        //    {
-        //        if (dropCollectionResult.Ok != 1)
-        //        {
-        //            ThrowHelper.DropCollectionException(dropCollectionResult.ErrorMessage!);
-        //        }
-        //    }
-        //}
+        public async ValueTask DropCollectionAsync(DropCollectionMessage message, CancellationToken token)
+        {
+            var connection = await GetConnection();
+            await connection.DropCollectionAsync(message, token);
+        }
 
-        //public async ValueTask CreateCollectionAsync(CreateCollectionMessage message, CancellationToken cancellationToken)
-        //{
-        //    var taskSource = new ManualResetValueTaskSource<IParserResult>();
-        //    var request = new MongoRequest(taskSource);
-        //    request.RequestNumber = message.Header.RequestNumber;
-        //    request.ParseAsync = CreateCollectionCallbackHolder.CreateCollectionParseAsync;
-        //    request.WriteAsync = (protocol, token) =>
-        //    {
-        //        return protocol.WriteAsync(ProtocolWriters.CreateCollectionMessageWriter, message, token);
-        //    };
-        //    await _channelWriter.WriteAsync(request);
-        //    var result = await taskSource.GetValueTask().ConfigureAwait(false);
-        //    if (result is CreateCollectionResult CreateCollectionResult)
-        //    {
-        //        if (CreateCollectionResult.Ok != 1)
-        //        {
-        //            ThrowHelper.CreateCollectionException(CreateCollectionResult.ErrorMessage!, CreateCollectionResult.Code, CreateCollectionResult.CodeName!);
-        //        }
-        //    }
-        //}
+        public async ValueTask CreateCollectionAsync(CreateCollectionMessage message, CancellationToken token)
+        {
+            var connection = await GetConnection();
+            await connection.CreateCollectionAsync(message, token);
+        }
 
         //public async ValueTask DisposeAsync()
         //{
