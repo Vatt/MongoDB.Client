@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MongoDB.Client.ConsoleApp
@@ -51,6 +52,16 @@ namespace MongoDB.Client.ConsoleApp
             // //var settings = MongoClientSettings.FromConnectionString("mongodb://10.19.10.19:27117,10.19.10.19,10.19.10.19:27119");
             // //var settings = MongoClientSettings.FromConnectionString("mongodb://10.19.10.19:27117");
 
+            var serializeOptions = new JsonSerializerOptions();
+            serializeOptions.Converters.Add(new BsonObjectIdConverter());
+
+            // 601acfaaf1ef1a93fb0c9777
+            var id = BsonObjectId.NewObjectId();
+
+            var json = JsonSerializer.Serialize(id, serializeOptions);
+            var id2 = JsonSerializer.Deserialize<BsonObjectId>(json, serializeOptions);
+
+
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
 
             var loggerFactory = LoggerFactory.Create(builder =>
@@ -59,7 +70,7 @@ namespace MongoDB.Client.ConsoleApp
                     .SetMinimumLevel(LogLevel.Error)
                     .AddConsole();
             });
-            
+
             var client = new MongoClient(new DnsEndPoint(host, 27017), loggerFactory);
             await client.InitAsync();
             var db = client.GetDatabase("TestDb2");
@@ -88,6 +99,11 @@ namespace MongoDB.Client.ConsoleApp
             await db.DropCollectionAsync("TestColl2");
 
             Console.WriteLine("Done");
+        }
+
+        public class Asd
+        {
+            public BsonObjectId Id { get; set; }
         }
 
         public static void TestMockPipe()
