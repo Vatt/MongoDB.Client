@@ -1,15 +1,10 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using MongoDb.Client.WebApi.Mongo.New;
 
 namespace MongoDb.Client.WebApi
 {
@@ -26,8 +21,10 @@ namespace MongoDb.Client.WebApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<MongoConfig>(opt => opt.ConnectionString = "centos.mshome.net");
-            services.AddSingleton<IMongo, Mongo>();
-            services.AddHostedService<MongoStarter>();
+
+
+            services.AddNewMongoClient();
+          //  services.AddOldMongoClient();
 
             services.AddControllers(opt => opt.ModelBinderProviders.Add(new BsonObjectIdBinderProvider()))
                 .AddJsonOptions(opt => opt.JsonSerializerOptions.Converters.Add(new BsonObjectIdConverter()));
