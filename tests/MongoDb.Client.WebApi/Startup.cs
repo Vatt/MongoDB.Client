@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using MongoDb.Client.WebApi.Mongo.New;
+using System;
 
 namespace MongoDb.Client.WebApi
 {
@@ -20,11 +21,11 @@ namespace MongoDb.Client.WebApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<MongoConfig>(opt => opt.ConnectionString = "centos.mshome.net");
+            services.Configure<MongoConfig>(opt => opt.ConnectionString = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost");
 
 
-            services.AddNewMongoClient();
-          //  services.AddOldMongoClient();
+           // services.AddNewMongoClient();
+            services.AddOldMongoClient();
 
             services.AddControllers(opt => opt.ModelBinderProviders.Add(new BsonObjectIdBinderProvider()))
                 .AddJsonOptions(opt => opt.JsonSerializerOptions.Converters.Add(new BsonObjectIdConverter()));
