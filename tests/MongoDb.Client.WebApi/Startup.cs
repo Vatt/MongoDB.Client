@@ -24,10 +24,10 @@ namespace MongoDb.Client.WebApi
             services.Configure<MongoConfig>(opt => opt.ConnectionString = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost");
 
 
-           // services.AddNewMongoClient();
-            services.AddOldMongoClient();
+            services.AddNewMongoClient();
+           // services.AddOldMongoClient();
 
-            services.AddControllers(opt => opt.ModelBinderProviders.Add(new BsonObjectIdBinderProvider()))
+            services.AddControllers()
                 .AddJsonOptions(opt => opt.JsonSerializerOptions.Converters.Add(new BsonObjectIdConverter()));
             services.AddSwaggerGen(c =>
             {
