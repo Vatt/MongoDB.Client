@@ -15,7 +15,7 @@ namespace MongoDB.Client.Connection
     public sealed partial class MongoConnection
     {
         private ConnectionInfo? _connectionInfo;
-        internal async ValueTask StartAsync(ConnectionContext connection, CancellationToken cancellationToken = default)
+        internal async ValueTask StartAsync(System.Net.Connections.Connection connection, CancellationToken cancellationToken = default)
         {
             _connection = connection;
             _protocolReader = _connection.CreateReader();

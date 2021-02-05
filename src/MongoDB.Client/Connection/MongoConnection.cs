@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Connections;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using System;
@@ -14,7 +13,7 @@ namespace MongoDB.Client.Connection
     {
         public int ConnectionId { get; }
         public int Threshold => 4;
-        private ConnectionContext _connection;
+        private System.Net.Connections.Connection _connection;
         private ILogger _logger;
         private ConcurrentDictionary<long, MongoRequest> _completions;
         private ProtocolReader _protocolReader;
