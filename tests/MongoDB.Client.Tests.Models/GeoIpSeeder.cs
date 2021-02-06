@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace MongoDB.Client.Tests.Models
 {
-    internal class GeoIpSeeder
+    public class GeoIpSeeder
     {
         public IEnumerable<GeoIp> GenerateSeed(int count)
         {

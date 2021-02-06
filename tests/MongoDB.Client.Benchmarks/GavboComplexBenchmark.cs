@@ -1,6 +1,6 @@
 ﻿using BenchmarkDotNet.Attributes;
-using MongoDB.Client.Benchmarks.Serialization.Models;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Tests.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

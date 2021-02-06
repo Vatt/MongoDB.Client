@@ -8,7 +8,6 @@ namespace MongoDB.Client.Tests.Models
         [BsonId]
         public Bson.Document.BsonObjectId Id { get; set; }
 
-
         public string status { get; set; }
         public string country { get; set; }
         public string countryCode { get; set; }
