@@ -1,11 +1,10 @@
 using Microsoft.Extensions.Logging;
-using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Tests.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
-using MongoDB.Client.Tests.Models;
 
 namespace MongoDB.Client.ConsoleApp
 {
@@ -13,7 +12,7 @@ namespace MongoDB.Client.ConsoleApp
     {
         static async Task Main(string[] args)
         {
-            await LoadTest<GeoIp>(1024 * 1024, new[] {512});
+            await LoadTest<GeoIp>(1024 * 1024, new[] { 512 });
 
             Console.WriteLine("Done");
         }
