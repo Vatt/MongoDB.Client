@@ -15,11 +15,11 @@
 
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.AspNetCore.Connections.Abstractions" Version="5.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Connections.Abstractions" Version="5.0.2" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
-		<PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.2" />
 		<PackageReference Include="Microsoft.Extensions.Options" Version="5.0.0" />
-		<PackageReference Include="System.IO.Pipelines" Version="5.0.0" />
+		<PackageReference Include="System.IO.Pipelines" Version="5.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>
