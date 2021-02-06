@@ -16,7 +16,7 @@ namespace MongoDB.Client.Connection
             public bool Return(MongoRequest obj)
             {
                 obj.CompletionSource.Reset();
-                obj.RequestNumber = default;;
+                obj.RequestNumber = default; ;
                 obj.ParseAsync = default;
                 obj.WriteAsync = default;
                 return true;

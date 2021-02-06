@@ -3,8 +3,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
 
-
-namespace MongoDB.Client.Test.Models
+namespace MongoDB.Client.Tests.Models
 {
     [BsonSerializable]
     public partial class CommonModel
@@ -58,7 +57,7 @@ namespace MongoDB.Client.Test.Models
                 BsonObjectIdField = BsonObjectId.NewObjectId(),
                 LongProp = 42,
                 GuidProp = Guid.NewGuid(),
-                StringListProp = new List<string> { "42", "42", "42"}
+                StringListProp = new List<string> { "42", "42", "42" }
 
             };
         }

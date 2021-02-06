@@ -1,7 +1,7 @@
 ﻿using MongoDB.Client.Bson.Serialization.Attributes;
 using System.Collections.Generic;
 
-namespace MongoDB.Client.Benchmarks.Serialization.Models
+namespace MongoDB.Client.Tests.Models
 {
     [BsonSerializable]
     public partial class SecondLevelDocument

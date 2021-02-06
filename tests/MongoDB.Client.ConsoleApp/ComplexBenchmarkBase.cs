@@ -1,48 +1,51 @@
-﻿using BenchmarkDotNet.Attributes;
-using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Tests.Models;
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
-namespace MongoDB.Client.Benchmarks
+namespace MongoDB.Client.ConsoleApp
 {
-    [MemoryDiagnoser]
     public class ComplexBenchmarkBase<T> where T : IIdentified
     {
         private MongoCollection<T> _collection;
         private T[] _items;
+        private readonly MongoDatabase _database;
 
-        [Params(1024)]
-        public int RequestsCount { get; set; }
+        public int RequestsCount { get; }
+        public int Parallelism { get; }
 
-        [Params(1, 4, 8, 16, 32, 64, 128, 256, 512)] public int Parallelism { get; set; }
+        public ComplexBenchmarkBase(MongoDatabase database, int parallelism, int requestsCount)
+        {
+            _database = database;
+            Parallelism = parallelism;
+            RequestsCount = requestsCount;
+        }
 
-        [GlobalSetup]
         public async Task Setup()
         {
-            var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
-            var dbName = "BenchmarkDb";
-            var client = new MongoClient(new DnsEndPoint(host, 27017));
-            await client.InitAsync();
-            var db = client.GetDatabase(dbName);
-
-
-            _collection = db.GetCollection<T>("Insert" + Guid.NewGuid().ToString());
+            _collection = _database.GetCollection<T>("Insert" + Guid.NewGuid().ToString());
 
             _items = new DatabaseSeeder().GenerateSeed<T>(RequestsCount).ToArray();
+            var set = new HashSet<BsonObjectId>();
+            foreach (var item in _items)
+            {
+                if (set.Add(item.Id) == false)
+                {
+                    throw new Exception("Duplicate id");
+                }
+            }
         }
 
 
-        [GlobalCleanup]
         public async Task Clean()
         {
             await _collection.DropAsync();
         }
 
-        protected async Task Run()
+        public async Task Run()
         {
             await Start(_collection, _items);
         }
@@ -58,7 +61,7 @@ namespace MongoDB.Client.Benchmarks
             }
             else
             {
-                var channel = Channel.CreateUnbounded<T>(new UnboundedChannelOptions { SingleWriter = true });
+                var channel = Channel.CreateBounded<T>(new BoundedChannelOptions(1) { SingleWriter = true });
                 var tasks = new Task[Parallelism];
                 for (int i = 0; i < Parallelism; i++)
                 {
@@ -96,14 +99,6 @@ namespace MongoDB.Client.Benchmarks
                 {
                     // channel complete
                 }
-
-                //while (await reader.WaitToReadAsync())
-                //{
-                //    while (reader.TryRead(out var item))
-                //    {
-                //        await Work(collection, item);
-                //    }
-                //}
             }
         }
     }

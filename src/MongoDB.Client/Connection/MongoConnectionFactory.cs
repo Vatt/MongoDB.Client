@@ -2,7 +2,6 @@
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Network;
 using MongoDB.Client.Network.Transport.Sockets.Internal;
-using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Channels;

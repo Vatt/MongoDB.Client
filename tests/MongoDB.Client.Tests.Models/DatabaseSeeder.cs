@@ -1,9 +1,8 @@
-﻿using MongoDB.Client.Bson.Document;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MongoDB.Client.Benchmarks.Serialization.Models
+namespace MongoDB.Client.Tests.Models
 {
     public class DatabaseSeeder
     {
