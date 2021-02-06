@@ -29,7 +29,7 @@ namespace MongoDB.Client.Benchmarks
             await client.InitAsync();
             var db = client.GetDatabase(dbName);
 
- 
+
             _collection = db.GetCollection<GeoIp>(Guid.NewGuid().ToString());
             _findCollection = db.GetCollection<GeoIp>("Find" + Guid.NewGuid().ToString());
 

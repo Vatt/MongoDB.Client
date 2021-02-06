@@ -1,7 +1,7 @@
 ﻿using MongoDB.Client.Bson.Document;
 using System.Collections.Generic;
 
-namespace MongoDB.Client.Benchmarks.Serialization.Models
+namespace MongoDB.Client.Tests.Models
 {
     internal class GeoIpSeeder
     {

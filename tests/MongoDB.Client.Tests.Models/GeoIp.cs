@@ -1,13 +1,14 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization.Attributes;
+﻿using MongoDB.Client.Bson.Serialization.Attributes;
 
-namespace MongoDB.Client.ConsoleApp
+namespace MongoDB.Client.Tests.Models
 {
     [BsonSerializable]
-    public partial class GeoIp
+    public partial class GeoIp : IIdentified
     {
         [BsonId]
-        public BsonObjectId Id { get; set; }
+        public Bson.Document.BsonObjectId Id { get; set; }
+
+
         public string status { get; set; }
         public string country { get; set; }
         public string countryCode { get; set; }

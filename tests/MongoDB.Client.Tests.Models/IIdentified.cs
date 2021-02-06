@@ -1,6 +1,6 @@
 ﻿using MongoDB.Client.Bson.Document;
 
-namespace MongoDB.Client.Benchmarks.Serialization.Models
+namespace MongoDB.Client.Tests.Models
 {
     public interface IIdentified
     {

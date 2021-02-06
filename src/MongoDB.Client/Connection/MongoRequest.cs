@@ -1,6 +1,5 @@
 ﻿using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
-using MongoDB.Client.Protocol.Messages;
 using System;
 using System.Threading;
 using System.Threading.Tasks;

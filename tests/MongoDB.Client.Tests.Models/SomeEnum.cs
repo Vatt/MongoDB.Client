@@ -1,4 +1,4 @@
-﻿namespace MongoDB.Client.ConsoleApp.Models
+﻿namespace MongoDB.Client.Tests.Models
 {
     public enum SomeEnum
     {
