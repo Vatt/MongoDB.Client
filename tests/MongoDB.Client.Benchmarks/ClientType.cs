@@ -8,6 +8,6 @@ namespace MongoDB.Client.Benchmarks
 {
     public enum ClientType
     {
-        Old, New
+        Old, New, NewExperimental
     }
 }
