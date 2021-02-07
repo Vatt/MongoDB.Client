@@ -4,7 +4,8 @@ using System.Collections.Generic;
 
 namespace MongoDB.Client.Tests.Models
 {
-    public class MediumModel : IIdentified
+    [BsonSerializable]
+    public partial class MediumModel : IIdentified
     {
         [BsonId]
         [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
