@@ -1,4 +1,5 @@
-﻿using MongoDB.Client.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson;
+using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Tests.Models
 {
@@ -6,7 +7,12 @@ namespace MongoDB.Client.Tests.Models
     public partial class GeoIp : IIdentified
     {
         [BsonId]
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
         public Bson.Document.BsonObjectId Id { get; set; }
+
+        [MongoDB.Bson.Serialization.Attributes.BsonId]
+        [BsonIgnore]
+        public ObjectId OldId { get; set; }
 
         public string status { get; set; }
         public string country { get; set; }

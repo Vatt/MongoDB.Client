@@ -6,10 +6,6 @@ namespace MongoDB.Client.Benchmarks
 {
     public class ComplexBenchmarkGeoIp : ComplexBenchmarkBase<GeoIp>
     {
-        [Benchmark]
-        public async Task ComplexBenchmarkNewClient()
-        {
-            await Run();
-        }
+
     }
 }
