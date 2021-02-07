@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Connections;
+using Microsoft.Extensions.Logging;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using System;
@@ -13,7 +14,8 @@ namespace MongoDB.Client.Connection
     {
         public int ConnectionId { get; }
         public int Threshold => 4;
-        private System.Net.Connections.Connection _connection;
+        //private System.Net.Connections.Connection _connection;
+        //private ConnectionContext _connection;
         private ILogger _logger;
         private ConcurrentDictionary<long, MongoRequest> _completions;
         private ProtocolReader _protocolReader;
@@ -51,11 +53,11 @@ namespace MongoDB.Client.Connection
                 await _protocolListenerTask.ConfigureAwait(false);
                 await _protocolReader.DisposeAsync().ConfigureAwait(false);
             }
-            if (_connection is not null)
-            {
-                //TODO: CHECK IT!
-                await _connection.DisposeAsync().ConfigureAwait(false);
-            }
+            //if (_connection is not null)
+            //{
+            //    //TODO: CHECK IT!
+            //    await _connection.DisposeAsync().ConfigureAwait(false);
+            //}
         }
     }
 }

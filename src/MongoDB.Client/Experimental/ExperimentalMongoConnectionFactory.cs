@@ -1,23 +1,24 @@
 ﻿using Microsoft.Extensions.Logging;
+using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
-using MongoDB.Client.Network;
-using MongoDB.Client.Network.Transport.Sockets.Internal;
+using System;
 using System.Net;
+using System.Net.Connections;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
-namespace MongoDB.Client.Connection
+namespace MongoDB.Client.Experimental
 {
-    internal class MongoConnectionFactory : IMongoConnectionFactory
+    internal class ExperimentalMongoConnectionFactory : IMongoConnectionFactory
     {
         internal static int CONNECTION_ID = 0;
-        private readonly NetworkConnectionFactory _networkFactory;
+        private readonly SocketsConnectionFactory _networkFactory;
         private readonly EndPoint _endPoint;
         private readonly ILoggerFactory _loggerFactory;
-        public MongoConnectionFactory(EndPoint endPoint, ILoggerFactory loggerFactory)
+        public ExperimentalMongoConnectionFactory(EndPoint endPoint, ILoggerFactory loggerFactory)
         {
-            _networkFactory = new NetworkConnectionFactory(loggerFactory);
+            _networkFactory = new SocketsConnectionFactory(System.Net.Sockets.AddressFamily.InterNetwork,System.Net.Sockets.SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
             _endPoint = endPoint;
             _loggerFactory = loggerFactory;
         }
@@ -31,7 +32,7 @@ namespace MongoDB.Client.Connection
             }
             var id = Interlocked.Increment(ref CONNECTION_ID);
             var connection = new MongoConnection(id, settings, _loggerFactory.CreateLogger<MongoConnection>(), reader, findReader);
-            await connection.StartAsync(context).ConfigureAwait(false);
+            await connection.StartAsyncExperimental(context).ConfigureAwait(false);
             return connection;
         }
     }

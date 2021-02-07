@@ -1,23 +1,24 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Connections;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MongoDB.Client.Network.Transport.Sockets;
 using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Net.Connections;
 namespace MongoDB.Client.Network
 {
     public class NetworkConnectionFactory
     {
-        SocketsConnectionFactory _factory;
+        IConnectionFactory _factory;
         public NetworkConnectionFactory(ILoggerFactory loggerFactory)
         {
-            _factory = new System.Net.Connections.SocketsConnectionFactory(System.Net.Sockets.SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+            _factory = new SocketConnectionFactory(Options.Create(new SocketTransportOptions()), loggerFactory);
         }
-        public ValueTask<System.Net.Connections.Connection?> ConnectAsync(EndPoint? endPoint, CancellationToken cancellationToken = default)
+        public ValueTask<ConnectionContext> ConnectAsync(EndPoint? endPoint, CancellationToken cancellationToken = default)
         {
             Debug.Assert(endPoint != null, nameof(endPoint) + " != null");
-            return _factory.ConnectAsync(endPoint);
+            return _factory.ConnectAsync(endPoint, cancellationToken);
         }
     }
 }
