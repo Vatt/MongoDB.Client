@@ -15,11 +15,16 @@ namespace MongoDB.Client.Connection
     public sealed partial class MongoConnection
     {
         private ConnectionInfo? _connectionInfo;
-        internal async ValueTask StartAsync(ConnectionContext connection, CancellationToken cancellationToken = default)
+ 
+
+        internal ValueTask StartAsync(ConnectionContext connection, CancellationToken cancellationToken = default)
         {
-            _connection = connection;
-            _protocolReader = _connection.CreateReader();
-            _protocolWriter = _connection.CreateWriter();
+            return StartAsync(connection.CreateReader(), connection.CreateWriter(), cancellationToken);
+        }
+        internal async ValueTask StartAsync(ProtocolReader reader, ProtocolWriter writer, CancellationToken cancellationToken)
+        {
+            _protocolReader = reader;
+            _protocolWriter = writer;
             _protocolListenerTask = StartProtocolListenerAsync();
             _connectionInfo = await DoConnectAsync(cancellationToken).ConfigureAwait(false);
             _channelListenerTask = StartChannelListerAsync();

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using MongoDB.Client.Experimental;
 using MongoDB.Client.Tests.Models;
 using System;
 using System.Collections.Generic;
@@ -28,7 +29,8 @@ namespace MongoDB.Client.ConsoleApp
                     .AddConsole();
             });
 
-            var client = new MongoClient(new DnsEndPoint(host, 27017), loggerFactory);
+            //var client = new MongoClient(new DnsEndPoint(host, 27017), loggerFactory);
+            var client = MongoExperimental.CreateWithExperimentalConnection(new DnsEndPoint(host, 27017), loggerFactory);
             await client.InitAsync();
             var db = client.GetDatabase("TestDb");
             var stopwatch = new Stopwatch();
