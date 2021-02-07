@@ -1,10 +1,10 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Client.Bson.Serialization.Attributes;
+using System.Collections.Generic;
 
 namespace MongoDB.Client.Tests.Models
 {
-    [BsonSerializable]
-    public partial class GeoIp : IIdentified
+    public class MediumModel : IIdentified
     {
         [BsonId]
         [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
@@ -14,6 +14,12 @@ namespace MongoDB.Client.Tests.Models
         [BsonIgnore]
         public ObjectId OldId { get; set; }
 
+        public List<GeoIpForMedium> GeoIps { get; set; }
+    }
+
+    [BsonSerializable]
+    public partial class GeoIpForMedium
+    {
         public string status { get; set; }
         public string country { get; set; }
         public string countryCode { get; set; }

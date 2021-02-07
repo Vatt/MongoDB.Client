@@ -1,4 +1,5 @@
-﻿using MongoDB.Client.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson;
+using MongoDB.Client.Bson.Serialization.Attributes;
 using System.Collections.Generic;
 
 namespace MongoDB.Client.Tests.Models
@@ -7,7 +8,13 @@ namespace MongoDB.Client.Tests.Models
     public partial class RootDocument : IIdentified
     {
         [BsonId]
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
         public Bson.Document.BsonObjectId Id { get; set; }
+
+        [MongoDB.Bson.Serialization.Attributes.BsonId]
+        [BsonIgnore]
+        public ObjectId OldId { get; set; }
+
         public string TextFieldOne { get; set; }
 
         public string TextFieldTwo { get; set; }

@@ -6,10 +6,6 @@ namespace MongoDB.Client.Benchmarks
 {
     public class ComplexBenchmarkRootDocument : ComplexBenchmarkBase<RootDocument>
     {
-        [Benchmark]
-        public async Task ComplexBenchmarkNewClient()
-        {
-            await Run();
-        }
+
     }
 }
