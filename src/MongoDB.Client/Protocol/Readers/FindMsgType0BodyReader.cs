@@ -67,8 +67,6 @@ namespace MongoDB.Client.Protocol.Readers
                         return false;
                     }
 #else
-                    // if (bsonReader.TryGetByte(out _) == false) { return false; }
-                    // if (bsonReader.TryGetCStringAsSpan(out _) == false) { return false; }
                     if (bsonReader.TryAdvanceTo(0) == false)
                     {
                         return false;
@@ -86,8 +84,7 @@ namespace MongoDB.Client.Protocol.Readers
                         }
                         else
                         {
-                            message = default;
-                            return false;
+                            ThrowHelper.InvalidBsonException();
                         }
                     }
                     else

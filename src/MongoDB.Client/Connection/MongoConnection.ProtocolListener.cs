@@ -53,8 +53,15 @@ namespace MongoDB.Client.Connection
 
                     if (_completions.TryRemove(message.Header.ResponseTo, out request))
                     {
-                        var result = await request.ParseAsync(_protocolReader, message).ConfigureAwait(false);
-                        request.CompletionSource.TrySetResult(result);
+                        try
+                        {
+                            var result = await request.ParseAsync(_protocolReader, message).ConfigureAwait(false);
+                            request.CompletionSource.TrySetResult(result);
+                        }
+                        catch (Exception e)
+                        {
+                            request.CompletionSource.SetException(e);
+                        }
                     }
                     else
                     {
