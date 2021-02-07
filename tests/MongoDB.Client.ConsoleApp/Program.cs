@@ -12,7 +12,7 @@ namespace MongoDB.Client.ConsoleApp
     {
         static async Task Main(string[] args)
         {
-            await LoadTest<GeoIp>(1024 * 1024, new[] { 512 });
+            await LoadTest<GeoIp>(1024, new[] { 1 });
 
             Console.WriteLine("Done");
         }

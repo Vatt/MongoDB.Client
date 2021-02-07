@@ -42,7 +42,7 @@ namespace MongoDB.Client.Protocol.Readers
                     return false;
                 }
 
-                _readed += bsonReader.BytesConsumed - checkpoint;
+                Advance(bsonReader.BytesConsumed - checkpoint);
                 _modelsLength = modelsLength - 4;
                 _docLength = docLength;
                 consumed = bsonReader.Position;
@@ -78,7 +78,7 @@ namespace MongoDB.Client.Protocol.Readers
                         {
                             items.Add(item);
                             _modelsReaded += bsonReader.BytesConsumed - checkpoint;
-                            _readed += bsonReader.BytesConsumed - checkpoint;
+                            Advance(bsonReader.BytesConsumed - checkpoint);
                             consumed = bsonReader.Position;
                             examined = bsonReader.Position;
                         }
@@ -104,7 +104,7 @@ namespace MongoDB.Client.Protocol.Readers
                     return false;
                 }
 
-                _readed += 1;
+                Advance(1);
                 consumed = bsonReader.Position;
                 examined = bsonReader.Position;
                 _state = ParserState.Cursor;
@@ -118,14 +118,14 @@ namespace MongoDB.Client.Protocol.Readers
                     return false;
                 }
 
-                _readed += bsonReader.BytesConsumed - checkpoint;
+                Advance(bsonReader.BytesConsumed - checkpoint);
                 consumed = bsonReader.Position;
                 examined = bsonReader.Position;
                 _state = ParserState.Complete;
             }
 
-            Debug.Assert(_docLength == _readed);
-            Debug.Assert(_readed == _payloadLength - 21); // message header + msg flags + payloadType;
+
+            Debug.Assert(Message.Consumed == Message.Header.MessageLength);
 
             Complete = _state == ParserState.Complete;
 
