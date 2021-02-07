@@ -1,6 +1,6 @@
-﻿using System.Linq;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
@@ -35,17 +35,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     {
 
                         var parseMethodSym = method as IMethodSymbol;
-                        if(parseMethodSym.ReturnType.SpecialType != SpecialType.System_Boolean)
+                        if (parseMethodSym.ReturnType.SpecialType != SpecialType.System_Boolean)
                         {
                             return false;
                         }
-                        if(parseMethodSym!.Parameters.Length != 2)
+                        if (parseMethodSym!.Parameters.Length != 2)
                         {
                             return false;
                         }
                         bool haveReader = false;
                         bool haveResult = false;
-                        if(parseMethodSym.Parameters[0].RefKind == RefKind.Ref && parseMethodSym.Parameters[0].Type.ToString().Equals("MongoDB.Client.Bson.Reader.BsonReader"))
+                        if (parseMethodSym.Parameters[0].RefKind == RefKind.Ref && parseMethodSym.Parameters[0].Type.ToString().Equals("MongoDB.Client.Bson.Reader.BsonReader"))
                         {
                             haveReader = true;
                         }

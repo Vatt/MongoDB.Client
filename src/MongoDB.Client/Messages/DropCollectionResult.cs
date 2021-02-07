@@ -1,6 +1,4 @@
-﻿using MongoDB.Client.Bson.Reader;
-using MongoDB.Client.Bson.Serialization.Attributes;
-using System;
+﻿using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Messages
 {

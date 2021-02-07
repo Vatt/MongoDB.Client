@@ -2,7 +2,7 @@
 
 namespace MongoDB.Client.Benchmarks
 {
-    public class ComplexBenchmarkGeoIp : ComplexBenchmarkBase<GeoIp>
+    public class ComplexBenchmarkMediumModel : ComplexBenchmarkBase<MediumModel>
     {
 
     }

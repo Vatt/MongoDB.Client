@@ -7,7 +7,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics
     static class GeneratorDiagnostics
     {
         private static GeneratorExecutionContext _ctx;
-        
+
         private static readonly string UnhandledExceptionError = "MONGO00";
         private static readonly string UnsuportedTypeError = "MONGO01";
         private static readonly string UnsuportedGenericTypeError = "MONGO02";
@@ -21,7 +21,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics
         {
             var st = ex.StackTrace.Replace('\n', ' ').Replace('\r', ' ');
             var message = $"Generator unhandled error - {ex.Message}{st}";
-            _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(UnhandledExceptionError, "Generation failed", 
+            _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(UnhandledExceptionError, "Generation failed",
                 message, "SourceGenerator", DiagnosticSeverity.Error, true), Location.None));
         }
         public static void ReportUnhandledException(string message, ISymbol sym)

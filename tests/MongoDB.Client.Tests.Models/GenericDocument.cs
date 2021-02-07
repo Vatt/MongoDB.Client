@@ -1,8 +1,8 @@
-using MongoDB.Client.Bson.Serialization.Attributes;
+﻿using MongoDB.Client.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
 
-namespace MongoDB.Client.Benchmarks.Serialization.Models
+namespace MongoDB.Client.Tests.Models
 {
     [BsonSerializable]
     public partial record AnotherNonGenericModel0(int A, int B, int C);
