@@ -13,7 +13,7 @@ namespace MongoDB.Client.Connection
 
     internal partial class RequestScheduler : IAsyncDisposable
     {
-        private readonly MongoConnectionFactory _connectionFactory;
+        private readonly IMongoConnectionFactory _connectionFactory;
         private readonly List<MongoConnection> _connections;
         private readonly Channel<MongoRequest> _channel;
         private readonly Channel<MongoRequest> _findChannel;
@@ -21,7 +21,7 @@ namespace MongoDB.Client.Connection
         private readonly ChannelWriter<MongoRequest> _cursorChannel;
         private readonly MongoClientSettings _settings;
         private static int _counter;
-        public RequestScheduler(MongoClientSettings settings, MongoConnectionFactory connectionFactory)
+        public RequestScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory)
         {
             _connectionFactory = connectionFactory;
             //var options = new UnboundedChannelOptions(settings.ConnectionPoolMaxSize){ FullMode = BoundedChannelFullMode.Wait};
@@ -53,7 +53,7 @@ namespace MongoDB.Client.Connection
         }
         private ValueTask<MongoConnection> CreateNewConnection()
         {
-            return _connectionFactory.Create(_settings, _channel.Reader, _findChannel.Reader);
+            return _connectionFactory.CreateAsync(_settings, _channel.Reader, _findChannel.Reader);
         }
         internal async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token = default)
         {

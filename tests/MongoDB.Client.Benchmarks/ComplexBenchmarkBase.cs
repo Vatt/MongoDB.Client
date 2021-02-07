@@ -1,5 +1,7 @@
 ﻿using BenchmarkDotNet.Attributes;
+using Microsoft.Extensions.Logging.Abstractions;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Experimental;
 using MongoDB.Client.Tests.Models;
 using MongoDB.Driver;
 using System;
@@ -22,7 +24,7 @@ namespace MongoDB.Client.Benchmarks
 
         [Params(1, 4, 8, 16, 32, 64, 128, 256, 512)] public int Parallelism { get; set; }
 
-        [Params(ClientType.Old, ClientType.New)]
+        [Params(ClientType.Old, ClientType.New, ClientType.NewExperimental)]
         public ClientType ClientType { get; set; }
 
         [GlobalSetup]
@@ -41,11 +43,15 @@ namespace MongoDB.Client.Benchmarks
                 case ClientType.New:
                     await InitNewClient(host, dbName, collectionName);
                     break;
+                case ClientType.NewExperimental:
+                    await InitNewClientExperimental(host, dbName, collectionName);
+                    break;
                 default:
                     throw new NotSupportedException(ClientType.ToString());
             }
 
-            await InitNewClient(host, dbName, collectionName);
+            //await InitNewClient(host, dbName, collectionName);
+            //await InitNewClientExperimental(host, dbName, collectionName);
         }
 
         private async Task InitNewClient(string host, string dbName, string collectionName)
@@ -55,7 +61,13 @@ namespace MongoDB.Client.Benchmarks
             var db = client.GetDatabase(dbName);
             _collection = db.GetCollection<T>(collectionName);
         }
-
+        private async Task InitNewClientExperimental(string host, string dbName, string collectionName)
+        {
+            var client = MongoExperimental.CreateWithExperimentalConnection(new DnsEndPoint(host, 27017), new NullLoggerFactory());
+            await client.InitAsync();
+            var db = client.GetDatabase(dbName);
+            _collection = db.GetCollection<T>(collectionName);
+        }
         private void InitOldClient(string host, string dbName, string collectionName)
         {
             var oldClient = new MongoDB.Driver.MongoClient($"mongodb://{host}:27017");
@@ -74,6 +86,9 @@ namespace MongoDB.Client.Benchmarks
                 case ClientType.New:
                     await _collection.DropAsync();
                     break;
+                case ClientType.NewExperimental:
+                    await _collection.DropAsync();
+                    break;
                 default:
                     throw new NotSupportedException(ClientType.ToString());
             }
@@ -88,6 +103,9 @@ namespace MongoDB.Client.Benchmarks
                     await StartOld(_oldCollection, _items);
                     break;
                 case ClientType.New:
+                    await StartNew(_collection, _items);
+                    break;
+                case ClientType.NewExperimental:
                     await StartNew(_collection, _items);
                     break;
                 default:
