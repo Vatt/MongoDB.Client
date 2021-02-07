@@ -16,6 +16,10 @@ namespace MongoDB.Client.Tests.Models
             {
                 return new GeoIpSeeder().GenerateSeed(count).Select(d => (T)(object)d).ToArray();
             }
+            if (typeof(T) == typeof(MediumModel))
+            {
+                return new MediumModelSeeder().GenerateSeed(count).Select(d => (T)(object)d).ToArray();
+            }
             throw new NotSupportedException();
         }
     }
