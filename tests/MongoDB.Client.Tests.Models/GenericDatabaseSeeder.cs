@@ -1,22 +1,20 @@
 ﻿using MongoDB.Client.Bson.Document;
 using System;
 using System.Collections.Generic;
-using GenericDocument = MongoDB.Client.Benchmarks.Serialization.Models.GenericDocument<double, string, MongoDB.Client.Bson.Document.BsonDocument, MongoDB.Client.Bson.Document.BsonObjectId, int, long,
-                                                                                        System.DateTimeOffset, System.Guid,
-                                                                                        MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<int>,
-                                                                                        MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<string>>;
-using SmallGenericDocument = MongoDB.Client.Benchmarks.Serialization.Models.SmallGenericDocument<MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<int>, MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<string>>;
+using GenericDocument = MongoDB.Client.Tests.Models.GenericDocument<double, string, MongoDB.Client.Bson.Document.BsonDocument, MongoDB.Client.Bson.Document.BsonObjectId, int, long,
+                                                                                        System.DateTimeOffset, System.Guid, MongoDB.Client.Tests.Models.AnotherGenericModel<int>, MongoDB.Client.Tests.Models.AnotherGenericModel<string>>;
+using SmallGenericDocument = MongoDB.Client.Tests.Models.SmallGenericDocument<MongoDB.Client.Tests.Models.AnotherGenericModel<int>, MongoDB.Client.Tests.Models.AnotherGenericModel<string>>;
 namespace MongoDB.Client.Benchmarks.Serialization.Models
 {
 
     public class GenericDatabaseSeeder
     {
-        public IEnumerable<NonGenericDocument> GenerateSeed(int count = 500)
+        public IEnumerable<Tests.Models.NonGenericDocument> GenerateSeed(int count = 500)
         {
             Console.WriteLine("Seeding a database for experiment....");
             yield return CreateTestDocument(count);
         }
-        public IEnumerable<SmallNonGenericDocument> GenerateSmallSeed(int count = 500)
+        public IEnumerable<Tests.Models.SmallNonGenericDocument> GenerateSmallSeed(int count = 500)
         {
             Console.WriteLine("Seeding a database for experiment....");
             yield return GenerateSmallNonGenericDocument();
@@ -31,9 +29,9 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
             Console.WriteLine("Seeding a database for experiment....");
             yield return GenerateSmallGenericDocument();
         }
-        private NonGenericDocument CreateTestDocument(int itemsInList)
+        private Tests.Models.NonGenericDocument CreateTestDocument(int itemsInList)
         {
-            NonGenericDocument doc = new()
+            Tests.Models.NonGenericDocument doc = new()
             {
                 Field0 = 100500,
                 Field1 = "100500",
@@ -43,8 +41,8 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
                 Field5 = 42,
                 Field6 = DateTimeOffset.UtcNow,
                 Field7 = Guid.NewGuid(),
-                Field8 = new AnotherNonGenericModel0(42, 42, 42),
-                Field9 = new AnotherNonGenericModel1("42", "42", "42"),
+                Field8 = new Tests.Models.AnotherNonGenericModel0(42, 42, 42),
+                Field9 = new Tests.Models.AnotherNonGenericModel1("42", "42", "42"),
                 List0 = new(),
                 List1 = new(),
                 List2 = new(),
@@ -67,8 +65,8 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
                 doc.List5.Add(42);
                 doc.List6.Add(DateTimeOffset.UtcNow);
                 doc.List7.Add(Guid.NewGuid());
-                doc.List8.Add(new AnotherNonGenericModel0(42, 42, 42));
-                doc.List9.Add(new AnotherNonGenericModel1("42", "42", "42"));
+                doc.List8.Add(new Tests.Models.AnotherNonGenericModel0(42, 42, 42));
+                doc.List9.Add(new Tests.Models.AnotherNonGenericModel1("42", "42", "42"));
             }
             return doc;
         }
@@ -84,8 +82,8 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
                 Field5 = 42,
                 Field6 = DateTimeOffset.UtcNow,
                 Field7 = Guid.NewGuid(),
-                Field8 = new AnotherGenericModel<int>(42, 42, 42),
-                Field9 = new AnotherGenericModel<string>("42", "42", "42"),
+                Field8 = new Tests.Models.AnotherGenericModel<int>(42, 42, 42),
+                Field9 = new Tests.Models.AnotherGenericModel<string>("42", "42", "42"),
                 List0 = new(),
                 List1 = new(),
                 List2 = new(),
@@ -108,8 +106,8 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
                 doc.List5.Add(42);
                 doc.List6.Add(DateTimeOffset.UtcNow);
                 doc.List7.Add(Guid.NewGuid());
-                doc.List8.Add(new AnotherGenericModel<int>(42, 42, 42));
-                doc.List9.Add(new AnotherGenericModel<string>("42", "42", "42"));
+                doc.List8.Add(new Tests.Models.AnotherGenericModel<int>(42, 42, 42));
+                doc.List9.Add(new Tests.Models.AnotherGenericModel<string>("42", "42", "42"));
             }
             return doc;
         }
@@ -125,13 +123,13 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
                 Field5 = 42,
                 Field6 = DateTimeOffset.UtcNow,
                 Field7 = Guid.NewGuid(),
-                Field8 = new AnotherGenericModel<int>(42, 42, 42),
-                Field9 = new AnotherGenericModel<string>("42", "42", "42"),
+                Field8 = new Tests.Models.AnotherGenericModel<int>(42, 42, 42),
+                Field9 = new Tests.Models.AnotherGenericModel<string>("42", "42", "42"),
             };
         }
-        private SmallNonGenericDocument GenerateSmallNonGenericDocument()
+        private Tests.Models.SmallNonGenericDocument GenerateSmallNonGenericDocument()
         {
-            return new SmallNonGenericDocument()
+            return new Tests.Models.SmallNonGenericDocument()
             {
                 Field0 = 100500,
                 Field1 = "100500",
@@ -141,8 +139,8 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
                 Field5 = 42,
                 Field6 = DateTimeOffset.UtcNow,
                 Field7 = Guid.NewGuid(),
-                Field8 = new AnotherNonGenericModel0(42, 42, 42),
-                Field9 = new AnotherNonGenericModel1("42", "42", "42"),
+                Field8 = new Tests.Models.AnotherNonGenericModel0(42, 42, 42),
+                Field9 = new Tests.Models.AnotherNonGenericModel1("42", "42", "42"),
             };
         }
     }

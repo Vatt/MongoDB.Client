@@ -1,6 +1,6 @@
 ﻿using MongoDB.Client.Bson.Serialization.Attributes;
 
-namespace MongoDB.Client.Benchmarks.Serialization
+namespace MongoDB.Client.Tests.Models
 {
     [BsonSerializable]
     public partial class SimpleModel

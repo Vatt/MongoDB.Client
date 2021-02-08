@@ -4,11 +4,12 @@ using MongoDB.Client.Benchmarks.Serialization.Models;
 using System.Linq;
 using BsonReader = MongoDB.Client.Bson.Reader.BsonReader;
 using BsonWriter = MongoDB.Client.Bson.Writer.BsonWriter;
-using GenericDocument = MongoDB.Client.Benchmarks.Serialization.Models.GenericDocument<double, string, MongoDB.Client.Bson.Document.BsonDocument, MongoDB.Client.Bson.Document.BsonObjectId, int, long,
-                                                                                        System.DateTimeOffset, System.Guid,
-                                                                                        MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<int>,
-                                                                                        MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<string>>;
-using SmallGenericDocument = MongoDB.Client.Benchmarks.Serialization.Models.SmallGenericDocument<MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<int>, MongoDB.Client.Benchmarks.Serialization.Models.AnotherGenericModel<string>>;
+using GenericDocument = MongoDB.Client.Tests.Models.GenericDocument<double, string, MongoDB.Client.Bson.Document.BsonDocument, MongoDB.Client.Bson.Document.BsonObjectId, int, long,
+                                                                                        System.DateTimeOffset, System.Guid, MongoDB.Client.Tests.Models.AnotherGenericModel<int>, MongoDB.Client.Tests.Models.AnotherGenericModel<string>>;
+using NonGenericDocument = MongoDB.Client.Tests.Models.NonGenericDocument;
+using SmallGenericDocument = MongoDB.Client.Tests.Models.SmallGenericDocument<MongoDB.Client.Tests.Models.AnotherGenericModel<int>, MongoDB.Client.Tests.Models.AnotherGenericModel<string>>;
+using SmallNonGenericDocument = MongoDB.Client.Tests.Models.SmallNonGenericDocument;
+
 namespace MongoDB.Client.Benchmarks
 {
     [MemoryDiagnoser]

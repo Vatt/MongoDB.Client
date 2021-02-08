@@ -10,6 +10,13 @@ namespace MongoDB.Client
     {
         public MongoClientSettings Settings { get; }
         private readonly RequestScheduler _scheduler;
+
+        internal MongoClient(MongoClientSettings settings, IMongoConnectionFactory factory, ILoggerFactory loggerFactory)
+        {
+            Settings = settings;
+            _scheduler = new RequestScheduler(settings, factory);
+        }
+
         public MongoClient()
          : this(new MongoClientSettings(), new NullLoggerFactory())
         {
@@ -33,9 +40,9 @@ namespace MongoDB.Client
         public MongoClient(MongoClientSettings settings, ILoggerFactory loggerFactory)
         {
             Settings = settings;
-            //_channelsPool = new NodeConnectionsPool(settings, settings.Endpoints[0], loggerFactory);
             _scheduler = new RequestScheduler(settings, new MongoConnectionFactory(settings.Endpoints[0], loggerFactory));
         }
+
         public MongoClient(string connectionString, ILoggerFactory loggerFactory)
             : this(MongoClientSettings.FromConnectionString(connectionString), loggerFactory)
         {

@@ -44,7 +44,7 @@ namespace MongoDB.Client.Connection
             //        }
             //    }
             //}
-            while(!_shutdownCts.IsCancellationRequested)
+            while (!_shutdownCts.IsCancellationRequested)
             {
                 var request = await _findReader.ReadAsync(_shutdownCts.Token).ConfigureAwait(false);
                 _completions.GetOrAdd(request.RequestNumber, request);
