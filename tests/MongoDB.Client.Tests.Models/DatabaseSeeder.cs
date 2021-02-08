@@ -1,9 +1,8 @@
-﻿using MongoDB.Client.Bson.Document;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MongoDB.Client.Benchmarks.Serialization.Models
+namespace MongoDB.Client.Tests.Models
 {
     public class DatabaseSeeder
     {
@@ -16,6 +15,10 @@ namespace MongoDB.Client.Benchmarks.Serialization.Models
             if (typeof(T) == typeof(GeoIp))
             {
                 return new GeoIpSeeder().GenerateSeed(count).Select(d => (T)(object)d).ToArray();
+            }
+            if (typeof(T) == typeof(MediumModel))
+            {
+                return new MediumModelSeeder().GenerateSeed(count).Select(d => (T)(object)d).ToArray();
             }
             throw new NotSupportedException();
         }

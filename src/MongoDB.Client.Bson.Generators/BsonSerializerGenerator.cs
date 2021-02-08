@@ -34,7 +34,7 @@ namespace MongoDB.Client.Bson.Generators
                     //System.Diagnostics.Debugger.Break();
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 GeneratorDiagnostics.ReportUnhandledException(ex);
             }

@@ -1,6 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
-using MongoDB.Bson;
-using MongoDB.Client.Benchmarks.Serialization.Models;
+using MongoDB.Client.Tests.Models;
 using MongoDB.Driver;
 using System;
 using System.Net;
@@ -64,15 +63,6 @@ namespace MongoDB.Client.Benchmarks
             await _collection.InsertAsync(_item);
             var result = await _collection.Find(Empty).FirstOrDefaultAsync();
             var deleteResult = await _collection.DeleteOneAsync(Empty);
-        }
-
-        [Benchmark]
-        public async Task OldClientInsertFindRemove()
-        {
-            _item.OldId = ObjectId.GenerateNewId();
-            await _oldCollection.InsertOneAsync(_item);
-            var result = await _oldCollection.Find(FilterDefinition<GeoIp>.Empty).FirstOrDefaultAsync();
-            var deleteResult = await _oldCollection.DeleteOneAsync(FilterDefinition<GeoIp>.Empty);
         }
     }
 }

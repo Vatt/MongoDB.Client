@@ -15,7 +15,7 @@ namespace MongoDB.Client.Connection
 
     internal partial class RequestScheduler //: IAsyncDisposable
     {
-        private readonly MongoConnectionFactory _connectionFactory;
+        private readonly IMongoConnectionFactory _connectionFactory;
         private ImmutableArray<MongoConnection> _connections = ImmutableArray<MongoConnection>.Empty;
         private readonly MongoClientSettings _settings;
         private static int _counter;
@@ -23,7 +23,7 @@ namespace MongoDB.Client.Connection
         private int _channelNumber;
         private static readonly Random Random = new();
         private readonly SemaphoreSlim _channelAllocateLock = new(1);
-        public RequestScheduler(MongoClientSettings settings, MongoConnectionFactory connectionFactory)
+        public RequestScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory)
         {
             _connectionFactory = connectionFactory;
             _settings = settings;
@@ -98,7 +98,7 @@ namespace MongoDB.Client.Connection
         private async Task<MongoConnection> CreateChannelAsync(CancellationToken token)
         {
             var channelNum = Interlocked.Increment(ref _channelNumber);
-            var channel = await _connectionFactory.Create(_settings);
+            var channel = await _connectionFactory.CreateAsync(_settings);
             return channel;
         }
         internal async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token = default)

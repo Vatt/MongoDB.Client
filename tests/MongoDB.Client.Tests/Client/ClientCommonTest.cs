@@ -1,11 +1,7 @@
-﻿using MongoDB.Client.Test.Models;
-using MongoDB.Client.Tests.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using MongoDB.Client.Tests.Models;
 using System.Threading.Tasks;
 using Xunit;
+using CommonModel = MongoDB.Client.Tests.Models.CommonModel;
 
 namespace MongoDB.Client.Tests.Client
 {

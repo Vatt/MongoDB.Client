@@ -1,6 +1,6 @@
 ﻿using BenchmarkDotNet.Attributes;
-using MongoDB.Client.Benchmarks.Serialization.Models;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Tests.Models;
 using System;
 using System.Net;
 using System.Threading.Channels;
@@ -29,7 +29,7 @@ namespace MongoDB.Client.Benchmarks
             await client.InitAsync();
             var db = client.GetDatabase(dbName);
 
- 
+
             _collection = db.GetCollection<GeoIp>(Guid.NewGuid().ToString());
             _findCollection = db.GetCollection<GeoIp>("Find" + Guid.NewGuid().ToString());
 

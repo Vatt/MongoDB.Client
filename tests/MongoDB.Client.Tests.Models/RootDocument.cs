@@ -1,13 +1,20 @@
-﻿using MongoDB.Client.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson;
+using MongoDB.Client.Bson.Serialization.Attributes;
 using System.Collections.Generic;
 
-namespace MongoDB.Client.ConsoleApp.Models
+namespace MongoDB.Client.Tests.Models
 {
     [BsonSerializable]
-    public partial class RootDocument
+    public partial class RootDocument : IIdentified
     {
         [BsonId]
-        public MongoDB.Client.Bson.Document.BsonObjectId Id { get; set; }
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
+        public Bson.Document.BsonObjectId Id { get; set; }
+
+        [MongoDB.Bson.Serialization.Attributes.BsonId]
+        [BsonIgnore]
+        public ObjectId OldId { get; set; }
+
         public string TextFieldOne { get; set; }
 
         public string TextFieldTwo { get; set; }

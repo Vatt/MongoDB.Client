@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 namespace MongoDB.Client.Network
 {
-    public class NetworkConnectionFactory
+    public class NetworkConnectionFactory 
     {
         IConnectionFactory _factory;
         public NetworkConnectionFactory(ILoggerFactory loggerFactory)

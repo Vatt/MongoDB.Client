@@ -1,10 +1,10 @@
 ﻿using BenchmarkDotNet.Attributes;
-using MongoDB.Client.Benchmarks.Serialization;
 using MongoDB.Driver;
 using System;
 using System.Net;
 using System.Threading.Tasks;
 using BsonDocument = MongoDB.Client.Bson.Document.BsonDocument;
+using SimpleModel = MongoDB.Client.Tests.Models.SimpleModel;
 
 namespace MongoDB.Client.Benchmarks
 {

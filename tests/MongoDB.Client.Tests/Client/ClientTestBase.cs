@@ -1,9 +1,6 @@
 ﻿using MongoDB.Client.Bson.Document;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace MongoDB.Client.Tests.Client
@@ -13,10 +10,10 @@ namespace MongoDB.Client.Tests.Client
         protected string Host { get; init; } = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
         protected string DB { get; init; } = "TestDb";
         protected string Collection { get; init; } = "TestCollection";
-        protected MongoClient Client { get; init; } 
+        protected MongoClient Client { get; init; }
         public ClientTestBase()
         {
-           Client = new MongoClient(new DnsEndPoint(Host, 27017));
+            Client = new MongoClient(new DnsEndPoint(Host, 27017));
         }
         protected async Task<T> InsertFindDeleteAsync<T>(T data)
         {

@@ -1,3 +1,4 @@
+using MongoDB.Client.Connection;
 using MongoDB.Client.Utils;
 using System;
 using System.Collections.Immutable;

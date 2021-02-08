@@ -1,19 +1,15 @@
 ﻿using MongoDB.Client.Bson.Document;
-using System;
 using System.Collections.Generic;
 
-namespace MongoDB.Client.ConsoleApp.Models
+namespace MongoDB.Client.Tests.Models
 {
-    public partial class DatabaseSeeder
+    public class RootDocumentSeeder
     {
-        public IEnumerable<RootDocument> GenerateSeed(int count = 500)
+        public IEnumerable<RootDocument> GenerateSeed(int count)
         {
-            Console.WriteLine("Seeding a database for experiment....");
-
             const int innerDocumentOneCount = 50;
             const int innerDocumentTwoCount = 25;
             const int innerDocumentThreeCount = 5;
-
             for (var i = 0; i < count; i++)
             {
                 var complexDocument = CreateTestComplexDocument(i);
@@ -21,17 +17,17 @@ namespace MongoDB.Client.ConsoleApp.Models
 
                 for (var j = 0; j < innerDocumentOneCount; j++)
                 {
-                    var firstLevelDocument = CreateTestInnerDocumentOne(j);
+                    var firstLevelDocument = CreateTestInnerDocumentOne(i);
                     firstLevelDocument.InnerDocuments = new List<SecondLevelDocument>();
 
                     for (var k = 0; k < innerDocumentTwoCount; k++)
                     {
-                        var secondLevelDocument = CreateTestInnerDocumentTwo(k);
+                        var secondLevelDocument = CreateTestInnerDocumentTwo(i);
                         secondLevelDocument.InnerDocuments = new List<ThirdLevelDocument>();
 
                         for (var l = 0; l < innerDocumentThreeCount; l++)
                         {
-                            var thirdLevelDocument = CreateTestInnerDocumentThree(l);
+                            var thirdLevelDocument = CreateTestInnerDocumentThree(i);
                             secondLevelDocument.InnerDocuments.Add(thirdLevelDocument);
                         }
 

@@ -1,6 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
-using MongoDB.Bson;
-using MongoDB.Client.Benchmarks.Serialization.Models;
+using MongoDB.Client.Tests.Models;
 using MongoDB.Driver;
 using System;
 using System.Net;
@@ -64,13 +63,6 @@ namespace MongoDB.Client.Benchmarks
         {
             _item.Id = MongoDB.Client.Bson.Document.BsonObjectId.NewObjectId();
             await _collection.InsertAsync(_item);
-        }
-
-        [Benchmark]
-        public async Task OldClientInsertOneItem()
-        {
-            _item.OldId = ObjectId.GenerateNewId();
-            await _oldCollection.InsertOneAsync(_item);
         }
     }
 }

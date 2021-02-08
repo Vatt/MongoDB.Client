@@ -1,5 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
-using MongoDB.Client.Benchmarks.Serialization.Models;
+using MongoDB.Client.Tests.Models;
 using MongoDB.Driver;
 using System;
 using System.Linq;

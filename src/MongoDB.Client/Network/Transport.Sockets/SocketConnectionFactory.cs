@@ -52,7 +52,8 @@ namespace MongoDB.Client.Network.Transport.Sockets
                 _options.MaxReadBufferSize,
                 _options.MaxWriteBufferSize,
                 _options.WaitForDataBeforeAllocatingBuffer,
-                _options.UnsafePreferInlineScheduling);
+                //_options.UnsafePreferInlineScheduling);
+                true);
 
             socketConnection.Start();
             return socketConnection;
