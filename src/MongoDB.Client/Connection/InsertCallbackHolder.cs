@@ -17,12 +17,6 @@ namespace MongoDB.Client.Connection
         public static Func<ProtocolReader, MongoResponseMessage, ValueTask<IParserResult>>? Parser;
         private static readonly IMessageWriter<InsertMessage<T>> InsertMessageWriter;
         private static readonly InsertMsgType0BodyReader InsertBodyReader = new InsertMsgType0BodyReader();
-        //static unsafe InsertCallbackHolder()
-        //{
-        //    SerializersMap.TryGetSerializer<T>(out var serializer);
-        //    WriterFnPtr = SerializerFnPtrProvider<T>.WriteFnPtr;
-        //    InsertMessageWriter = WriterFnPtr != null ? new InsertMessageWriterUnsafe<T>() : new InsertMessageWriter<T>(serializer);
-        //}
 
         static unsafe InsertCallbackHolder()
         {

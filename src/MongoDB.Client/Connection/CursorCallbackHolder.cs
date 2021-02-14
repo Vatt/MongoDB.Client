@@ -9,16 +9,8 @@ namespace MongoDB.Client.Connection
 {
     internal static partial class CursorCallbackHolder<T>
     {
-        private static readonly IGenericBsonSerializer<T> _serializer;
+        private static readonly IGenericBsonSerializer<T>? _serializer;
         internal static readonly unsafe delegate*<ref Bson.Reader.BsonReader, out T, bool> TryParseFnPtr;
-        //static CursorCallbackHolder()
-        //{
-        //    SerializersMap.TryGetSerializer(out _serializer);
-        //    unsafe
-        //    {
-        //        TryParseFnPtr = SerializerFnPtrProvider<T>.TryParseFnPtr;
-        //    }
-        //}
 
         static unsafe CursorCallbackHolder()
         {
@@ -52,7 +44,7 @@ namespace MongoDB.Client.Connection
                         }
                         else
                         {
-                            bodyReader = new FindMsgType0BodyReader<T>(_serializer, msgMessage);
+                            bodyReader = new FindMsgType0BodyReader<T>(_serializer!, msgMessage);
                         }
                     }
 
