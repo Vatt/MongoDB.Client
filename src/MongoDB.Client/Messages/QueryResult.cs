@@ -11,8 +11,8 @@ namespace MongoDB.Client.Messages
         private IList<T>? _other;
 
         // Static lists to store real length (-1 field in struct)
-        private static readonly IList<T> LengthIs1 = new List<T> { default };
-        private static readonly IList<T> LengthIs2 = new List<T> { default, default };
+        private static readonly IList<T> LengthIs1 = new List<T> { default! };
+        private static readonly IList<T> LengthIs2 = new List<T> { default!, default! };
 
         public QueryResult(long cursorId)
         {
@@ -37,12 +37,14 @@ namespace MongoDB.Client.Messages
             {
                 if (ReferenceEquals(_other, LengthIs2))
                 {
-                    _other = new List<T>(8);
-                    _other.Add(_items.Item1);
-                    _items.Item1 = default;
+                    _other = new List<T>(8)
+                    {
+                        _items.Item1
+                    };
+                    _items.Item1 = default!;
 
                     _other.Add(_items.Item2);
-                    _items.Item2 = default;
+                    _items.Item2 = default!;
                 }
 
                 _other.Add(item);
@@ -77,7 +79,7 @@ namespace MongoDB.Client.Messages
                 if (_other == null || index >= Count || index < 0)
                     throw new IndexOutOfRangeException();
 
-                if (_other?.Count > Capacity) return _other[index];
+                if (_other.Count > Capacity) return _other[index];
                 if (_other.Count > 0 && index == 0) return _items.Item1;
                 if (_other.Count > 1 && index == 1) return _items.Item2;
 

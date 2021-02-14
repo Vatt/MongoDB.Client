@@ -77,8 +77,8 @@ namespace MongoDB.Client.Connection
         {
             string osType;
             string osName;
-            string architecture;
-            string osVersion;
+            string? architecture;
+            string? osVersion;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -121,7 +121,7 @@ namespace MongoDB.Client.Connection
             return CreateOSDocument(osType, osName, architecture, osVersion);
         }
 
-        private static BsonDocument CreateOSDocument(string osType, string osName, string architecture, string osVersion)
+        private static BsonDocument CreateOSDocument(string osType, string osName, string? architecture, string? osVersion)
         {
             return new BsonDocument
             {

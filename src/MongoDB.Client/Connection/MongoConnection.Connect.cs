@@ -15,7 +15,7 @@ namespace MongoDB.Client.Connection
     public sealed partial class MongoConnection
     {
         private ConnectionInfo? _connectionInfo;
- 
+
 
         internal ValueTask StartAsync(ConnectionContext connection, CancellationToken cancellationToken = default)
         {
@@ -52,6 +52,7 @@ namespace MongoDB.Client.Connection
         private static BsonDocument CreateWrapperDocument(BsonDocument document)
         {
             BsonDocument? readPreferenceDocument = null;
+
             var doc = new BsonDocument
                 {
                     {"$query", document},
@@ -69,15 +70,25 @@ namespace MongoDB.Client.Connection
         }
         public async ValueTask<QueryResult<TResp>> SendQueryAsync<TResp>(QueryMessage message, CancellationToken cancellationToken)
         {
+            if (_protocolWriter is null)
+            {
+                ThrowHelper.ThrowNotInitialized();
+            }
             ManualResetValueTaskSource<IParserResult> taskSource;
-            if (_queue.TryDequeue(out taskSource) == false)
+            if (_queue.TryDequeue(out var taskSrc))
+            {
+                taskSource = taskSrc;
+            }
+            else
             {
                 taskSource = new ManualResetValueTaskSource<IParserResult>();
             }
 
-            var completion = new MongoRequest(taskSource);
-            completion.RequestNumber = message.RequestNumber;
-            completion.ParseAsync = ParseAsync<TResp>;
+            var completion = new MongoRequest(taskSource)
+            {
+                RequestNumber = message.RequestNumber,
+                ParseAsync = ParseAsync<TResp>
+            };
             _completions.GetOrAdd(completion.RequestNumber, completion);
             try
             {
@@ -89,7 +100,7 @@ namespace MongoDB.Client.Connection
                     return queryResult;
                 }
 
-                return default!;
+                return ThrowHelper.InvalidReturnType<QueryResult<TResp>>(typeof(QueryResult<TResp>), response.GetType());
             }
             finally
             {
@@ -103,17 +114,16 @@ namespace MongoDB.Client.Connection
                 switch (mongoResponse)
                 {
                     case ReplyMessage replyMessage:
-                        var bodyReader = new ReplyBodyReader<T>(new BsonDocumentSerializer() as IGenericBsonSerializer<T>, replyMessage);
+                        var bodyReader = new ReplyBodyReader<T>((IGenericBsonSerializer<T>)new BsonDocumentSerializer(), replyMessage);
                         var bodyResult = await reader.ReadAsync(bodyReader, default).ConfigureAwait(false);
                         reader.Advance();
                         return bodyResult.Message;
-
-                        return ThrowHelper.UnsupportedTypeException<QueryResult<T>>(typeof(T));
                     default:
                         return ThrowHelper.UnsupportedTypeException<QueryResult<T>>(typeof(T));
                 }
             }
-            return default;
         }
+
+
     }
 }
