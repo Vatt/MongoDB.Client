@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using MongoDB.Client.Experimental;
 using MongoDB.Client.Tests.Models;
+using MongoDB.Client.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,11 +14,18 @@ namespace MongoDB.Client.ConsoleApp
     {
         static async Task Main(string[] args)
         {
-            await LoadTest<GeoIp>(1024 * 1024, new[] { 512 });
+            //await LoadTest<GeoIp>(1024 * 1024, new[] { 512 });
 
-            Console.WriteLine("Done");
+            //Console.WriteLine("Done");
+            UriTest();
         }
-
+        static void UriTest()
+        {
+            //var uri = "mongodb://centos1.mshome.net, centos2.mshome.net, centos3.mshome.net/?replicaSet=rs0&maxPoolSize=32&appName=MongoDB.Client.ConsoleApp";
+            //var uri = " //centos1.mshome.net,centos2.mshome.net,centos3.mshome.net/";
+            var uri = "//100500/";
+            MongoDBUriParser.ParseUri(uri);
+        }
         static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelism) where T : IIdentified
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";

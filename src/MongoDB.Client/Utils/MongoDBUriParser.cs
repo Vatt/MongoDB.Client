@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace MongoDB.Client.Utils
 {
 
-    internal class MongoDBUriParser
+    internal partial class MongoDBUriParser
     {
         internal class MongoDbUriParseResult
         {
