@@ -11,12 +11,29 @@ namespace MongoDB.Client.Connection
     {
         private static readonly IGenericBsonSerializer<T> _serializer;
         internal static readonly unsafe delegate*<ref Bson.Reader.BsonReader, out T, bool> TryParseFnPtr;
-        static CursorCallbackHolder()
+        //static CursorCallbackHolder()
+        //{
+        //    SerializersMap.TryGetSerializer(out _serializer);
+        //    unsafe
+        //    {
+        //        TryParseFnPtr = SerializerFnPtrProvider<T>.TryParseFnPtr;
+        //    }
+        //}
+
+        static unsafe CursorCallbackHolder()
         {
-            SerializersMap.TryGetSerializer(out _serializer);
-            unsafe
+            TryParseFnPtr = SerializerFnPtrProvider<T>.TryParseFnPtr;
+
+            if (TryParseFnPtr == null)
             {
-                TryParseFnPtr = SerializerFnPtrProvider<T>.TryParseFnPtr;
+                if (SerializersMap.TryGetSerializer(out IGenericBsonSerializer<T>? serializer))
+                {
+                    _serializer = serializer;
+                }
+                else
+                {
+                    throw new MongoException($"Serializer for type '{typeof(T)}' does not found");
+                }
             }
         }
 

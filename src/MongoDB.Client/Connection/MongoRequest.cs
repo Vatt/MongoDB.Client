@@ -14,7 +14,7 @@ namespace MongoDB.Client.Connection
             CompletionSource = completionSource;
         }
         public ManualResetValueTaskSource<IParserResult> CompletionSource { get; }
-        public Func<ProtocolReader, MongoResponseMessage, ValueTask<IParserResult>> ParseAsync { get; set; } //TODO: FIXIT
-        public Func<ProtocolWriter, CancellationToken, ValueTask> WriteAsync { get; set; }
+        public Func<ProtocolReader, MongoResponseMessage, ValueTask<IParserResult>>? ParseAsync { get; set; } //TODO: FIXIT
+        public Func<ProtocolWriter, CancellationToken, ValueTask>? WriteAsync { get; set; }
     }
 }

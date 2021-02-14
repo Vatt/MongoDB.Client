@@ -67,7 +67,7 @@ namespace MongoDB.Client.Connection
             };
             request.RequestNumber = message.Header.RequestNumber;
             await _cursorChannel.WriteAsync(request);
-            var cursor = await taskSrc.GetValueTask().ConfigureAwait(false) as CursorResult<T>;
+            var cursor =(CursorResult<T>) await taskSrc.GetValueTask().ConfigureAwait(false);
             MongoRequestPool.Return(request);
             return cursor;
         }
@@ -82,7 +82,7 @@ namespace MongoDB.Client.Connection
             {
                 return InsertCallbackHolder<T>.WriteAsync(message, protocol, token);
             };
-            await _channelWriter.WriteAsync(request);
+            await _channelWriter.WriteAsync(request, token);
             var response = await taskSource.GetValueTask().ConfigureAwait(false) as InsertResult;
             MongoRequestPool.Return(request);
             if (response is InsertResult result)
