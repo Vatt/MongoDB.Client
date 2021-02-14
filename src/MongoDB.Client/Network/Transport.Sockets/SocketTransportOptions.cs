@@ -60,7 +60,7 @@ namespace MongoDB.Client.Network.Transport.Sockets
         /// This setting can make performance worse if there is expensive work that will end up holding onto the IO thread for longer than needed.
         /// Test to make sure this setting helps performance.
         /// </remarks>
-        public bool UnsafePreferInlineScheduling { get; set; };
+        public bool UnsafePreferInlineScheduling { get; set; }
 
         internal Func<MemoryPool<byte>> MemoryPoolFactory { get; set; } = SlabMemoryPoolFactory.Create;
     }
