@@ -52,21 +52,25 @@ namespace MongoDB.Client.Connection
         private static BsonDocument CreateWrapperDocument(BsonDocument document)
         {
             BsonDocument? readPreferenceDocument = null;
-
+            if (readPreferenceDocument is null)
+            {
+                return document;
+            }
             var doc = new BsonDocument
                 {
                     {"$query", document},
-                    {"$readPreference", readPreferenceDocument, readPreferenceDocument != null}
+                    {"$readPreference", readPreferenceDocument}
                 };
 
-            if (doc.Count == 1)
-            {
-                return doc["$query"].AsBsonDocument;
-            }
-            else
-            {
-                return doc;
-            }
+            return doc;
+            //if (doc.Count == 1)
+            //{
+            //    return doc["$query"].AsBsonDocument;
+            //}
+            //else
+            //{
+            //    return doc;
+            //}
         }
         public async ValueTask<QueryResult<TResp>> SendQueryAsync<TResp>(QueryMessage message, CancellationToken cancellationToken)
         {

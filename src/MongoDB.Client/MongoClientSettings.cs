@@ -1,4 +1,3 @@
-using MongoDB.Client.Connection;
 using MongoDB.Client.Utils;
 using System;
 using System.Collections.Immutable;
@@ -8,7 +7,7 @@ namespace MongoDB.Client
 {
     public class MongoClientSettings
     {
-        public MongoClientSettings(EndPoint[] endpoints, string login, string password)
+        public MongoClientSettings(EndPoint[] endpoints, string? login, string? password)
         {
             // if (endpoints is {Length: 0})
             // {
@@ -154,18 +153,6 @@ namespace MongoDB.Client
             {
                 throw new NotSupportedException("waitQueueTimeoutMS");
             }
-        }
-        private static MongoClientSettings CreateStandalone(string uriString)
-        {
-            return default;
-        }
-        private static MongoClientSettings CreateReplicaSet(string uriString)
-        {
-            return default;
-        }
-        private static MongoClientSettings CreateSharded(string uriString)
-        {
-            return default;
         }
     }
 }
