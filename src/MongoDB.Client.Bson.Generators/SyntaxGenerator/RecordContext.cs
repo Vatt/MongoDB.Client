@@ -25,7 +25,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             {
                 if (Declaration.Constructors.Length == 2)
                 {
-                    ConstructorParams = Declaration.Constructors.Where(x => x.Parameters[0].Type != Declaration).First().Parameters;
+                    ConstructorParams = Declaration.Constructors.Where(x => !SymbolEqualityComparer.Default.Equals(x.Parameters[0].Type, Declaration)).First().Parameters;
                 }
             }
             foreach (var member in Declaration.GetMembers())
