@@ -209,6 +209,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
             writer.Commit();
         }
     }
+
     [BsonSerializable]
     public partial record ModelWithCustom(string Name, CustomModel Custom, CustomModel2 Custom2);
 }
