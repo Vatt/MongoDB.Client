@@ -1,6 +1,7 @@
 ﻿using MongoDB.Client.Exceptions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MongoDB.Client.Utils
 {
@@ -16,12 +17,16 @@ namespace MongoDB.Client.Utils
             public Dictionary<string, string> Options { get; }
 
             internal MongoDbUriParseResult(
-                string scheme,
-                string login,
-                string password,
+                string? scheme,
+                string? login,
+                string? password,
                 List<HostInfo> hosts,
                 Dictionary<string, string> options)
             {
+                if (string.IsNullOrEmpty(scheme))
+                {
+                    throw new ArgumentException(nameof(scheme));
+                }
                 Scheme = scheme;
                 Login = login;
                 Password = password;
@@ -51,9 +56,9 @@ namespace MongoDB.Client.Utils
         private readonly bool _haveUserInfo;
         private readonly bool _haveOptions;
 
-        private string _scheme;
-        private string _user;
-        private string _password;
+        private string? _scheme;
+        private string? _user;
+        private string? _password;
         private List<HostInfo> _hosts;
         private Dictionary<string, string> _options;
         private MongoDBUriParser(string uriString)
@@ -186,6 +191,8 @@ namespace MongoDB.Client.Utils
             _unreaded = _unreaded.Remove(0, count);
             return result;
         }
+
+
         private void Skip(int count)
         {
             if (_unreaded.Length < count)
@@ -194,6 +201,8 @@ namespace MongoDB.Client.Utils
             }
             _unreaded = _unreaded.Remove(0, count);
         }
+
+
         private string ReadTo(char ch)
         {
             var index = _unreaded.IndexOf(ch);
@@ -205,7 +214,9 @@ namespace MongoDB.Client.Utils
             _unreaded = _unreaded.Remove(0, index);
             return result;
         }
-        private bool TryReadTo(char ch, out string result)
+
+
+        private bool TryReadTo(char ch, [MaybeNullWhen(false)] out string result)
         {
             result = default;
             var index = _unreaded.IndexOf(ch);
@@ -216,6 +227,8 @@ namespace MongoDB.Client.Utils
             result = ReadTo(ch);
             return true;
         }
+
+
         public static MongoDbUriParseResult Parse(string uriString)
         {
             var parser = new MongoDBUriParser(uriString);
