@@ -14,16 +14,9 @@ namespace MongoDB.Client.ConsoleApp
     {
         static async Task Main(string[] args)
         {
-            //await LoadTest<GeoIp>(1024 * 1024, new[] { 512 });
+            await LoadTest<GeoIp>(1024 * 1024, new[] { 512 });
 
-            //Console.WriteLine("Done");
-            UriTest();
-        }
-        static void UriTest()
-        {
-            //var uri = "mongodb://gamover:12345@centos1.mshome.net:3340 , centos2.mshome.net,centos3.mshome.net/?replicaSet=rs0&maxPoolSize=32&appName=MongoDB.Client.ConsoleApp/";
-            var uri = "mongodb://centos1.mshome.net:3340 , centos2.mshome.net,centos3.mshome.net/TestAdminDb/?replicaSet=rs0/";
-            MongoDBUriParser.ParseUri(uri);
+            Console.WriteLine("Done");
         }
         static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelism) where T : IIdentified
         {
@@ -36,8 +29,8 @@ namespace MongoDB.Client.ConsoleApp
                     .AddConsole();
             });
 
-            //var client = new MongoClient(new DnsEndPoint(host, 27017), loggerFactory);
-            var client = MongoExperimental.CreateWithExperimentalConnection(new DnsEndPoint(host, 27017), loggerFactory);
+            var client = new MongoClient(new DnsEndPoint(host, 27017), loggerFactory);
+            //var client = MongoExperimental.CreateWithExperimentalConnection(new DnsEndPoint(host, 27017), loggerFactory);
             await client.InitAsync();
             var db = client.GetDatabase("TestDb");
             var stopwatch = new Stopwatch();

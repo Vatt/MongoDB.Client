@@ -1,6 +1,7 @@
 using MongoDB.Client.Connection;
 using MongoDB.Client.Utils;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Net;
 
@@ -8,7 +9,7 @@ namespace MongoDB.Client
 {
     public class MongoClientSettings
     {
-        public MongoClientSettings(EndPoint[] endpoints, string login, string password)
+        public MongoClientSettings(IEnumerable<EndPoint> endpoints, string login, string password)
         {
             // if (endpoints is {Length: 0})
             // {
@@ -16,7 +17,7 @@ namespace MongoDB.Client
             // }
             Login = login;
             Password = password;
-            Endpoints = ImmutableArray.Create(endpoints);
+            Endpoints = endpoints.ToImmutableArray();
         }
 
         public MongoClientSettings(EndPoint[] endpoints)
@@ -62,14 +63,8 @@ namespace MongoDB.Client
 
         public static MongoClientSettings FromConnectionString(string uriString)
         {
-            var result = MongoDBUriParser.Parse1(uriString);
-            var endpoints = new DnsEndPoint[result.Hosts.Count];
-            for (int i = 0; i < result.Hosts.Count; i++)
-            {
-                var host = result.Hosts[i];
-                endpoints[i] = new DnsEndPoint(host.Host, host.Port.HasValue ? host.Port.Value : 27017);
-            }
-            var settings = new MongoClientSettings(endpoints, result.Login, result.Password);
+            var result = MongoDBUriParser.ParseUri(uriString);
+            var settings = new MongoClientSettings(result.Hosts, result.Login, result.Password);
             if (result.Login != default)
             {
                 settings.Login = result.Login;
@@ -120,7 +115,7 @@ namespace MongoDB.Client
             return settings;
         }
 
-        private static void ProcessTimeoutSettings(MongoClientSettings settings, MongoDBUriParser.MongoDbUriParseResult result)
+        private static void ProcessTimeoutSettings(MongoClientSettings settings, MongoUriParseResult result)
         {
             if (result.Options.TryGetValue("connectTimeoutMS", out var connectionTimeout))
             {
@@ -131,7 +126,7 @@ namespace MongoDB.Client
                 settings.SocketTimeoutMs = int.Parse(socketTimeoutMs);
             }
         }
-        private static void ProcessConnectionPoolSettings(MongoClientSettings settings, MongoDBUriParser.MongoDbUriParseResult result)
+        private static void ProcessConnectionPoolSettings(MongoClientSettings settings, MongoUriParseResult result)
         {
             if (result.Options.TryGetValue("maxPoolSize", out var maxPoolSize))
             {
