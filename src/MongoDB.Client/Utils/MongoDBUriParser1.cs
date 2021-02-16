@@ -1,4 +1,5 @@
 ﻿using Sprache;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -13,6 +14,7 @@ namespace MongoDB.Client.Utils
             public string Scheme { get; }
             public string? Login { get; }
             public string? Password { get; }
+            public string? AdminDb { get; }
             public IEnumerable<EndPoint> Hosts { get; }
             public Dictionary<string, string> Options { get; }
 
@@ -21,13 +23,25 @@ namespace MongoDB.Client.Utils
                 string login,
                 string password,
                 IEnumerable<EndPoint> hosts,
-                Dictionary<string, string> options)
+                string? adminDb,
+                string? optionsString)
             {
                 Scheme = scheme;
                 Login = login;
                 Password = password;
                 Hosts = hosts;
-                Options = options;
+                AdminDb = adminDb;
+                Options = new Dictionary<string, string>();
+
+                if(optionsString != null)
+                {
+                    var optStr = optionsString[optionsString.Length - 1] == '/' ? optionsString.Remove(optionsString.Length - 1) : optionsString;
+                    foreach (var opt in optStr.Split('&', StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        var splited = opt.Split('=', StringSplitOptions.RemoveEmptyEntries);
+                        Options.Add(splited[0], splited[1]);
+                    }
+                }
             }
         }
         public static void ParseUri(string uriStr)
@@ -56,24 +70,33 @@ namespace MongoDB.Client.Utils
             Parser<IEnumerable<EndPoint>> hostsParser =
                 from first in hostParser
                 from tail in tailHostParser.Many().Optional()
-                select ImmutableList<EndPoint>.Empty.Add(first).AddRange(tail.Get()); 
+                select ImmutableList<EndPoint>.Empty.Add(first).AddRange(tail.Get());
 
-            Parser<KeyValuePair<string, string>> optionParser =
-                from key in Parse.Letter.Many().Text()
-                from eq in Parse.Char('=')
-                from value in Parse.Or(Parse.LetterOrDigit, Parse.Chars('.', '-', '_', ':', ',')).Many().Text()
-                select KeyValuePair.Create(key, value);
+            Parser<string> adminDbParser =
+                from slash in Parse.Char('/')
+                from testLetter in Parse.Letter
+                from tail in Parse.Letter.Many().Text()
+                select testLetter + tail;
+
+            Parser<string> optionsParser =
+                from slash in Parse.String("/?")
+                from options in Parse.AnyChar.Many().Text()
+                select options;
 
 
-            Parser < MongoUriParseResult > uriParser =
+            Parser<MongoUriParseResult> uriParser =
                 from scheme in Parse.String("mongodb://").Text()
                 from userInfo in userInfoParser.Optional()
                 from hosts in hostsParser
-                from maybeSlash in Parse.Char('/').Optional()
+                from adminDb in adminDbParser.Optional()
+                from options in optionsParser.Optional()
+                from closeSlash in Parse.Char('/').Optional()
                 select new MongoUriParseResult(scheme,
                 userInfo.IsEmpty ? null : userInfo.Get().Item1,
                 userInfo.IsEmpty ? null : userInfo.Get().Item2,
-                hosts.ToList(), null);
+                hosts.ToList(), 
+                adminDb.IsEmpty ? null : adminDb.Get(),
+                options.IsEmpty ? null : options.Get());
 
             var id = uriParser.Parse(uriStr);
         }

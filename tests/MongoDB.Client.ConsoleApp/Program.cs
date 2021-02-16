@@ -21,7 +21,8 @@ namespace MongoDB.Client.ConsoleApp
         }
         static void UriTest()
         {
-            var uri = "mongodb://gamover:12345@centos1.mshome.net:3340 , centos2.mshome.net,centos3.mshome.net/?replicaSet=rs0&maxPoolSize=32&appName=MongoDB.Client.ConsoleApp";
+            //var uri = "mongodb://gamover:12345@centos1.mshome.net:3340 , centos2.mshome.net,centos3.mshome.net/?replicaSet=rs0&maxPoolSize=32&appName=MongoDB.Client.ConsoleApp/";
+            var uri = "mongodb://centos1.mshome.net:3340 , centos2.mshome.net,centos3.mshome.net/TestAdminDb/?replicaSet=rs0/";
             MongoDBUriParser.ParseUri(uri);
         }
         static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelism) where T : IIdentified
