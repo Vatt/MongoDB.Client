@@ -17,10 +17,21 @@ namespace MongoDB.Client.Connection
         public static RequestCompletion CreateCompletion(ManualResetValueTaskSource<IParserResult> src) => new RequestCompletion(src, InsertParseAsync); 
         static unsafe InsertCallbackHolder()
         {
-            SerializersMap.TryGetSerializer<T>(out var serializer);
             WriterFnPtr = SerializerFnPtrProvider<T>.WriteFnPtr;
-            InsertMessageWriter = WriterFnPtr != null ? new InsertMessageWriterUnsafe<T>() : new InsertMessageWriter<T>(serializer);
+            if (WriterFnPtr != null)
+            {
+                InsertMessageWriter = new InsertMessageWriterUnsafe<T>();
+            }
+            else if (SerializersMap.TryGetSerializer<T>(out var serializer))
+            {
+                InsertMessageWriter = new InsertMessageWriter<T>(serializer);
+            }
+            else
+            {
+                throw new MongoException($"Serializer for type '{typeof(T)}' does not found");
+            }
         }
+
         public static async ValueTask<IParserResult> InsertParseAsync(ProtocolReader reader, MongoResponseMessage response)
         {
             switch (response)

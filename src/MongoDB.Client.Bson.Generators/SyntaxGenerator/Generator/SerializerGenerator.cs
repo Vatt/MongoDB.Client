@@ -114,7 +114,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Argument(colonName, SF.Token(SyntaxKind.RefKeyword), expr);
         }
-        public static ParameterSyntax OutParameter(TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax? @default = default)
+        public static ParameterSyntax OutParameter(TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax @default = default)
         {
             return SF.Parameter(
                 attributeLists: default,
@@ -123,7 +123,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 type: type,
                 @default: @default);
         }
-        public static ParameterSyntax Parameter(TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax? @default = default)
+        public static ParameterSyntax Parameter(TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax @default = default)
         {
             return SF.Parameter(
                 attributeLists: default,
@@ -132,7 +132,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 type: type,
                 @default: @default);
         }
-        public static ParameterSyntax InParameter(TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax? @default = default)
+        public static ParameterSyntax InParameter(TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax @default = default)
         {
             return SF.Parameter(
                 attributeLists: default,
@@ -141,7 +141,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 type: type,
                 @default: @default);
         }
-        public static ParameterSyntax RefParameter(TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax? @default = default)
+        public static ParameterSyntax RefParameter(TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax @default = default)
         {
             return SF.Parameter(
                 attributeLists: default,
@@ -323,7 +323,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, left, right);
         }
-        public static ArrayCreationExpressionSyntax SingleDimensionArrayCreation(TypeSyntax arrayType, int size, InitializerExpressionSyntax? initializer = default)
+        public static ArrayCreationExpressionSyntax SingleDimensionArrayCreation(TypeSyntax arrayType, int size, InitializerExpressionSyntax initializer = default)
         {
             var rank = new SyntaxList<ArrayRankSpecifierSyntax>(SF.ArrayRankSpecifier().AddSizes(NumericLiteralExpr(size)));
             return SF.ArrayCreationExpression(SF.ArrayType(arrayType, rank), initializer);

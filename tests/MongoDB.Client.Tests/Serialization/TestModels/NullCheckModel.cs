@@ -1,4 +1,5 @@
 ﻿using MongoDB.Client.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
 
 namespace MongoDB.Client.Tests.Serialization.TestModels
@@ -16,6 +17,11 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         public override bool Equals(object obj)
         {
             return obj is NullCheckData other && other.A == A;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(A);
         }
     }
     [BsonSerializable]
@@ -52,6 +58,11 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
                 return true;
             }
             return Data.Equals(other.Data) && DataArray.SequentialEquals(other.DataArray);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Data, DataArray);
         }
     }
 }

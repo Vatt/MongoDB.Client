@@ -18,7 +18,7 @@ namespace MongoDB.Client.Tests.Client
         protected async Task<T> InsertFindDeleteAsync<T>(T data)
         {
             await Client.InitAsync();
-            var collection = Client.GetDatabase(DB).GetCollection<T>(Collection);
+            var collection = Client.GetDatabase(DB).GetCollection<T>(Collection + Guid.NewGuid());
             await collection.CreateAsync();
             await collection.InsertAsync(data);
             var findResult = await collection.Find(BsonDocument.Empty).FirstOrDefaultAsync();

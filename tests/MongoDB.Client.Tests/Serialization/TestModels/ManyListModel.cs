@@ -1,4 +1,5 @@
 ﻿using MongoDB.Client.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
 
 namespace MongoDB.Client.Tests.Serialization.TestModels
@@ -9,7 +10,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         public string Name;
         public List<List<List<List<List<List<long>>>>>> Longs;
 
-        public override bool Equals(object? obj)
+        public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
@@ -20,6 +21,15 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         public static bool Equals(List<List<List<List<List<List<long>>>>>> list0,
             List<List<List<List<List<List<long>>>>>> list1)
         {
+            if (list0 is null)
+            {
+                throw new ArgumentNullException(nameof(list0));
+            }
+            if (list1 is null)
+            {
+                throw new ArgumentNullException(nameof(list0));
+            }
+
             for (int i0 = 0; i0 < list0.Count; i0++)
             {
                 for (int i1 = 0; i1 < list0.Count; i1++)
@@ -44,6 +54,11 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
             }
 
             return true;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Name, Longs);
         }
     }
 }

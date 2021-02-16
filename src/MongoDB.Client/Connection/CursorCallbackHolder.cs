@@ -11,14 +11,23 @@ namespace MongoDB.Client.Connection
 {
     internal static partial class CursorCallbackHolder<T>
     {
-        private static readonly IGenericBsonSerializer<T> _serializer;
+        private static readonly IGenericBsonSerializer<T>? _serializer;
         internal static readonly unsafe delegate*<ref Bson.Reader.BsonReader, out T, bool> TryParseFnPtr;
-        static CursorCallbackHolder()
+
+        static unsafe CursorCallbackHolder()
         {
-            SerializersMap.TryGetSerializer(out _serializer);
-            unsafe
+            TryParseFnPtr = SerializerFnPtrProvider<T>.TryParseFnPtr;
+
+            if (TryParseFnPtr == null)
             {
-                TryParseFnPtr = SerializerFnPtrProvider<T>.TryParseFnPtr;
+                if (SerializersMap.TryGetSerializer(out IGenericBsonSerializer<T>? serializer))
+                {
+                    _serializer = serializer;
+                }
+                else
+                {
+                    throw new MongoException($"Serializer for type '{typeof(T)}' does not found");
+                }
             }
         }
         internal static RequestCompletion CreateCompletion(ManualResetValueTaskSource<IParserResult> src) => new RequestCompletion(src, CursorParseAsync);
@@ -37,7 +46,7 @@ namespace MongoDB.Client.Connection
                         }
                         else
                         {
-                            bodyReader = new FindMsgType0BodyReader<T>(_serializer, msgMessage);
+                            bodyReader = new FindMsgType0BodyReader<T>(_serializer!, msgMessage);
                         }
                     }
 

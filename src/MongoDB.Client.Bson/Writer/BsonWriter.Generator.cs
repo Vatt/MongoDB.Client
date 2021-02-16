@@ -3,6 +3,7 @@ using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Exceptions;
 using System;
 using System.Buffers.Text;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace MongoDB.Client.Bson.Writer
@@ -10,11 +11,15 @@ namespace MongoDB.Client.Bson.Writer
 
     public ref partial struct BsonWriter
     {
+        [DoesNotReturn]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowSerializerNotFound(string typeName)
         {
             throw new SerializerNotFoundException(typeName);
         }
 
+        [DoesNotReturn]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowSerializerIsNull(string typeName)
         {
             throw new SerializerIsNullException(typeName);

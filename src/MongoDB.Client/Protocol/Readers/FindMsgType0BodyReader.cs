@@ -141,7 +141,7 @@ namespace MongoDB.Client.Protocol.Readers
         {
             modelsLength = 0;
             hasBatch = false;
-            string name;
+            string? name;
             byte endMarker;
             bool hasItems;
             var checkpoint = reader.BytesConsumed;
@@ -273,7 +273,7 @@ namespace MongoDB.Client.Protocol.Readers
 
         private bool TryReadCursorEnd(ref BsonReader reader)
         {
-            string name;
+            string? name;
             if (TryGetName(ref reader, out name) == false)
             {
                 return false;

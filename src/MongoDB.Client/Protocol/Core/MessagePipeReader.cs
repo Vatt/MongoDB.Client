@@ -73,7 +73,7 @@ namespace MongoDB.Client.Protocol.Core
             _reader.CancelPendingRead();
         }
 
-        public override void Complete(Exception exception = null)
+        public override void Complete(Exception? exception = null)
         {
             if (!_advanced)
             {

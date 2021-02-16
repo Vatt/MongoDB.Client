@@ -148,7 +148,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             return -1;
         }
 
-        public static bool TryFindPrimaryConstructor(INamedTypeSymbol symbol, out IMethodSymbol? constructor)
+        public static bool TryFindPrimaryConstructor(INamedTypeSymbol symbol, out IMethodSymbol constructor)
         {
             constructor = default;
             if (symbol.Constructors.Length == 0)

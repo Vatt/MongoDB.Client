@@ -12,7 +12,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                 .Select(compilation.GetAssemblyOrModuleSymbol)
                 .OfType<IAssemblySymbol>()
                 .Select(assemblySymbol => assemblySymbol.GetTypeByMetadataName(typeMetadataName))
-                .Where(t => t != null);
+                .Where(t => t is not null)!;
         }
     }
 }

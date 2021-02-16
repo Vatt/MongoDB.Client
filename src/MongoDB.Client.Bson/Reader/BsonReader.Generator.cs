@@ -3,21 +3,29 @@ using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Exceptions;
 using MongoDB.Client.Bson.Utils;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace MongoDB.Client.Bson.Reader
 {
     public ref partial struct BsonReader
     {
+        [DoesNotReturn]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowSerializerNotFound(string typeName)
         {
             throw new SerializerNotFoundException(typeName);
         }
+
+        [DoesNotReturn]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowSerializerIsNull(string typeName)
         {
             throw new SerializerIsNullException(typeName);
         }
-        public unsafe bool TryReadGeneric<T>(int bsonType, out T genericValue)
+
+
+        public unsafe bool TryReadGeneric<T>(int bsonType, [MaybeNullWhen(false)] out T? genericValue)
         {
             genericValue = default(T);
             if (SerializerFnPtrProvider<T>.IsSerializable)
@@ -75,7 +83,7 @@ namespace MongoDB.Client.Bson.Reader
             }
             if (typeof(T) == typeof(string))
             {
-                string strvalue = default;
+                string? strvalue = default;
                 if (!TryGetString(out strvalue)) { return false; }
                 genericValue = (T)(object)strvalue;
                 return true;

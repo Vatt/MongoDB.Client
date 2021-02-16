@@ -50,8 +50,8 @@ namespace System.Net.Connections
 
         /// <inheritdoc />
         /// <exception cref="ArgumentNullException">When <paramref name="endPoint"/> is <see langword="null"/>.</exception>
-        public override async ValueTask<Connection?> ConnectAsync(
-            EndPoint? endPoint,
+        public override async ValueTask<Connection> ConnectAsync(
+            EndPoint endPoint,
             IConnectionProperties? options = null,
             CancellationToken cancellationToken = default)
         {
@@ -65,7 +65,7 @@ namespace System.Net.Connections
                 await socket.ConnectAsync(endPoint, cancellationToken).ConfigureAwait(false);
                 return new SocketConnection(socket);
             }
-            catch (SocketException socketException)
+            catch (SocketException)
             {
                 socket.Dispose();
                 throw;//NetworkErrorHelper.MapSocketException(socketException);

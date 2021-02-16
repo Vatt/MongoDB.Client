@@ -24,7 +24,7 @@ namespace MongoDB.Client.ConsoleApp
             RequestsCount = requestsCount;
         }
 
-        public async Task Setup()
+        public void Setup()
         {
             _collection = _database.GetCollection<T>("Insert" + Guid.NewGuid().ToString());
 

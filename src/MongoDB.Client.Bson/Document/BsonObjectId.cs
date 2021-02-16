@@ -25,9 +25,9 @@ namespace MongoDB.Client.Bson.Document
             }
         }
 
-        public readonly int Part1 { get; }
-        public readonly int Part2 { get; }
-        public readonly int Part3 { get; }
+        private readonly int Part1 { get; }
+        private readonly int Part2 { get; }
+        private readonly int Part3 { get; }
 
         public BsonObjectId(int p1, int p2, int p3)
         {
@@ -87,34 +87,32 @@ namespace MongoDB.Client.Bson.Document
 
         public override string ToString()
         {
-            Span<char> c = stackalloc char[26];
+            Span<char> c = stackalloc char[24];
 
-            c[0] = '\"';
-            c[1] = ToHexChar((Part1 >> 28) & 0x0f);
-            c[2] = ToHexChar((Part1 >> 24) & 0x0f);
-            c[3] = ToHexChar((Part1 >> 20) & 0x0f);
-            c[4] = ToHexChar((Part1 >> 16) & 0x0f);
-            c[5] = ToHexChar((Part1 >> 12) & 0x0f);
-            c[6] = ToHexChar((Part1 >> 8) & 0x0f);
-            c[7] = ToHexChar((Part1 >> 4) & 0x0f);
-            c[8] = ToHexChar(Part1 & 0x0f);
-            c[9] = ToHexChar((Part2 >> 28) & 0x0f);
-            c[10] = ToHexChar((Part2 >> 24) & 0x0f);
-            c[11] = ToHexChar((Part2 >> 20) & 0x0f);
-            c[12] = ToHexChar((Part2 >> 16) & 0x0f);
-            c[13] = ToHexChar((Part2 >> 12) & 0x0f);
-            c[14] = ToHexChar((Part2 >> 8) & 0x0f);
-            c[15] = ToHexChar((Part2 >> 4) & 0x0f);
-            c[16] = ToHexChar(Part2 & 0x0f);
-            c[17] = ToHexChar((Part3 >> 28) & 0x0f);
-            c[18] = ToHexChar((Part3 >> 24) & 0x0f);
-            c[19] = ToHexChar((Part3 >> 20) & 0x0f);
-            c[20] = ToHexChar((Part3 >> 16) & 0x0f);
-            c[21] = ToHexChar((Part3 >> 12) & 0x0f);
-            c[22] = ToHexChar((Part3 >> 8) & 0x0f);
-            c[23] = ToHexChar((Part3 >> 4) & 0x0f);
-            c[24] = ToHexChar(Part3 & 0x0f);
-            c[25] = '\"';
+            c[0] = ToHexChar((Part1 >> 28) & 0x0f);
+            c[1] = ToHexChar((Part1 >> 24) & 0x0f);
+            c[2] = ToHexChar((Part1 >> 20) & 0x0f);
+            c[3] = ToHexChar((Part1 >> 16) & 0x0f);
+            c[4] = ToHexChar((Part1 >> 12) & 0x0f);
+            c[5] = ToHexChar((Part1 >> 8) & 0x0f);
+            c[6] = ToHexChar((Part1 >> 4) & 0x0f);
+            c[7] = ToHexChar(Part1 & 0x0f);
+            c[8] = ToHexChar((Part2 >> 28) & 0x0f);
+            c[9] = ToHexChar((Part2 >> 24) & 0x0f);
+            c[10] = ToHexChar((Part2 >> 20) & 0x0f);
+            c[11] = ToHexChar((Part2 >> 16) & 0x0f);
+            c[12] = ToHexChar((Part2 >> 12) & 0x0f);
+            c[13] = ToHexChar((Part2 >> 8) & 0x0f);
+            c[14] = ToHexChar((Part2 >> 4) & 0x0f);
+            c[15] = ToHexChar(Part2 & 0x0f);
+            c[16] = ToHexChar((Part3 >> 28) & 0x0f);
+            c[17] = ToHexChar((Part3 >> 24) & 0x0f);
+            c[18] = ToHexChar((Part3 >> 20) & 0x0f);
+            c[19] = ToHexChar((Part3 >> 16) & 0x0f);
+            c[20] = ToHexChar((Part3 >> 12) & 0x0f);
+            c[21] = ToHexChar((Part3 >> 8) & 0x0f);
+            c[22] = ToHexChar((Part3 >> 4) & 0x0f);
+            c[23] = ToHexChar(Part3 & 0x0f);
 
             return new string(c);
         }
@@ -132,6 +130,40 @@ namespace MongoDB.Client.Bson.Document
             return false;
         }
 
+        public bool TryFormat(Span<char> c, out int charsWritten)
+        {
+            if (c.Length >= 24)
+            {
+                c[0] = ToHexChar((Part1 >> 28) & 0x0f);
+                c[1] = ToHexChar((Part1 >> 24) & 0x0f);
+                c[2] = ToHexChar((Part1 >> 20) & 0x0f);
+                c[3] = ToHexChar((Part1 >> 16) & 0x0f);
+                c[4] = ToHexChar((Part1 >> 12) & 0x0f);
+                c[5] = ToHexChar((Part1 >> 8) & 0x0f);
+                c[6] = ToHexChar((Part1 >> 4) & 0x0f);
+                c[7] = ToHexChar(Part1 & 0x0f);
+                c[8] = ToHexChar((Part2 >> 28) & 0x0f);
+                c[9] = ToHexChar((Part2 >> 24) & 0x0f);
+                c[10] = ToHexChar((Part2 >> 20) & 0x0f);
+                c[11] = ToHexChar((Part2 >> 16) & 0x0f);
+                c[12] = ToHexChar((Part2 >> 12) & 0x0f);
+                c[13] = ToHexChar((Part2 >> 8) & 0x0f);
+                c[14] = ToHexChar((Part2 >> 4) & 0x0f);
+                c[15] = ToHexChar(Part2 & 0x0f);
+                c[16] = ToHexChar((Part3 >> 28) & 0x0f);
+                c[17] = ToHexChar((Part3 >> 24) & 0x0f);
+                c[18] = ToHexChar((Part3 >> 20) & 0x0f);
+                c[19] = ToHexChar((Part3 >> 16) & 0x0f);
+                c[20] = ToHexChar((Part3 >> 12) & 0x0f);
+                c[21] = ToHexChar((Part3 >> 8) & 0x0f);
+                c[22] = ToHexChar((Part3 >> 4) & 0x0f);
+                c[23] = ToHexChar(Part3 & 0x0f);
+                charsWritten = 24;
+                return true;
+            }
+            charsWritten = 0;
+            return false;
+        }
 
         /// <summary>
         /// Converts a value to a hex character.

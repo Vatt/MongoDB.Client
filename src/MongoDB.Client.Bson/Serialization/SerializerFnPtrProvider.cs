@@ -2,6 +2,7 @@
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Writer;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace MongoDB.Client.Bson.Serialization
@@ -88,35 +89,35 @@ namespace MongoDB.Client.Bson.Serialization
             }
         }
 
-        private static bool TryParseString(ref BsonReader reader, int bsonType, out T genericValue)
+        private static bool TryParseString(ref BsonReader reader, int bsonType, [MaybeNullWhen(false)] out T? genericValue)
         {
             genericValue = default(T);
             if (!reader.TryGetString(out var strvalue)) { return false; }
             genericValue = (T)(object)strvalue;
             return true;
         }
-        private static bool TryParseDateTimeOffset(ref BsonReader reader, int bsonType, out T genericValue)
+        private static bool TryParseDateTimeOffset(ref BsonReader reader, int bsonType, [MaybeNullWhen(false)] out T? genericValue)
         {
             genericValue = default(T);
             if (!reader.TryGetDateTimeWithBsonType(bsonType, out var value)) { return false; }
             genericValue = (T)(object)value;
             return true;
         }
-        private static bool TryParseBsonObjectId(ref BsonReader reader, int bsonType, out T genericValue)
+        private static bool TryParseBsonObjectId(ref BsonReader reader, int bsonType, [MaybeNullWhen(false)] out T? genericValue)
         {
             genericValue = default(T);
             if (!reader.TryGetObjectId(out var value)) { return false; }
             genericValue = (T)(object)value;
             return true;
         }
-        private static bool TryParseGuid(ref BsonReader reader, int bsonType, out T genericValue)
+        private static bool TryParseGuid(ref BsonReader reader, int bsonType, [MaybeNullWhen(false)] out T? genericValue)
         {
             genericValue = default(T);
             if (!reader.TryGetGuidWithBsonType(bsonType, out var value)) { return false; }
             genericValue = (T)(object)value;
             return true;
         }
-        private static bool TryParseBsonArray(ref BsonReader reader, int bsonType, out T genericValue)
+        private static bool TryParseBsonArray(ref BsonReader reader, int bsonType, [MaybeNullWhen(false)] out T? genericValue)
         {
             genericValue = default(T);
             BsonDocument tempArray;
@@ -124,7 +125,7 @@ namespace MongoDB.Client.Bson.Serialization
             genericValue = (T)(object)tempArray;
             return true;
         }
-        private static bool TryParseBsonDocument(ref BsonReader reader, int bsonType, out T genericValue)
+        private static bool TryParseBsonDocument(ref BsonReader reader, int bsonType, [MaybeNullWhen(false)] out T? genericValue)
         {
             genericValue = default(T);
             if (!reader.TryParseDocument(out var value)) { return false; }

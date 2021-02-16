@@ -62,6 +62,6 @@ namespace MongoDB.Client.Network.Transport.Sockets
         /// </remarks>
         public bool UnsafePreferInlineScheduling { get; set; }
 
-        internal Func<MemoryPool<byte>> MemoryPoolFactory { get; set; } = System.Buffers.SlabMemoryPoolFactory.Create;
+        internal Func<MemoryPool<byte>> MemoryPoolFactory { get; set; } = SlabMemoryPoolFactory.Create;
     }
 }

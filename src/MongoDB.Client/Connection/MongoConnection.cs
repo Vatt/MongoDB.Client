@@ -159,6 +159,9 @@ namespace MongoDB.Client.Connection
             if (result is CreateCollectionResult CreateCollectionResult)
             {
                 await _protocolListenerTask.ConfigureAwait(false);
+            }
+            if (_protocolReader is not null)
+            {
                 await _protocolReader.DisposeAsync().ConfigureAwait(false);
                 if (CreateCollectionResult.Ok != 1)
                 {

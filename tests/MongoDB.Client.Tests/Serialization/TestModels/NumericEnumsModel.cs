@@ -1,4 +1,5 @@
 ﻿using MongoDB.Client.Bson.Serialization.Attributes;
+using System;
 
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
@@ -31,10 +32,15 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         public Int32Enum Int32EnumValue;
         [BsonEnum(EnumRepresentation.Int64)]
         public Int64Enum Int64EnumValue;
-        public override bool Equals(object? obj)
+        public override bool Equals(object obj)
         {
             return obj is not null && obj is NumericEnumsModel other && Name.Equals(other.Name) &&
                    Int32EnumValue == other.Int32EnumValue && Int64EnumValue == other.Int64EnumValue;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Name, Int32EnumValue, Int64EnumValue);
         }
     }
 }
