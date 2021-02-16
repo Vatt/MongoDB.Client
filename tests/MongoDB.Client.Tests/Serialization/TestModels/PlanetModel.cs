@@ -1,4 +1,5 @@
 ﻿using MongoDB.Client.Bson.Serialization.Attributes;
+using System;
 
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
@@ -33,6 +34,11 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         public override bool Equals(object obj)
         {
             return obj is not null && obj is PlanetModel other && Name.Equals(other.Name) && Type == other.Type;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Name, Type);
         }
     }
 }

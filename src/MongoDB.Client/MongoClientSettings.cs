@@ -1,4 +1,3 @@
-using MongoDB.Client.Connection;
 using MongoDB.Client.Utils;
 using System;
 using System.Collections.Generic;
@@ -149,18 +148,6 @@ namespace MongoDB.Client
             {
                 throw new NotSupportedException("waitQueueTimeoutMS");
             }
-        }
-        private static MongoClientSettings CreateStandalone(string uriString)
-        {
-            return default;
-        }
-        private static MongoClientSettings CreateReplicaSet(string uriString)
-        {
-            return default;
-        }
-        private static MongoClientSettings CreateSharded(string uriString)
-        {
-            return default;
         }
     }
 }

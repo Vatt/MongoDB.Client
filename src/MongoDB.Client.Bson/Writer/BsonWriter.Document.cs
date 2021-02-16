@@ -15,42 +15,42 @@ namespace MongoDB.Client.Bson.Writer
             {
                 case 1:
                     {
-                        WriteDouble((double)element.Value);
+                        WriteDouble((double)element.Value!);
                         break;
                     }
                 case 2:
                     {
-                        WriteString((string)element.Value);
+                        WriteString((string)element.Value!);
                         break;
                     }
                 case 3:
                     {
-                        WriteDocument((BsonDocument)element.Value);
+                        WriteDocument((BsonDocument)element.Value!);
                         break;
                     }
                 case 4:
                     {
-                        WriteDocument((BsonDocument)element.Value);
+                        WriteDocument((BsonDocument)element.Value!);
                         break;
                     }
                 case 5:
                     {
-                        WriteBinaryData((BsonBinaryData)element.Value);
+                        WriteBinaryData((BsonBinaryData)element.Value!);
                         break;
                     }
                 case 7:
                     {
-                        WriteObjectId((BsonObjectId)element.Value);
+                        WriteObjectId((BsonObjectId)element.Value!);
                         break;
                     }
                 case 8:
                     {
-                        WriteBoolean((bool)element.Value);
+                        WriteBoolean((bool)element.Value!);
                         break;
                     }
                 case 9:
                     {
-                        WriteUtcDateTime((DateTimeOffset)element.Value);
+                        WriteUtcDateTime((DateTimeOffset)element.Value!);
                         break;
                     }
                 case 10:
@@ -59,12 +59,12 @@ namespace MongoDB.Client.Bson.Writer
                     }
                 case 16:
                     {
-                        WriteInt32((int)element.Value);
+                        WriteInt32((int)element.Value!);
                         break;
                     }
                 case 18:
                     {
-                        WriteInt64((long)element.Value);
+                        WriteInt64((long)element.Value!);
                         break;
                     }
                 default:

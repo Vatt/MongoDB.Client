@@ -17,12 +17,24 @@ namespace MongoDB.Client.Connection
         public static Func<ProtocolReader, MongoResponseMessage, ValueTask<IParserResult>>? Parser;
         private static readonly IMessageWriter<InsertMessage<T>> InsertMessageWriter;
         private static readonly InsertMsgType0BodyReader InsertBodyReader = new InsertMsgType0BodyReader();
+
         static unsafe InsertCallbackHolder()
         {
-            SerializersMap.TryGetSerializer<T>(out var serializer);
             WriterFnPtr = SerializerFnPtrProvider<T>.WriteFnPtr;
-            InsertMessageWriter = WriterFnPtr != null ? new InsertMessageWriterUnsafe<T>() : new InsertMessageWriter<T>(serializer);
+            if (WriterFnPtr != null)
+            {
+                InsertMessageWriter = new InsertMessageWriterUnsafe<T>();
+            }
+            else if (SerializersMap.TryGetSerializer<T>(out var serializer))
+            {
+                InsertMessageWriter = new InsertMessageWriter<T>(serializer);
+            }
+            else
+            {
+                throw new MongoException($"Serializer for type '{typeof(T)}' does not found");
+            }
         }
+
         public static async ValueTask<IParserResult> InsertParseAsync(ProtocolReader reader, MongoResponseMessage response)
         {
             switch (response)

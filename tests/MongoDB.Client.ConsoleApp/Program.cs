@@ -39,7 +39,7 @@ namespace MongoDB.Client.ConsoleApp
             {
                 Console.WriteLine("Start: " + item);
                 var bench = new ComplexBenchmarkBase<T>(db, item, requestCount);
-                await bench.Setup();
+                bench.Setup();
 
                 stopwatch.Restart();
                 try
