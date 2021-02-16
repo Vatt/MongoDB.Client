@@ -71,7 +71,7 @@ namespace MongoDB.Client.Bson.Reader
             }
             if (typeof(T) == typeof(BsonObjectId))
             {
-                if (!TryGetObjectId(out var value)) { return false; }
+                if (!TryGetObjectId(out BsonObjectId value)) { return false; }
                 genericValue = (T)(object)value;
                 return true;
             }

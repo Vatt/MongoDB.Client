@@ -1,5 +1,6 @@
 ﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Utils;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
@@ -82,13 +83,13 @@ namespace MongoDB.Client.Bson.Reader
                     }
                 case 5:
                     {
-                        if (!TryGetBinaryData(out var binary)) { return false; }
+                        if (!TryGetBinaryData(out BsonBinaryData binary)) { return false; }
                         element = BsonElement.Create(parent, name, binary);
                         return true;
                     }
                 case 7:
                     {
-                        if (!TryGetObjectId(out var objectId)) { return false; }
+                        if (!TryGetObjectId(out BsonObjectId objectId)) { return false; }
                         element = BsonElement.Create(parent, name, objectId);
                         return true;
                     }
@@ -100,7 +101,7 @@ namespace MongoDB.Client.Bson.Reader
                     }
                 case 9:
                     {
-                        if (!TryGetUtcDatetime(out var datetime)) { return false; }
+                        if (!TryGetUtcDatetime(out DateTimeOffset datetime)) { return false; }
                         element = BsonElement.Create(parent, name, datetime);
                         return true;
                     }

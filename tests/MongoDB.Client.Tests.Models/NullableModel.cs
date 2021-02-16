@@ -2,32 +2,35 @@
 using MongoDB.Client.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace MongoDB.Client.Tests.Models
 {
     [BsonSerializable]
-    public partial class CommonModel
+    public partial class NullableModel
     {
         [BsonSerializable]
         public partial struct InnerStruct
         {
-            public int A, B, C;
+            public int? A, B, C;
         }
         [BsonSerializable]
         public partial record InnerRecord(long A, long B, long C);
-        public int IntProp { get; set; }
-        public double DoubleProp { get; set; }
-        public string StringField;
-        public DateTimeOffset DateProp { get; set; }
-        public BsonDocument BsonDocumentProp { get; set; }
-        public BsonObjectId BsonObjectIdField;
-        public long LongProp { get; set; }
-        public Guid GuidProp { get; set; }
+        public int? IntProp { get; set; }
+        public double? DoubleProp { get; set; }
+        public string? StringField;
+        public DateTimeOffset? DateProp { get; set; }
+        public BsonDocument? BsonDocumentProp { get; set; }
+        public BsonObjectId? BsonObjectIdField;
+        public long? LongProp { get; set; }
+        public Guid? GuidProp { get; set; }
 
         //TODO: fix BsonArray parse call
         //public BsonArray BsonArrayProp { get; set; }
-        public InnerStruct InnerStructProp { get; set; }
-        public InnerRecord InnerRecordField;
+        public InnerStruct? InnerStructProp { get; set; }
+        public InnerRecord? InnerRecordField;
 
 
         //TODO: Fix IList creations
@@ -37,17 +40,17 @@ namespace MongoDB.Client.Tests.Models
         //public IList<InnerRecord> InnerRecordListProp { get; set; }
         //public IList<IList<InnerRecord>> DoubleListInnerRecordProp { get; set; }
         //public List<IList<InnerStruct>> DoubleListInnerStructProp { get; set; }
-        public List<string> StringListProp { get; set; }
+        public List<string>? StringListProp { get; set; }
 
         [BsonConstructor]
-        public CommonModel(InnerStruct InnerStructProp, InnerRecord InnerRecordField)
+        public NullableModel(InnerStruct InnerStructProp, InnerRecord InnerRecordField) //TODO: send worning and force type.Value
         {
             this.InnerStructProp = InnerStructProp;
             this.InnerRecordField = InnerRecordField;
         }
-        public static CommonModel Create()
+        public static NullableModel Create()
         {
-            return new CommonModel(new InnerStruct { A = 42, B = 42, C = 42 }, new InnerRecord(42, 42, 42))
+            return new NullableModel(new InnerStruct { A = 42, B = 42, C = 42 }, new InnerRecord(42, 42, 42))
             {
                 IntProp = 42,
                 DoubleProp = 42.42,

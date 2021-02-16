@@ -12,6 +12,97 @@ namespace MongoDB.Client.Bson.Writer
     public ref partial struct BsonWriter
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write_Type_Name_Value(ReadOnlySpan<byte> name, Guid? value)
+        {
+            if(value.HasValue)
+            {
+                WriteByte(5);
+                WriteCString(name);
+                WriteGuidAsBinaryData(value.Value);
+            }
+            else
+            {
+                WriteBsonNull(name);
+            }
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write_Type_Name_Value(int intName, Guid? value)
+        {
+            if(value.HasValue)
+            {
+                WriteByte(5);
+                WriteIntIndex(intName);
+                WriteGuidAsBinaryData(value.Value);
+            }
+            else
+            {
+                WriteBsonNull(intName);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write_Type_Name_Value(ReadOnlySpan<byte> name, DateTimeOffset? value)
+        {
+            if(value.HasValue)
+            {
+                WriteByte(9);
+                WriteCString(name);
+                WriteUtcDateTime(value.Value);
+            }
+            else
+            {
+                WriteBsonNull(name);
+            }
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write_Type_Name_Value(int intName, DateTimeOffset? value)
+        {
+            if(value.HasValue)
+            {
+                WriteByte(9);
+                WriteIntIndex(intName);
+                WriteUtcDateTime(value.Value);
+            }
+            else
+            {
+                WriteBsonNull(intName);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write_Type_Name_Value(ReadOnlySpan<byte> name, BsonObjectId? value)
+        {
+            if(value.HasValue)
+            {
+                WriteByte(7);
+                WriteCString(name);
+                WriteObjectId(value.Value);
+            }
+            else
+            {
+                WriteBsonNull(name);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write_Type_Name_Value(int intName, BsonObjectId? value)
+        {
+           if(value.HasValue)
+            {
+                WriteByte(7);
+                WriteIntIndex(intName);
+                WriteObjectId(value.Value);
+            }
+            else
+            {
+                WriteBsonNull(intName);
+            }
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, double? value)
         {
             if(value.HasValue)
@@ -26,7 +117,6 @@ namespace MongoDB.Client.Bson.Writer
             }
 
         }
-
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(int intName, double? value)
