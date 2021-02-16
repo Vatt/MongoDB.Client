@@ -15,9 +15,9 @@ namespace MongoDB.Client.Tests.Models
         }
         [BsonSerializable]
         public partial record InnerRecord(long A, long B, long C);
-        public int IntProp { get; set; }
+        public int? IntProp { get; set; }
         public double DoubleProp { get; set; }
-        public string StringField;
+        public string? StringField;
         public DateTimeOffset DateProp { get; set; }
         public BsonDocument BsonDocumentProp { get; set; }
         public BsonObjectId BsonObjectIdField;

@@ -139,7 +139,7 @@ namespace MongoDB.Client.Bson.Reader
                     }
                 case 2:
                     {
-                        if (TryGetInt32(out var length))
+                        if (TryGetInt32(out int length))
                         {
                             return TryAdvance(length);
                         }
@@ -149,7 +149,7 @@ namespace MongoDB.Client.Bson.Reader
                 case 3:
                     {
 
-                        if (TryGetInt32(out var docLength))
+                        if (TryGetInt32(out int docLength))
                         {
                             return TryAdvance(docLength - sizeof(int));
                         }
@@ -157,7 +157,7 @@ namespace MongoDB.Client.Bson.Reader
                     }
                 case 4:
                     {
-                        if (TryGetInt32(out var arrayLength))
+                        if (TryGetInt32(out int arrayLength))
                         {
                             return TryAdvance(arrayLength - sizeof(int));
                         }
@@ -166,7 +166,7 @@ namespace MongoDB.Client.Bson.Reader
                     }
                 case 5:
                     {
-                        if (TryGetInt32(out var binDataLength))
+                        if (TryGetInt32(out int binDataLength))
                         {
                             return TryAdvance(binDataLength + 1);
                         }

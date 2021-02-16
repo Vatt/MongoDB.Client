@@ -22,7 +22,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
             int Int32A = default;
             int Int32B = default;
             int Int32C = default;
-            if (!reader.TryGetInt32(out var docLength))
+            if (!reader.TryGetInt32(out int docLength))
             {
                 return false;
             }
@@ -121,7 +121,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
             int Int32A = default;
             int Int32B = default;
             int Int32C = default;
-            if (!reader.TryGetInt32(out var docLength))
+            if (!reader.TryGetInt32(out int docLength))
             {
                 return false;
             }

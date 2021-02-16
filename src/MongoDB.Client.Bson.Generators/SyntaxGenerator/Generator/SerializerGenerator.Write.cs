@@ -53,7 +53,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 StatementSyntax[] writeStatement;
                 var writeTarget = SimpleMemberAccess(ctx.WriterInputVar, IdentifierName(member.NameSym));
-                ITypeSymbol trueType = member.TypeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol)member.TypeSym).TypeParameters[0] : member.TypeSym;
+                ITypeSymbol trueType = member.TypeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol)member.TypeSym).TypeArguments[0] : member.TypeSym;
                 Helper.TryGetBsonWriteIgnoreIfAttr(member, out var condition);
                 if (member.TypeSym.TypeKind == TypeKind.Enum)
                 {
@@ -108,7 +108,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
         public static StatementSyntax[] WriteOperation(MemberContext ctx, SyntaxToken name, ISymbol nameSym, ITypeSymbol typeSym, ExpressionSyntax writerId, ExpressionSyntax writeTarget)
         {
-            ITypeSymbol trueType = typeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol)typeSym).TypeParameters[0] : typeSym;
+            ITypeSymbol trueType = typeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol)typeSym).TypeArguments[0] : typeSym;
             if (TryGetSimpleWriteOperation(nameSym, trueType, name, writeTarget, out var expr))
             {
 

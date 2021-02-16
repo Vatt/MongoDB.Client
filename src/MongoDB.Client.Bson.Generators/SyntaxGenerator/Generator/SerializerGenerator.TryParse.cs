@@ -34,7 +34,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 SF.Block(
                     SimpleAssignExprStatement(ctx.TryParseOutVar, DefaultLiteralExpr()))
                     .AddStatements(DeclareTempVariables(ctx)).AddStatements(
-                    IfNotReturnFalse(TryGetInt32(VarVariableDeclarationExpr(docLenToken))),
+                    IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(docLenToken))),
                     VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemaining(), SizeOfInt())),
                       SF.WhileStatement(
                           condition:
@@ -193,7 +193,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static ExpressionSyntax ReadOperation(ContextCore ctx, ISymbol nameSym, ITypeSymbol typeSym, ExpressionSyntax readerId,
                                                       ExpressionSyntax readTarget, SyntaxToken bsonType)
         {
-            ITypeSymbol trueType = typeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol)typeSym).TypeParameters[0] : typeSym;
+            ITypeSymbol trueType = typeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol)typeSym).TypeArguments[0] : typeSym;
 
             if (TryGetSimpleReadOperation(nameSym, trueType, IdentifierName(bsonType), readTarget, out var simpleOperation))
             {

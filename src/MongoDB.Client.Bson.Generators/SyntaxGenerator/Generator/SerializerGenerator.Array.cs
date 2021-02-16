@@ -134,7 +134,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 .WithBody(
                     SF.Block(
                         SimpleAssignExprStatement(IdentifierName(outMessage), ObjectCreation(TypeFullName(type))),
-                        IfNotReturnFalse(TryGetInt32(VarVariableDeclarationExpr(docLenToken))),
+                        IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(docLenToken))),
                         VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemaining(), SizeOfInt())),
                         SF.WhileStatement(
                             condition:
@@ -168,7 +168,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
         private static MethodDeclarationSyntax WriteArrayMethod(MemberContext ctx, ITypeSymbol type)
         {
-            ITypeSymbol trueType = type.Name.Equals("Nullable") ? ((INamedTypeSymbol)type).TypeParameters[0] : type;
+            ITypeSymbol trueType = type.Name.Equals("Nullable") ? ((INamedTypeSymbol)type).TypeArguments[0] : type;
             var classCtx = ctx.Root;
             var checkpoint = SF.Identifier("checkpoint");
             var reserved = SF.Identifier("reserved");
