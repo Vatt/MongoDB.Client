@@ -158,11 +158,6 @@ namespace MongoDB.Client.Connection
             var result = await src.GetValueTask().ConfigureAwait(false);
             if (result is CreateCollectionResult CreateCollectionResult)
             {
-                await _protocolListenerTask.ConfigureAwait(false);
-            }
-            if (_protocolReader is not null)
-            {
-                await _protocolReader.DisposeAsync().ConfigureAwait(false);
                 if (CreateCollectionResult.Ok != 1)
                 {
                     ThrowHelper.CreateCollectionException(CreateCollectionResult.ErrorMessage!, CreateCollectionResult.Code, CreateCollectionResult.CodeName!);
