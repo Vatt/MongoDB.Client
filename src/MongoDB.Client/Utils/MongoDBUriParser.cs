@@ -216,7 +216,7 @@ namespace MongoDB.Client.Utils
             result = ReadTo(ch);
             return true;
         }
-        public static MongoDbUriParseResult Parse(string uriString)
+        public static MongoDbUriParseResult Parse1(string uriString)
         {
             var parser = new MongoDBUriParser(uriString);
             return parser.ParsePrivate();

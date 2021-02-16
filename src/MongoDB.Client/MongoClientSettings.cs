@@ -62,7 +62,7 @@ namespace MongoDB.Client
 
         public static MongoClientSettings FromConnectionString(string uriString)
         {
-            var result = MongoDBUriParser.Parse(uriString);
+            var result = MongoDBUriParser.Parse1(uriString);
             var endpoints = new DnsEndPoint[result.Hosts.Count];
             for (int i = 0; i < result.Hosts.Count; i++)
             {
