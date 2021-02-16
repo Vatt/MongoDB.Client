@@ -1,238 +1,147 @@
 ﻿using MongoDB.Client.Exceptions;
+using Sprache;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Net;
 
 namespace MongoDB.Client.Utils
 {
-
-    internal class MongoDBUriParser
+    internal class MongoUriParseResult
     {
-        internal class MongoDbUriParseResult
-        {
-            public string Scheme { get; }
-            public string? Login { get; }
-            public string? Password { get; }
-            public List<HostInfo> Hosts { get; }
-            public Dictionary<string, string> Options { get; }
+        public string Scheme { get; }
+        public string? Login { get; }
+        public string? Password { get; }
+        public string? AdminDb { get; }
+        public IEnumerable<EndPoint> Hosts { get; }
+        public Dictionary<string, string> Options { get; }
 
-            internal MongoDbUriParseResult(
-                string? scheme,
-                string? login,
-                string? password,
-                List<HostInfo> hosts,
-                Dictionary<string, string> options)
+        internal MongoUriParseResult(
+            string scheme,
+            string? login,
+            string? password,
+            IEnumerable<EndPoint> hosts,
+            string? adminDb,
+            string? optionsString)
+        {
+            Scheme = scheme;
+            Login = login;
+            Password = password;
+            Hosts = hosts;
+            AdminDb = adminDb;
+            Options = new Dictionary<string, string>();
+
+            if (optionsString != null)
             {
-                if (string.IsNullOrEmpty(scheme))
+                var optStr = optionsString[optionsString.Length - 1] == '/' ? optionsString.Remove(optionsString.Length - 1) : optionsString;
+                foreach (var opt in optStr.Split('&', StringSplitOptions.RemoveEmptyEntries))
                 {
-                    throw new ArgumentException(nameof(scheme));
-                }
-                Scheme = scheme;
-                Login = login;
-                Password = password;
-                Hosts = hosts;
-                Options = options;
-            }
-        }
-        internal class HostInfo
-        {
-            public string Host { get; }
-            public int? Port { get; }
+                    if(IfReadPreferenceTags(opt))
+                    {
+                        continue;
+                    }
+                    var splited = opt.Split('=', StringSplitOptions.RemoveEmptyEntries);
+                    if (splited.Length == 1)
+                    {
+                        Options.Add(splited[0], string.Empty);
+                    }
+                    else
+                    {
+                        Options.Add(splited[0], splited[1]);
+                    }
 
-            public HostInfo(string host, int port)
-            {
-                Host = host;
-                Port = port;
-            }
-
-            public HostInfo(string host)
-            {
-                Host = host;
-                Port = null;
-            }
-        }
-        private string _original;
-        private string _unreaded;
-        private readonly bool _haveUserInfo;
-        private readonly bool _haveOptions;
-
-        private string? _scheme;
-        private string? _user;
-        private string? _password;
-        private List<HostInfo> _hosts;
-        private Dictionary<string, string> _options;
-        private MongoDBUriParser(string uriString)
-        {
-            _hosts = new();
-            _options = new();
-            _original = uriString;
-            _haveUserInfo = uriString.Contains('@');
-            _haveOptions = uriString.Contains("/?");
-            _unreaded = uriString;
-        }
-        private MongoDbUriParseResult ParsePrivate()
-        {
-            try
-            {
-                ParseScheme();
-                if (_haveUserInfo)
-                {
-                    ParseUserInfo();
-                }
-                ParseHosts();
-                if (_haveOptions)
-                {
-                    Skip(2);
-                    ParseOptions();
                 }
             }
-            catch (Exception ex)
-            {
-                throw new MongoDBUriParserException($" {nameof(MongoDbUriParseResult)}: unhandled exception", ex);
-            }
-
-            if (_unreaded.Length != 0)
-            {
-                throw new MongoDBUriParserException($"Bad connection string {_original}");
-            }
-
-            return new MongoDbUriParseResult(_scheme, _user, _password, _hosts, _options);
         }
-        private void ParseOptions()
+        private bool IfReadPreferenceTags(string opt)
         {
-            while (TryReadTo('&', out var expr))
+            var splited = opt.Split('=', StringSplitOptions.RemoveEmptyEntries);
+            if (splited[0].Equals("readPreferenceTags"))
             {
-                ParseOption(expr);
-                Skip(1);
-            }
-            if (TryReadTo('/', out var last))
-            {
-                ParseOption(last);
-            }
-            else
-            {
-                ParseOption(Read(_unreaded.Length));
-            }
-            void ParseOption(string expr)
-            {
-                var splited = expr.Split('=', StringSplitOptions.TrimEntries);
-                _options.Add(splited[0], splited[1]);
-            }
-        }
-        private void ParseHosts()
-        {
-            if (_unreaded.Contains(','))
-            {
-                while (TryReadTo(',', out var host))
+                if (splited.Length == 1 || splited[1] is null || splited[1].Equals(string.Empty))
                 {
-                    _hosts.Add(ParseHost(host));
-                    Skip(1);
+                    return true;
                 }
-                if (TryReadTo('/', out var last))
+
+                string tags;                
+                if (Options.TryGetValue("readPreferenceTags", out tags))
                 {
-                    _hosts.Add(ParseHost(last));
+                    tags = tags + "&" + splited[1];
+                    Options["readPreferenceTags"] = tags;
+                    return true;
                 }
                 else
                 {
-                    _hosts.Add(ParseHost(Read(_unreaded.Length)));
+                    Options["readPreferenceTags"] = splited[1];
+                    return true;
                 }
             }
-            else
-            {
-                if (TryReadTo('/', out var host))
-                {
-                    _hosts.Add(ParseHost(host));
-                }
-                else
-                {
-                    _hosts.Add(ParseHost(Read(_unreaded.Length)));
-                }
-            }
-
-            HostInfo ParseHost(string hostStr)
-            {
-                if (hostStr.Length == 0)
-                {
-                    throw new MongoDBUriParserException($"Bad connection string {nameof(ParseHost)} : {nameof(hostStr)}.Lenght == 0");
-                }
-                if (hostStr.Contains(':'))
-                {
-                    var splited = hostStr.Split(':', StringSplitOptions.TrimEntries);
-                    return new HostInfo(splited[0].Trim(), int.Parse(splited[1].Trim()));
-                }
-
-                return new HostInfo(hostStr.Trim());
-            }
-        }
-        private void ParseUserInfo()
-        {
-            _user = ReadTo(':');
-            Skip(1);
-            _password = ReadTo('@');
-            Skip(1);
-        }
-        private void ParseScheme()
-        {
-            _scheme = Read(7);
-            var next = Read(3);
-            if (!next.Equals("://"))
-            {
-                throw new MongoDBUriParserException($"Bad connection string ({nameof(ParseScheme)})");
-            }
-
-            if (!_scheme.Equals("mongodb"))
-            {
-                throw new MongoDBUriParserException($"Bad connection string ({nameof(ParseScheme)}), scheme error");
-            }
-        }
-        private string Read(int count)
-        {
-            var result = _unreaded.Substring(0, count);
-            _unreaded = _unreaded.Remove(0, count);
-            return result;
-        }
-
-
-        private void Skip(int count)
-        {
-            if (_unreaded.Length < count)
-            {
-                throw new MongoDBUriParserException($"Bad connection string ({nameof(Skip)}) : {nameof(_unreaded)}.Lenght < {nameof(count)}");
-            }
-            _unreaded = _unreaded.Remove(0, count);
-        }
-
-
-        private string ReadTo(char ch)
-        {
-            var index = _unreaded.IndexOf(ch);
-            if (index == -1)
-            {
-                throw new MongoDBUriParserException($"Bad connection string ({nameof(ReadTo)}) : char not found");
-            }
-            var result = _unreaded.Substring(0, index);
-            _unreaded = _unreaded.Remove(0, index);
-            return result;
-        }
-
-
-        private bool TryReadTo(char ch, [MaybeNullWhen(false)] out string result)
-        {
-            result = default;
-            var index = _unreaded.IndexOf(ch);
-            if (index == -1)
-            {
-                return false;
-            }
-            result = ReadTo(ch);
-            return true;
-        }
-
-
-        public static MongoDbUriParseResult Parse(string uriString)
-        {
-            var parser = new MongoDBUriParser(uriString);
-            return parser.ParsePrivate();
+            return false;
         }
     }
+
+    internal static class MongoDBUriParser
+    {
+        static private Parser<MongoUriParseResult> _uriParser;
+        static MongoDBUriParser()
+        {
+            Parser<(string, string)> userInfoParser =
+                from user in Parse.Or(Parse.LetterOrDigit, Parse.Chars(/*':',*/ '%', '/', '?', '#', '[', ']'/*, '@'*/)).Many().Text()
+                from separator in Parse.Char(':').Once()
+                from password in Parse.Or(Parse.LetterOrDigit, Parse.Chars(/*':',*/ '%', '/', '?', '#', '[', ']'/*, '@'*/)).Many().Text()
+                from end in Parse.Char('@').Once()
+                select (user, password);
+
+            Parser<int> portParser =
+                from colon in Parse.Char(':').Once()
+                from port in Parse.Number
+                select int.Parse(port);
+            Parser<EndPoint> hostParser =
+                from host in Parse.Or(Parse.LetterOrDigit, Parse.Chars('-', '_', '.')).Many().Text()
+                from port in portParser.Optional()
+                select new DnsEndPoint(host, port.IsEmpty ? 27017 : port.Get());
+            Parser<EndPoint> tailHostParser =
+                from headspaces in Parse.WhiteSpace.Many().Optional()
+                from colon in Parse.Char(',')
+                from tailspaces in Parse.WhiteSpace.Many().Optional()
+                from host in hostParser
+                select host;
+            Parser<IEnumerable<EndPoint>> hostsParser =
+                from first in hostParser
+                from tail in tailHostParser.Many().Optional()
+                select ImmutableList<EndPoint>.Empty.Add(first).AddRange(tail.Get());
+
+            Parser<string> adminDbParser =
+                from slash in Parse.Char('/')
+                from test in Parse.Letter
+                from tail in Parse.Letter.Many().Text()
+                select test + tail;
+
+            Parser<string> optionsParser =
+                from slash in Parse.String("/?")
+                from options in Parse.AnyChar.Many().Text()
+                select options;
+
+            _uriParser =
+                from scheme in Parse.Or(Parse.String("mongodb://"), Parse.String("mongodb+srv://")).Text()
+                from userInfo in userInfoParser.Optional()
+                from hosts in hostsParser
+                from adminDb in adminDbParser.Optional()
+                from options in optionsParser.Optional()
+                from closeSlash in Parse.Char('/').Optional()
+                select new MongoUriParseResult(scheme,
+                userInfo.IsEmpty ? null : userInfo.Get().Item1,
+                userInfo.IsEmpty ? null : userInfo.Get().Item2,
+                hosts.ToList(),
+                adminDb.IsEmpty ? null : adminDb.Get(),
+                options.IsEmpty ? null : options.Get());
+        }
+        internal static MongoUriParseResult ParseUri(string uri)
+        {
+            return _uriParser.Parse(uri);
+        }
+
+    }
+
 }
