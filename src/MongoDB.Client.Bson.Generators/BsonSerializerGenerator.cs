@@ -14,9 +14,11 @@ namespace MongoDB.Client.Bson.Generators
     [Generator]
     partial class BsonSerializerGenerator : ISourceGenerator
     {
+        public static Compilation Compilation;
         public void Execute(GeneratorExecutionContext context)
         {
             //System.Diagnostics.Debugger.Launch();
+            Compilation = context.Compilation;
             TypeLib.TypeLibInit(context.Compilation);
             GeneratorDiagnostics.Init(context);
             try

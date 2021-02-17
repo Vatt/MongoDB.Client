@@ -43,7 +43,7 @@ namespace MongoDB.Client.Tests.Models
         public List<string>? StringListProp { get; set; }
 
         [BsonConstructor]
-        public NullableModel(InnerStruct InnerStructProp, InnerRecord InnerRecordField) //TODO: send worning and force type.Value
+        public NullableModel(InnerStruct? InnerStructProp, InnerRecord? InnerRecordField) //TODO: send worning and force type.Value
         {
             this.InnerStructProp = InnerStructProp;
             this.InnerRecordField = InnerRecordField;

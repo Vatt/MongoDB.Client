@@ -65,7 +65,7 @@ namespace MongoDB.Client.Bson.Reader
         SIMPLE_BSON_TYPE:
             if (typeof(T) == typeof(DateTimeOffset))
             {
-                if (!TryGetDateTimeWithBsonType(bsonType, out var value)) { return false; }
+                if (!TryGetDateTimeWithBsonType(bsonType, out DateTimeOffset value)) { return false; }
                 genericValue = (T)(object)value;
                 return true;
             }
@@ -77,7 +77,7 @@ namespace MongoDB.Client.Bson.Reader
             }
             if (typeof(T) == typeof(Guid))
             {
-                if (!TryGetGuidWithBsonType(bsonType, out var value)) { return false; }
+                if (!TryGetGuidWithBsonType(bsonType, out Guid value)) { return false; }
                 genericValue = (T)(object)value;
                 return true;
             }

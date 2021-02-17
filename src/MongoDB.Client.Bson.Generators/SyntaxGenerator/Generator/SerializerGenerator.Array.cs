@@ -111,7 +111,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var outMessage = SF.Identifier("array");
             var tempArrayRead = SF.Identifier("temp");
 
-            var typeArg = (type as INamedTypeSymbol).TypeArguments[0];
+            var typeArg = ExtractTypeFromNullableIfNeed((type as INamedTypeSymbol).TypeArguments[0]);
+
+            var trueType = ExtractTypeFromNullableIfNeed(type);
 
             ExpressionSyntax operation = ReadOperation(ctx.Root, ctx.NameSym, typeArg, ctx.Root.BsonReaderId, TypedVariableDeclarationExpr(TypeFullName(typeArg), tempArrayRead), bsonTypeToken);
             if (operation == default)
@@ -133,7 +135,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     semicolonToken: default)
                 .WithBody(
                     SF.Block(
-                        SimpleAssignExprStatement(IdentifierName(outMessage), ObjectCreation(TypeFullName(type))),
+                        SimpleAssignExprStatement(IdentifierName(outMessage), ObjectCreation(TypeFullName(trueType))),
                         IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(docLenToken))),
                         VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemaining(), SizeOfInt())),
                         SF.WhileStatement(

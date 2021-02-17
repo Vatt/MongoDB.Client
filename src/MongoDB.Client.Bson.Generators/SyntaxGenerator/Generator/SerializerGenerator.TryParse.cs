@@ -116,7 +116,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             foreach (var member in members)
             {
-                if (member.TypeSym.TypeKind == TypeKind.Enum)
+                var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
+                if (trueType.TypeKind == TypeKind.Enum)
                 {
                     var localReadEnumVar = SF.Identifier($"{member.AssignedVariable}Temp");
                     int repr = Helper.GetEnumRepresentation(member.NameSym);
@@ -131,8 +132,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                     LocalDeclarationStatement(IntPredefinedType(), localReadEnumVar, DefaultLiteralExpr()) :
                                     LocalDeclarationStatement(LongPredefinedType(), localReadEnumVar, DefaultLiteralExpr()),
                                   repr == 2 ?
-                                    IfNotReturnFalseElse(TryGetInt32(localReadEnumVar), SF.Block(SimpleAssignExprStatement(member.AssignedVariable, Cast(member.TypeSym, localReadEnumVar)))) :
-                                    IfNotReturnFalseElse(TryGetInt64(localReadEnumVar), SF.Block(SimpleAssignExprStatement(member.AssignedVariable, Cast(member.TypeSym, localReadEnumVar)))),
+                                    IfNotReturnFalseElse(TryGetInt32(localReadEnumVar), SF.Block(SimpleAssignExprStatement(member.AssignedVariable, Cast(trueType, localReadEnumVar)))) :
+                                    IfNotReturnFalseElse(TryGetInt64(localReadEnumVar), SF.Block(SimpleAssignExprStatement(member.AssignedVariable, Cast(trueType, localReadEnumVar)))),
                                   SF.ContinueStatement()
                             )));
                     }
@@ -150,7 +151,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 }
                 else
                 {
-                    var operation = ReadOperation(ctx, member.NameSym, member.TypeSym, ctx.BsonReaderId, IdentifierName(member.AssignedVariable), bsonType);
+                    var operation = ReadOperation(ctx, member.NameSym, trueType, ctx.BsonReaderId, IdentifierName(member.AssignedVariable), bsonType);
                     if (operation != default)
                     {
                         statements.Add(
@@ -161,9 +162,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     }
                     else
                     {
-                        if (Helper.IsBsonSerializable(member.TypeSym))
+                        if (Helper.IsBsonSerializable(trueType))
                         {
-                            var condition = InvocationExpr(IdentifierName(SelfFullName(member.TypeSym)), IdentifierName("TryParseBson"), RefArgument(ctx.BsonReaderId), OutArgument(IdentifierName(member.AssignedVariable)));
+                            var condition = InvocationExpr(IdentifierName(SelfFullName(trueType)), IdentifierName("TryParseBson"), RefArgument(ctx.BsonReaderId), OutArgument(IdentifierName(member.AssignedVariable)));
                             statements.Add(
                                            SF.IfStatement(
                                                condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
@@ -193,22 +194,21 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static ExpressionSyntax ReadOperation(ContextCore ctx, ISymbol nameSym, ITypeSymbol typeSym, ExpressionSyntax readerId,
                                                       ExpressionSyntax readTarget, SyntaxToken bsonType)
         {
-            ITypeSymbol trueType = typeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol)typeSym).TypeArguments[0] : typeSym;
 
-            if (TryGetSimpleReadOperation(nameSym, trueType, IdentifierName(bsonType), readTarget, out var simpleOperation))
+            if (TryGetSimpleReadOperation(nameSym, typeSym, IdentifierName(bsonType), readTarget, out var simpleOperation))
             {
                 return simpleOperation;
             }
 
-            if (ctx.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(trueType.Name)) != default)
+            if (ctx.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(typeSym.Name)) != default)
             {
                 return TryReadGeneric(bsonType, readTarget);
             }
-            if (trueType is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)
+            if (typeSym is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)
             {
                 if (TypeLib.IsListOrIList(namedType))
                 {
-                    return InvocationExpr(IdentifierName(ReadArrayMethodName(nameSym, trueType)), RefArgument(readerId), OutArgument(readTarget));
+                    return InvocationExpr(IdentifierName(ReadArrayMethodName(nameSym, typeSym)), RefArgument(readerId), OutArgument(readTarget));
                 }
             }
             return default;
