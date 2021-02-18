@@ -9,60 +9,130 @@ using System.Threading.Tasks;
 namespace MongoDB.Client.Tests.Models
 {
     [BsonSerializable]
-    public partial class NullableModel
+    public partial class IntNullable : IEquatable<IntNullable>
+    {
+        public int? Prop { get; set; }
+        public int? Field;
+
+        public bool Equals(IntNullable other)
+        {
+            return Prop.Equals(other.Prop) && Field.Equals(other.Prop);
+        }
+    }
+    [BsonSerializable]
+    public partial class DoubleNullable : IEquatable<DoubleNullable>
+    {
+        public double? Prop { get; set; }
+        public double? Field;
+
+        public bool Equals(DoubleNullable other)
+        {
+            return Prop.Equals(other.Prop) && Field.Equals(other.Prop);
+        }
+    }
+    [BsonSerializable]
+    public partial class LongNullable : IEquatable<LongNullable>
+    {
+        public long? Prop { get; set; }
+        public long? Field;
+
+        public bool Equals(LongNullable other)
+        {
+            return Prop.Equals(other.Prop) && Field.Equals(other.Prop);
+        }
+    }
+    [BsonSerializable]
+    public partial class StringNullable : IEquatable<StringNullable>
+    {
+        public string? Prop { get; set; }
+        public string? Field;
+
+        public bool Equals(StringNullable other)
+        {
+            return Prop.Equals(other.Prop) && Field.Equals(other.Prop);
+        }
+    }
+    [BsonSerializable]
+    public partial class DateTimeOffsetNullable : IEquatable<DateTimeOffsetNullable>
+    {
+        public DateTimeOffset? Prop { get; set; }
+        public DateTimeOffset? Field;
+
+        public bool Equals(DateTimeOffsetNullable other)
+        {
+            return Prop.Equals(other.Prop) && Field.Equals(other.Field);
+        }
+    }
+    [BsonSerializable]
+    public partial class GuidNullable : IEquatable<GuidNullable>
+    {
+        public Guid? Prop { get; set; }
+        public Guid? Field;
+
+        public bool Equals(GuidNullable other)
+        {
+            return Prop.Equals(other.Prop) && Field.Equals(other.Field);
+        }
+    }
+    [BsonSerializable]
+    public partial class BsonObjectIdNullable : IEquatable<BsonObjectIdNullable>
+    {
+        public BsonObjectId? Prop { get; set; }
+        public BsonObjectId? Field;
+
+        public bool Equals(BsonObjectIdNullable other)
+        {
+            return Prop.Equals(other.Prop) && Field.Equals(other.Field);
+        }
+    }
+    [BsonSerializable]
+    public partial class RecordNullable : IEquatable<RecordNullable>
     {
         [BsonSerializable]
-        public partial struct NullableInnerStruct
+        public partial record NullableRecord(int? A, long? B, double? C);
+        public NullableRecord? Prop { get; set; }
+        public NullableRecord? Field;
+        public static RecordNullable Create() => new RecordNullable { Prop = new NullableRecord(42, null, 42), Field = new NullableRecord(null, null, null) };
+        public bool Equals(RecordNullable other)
         {
-            public int? A, B, C;
+            return Prop.Equals(other.Prop) && Field.Equals(other.Field);
         }
+    }
+    [BsonSerializable]
+    public partial class StructNullable : IEquatable<StructNullable>
+    {
         [BsonSerializable]
-        public partial record NullableInnerRecord(long A, long B, long C);
-        public int? IntProp { get; set; }
-        public double? DoubleProp { get; set; }
-        public string? StringField;
-        public DateTimeOffset? DateProp { get; set; }
-        public BsonDocument? BsonDocumentProp { get; set; }
-        public BsonObjectId? BsonObjectIdField;
-        public long? LongProp { get; set; }
-        public Guid? GuidProp { get; set; }
-
-        //TODO: fix BsonArray parse call
-        //public BsonArray BsonArrayProp { get; set; }
-        public NullableInnerStruct? InnerStructProp { get; set; }
-        public NullableInnerRecord? InnerRecordField;
-
-
-        //TODO: Fix IList creations
-        //public IList<long> LongListProp { get; set; }
-        //public IList<int> IntLoitProp { get; set; }
-        //public IList<InnerStruct> InnerStructListProp { get; set; }
-        //public IList<InnerRecord> InnerRecordListProp { get; set; }
-        //public IList<IList<InnerRecord>> DoubleListInnerRecordProp { get; set; }
-        //public List<IList<InnerStruct>> DoubleListInnerStructProp { get; set; }
-        public List<string>? StringListProp { get; set; }
-
-        [BsonConstructor]
-        public NullableModel(NullableInnerStruct? InnerStructProp, NullableInnerRecord? InnerRecordField) //TODO: send worning and force type.Value
+        public partial struct NullableStruct 
+        { 
+            public int? A; 
+            public long? B; 
+            public double? C; 
+        };
+        public NullableStruct? Prop { get; set; }
+        public NullableStruct? Field;
+        public static StructNullable Create() => new StructNullable { Prop = new NullableStruct { A = 42, B = null, C = 42 }, Field = new NullableStruct { A = null, B = null, C = null } };
+        public bool Equals(StructNullable other)
         {
-            this.InnerStructProp = InnerStructProp;
-            this.InnerRecordField = InnerRecordField;
+            return Prop.Equals(other.Prop) && Field.Equals(other.Field);
         }
-        public static NullableModel Create()
-        {
-            return new NullableModel(new NullableInnerStruct { A = 42, B = 42, C = 42 }, new NullableInnerRecord(42, 42, 42))
-            {
-                IntProp = 42,
-                DoubleProp = 42.42,
-                StringField = "42",
-                DateProp = DateTimeOffset.UtcNow,
-                BsonDocumentProp = new BsonDocument("BsonDoc", BsonObjectId.NewObjectId()),
-                BsonObjectIdField = BsonObjectId.NewObjectId(),
-                LongProp = 42,
-                GuidProp = Guid.NewGuid(),
-                StringListProp = new List<string> { "42", "42", "42" }
+    }
 
-            };
+    [BsonSerializable]
+    public partial class ClassNullable : IEquatable<ClassNullable>
+    {
+        [BsonSerializable]
+        public partial class NullableClass
+        {
+            public int? A;
+            public long? B;
+            public double? C;
+        };
+        public NullableClass? Prop { get; set; }
+        public NullableClass? Field;
+        public static ClassNullable Create() => new ClassNullable { Prop = new NullableClass { A = 42, B = null, C = 42 }, Field = new NullableClass { A = null, B = null, C = null } };
+        public bool Equals(ClassNullable other)
+        {
+            return Prop.Equals(other.Prop) && Field.Equals(other.Field);
         }
     }
 }
