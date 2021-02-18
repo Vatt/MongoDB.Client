@@ -12,12 +12,12 @@ namespace MongoDB.Client.Tests.Models
     public partial class NullableModel
     {
         [BsonSerializable]
-        public partial struct InnerStruct
+        public partial struct NullableInnerStruct
         {
             public int? A, B, C;
         }
         [BsonSerializable]
-        public partial record InnerRecord(long A, long B, long C);
+        public partial record NullableInnerRecord(long A, long B, long C);
         public int? IntProp { get; set; }
         public double? DoubleProp { get; set; }
         public string? StringField;
@@ -29,8 +29,8 @@ namespace MongoDB.Client.Tests.Models
 
         //TODO: fix BsonArray parse call
         //public BsonArray BsonArrayProp { get; set; }
-        public InnerStruct? InnerStructProp { get; set; }
-        public InnerRecord? InnerRecordField;
+        public NullableInnerStruct? InnerStructProp { get; set; }
+        public NullableInnerRecord? InnerRecordField;
 
 
         //TODO: Fix IList creations
@@ -43,14 +43,14 @@ namespace MongoDB.Client.Tests.Models
         public List<string>? StringListProp { get; set; }
 
         [BsonConstructor]
-        public NullableModel(InnerStruct? InnerStructProp, InnerRecord? InnerRecordField) //TODO: send worning and force type.Value
+        public NullableModel(NullableInnerStruct? InnerStructProp, NullableInnerRecord? InnerRecordField) //TODO: send worning and force type.Value
         {
             this.InnerStructProp = InnerStructProp;
             this.InnerRecordField = InnerRecordField;
         }
         public static NullableModel Create()
         {
-            return new NullableModel(new InnerStruct { A = 42, B = 42, C = 42 }, new InnerRecord(42, 42, 42))
+            return new NullableModel(new NullableInnerStruct { A = 42, B = 42, C = 42 }, new NullableInnerRecord(42, 42, 42))
             {
                 IntProp = 42,
                 DoubleProp = 42.42,

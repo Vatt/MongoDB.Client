@@ -53,7 +53,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 StatementSyntax[] writeStatement;
                 var writeTarget = SimpleMemberAccess(ctx.WriterInputVar, IdentifierName(member.NameSym));
-                ITypeSymbol trueType = member.TypeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol)member.TypeSym).TypeArguments[0] : member.TypeSym;
+                ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
                 Helper.TryGetBsonWriteIgnoreIfAttr(member, out var condition);
                 if (member.TypeSym.TypeKind == TypeKind.Enum)
                 {
@@ -67,18 +67,26 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                             SF.IfStatement(
                                 condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
                                 statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
+                                @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, trueType, ctx.BsonWriterId, writeTarget)))));
+                }else if(Helper.IsBsonSerializable(trueType) && member.TypeSym.NullableAnnotation == NullableAnnotation.Annotated)
+                {
+                    writeStatement =
+                        Statements(
+                            SF.IfStatement(
+                                condition: BinaryExprEqualsEquals(SimpleMemberAccess(writeTarget, IdentifierName("HasValue")), FalseLiteralExpr()),
+                                statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
                                 @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget)))));
                 }
                 else
                 {
-                    if (member.BsonElementAlias.Equals("_id") && TypeLib.IsBsonObjectId(member.TypeSym))
+                    if (member.BsonElementAlias.Equals("_id") && TypeLib.IsBsonObjectId(trueType))
                     {
                         statements.Add(
                             SF.IfStatement(
-                                BinaryExprEqualsEquals(writeTarget, Default(TypeFullName(member.TypeSym))),
+                                BinaryExprEqualsEquals(writeTarget, Default(TypeFullName(trueType))),
                                 SF.Block(SimpleAssignExprStatement(writeTarget, NewBsonObjectId()))));
                     }
-                    writeStatement = WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget);
+                    writeStatement = WriteOperation(member, StaticFieldNameToken(member), member.NameSym, trueType, ctx.BsonWriterId, writeTarget);
                 }
             CONDITION_CHECK:
                 if (condition != null)
@@ -108,7 +116,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
         public static StatementSyntax[] WriteOperation(MemberContext ctx, SyntaxToken name, ISymbol nameSym, ITypeSymbol typeSym, ExpressionSyntax writerId, ExpressionSyntax writeTarget)
         {
-            ITypeSymbol trueType = typeSym.Name.Equals("Nullable") ? ((INamedTypeSymbol)typeSym).TypeArguments[0] : typeSym;
+            ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(typeSym);
             if (TryGetSimpleWriteOperation(nameSym, trueType, name, writeTarget, out var expr))
             {
 
@@ -138,13 +146,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 foreach (var context in ctx.Root.Root.Contexts)
                 {
-                    //TODO: проверять по сигнатуре метода, могут быт ьвручную реализованые методы
-                    if (Helper.IsBsonSerializable(typeSym))
+                    if (Helper.IsBsonSerializable(trueType))
                     {
+                        var target = typeSym.NullableAnnotation == NullableAnnotation.Annotated && typeSym.TypeKind == TypeKind.Struct ? SimpleMemberAccess(writeTarget, IdentifierName("Value")) : writeTarget;
                         return Statements
                         (
                                Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
-                               InvocationExprStatement(IdentifierName(SelfFullName(typeSym)), IdentifierName("WriteBson"), RefArgument(writerId), Argument(writeTarget))
+                               InvocationExprStatement(IdentifierName(SelfFullName(trueType)), IdentifierName("WriteBson"), RefArgument(writerId), Argument(target))
                         );
                     }
                     else

@@ -102,8 +102,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             List<StatementSyntax> variables = new();
             foreach (var member in ctx.Members)
             {
-                member.AssignedVariable = SF.Identifier($"{member.TypeSym.Name}{member.NameSym.Name}");
-                variables.Add(DefaultLocalDeclarationStatement(SF.ParseTypeName(member.TypeSym.ToString()), member.AssignedVariable));
+                var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
+                member.AssignedVariable = SF.Identifier($"{trueType.Name}{member.NameSym.Name}");
+                variables.Add(DefaultLocalDeclarationStatement(SF.ParseTypeName(trueType.ToString()), member.AssignedVariable));
             }
 
             return variables.ToArray();
