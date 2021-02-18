@@ -14,7 +14,7 @@ namespace MongoDB.Client.Tests.Serialization
         [Fact]
         public async Task  IntNullableTest()
         {
-            var model = new IntNullable() { Prop = 42, Field = 42 };
+            var model = new IntNullable() { Prop = 42, Field = null };
             var result = await RoundTripAsync(model);
             Assert.Equal(model, result);
 
@@ -22,14 +22,14 @@ namespace MongoDB.Client.Tests.Serialization
         [Fact]
         public async Task DoubleNullableTest()
         {
-            var model = new DoubleNullable() { Prop = 42, Field = 42 };
+            var model = new DoubleNullable() { Prop = 42, Field = null };
             var result = await RoundTripAsync(model);
             Assert.Equal(model, result);
         }
         [Fact]
         public async Task LongNullableTest()
         {
-            var model = new LongNullable() { Prop = 42, Field = 42 };
+            var model = new LongNullable() { Prop = 42, Field = null };
             var result = await RoundTripAsync(model);
             Assert.Equal(model, result);
         }

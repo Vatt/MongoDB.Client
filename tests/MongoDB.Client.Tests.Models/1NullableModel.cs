@@ -16,7 +16,22 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(IntNullable other)
         {
-            return Prop.Equals(other.Prop) && Field.Equals(other.Prop);
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Field == other.Field && Prop == other.Prop;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((IntNullable) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Field, Prop);
         }
     }
     [BsonSerializable]
@@ -27,7 +42,22 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(DoubleNullable other)
         {
-            return Prop.Equals(other.Prop) && Field.Equals(other.Prop);
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Nullable.Equals(Field, other.Field) && Nullable.Equals(Prop, other.Prop);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((DoubleNullable) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Field, Prop);
         }
     }
     [BsonSerializable]
@@ -38,7 +68,22 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(LongNullable other)
         {
-            return Prop.Equals(other.Prop) && Field.Equals(other.Prop);
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Field == other.Field && Prop == other.Prop;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((LongNullable) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Field, Prop);
         }
     }
     [BsonSerializable]
@@ -49,7 +94,22 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(StringNullable other)
         {
-            return Prop.Equals(other.Prop) && Field.Equals(other.Prop);
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Field == other.Field && Prop == other.Prop;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((StringNullable) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Field, Prop);
         }
     }
     [BsonSerializable]
@@ -60,7 +120,22 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(DateTimeOffsetNullable other)
         {
-            return Prop.Equals(other.Prop) && Field.Equals(other.Field);
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Nullable.Equals(Field, other.Field) && Nullable.Equals(Prop, other.Prop);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((DateTimeOffsetNullable) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Field, Prop);
         }
     }
     [BsonSerializable]
@@ -71,7 +146,22 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(GuidNullable other)
         {
-            return Prop.Equals(other.Prop) && Field.Equals(other.Field);
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Nullable.Equals(Field, other.Field) && Nullable.Equals(Prop, other.Prop);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((GuidNullable) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Field, Prop);
         }
     }
     [BsonSerializable]
@@ -82,7 +172,22 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(BsonObjectIdNullable other)
         {
-            return Prop.Equals(other.Prop) && Field.Equals(other.Field);
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Nullable.Equals(Field, other.Field) && Nullable.Equals(Prop, other.Prop);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((BsonObjectIdNullable) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Field, Prop);
         }
     }
     [BsonSerializable]
@@ -93,9 +198,25 @@ namespace MongoDB.Client.Tests.Models
         public NullableRecord? Prop { get; set; }
         public NullableRecord? Field;
         public static RecordNullable Create() => new RecordNullable { Prop = new NullableRecord(42, null, 42), Field = new NullableRecord(null, null, null) };
+
         public bool Equals(RecordNullable other)
         {
-            return Prop.Equals(other.Prop) && Field.Equals(other.Field);
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Equals(Field, other.Field) && Equals(Prop, other.Prop);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((RecordNullable) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Field, Prop);
         }
     }
     [BsonSerializable]
@@ -110,16 +231,42 @@ namespace MongoDB.Client.Tests.Models
 
             public bool Equals(NullableStruct other)
             {
-                return A.Equals(other.A) && B.Equals(other.B) && C.Equals(other.C);
+                return A == other.A && B == other.B && Nullable.Equals(C, other.C);
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is NullableStruct other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(A, B, C);
             }
         };
 
         public NullableStruct? Prop { get; set; } = null;
         public NullableStruct? Field;
         public static StructNullable Create() => new StructNullable { Prop = new NullableStruct { A = 42, B = null, C = 42 }, Field = new NullableStruct { A = null, B = null, C = null } };
+
         public bool Equals(StructNullable other)
         {
-            return Prop.Equals(other.Prop) && Field.Equals(other.Field);
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Nullable.Equals(Field, other.Field) && Nullable.Equals(Prop, other.Prop);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((StructNullable) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Field, Prop);
         }
     }
 
@@ -135,15 +282,46 @@ namespace MongoDB.Client.Tests.Models
 
             public bool Equals(NullableClass other)
             {
-                return A.Equals(other.A) && B.Equals(other.B) && C.Equals(other.C);
+                if (ReferenceEquals(null, other)) return false;
+                if (ReferenceEquals(this, other)) return true;
+                return A == other.A && B == other.B && Nullable.Equals(C, other.C);
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                if (obj.GetType() != this.GetType()) return false;
+                return Equals((NullableClass) obj);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(A, B, C);
             }
         };
         public NullableClass? Prop { get; set; }
         public NullableClass? Field;
         public static ClassNullable Create() => new ClassNullable { Prop = new NullableClass { A = 42, B = null, C = 42 }, Field = new NullableClass { A = null, B = null, C = null } };
+
         public bool Equals(ClassNullable other)
         {
-            return Prop.Equals(other.Prop) && Field.Equals(other.Field);
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Equals(Field, other.Field) && Equals(Prop, other.Prop);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((ClassNullable) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Field, Prop);
         }
     }
 }

@@ -12,13 +12,15 @@ namespace MongoDB.Client.Bson.Generators
 {
     //object - отдельная ветка генератора 
     [Generator]
-    partial class BsonSerializerGenerator : ISourceGenerator
+    class BsonSerializerGenerator : ISourceGenerator
     {
         public static GeneratorExecutionContext Context;
+        public static Compilation Compilation;
         public void Execute(GeneratorExecutionContext context)
         {
             //System.Diagnostics.Debugger.Launch();
             Context = context;
+            Compilation = Context.Compilation;
             try
             {
                 var masterContext = new MasterContext(CollectSymbols(context));
