@@ -103,8 +103,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             foreach (var member in ctx.Members)
             {
                 var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
-                member.AssignedVariable = SF.Identifier($"{trueType.Name}{member.NameSym.Name}");
-                variables.Add(DefaultLocalDeclarationStatement(SF.ParseTypeName(trueType.ToString()), member.AssignedVariable));
+                if((trueType.IsReferenceType || trueType.TypeKind == TypeKind.Struct) && trueType.SpecialType == SpecialType.None)
+                {
+                    member.AssignedVariable = SF.Identifier($"{trueType.Name}{member.NameSym.Name}");
+                    variables.Add(DefaultLocalDeclarationStatement(SF.ParseTypeName(trueType.ToString()), member.AssignedVariable));
+                }
+                else
+                {
+                    member.AssignedVariable = SF.Identifier($"{member.TypeSym.Name}{member.NameSym.Name}");
+                    variables.Add(DefaultLocalDeclarationStatement(SF.ParseTypeName(member.TypeSym.ToString()), member.AssignedVariable));
+                }
+
             }
 
             return variables.ToArray();

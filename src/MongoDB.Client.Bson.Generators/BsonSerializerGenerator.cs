@@ -19,8 +19,6 @@ namespace MongoDB.Client.Bson.Generators
         {
             //System.Diagnostics.Debugger.Launch();
             Context = context;
-            TypeLib.TypeLibInit(context.Compilation);
-            GeneratorDiagnostics.Init(context);
             try
             {
                 var masterContext = new MasterContext(CollectSymbols(context));
@@ -33,7 +31,6 @@ namespace MongoDB.Client.Bson.Generators
                     }
                     var source = units[index].NormalizeWhitespace().ToString();
                     context.AddSource(SerializerGenerator.SerializerName(masterContext.Contexts[index]), SourceText.From(source, Encoding.UTF8));
-                    //System.Diagnostics.Debugger.Break();
                 }
             }
             catch (Exception ex)

@@ -34,9 +34,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             }
             return false;
         }
-        public static void TypeLibInit(Compilation compilation)
+        static TypeLib()
         {
-            Compilation = compilation;
+            Compilation = BsonSerializerGenerator.Context.Compilation;
             System_DateTimeOffset = Compilation.GetTypeByMetadataName("System.DateTimeOffset")!;
             System_Guid = Compilation.GetTypeByMetadataName("System.Guid")!;
             BsonObjectId = Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonObjectId")!;

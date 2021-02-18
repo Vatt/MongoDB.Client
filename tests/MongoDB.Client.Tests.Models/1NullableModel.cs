@@ -102,13 +102,19 @@ namespace MongoDB.Client.Tests.Models
     public partial class StructNullable : IEquatable<StructNullable>
     {
         [BsonSerializable]
-        public partial struct NullableStruct 
+        public partial struct NullableStruct : IEquatable<NullableStruct>
         { 
             public int? A; 
             public long? B; 
-            public double? C; 
+            public double? C;
+
+            public bool Equals(NullableStruct other)
+            {
+                return A.Equals(other.A) && B.Equals(other.B) && C.Equals(other.C);
+            }
         };
-        public NullableStruct? Prop { get; set; }
+
+        public NullableStruct? Prop { get; set; } = null;
         public NullableStruct? Field;
         public static StructNullable Create() => new StructNullable { Prop = new NullableStruct { A = 42, B = null, C = 42 }, Field = new NullableStruct { A = null, B = null, C = null } };
         public bool Equals(StructNullable other)
@@ -121,11 +127,16 @@ namespace MongoDB.Client.Tests.Models
     public partial class ClassNullable : IEquatable<ClassNullable>
     {
         [BsonSerializable]
-        public partial class NullableClass
+        public partial class NullableClass : IEquatable<NullableClass>
         {
             public int? A;
             public long? B;
             public double? C;
+
+            public bool Equals(NullableClass other)
+            {
+                return A.Equals(other.A) && B.Equals(other.B) && C.Equals(other.C);
+            }
         };
         public NullableClass? Prop { get; set; }
         public NullableClass? Field;

@@ -8,15 +8,16 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics
     {
         private static GeneratorExecutionContext _ctx;
 
+        static GeneratorDiagnostics()
+        {
+            _ctx = BsonSerializerGenerator.Context;
+        }
         private static readonly string UnhandledExceptionError = "MONGO00";
         private static readonly string UnsuportedTypeError = "MONGO01";
         private static readonly string UnsuportedGenericTypeError = "MONGO02";
         private static readonly string NullableFieldsError = "MONGO03";
         private static readonly string SerializationMapUsingWarning = "MONGO04";
-        public static void Init(GeneratorExecutionContext ctx)
-        {
-            _ctx = ctx;
-        }
+        
         public static void ReportUnhandledException(Exception ex)
         {
             var st = ex.StackTrace.Replace('\n', ' ').Replace('\r', ' ');
