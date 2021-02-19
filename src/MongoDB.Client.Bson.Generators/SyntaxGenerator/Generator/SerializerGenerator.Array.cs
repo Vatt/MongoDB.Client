@@ -62,7 +62,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     {
                         methods.Add(ReadArrayMethod(member, type));
                         type = type.TypeArguments[0] as INamedTypeSymbol;
-                        if (type is null || type.TypeArguments.IsEmpty)
+                        //if (type is null || type.TypeArguments.IsEmpty)
+                        if (type is null || (TypeLib.IsListOrIList(type) == false))
                         {
                             break;
                         }
@@ -90,7 +91,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     {
                         methods.Add(WriteArrayMethod(member, type));
                         type = type.TypeArguments[0] as INamedTypeSymbol;
-                        if (type is null || type.TypeArguments.IsEmpty)
+                        //if (type is null || type.TypeArguments.IsEmpty)
+                        if (type is null || (TypeLib.IsListOrIList(type) == false))
                         {
                             break;
                         }
@@ -170,7 +172,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
         private static MethodDeclarationSyntax WriteArrayMethod(MemberContext ctx, ITypeSymbol type)
         {
-            ITypeSymbol trueType = type.Name.Equals("Nullable") ? ((INamedTypeSymbol)type).TypeArguments[0] : type;
+            //ITypeSymbol trueType = type.Name.Equals("Nullable") ? ((INamedTypeSymbol)type).TypeArguments[0] : type;
+            ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
             var classCtx = ctx.Root;
             var checkpoint = SF.Identifier("checkpoint");
             var reserved = SF.Identifier("reserved");

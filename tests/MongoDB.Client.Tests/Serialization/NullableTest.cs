@@ -82,5 +82,19 @@ namespace MongoDB.Client.Tests.Serialization
             var result = await RoundTripAsync(model);
             Assert.Equal(model, result);
         }
+        [Fact]
+        public async Task ListNullableTest()
+        {
+            var model = ListNullable.Create();
+            var result = await RoundTripAsync(model);
+            Assert.Equal(model, result);
+        }
+        [Fact]
+        public async Task ListElementNullableTest()
+        {
+            var model = ListElementNullable.Create();
+            var result = await RoundTripAsync(model);
+            Assert.Equal(model, result);
+        }
     }
 }
