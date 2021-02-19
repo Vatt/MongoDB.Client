@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using System.Collections.Generic;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
@@ -13,7 +14,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             Members = new List<MemberContext>();
             GenericArgs = Declaration.TypeArguments.IsEmpty ? null : Declaration.TypeArguments;
             IsRecord = false;
-            if (Helper.TryFindPrimaryConstructor(Declaration, out var constructor))
+            if (SerializerGenerator.TryFindPrimaryConstructor(Declaration, out var constructor))
             {
                 if (constructor!.Parameters.Length != 0)
                 {
@@ -23,8 +24,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 
             foreach (var member in Declaration.GetMembers())
             {
-                if ((member.IsStatic && Declaration.TypeKind != TypeKind.Enum) || member.IsAbstract || Helper.IsIgnore(member) ||
-                     (member.Kind != SymbolKind.Property && member.Kind != SymbolKind.Field))
+                if ((member.IsStatic && Declaration.TypeKind != TypeKind.Enum) || member.IsAbstract || 
+                    SerializerGenerator.IsIgnore(member) || (member.Kind != SymbolKind.Property && member.Kind != SymbolKind.Field))
                 {
                     continue;
                 }

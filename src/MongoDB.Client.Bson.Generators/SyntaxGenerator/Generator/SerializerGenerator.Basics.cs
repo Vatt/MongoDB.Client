@@ -23,15 +23,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         var constucted = namedType.OriginalDefinition.Construct(namedType.TypeArguments.ToArray());
                         return constucted;
                     }
-                    else
-                    {
-                        return namedType.OriginalDefinition;
-                    }
+
+                    return namedType.OriginalDefinition;
                 }
-                else
-                {
-                    return namedType.TypeArguments[0];
-                }                
+
+                return namedType.TypeArguments[0];
             }
             return original;
         }

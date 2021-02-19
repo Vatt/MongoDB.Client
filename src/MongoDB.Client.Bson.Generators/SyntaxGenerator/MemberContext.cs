@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
 using System.Linq;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
@@ -41,7 +42,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                 TypeGenericArgs = namedType.TypeArguments.IsEmpty ? null : namedType.TypeArguments;
             }
 
-            (BsonElementValue, BsonElementAlias) = Helper.GetMemberAlias(NameSym);
+            (BsonElementValue, BsonElementAlias) = SerializerGenerator.GetMemberAlias(NameSym);
         }
 
     }

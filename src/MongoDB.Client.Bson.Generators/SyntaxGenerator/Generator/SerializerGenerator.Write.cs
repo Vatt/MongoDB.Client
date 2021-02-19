@@ -29,7 +29,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static StatementSyntax GenerateWriteEnum(ContextCore ctx, MemberContext member, ExpressionSyntax writeTarget)
         {
-            int repr = Helper.GetEnumRepresentation(member.NameSym);
+            int repr = GetEnumRepresentation(member.NameSym);
             if (repr == -1) { repr = 2; }
             if (repr != 1)
             {
@@ -54,7 +54,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 StatementSyntax[] writeStatement;
                 var writeTarget = SimpleMemberAccess(ctx.WriterInputVar, IdentifierName(member.NameSym));
                 ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
-                Helper.TryGetBsonWriteIgnoreIfAttr(member, out var condition);
+                TryGetBsonWriteIgnoreIfAttr(member, out var condition);
                 if (member.TypeSym.TypeKind == TypeKind.Enum)
                 {
                     writeStatement = Statements(GenerateWriteEnum(ctx, member, writeTarget));
@@ -68,7 +68,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                 condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
                                 statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
                                 @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, trueType, ctx.BsonWriterId, writeTarget)))));
-                }else if(Helper.IsBsonSerializable(trueType) && member.TypeSym.NullableAnnotation == NullableAnnotation.Annotated)
+                }else if(IsBsonSerializable(trueType) && member.TypeSym.NullableAnnotation == NullableAnnotation.Annotated)
                 {
                     writeStatement =
                         Statements(
@@ -146,7 +146,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 foreach (var context in ctx.Root.Root.Contexts)
                 {
-                    if (Helper.IsBsonSerializable(trueType))
+                    if (IsBsonSerializable(trueType))
                     {
                         var target = typeSym.NullableAnnotation == NullableAnnotation.Annotated && typeSym.TypeKind == TypeKind.Struct ? SimpleMemberAccess(writeTarget, IdentifierName("Value")) : writeTarget;
                         return Statements

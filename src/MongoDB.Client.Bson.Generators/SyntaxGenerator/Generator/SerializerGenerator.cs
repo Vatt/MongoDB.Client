@@ -259,6 +259,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.IdentifierName(name);
         }
+        public static SyntaxToken Identifier(string name)
+        {
+            return SF.Identifier(name);
+        }
         public static IdentifierNameSyntax IdentifierName(ISymbol sym)
         {
             return SF.IdentifierName(sym.Name);

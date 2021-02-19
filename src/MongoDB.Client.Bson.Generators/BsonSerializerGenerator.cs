@@ -19,8 +19,13 @@ namespace MongoDB.Client.Bson.Generators
         public void Execute(GeneratorExecutionContext context)
         {
             //System.Diagnostics.Debugger.Launch();
+
+
             Context = context;
             Compilation = Context.Compilation;
+            TypeLib.Init(Compilation);
+            GeneratorDiagnostics.Init(context);
+
             try
             {
                 var masterContext = new MasterContext(CollectSymbols(context));

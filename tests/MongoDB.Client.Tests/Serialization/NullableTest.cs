@@ -43,7 +43,7 @@ namespace MongoDB.Client.Tests.Serialization
         [Fact]
         public async Task DateTimeOffsetNullableTest()
         {
-            var model = new DateTimeOffsetNullable() { Prop = new DateTimeOffset(2021, 01, 01, 5, 30, 0,TimeSpan.Zero), Field = new DateTimeOffset(2021, 01, 01, 5, 30, 0, TimeSpan.Zero) };
+            var model = new DateTimeOffsetNullable() { Prop = new DateTimeOffset(2021, 01, 01, 5, 30, 0,TimeSpan.Zero), Field = null };
             var result = await RoundTripAsync(model);
             Assert.Equal(model, result);
         }

@@ -1,33 +1,15 @@
 ﻿using Microsoft.CodeAnalysis;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
+using System;
 using System.Text;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
     public class TypeLib
     {
-        static TypeLib()
-        {
-            System_DateTimeOffset = BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.DateTimeOffset")!;
-            System_Guid = BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Guid")!;
-            BsonObjectId = BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonObjectId")!;
-            BsonArray = BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonArray")!;
-            BsonDocument = BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonDocument")!;
-            System_Collections_Generic_List_T = BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.List`1")!;
-            System_Collections_Generic_IList_T = BsonSerializerGenerator.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IList_T);
-            System_Object = BsonSerializerGenerator.Compilation.GetSpecialType(SpecialType.System_Object);
-            System_Boolean = BsonSerializerGenerator.Compilation.GetSpecialType(SpecialType.System_Boolean);
-            System_Int32 = BsonSerializerGenerator.Compilation.GetSpecialType(SpecialType.System_Int32);
-            System_String = BsonSerializerGenerator.Compilation.GetSpecialType(SpecialType.System_String);
-            System_Int64 = BsonSerializerGenerator.Compilation.GetSpecialType(SpecialType.System_Int64);
-            System_Double = BsonSerializerGenerator.Compilation.GetSpecialType(SpecialType.System_Double);
-            System_Nullable_T = BsonSerializerGenerator.Compilation.GetSpecialType(SpecialType.System_Nullable_T);
-            System_DateTime = BsonSerializerGenerator.Compilation.GetSpecialType(SpecialType.System_DateTime);
-            System_Decimal = BsonSerializerGenerator.Compilation.GetSpecialType(SpecialType.System_Decimal);
-            System_Enum = BsonSerializerGenerator.Compilation.GetSpecialType(SpecialType.System_Enum);
-        }
+
         public static bool TryGetMetadata(ITypeSymbol source, out ISymbol result)
         {
-            result = default;
             var str = source.ToString();
             result = BsonSerializerGenerator.Compilation.GetTypeByMetadataName(str);
             if (result != null)
@@ -77,22 +59,22 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         {
             return sym.Equals(System_Guid, SymbolEqualityComparer.Default);
         }
-        public static ISymbol BsonDocument;
-        public static ISymbol BsonArray;
-        public static ISymbol BsonObjectId;
-        public static ISymbol System_Collections_Generic_List_T;
-        public static ISymbol System_Collections_Generic_IList_T;
-        public static ISymbol System_Object;
-        public static ISymbol System_Boolean;
-        public static ISymbol System_Int32;
-        public static ISymbol System_String;
-        public static ISymbol System_Int64;
-        public static ISymbol System_Double;
-        public static ISymbol System_Nullable_T;
-        public static ISymbol System_DateTime;
-        public static ISymbol System_Decimal;
-        public static ISymbol System_Enum;
+
+        public static void Init(Compilation compilation)
+        {
+            _compilation = compilation;
+            System_DateTimeOffset =_compilation.GetTypeByMetadataName("System.DateTimeOffset")!;
+            System_Guid = _compilation.GetTypeByMetadataName("System.Guid")!;
+            BsonObjectId = _compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonObjectId")!;
+            BsonArray = _compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonArray")!;
+            BsonDocument = _compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonDocument")!;
+        }
+
+        private static Compilation _compilation;
         public static ISymbol System_DateTimeOffset;
         public static ISymbol System_Guid;
+        public static ISymbol BsonObjectId;
+        public static ISymbol BsonArray;
+        public static ISymbol BsonDocument;
     }
 }

@@ -103,7 +103,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             foreach (var member in ctx.Members)
             {
                 var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
-                if((trueType.IsReferenceType || trueType.TypeKind == TypeKind.Struct) && trueType.SpecialType == SpecialType.None)
+                //if((trueType.IsReferenceType || trueType.TypeKind == TypeKind.Struct) && trueType.SpecialType == SpecialType.None)
+                if(trueType.IsReferenceType)
                 {
                     member.AssignedVariable = SF.Identifier($"{trueType.Name}{member.NameSym.Name}");
                     variables.Add(DefaultLocalDeclarationStatement(SF.ParseTypeName(trueType.ToString()), member.AssignedVariable));
@@ -129,8 +130,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
                 if (trueType.TypeKind == TypeKind.Enum)
                 {
-                    var localReadEnumVar = SF.Identifier($"{member.AssignedVariable}Temp");
-                    int repr = Helper.GetEnumRepresentation(member.NameSym);
+                    var localReadEnumVar = SF.Identifier($"{member.AssignedVariable}EnumTemp");
+                    int repr = GetEnumRepresentation(member.NameSym);
                     if (repr == -1) { repr = 2; }
                     if (repr != 1)
                     {
@@ -172,14 +173,29 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     }
                     else
                     {
-                        if (Helper.IsBsonSerializable(trueType))
+                        if (IsBsonSerializable(trueType))
                         {
-                            var condition = InvocationExpr(IdentifierName(SelfFullName(trueType)), IdentifierName("TryParseBson"), RefArgument(ctx.BsonReaderId), OutArgument(IdentifierName(member.AssignedVariable)));
-                            statements.Add(
-                                           SF.IfStatement(
-                                               condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
-                                               statement:
-                                               SF.Block(IfNotReturnFalse(condition), SF.ContinueStatement())));
+                            if (trueType.IsReferenceType)
+                            {
+                                var condition = InvocationExpr(IdentifierName(SelfFullName(trueType)), IdentifierName("TryParseBson"), RefArgument(ctx.BsonReaderId), OutArgument(IdentifierName(member.AssignedVariable)));
+                                statements.Add(
+                                               SF.IfStatement(
+                                                   condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
+                                                   statement:
+                                                   SF.Block(IfNotReturnFalse(condition), SF.ContinueStatement())));
+                            }
+                            else
+                            {
+                                var localTryParseVar = Identifier($"{member.AssignedVariable.ToString()}TryParseTemp");
+                                var condition = InvocationExpr(IdentifierName(SelfFullName(trueType)), IdentifierName("TryParseBson"), 
+                                                               RefArgument(ctx.BsonReaderId), OutArgument(VarVariableDeclarationExpr(localTryParseVar)));
+                                statements.Add(
+                                               SF.IfStatement(
+                                                   condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
+                                                   statement:
+                                                   SF.Block(IfNotReturnFalse(condition), SimpleAssignExprStatement(member.AssignedVariable, localTryParseVar),  SF.ContinueStatement())));
+                            }
+
                         }
                         else
                         {
@@ -205,11 +221,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                                       ExpressionSyntax readTarget, SyntaxToken bsonType)
         {
 
-            if (TryGetSimpleReadOperation(nameSym, typeSym, IdentifierName(bsonType), readTarget, out var simpleOperation))
-            {
-                return simpleOperation;
-            }
-
             if (ctx.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(typeSym.Name)) != default)
             {
                 return TryReadGeneric(bsonType, readTarget);
@@ -220,6 +231,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     return InvocationExpr(IdentifierName(ReadArrayMethodName(nameSym, typeSym)), RefArgument(readerId), OutArgument(readTarget));
                 }
+            }
+            if (TryGetSimpleReadOperation(nameSym, typeSym, IdentifierName(bsonType), readTarget, out var simpleOperation))
+            {
+                return simpleOperation;
             }
             return default;
         }
@@ -257,11 +272,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 expr = TryParseDocument(variable);
                 return true;
             }
-            if (TypeLib.IsBsonObjectId(typeSymbol))
-            {
-                expr = TryGetObjectId(variable);
-                return true;
-            }
             if (TypeLib.IsGuid(typeSymbol))
             {
                 expr = TryGetGuidWithBsonType(bsonType, variable);
@@ -270,6 +280,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             if (TypeLib.IsDateTimeOffset(typeSymbol))
             {
                 expr = TryGetDateTimeWithBsonType(bsonType, variable);
+                return true;
+            }
+            if (TypeLib.IsBsonObjectId(typeSymbol))
+            {
+                expr = TryGetObjectId(variable);
                 return true;
             }
             if (typeSymbol.SpecialType != SpecialType.None)
