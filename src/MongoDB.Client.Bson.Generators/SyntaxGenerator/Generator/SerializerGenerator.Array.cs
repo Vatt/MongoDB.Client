@@ -117,7 +117,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             var trueType = ExtractTypeFromNullableIfNeed(type);
 
-            ExpressionSyntax operation = ReadOperation(ctx.Root, ctx.NameSym, typeArg, ctx.Root.BsonReaderId, TypedVariableDeclarationExpr(TypeFullName(typeArg), tempArrayRead), bsonTypeToken);
+            var (operation, assignExpr) = ReadOperation(ctx.Root, ctx.NameSym, typeArg, ctx.Root.BsonReaderId, TypedVariableDeclarationExpr(TypeFullName(typeArg), tempArrayRead), bsonTypeToken);
             if (operation == default)
             {
                 operation = InvocationExpr(IdentifierName(SelfFullName(typeArg)), IdentifierName("TryParseBson"), RefArgument(ctx.Root.BsonReaderId), OutArgument(TypedVariableDeclarationExpr(TypeFullName(typeArg), tempArrayRead)));
@@ -152,14 +152,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                     SF.IfStatement(
                                         condition: BinaryExprEqualsEquals(bsonTypeToken, NumericLiteralExpr(10)),
                                         statement: SF.Block(
-                                            InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(DefaultLiteralExpr())),
+                                            InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(DefaultLiteralExpr())), 
                                             SF.ContinueStatement()
                                             )),
                                     IfNotReturnFalseElse(
                                         condition: operation,
                                         @else:
                                             SF.Block(
-                                                InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(tempArrayRead)),
+                                                InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(tempArrayRead)),//починить для генерик нулаблов, см assignExpr
                                                 SF.ContinueStatement())))),
                         IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
                         SF.IfStatement(

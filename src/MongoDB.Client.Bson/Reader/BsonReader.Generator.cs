@@ -25,7 +25,7 @@ namespace MongoDB.Client.Bson.Reader
         }
 
 
-        public unsafe bool TryReadGeneric<T>(int bsonType, [MaybeNullWhen(false)] out T? genericValue)
+        public unsafe bool TryReadGeneric<T>(int bsonType, [MaybeNullWhen(false)] out T genericValue)
         {
             genericValue = default(T);
             if (SerializerFnPtrProvider<T>.IsSerializable)

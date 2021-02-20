@@ -8,6 +8,41 @@ using System.Threading.Tasks;
 
 namespace MongoDB.Client.Tests.Models
 {
+    [BsonSerializable]
+    public partial class GenericWithNulalbleListTest<T, TT> : IEquatable<GenericWithNulalbleListTest<T, TT>>
+    {
+        public List<T?> List1 { get; set; }
+        public List<TT>? List2 { get; set; }
+        public static GenericWithNulalbleListTest<T, TT> Create(T le1, T le2, T le3, TT le4, TT le5, TT le6 )
+        {
+            return new()
+            {
+                List1 = new(){ le1, le2, le3 },
+                List2 = new(){ le4, le5, le6 }
+            };
+        }
+
+        public bool Equals(GenericWithNulalbleListTest<T, TT> other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Equals(List1, other.List1) && Equals(List2, other.List2);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((GenericWithNulalbleListTest<T, TT>) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(List1, List2);
+        }
+    }
+
 
     [BsonSerializable]
     public partial class GenericNullable : IEquatable<GenericNullable>
@@ -41,8 +76,8 @@ namespace MongoDB.Client.Tests.Models
         [BsonSerializable]
         public partial struct GenericStruct<T, TT> : IEquatable<GenericStruct<T, TT>>
         {
-            public T? TProp { get; set; }
-            public TT? TTProp { get; set; }
+            public T TProp { get; set; }
+            public TT TTProp { get; set; }
 
             public bool Equals(GenericStruct<T, TT> other)
             {
@@ -60,11 +95,11 @@ namespace MongoDB.Client.Tests.Models
             }
         }
         [BsonSerializable]
-        public partial record GenericRetord<T, TT>(T? TProp, TT? TTProp);
+        public partial record GenericRecord<T, TT>(T TProp, TT TTProp);
 
-        public GenericClass<int?, string?> ClassProp { get; set; }
-        public GenericStruct<int?, string?> StructProp { get; set; }
-        public GenericRetord<int?, string?> RecordProp { get; set; }
+        public GenericClass<int, string> ClassProp { get; set; }
+        public GenericStruct<int, string> StructProp { get; set; }
+        public GenericRecord<int, string> RecordProp { get; set; }
 
         public bool Equals(GenericNullable other)
         {
@@ -90,9 +125,9 @@ namespace MongoDB.Client.Tests.Models
         {
             return new()
             {
-                ClassProp = new GenericClass<int?, string?>() { TProp = null, TTProp = "42" },
-                RecordProp = new GenericRetord<int?, string?>(42, null),
-                StructProp = new GenericStruct<int?, string?>() { TProp = default, TTProp = string.Empty }
+                ClassProp = new GenericClass<int, string>() { TProp = default, TTProp = "42" },
+                RecordProp = new GenericRecord<int, string>(42, null),
+                StructProp = new GenericStruct<int, string>() { TProp = 42, TTProp = string.Empty }
             };
         }
     }

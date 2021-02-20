@@ -323,9 +323,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.ExpressionStatement(SimpleAssignExpr(IdentifierName(left), right));
         }
+        public static ExpressionStatementSyntax SimpleAssignExprStatement(ExpressionSyntax left, SyntaxToken right)
+        {
+            return SF.ExpressionStatement(SimpleAssignExpr(left , right));
+        }
         public static AssignmentExpressionSyntax SimpleAssignExpr(ExpressionSyntax left, ExpressionSyntax right)
         {
             return SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, left, right);
+        }
+        public static AssignmentExpressionSyntax SimpleAssignExpr(ExpressionSyntax left, SyntaxToken right)
+        {
+            return SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, left, IdentifierName(right));
         }
         public static ArrayCreationExpressionSyntax SingleDimensionArrayCreation(TypeSyntax arrayType, int size, InitializerExpressionSyntax initializer = default)
         {

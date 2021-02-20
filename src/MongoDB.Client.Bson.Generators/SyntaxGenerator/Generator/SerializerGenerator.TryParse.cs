@@ -162,14 +162,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 }
                 else
                 {
-                    var operation = ReadOperation(ctx, member.NameSym, trueType, ctx.BsonReaderId, IdentifierName(member.AssignedVariable), bsonType);
+                    var (operation, assignExpr) = ReadOperation(ctx, member.NameSym, trueType, ctx.BsonReaderId, IdentifierName(member.AssignedVariable), bsonType);
                     if (operation != default)
                     {
                         statements.Add(
                             SF.IfStatement(
                                 condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
                                 statement:
-                                SF.Block(IfNotReturnFalse(operation), SF.ContinueStatement())));
+                                assignExpr == null ? SF.Block(IfNotReturnFalse(operation), SF.ContinueStatement()) : SF.Block(IfNotReturnFalse(operation), Statement(assignExpr), SF.ContinueStatement())
+                            ));
                     }
                     else
                     {
@@ -216,9 +217,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return statements.ToArray();
         }
-
-        private static ExpressionSyntax ReadOperation(ContextCore ctx, ISymbol nameSym, ITypeSymbol typeSym, ExpressionSyntax readerId,
-                                                      ExpressionSyntax readTarget, SyntaxToken bsonType)
+        //FIXIT: Закостылено, второй экспрешен присвоение таргету - временной переменной
+        private static (ExpressionSyntax, ExpressionSyntax?) ReadOperation(ContextCore ctx, ISymbol nameSym, ITypeSymbol typeSym, 
+            ExpressionSyntax readerId, ExpressionSyntax readTarget, SyntaxToken bsonType)
         {
 
             if (ctx.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(typeSym.Name)) != default)
@@ -226,23 +227,23 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var temp = Identifier($"{nameSym.Name.ToString()}TempGenericNullable");
                 if(typeSym.NullableAnnotation == NullableAnnotation.Annotated)
                 {
-                    return TryReadGenericNullable(TypeName(typeSym.OriginalDefinition), bsonType, VarVariableDeclarationExpr(temp));
+                    return (TryReadGenericNullable(TypeName(typeSym.OriginalDefinition), bsonType, VarVariableDeclarationExpr(temp)), SimpleAssignExpr(readTarget, temp));
                 }
                 else
                 {
-                    return TryReadGeneric(bsonType, readTarget);
+                    return (TryReadGeneric(bsonType, readTarget), null);
                 }                
             }
             if (typeSym is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)
             {
                 if (TypeLib.IsListOrIList(namedType))
                 {
-                    return InvocationExpr(IdentifierName(ReadArrayMethodName(nameSym, typeSym)), RefArgument(readerId), OutArgument(readTarget));
+                    return (InvocationExpr(IdentifierName(ReadArrayMethodName(nameSym, typeSym)), RefArgument(readerId), OutArgument(readTarget)), null);
                 }
             }
             if (TryGetSimpleReadOperation(nameSym, typeSym, IdentifierName(bsonType), readTarget, out var simpleOperation))
             {
-                return simpleOperation;
+                return (simpleOperation, null);
             }
             return default;
         }
