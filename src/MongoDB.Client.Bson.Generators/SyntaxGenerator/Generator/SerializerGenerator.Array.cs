@@ -117,7 +117,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             var trueType = ExtractTypeFromNullableIfNeed(type);
 
-            var (operation, assignExpr) = ReadOperation(ctx.Root, ctx.NameSym, typeArg, ctx.Root.BsonReaderId, TypedVariableDeclarationExpr(TypeFullName(typeArg), tempArrayRead), bsonTypeToken);
+            var (operation, tempVar) = ReadOperation(ctx.Root, ctx.NameSym, typeArg, ctx.Root.BsonReaderId, TypedVariableDeclarationExpr(TypeFullName(typeArg), tempArrayRead), bsonTypeToken);
             if (operation == default)
             {
                 operation = InvocationExpr(IdentifierName(SelfFullName(typeArg)), IdentifierName("TryParseBson"), RefArgument(ctx.Root.BsonReaderId), OutArgument(TypedVariableDeclarationExpr(TypeFullName(typeArg), tempArrayRead)));
@@ -159,7 +159,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                         condition: operation,
                                         @else:
                                             SF.Block(
-                                                InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(tempArrayRead)),//починить для генерик нулаблов, см assignExpr
+                                                InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(tempVar.HasValue ? tempVar.Value : tempArrayRead)),
                                                 SF.ContinueStatement())))),
                         IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
                         SF.IfStatement(

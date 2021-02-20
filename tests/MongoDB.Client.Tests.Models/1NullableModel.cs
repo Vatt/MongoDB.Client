@@ -26,7 +26,7 @@ namespace MongoDB.Client.Tests.Models
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return Equals(List1, other.List1) && Equals(List2, other.List2);
+            return List1.SequenceEqual(other.List1) && List2.SequenceEqual(other.List2);
         }
 
         public override bool Equals(object obj)

@@ -162,14 +162,16 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 }
                 else
                 {
-                    var (operation, assignExpr) = ReadOperation(ctx, member.NameSym, trueType, ctx.BsonReaderId, IdentifierName(member.AssignedVariable), bsonType);
+                    var (operation, tempVar) = ReadOperation(ctx, member.NameSym, trueType, ctx.BsonReaderId, IdentifierName(member.AssignedVariable), bsonType);
                     if (operation != default)
                     {
                         statements.Add(
                             SF.IfStatement(
                                 condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
                                 statement:
-                                assignExpr == null ? SF.Block(IfNotReturnFalse(operation), SF.ContinueStatement()) : SF.Block(IfNotReturnFalse(operation), Statement(assignExpr), SF.ContinueStatement())
+                                tempVar.HasValue
+                                    ? SF.Block(IfNotReturnFalse(operation),SimpleAssignExprStatement(member.AssignedVariable, tempVar.Value), SF.ContinueStatement())
+                                    : SF.Block(IfNotReturnFalse(operation), SF.ContinueStatement())
                             ));
                     }
                     else
@@ -217,8 +219,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return statements.ToArray();
         }
-        //FIXIT: Закостылено, второй экспрешен присвоение таргету - временной переменной
-        private static (ExpressionSyntax, ExpressionSyntax?) ReadOperation(ContextCore ctx, ISymbol nameSym, ITypeSymbol typeSym, 
+
+        private static (ExpressionSyntax, SyntaxToken?) ReadOperation(ContextCore ctx, ISymbol nameSym, ITypeSymbol typeSym, 
             ExpressionSyntax readerId, ExpressionSyntax readTarget, SyntaxToken bsonType)
         {
 
@@ -227,7 +229,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var temp = Identifier($"{nameSym.Name.ToString()}TempGenericNullable");
                 if(typeSym.NullableAnnotation == NullableAnnotation.Annotated)
                 {
-                    return (TryReadGenericNullable(TypeName(typeSym.OriginalDefinition), bsonType, VarVariableDeclarationExpr(temp)), SimpleAssignExpr(readTarget, temp));
+                    return (TryReadGenericNullable(TypeName(typeSym.OriginalDefinition), bsonType, VarVariableDeclarationExpr(temp)), temp);
                 }
                 else
                 {

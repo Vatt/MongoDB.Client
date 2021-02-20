@@ -103,5 +103,12 @@ namespace MongoDB.Client.Tests.Serialization
             var result = await RoundTripAsync(model);
             Assert.Equal(model, result);
         }
+        [Fact]
+        public async Task GenericWithNulalbleListTestTest()
+        {
+            var model = GenericWithNulalbleListTest<BsonObjectId, string>.Create(BsonObjectId.NewObjectId(), BsonObjectId.NewObjectId(), BsonObjectId.NewObjectId(), "42", "43", "43");
+            var result = await RoundTripAsync(model);
+            Assert.Equal(model, result);
+        }
     }
 }
