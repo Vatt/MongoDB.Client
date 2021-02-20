@@ -177,7 +177,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         {
                             if (trueType.IsReferenceType)
                             {
-                                var condition = InvocationExpr(IdentifierName(SelfFullName(trueType)), IdentifierName("TryParseBson"), RefArgument(ctx.BsonReaderId), OutArgument(IdentifierName(member.AssignedVariable)));
+                                var condition = InvocationExpr(IdentifierName(trueType.ToString()), IdentifierName("TryParseBson"), RefArgument(ctx.BsonReaderId), OutArgument(IdentifierName(member.AssignedVariable)));
                                 statements.Add(
                                                SF.IfStatement(
                                                    condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
@@ -187,7 +187,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                             else
                             {
                                 var localTryParseVar = Identifier($"{member.AssignedVariable.ToString()}TryParseTemp");
-                                var condition = InvocationExpr(IdentifierName(SelfFullName(trueType)), IdentifierName("TryParseBson"), 
+                                var condition = InvocationExpr(IdentifierName(trueType.ToString()), IdentifierName("TryParseBson"), 
                                                                RefArgument(ctx.BsonReaderId), OutArgument(VarVariableDeclarationExpr(localTryParseVar)));
                                 statements.Add(
                                                SF.IfStatement(
@@ -223,7 +223,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             if (ctx.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(typeSym.Name)) != default)
             {
-                return TryReadGeneric(bsonType, readTarget);
+                var temp = Identifier($"{nameSym.Name.ToString()}TempGenericNullable");
+                if(typeSym.NullableAnnotation == NullableAnnotation.Annotated)
+                {
+                    return TryReadGenericNullable(TypeName(typeSym.OriginalDefinition), bsonType, VarVariableDeclarationExpr(temp));
+                }
+                else
+                {
+                    return TryReadGeneric(bsonType, readTarget);
+                }                
             }
             if (typeSym is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)
             {

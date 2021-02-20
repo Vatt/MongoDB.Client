@@ -8,6 +8,96 @@ using System.Threading.Tasks;
 
 namespace MongoDB.Client.Tests.Models
 {
+
+    [BsonSerializable]
+    public partial class GenericNullable : IEquatable<GenericNullable>
+    {
+        [BsonSerializable]
+        public partial class GenericClass<T, TT> : IEquatable<GenericClass<T, TT>>
+        {
+            public T? TProp { get; set; }
+            public TT? TTProp { get; set; }
+
+            public bool Equals(GenericClass<T, TT> other)
+            {
+                if (ReferenceEquals(null, other)) return false;
+                if (ReferenceEquals(this, other)) return true;
+                return EqualityComparer<T?>.Default.Equals(TProp, other.TProp) && EqualityComparer<TT?>.Default.Equals(TTProp, other.TTProp);
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                if (obj.GetType() != this.GetType()) return false;
+                return Equals((GenericClass<T, TT>)obj);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(TProp, TTProp);
+            }
+        }
+        [BsonSerializable]
+        public partial struct GenericStruct<T, TT> : IEquatable<GenericStruct<T, TT>>
+        {
+            public T? TProp { get; set; }
+            public TT? TTProp { get; set; }
+
+            public bool Equals(GenericStruct<T, TT> other)
+            {
+                return EqualityComparer<T?>.Default.Equals(TProp, other.TProp) && EqualityComparer<TT?>.Default.Equals(TTProp, other.TTProp);
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is GenericStruct<T, TT> other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(TProp, TTProp);
+            }
+        }
+        [BsonSerializable]
+        public partial record GenericRetord<T, TT>(T? TProp, TT? TTProp);
+
+        public GenericClass<int?, string?> ClassProp { get; set; }
+        public GenericStruct<int?, string?> StructProp { get; set; }
+        public GenericRetord<int?, string?> RecordProp { get; set; }
+
+        public bool Equals(GenericNullable other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Equals(ClassProp, other.ClassProp) && StructProp.Equals(other.StructProp) && Equals(RecordProp, other.RecordProp);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((GenericNullable)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(ClassProp, StructProp, RecordProp);
+        }
+
+        public static GenericNullable Create()
+        {
+            return new()
+            {
+                ClassProp = new GenericClass<int?, string?>() { TProp = null, TTProp = "42" },
+                RecordProp = new GenericRetord<int?, string?>(42, null),
+                StructProp = new GenericStruct<int?, string?>() { TProp = default, TTProp = string.Empty }
+            };
+        }
+    }
+
+
     [BsonSerializable]
     public partial class IntNullable : IEquatable<IntNullable>
     {

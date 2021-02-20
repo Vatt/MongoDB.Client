@@ -76,6 +76,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                 condition: BinaryExprEqualsEquals(SimpleMemberAccess(writeTarget, IdentifierName("HasValue")), FalseLiteralExpr()),
                                 statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
                                 @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget)))));
+                }else if (IsBsonSerializable(trueType) && ( member.TypeSym.NullableAnnotation == NullableAnnotation.NotAnnotated || member.TypeSym.NullableAnnotation == NullableAnnotation.None))
+                {
+                    writeStatement = WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget);
                 }
                 else
                 {
@@ -142,30 +145,23 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     );
                 }
             }
+            if (IsBsonSerializable(trueType))
+            {
+                var target = typeSym.NullableAnnotation == NullableAnnotation.Annotated && typeSym.TypeKind == TypeKind.Struct ? SimpleMemberAccess(writeTarget, IdentifierName("Value")) : writeTarget;
+                return Statements
+                (
+                       Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
+                       InvocationExprStatement(IdentifierName(trueType.ToString()), IdentifierName("WriteBson"), RefArgument(writerId), Argument(target))
+                );
+            }
             else
             {
-                foreach (var context in ctx.Root.Root.Contexts)
-                {
-                    if (IsBsonSerializable(trueType))
-                    {
-                        var target = typeSym.NullableAnnotation == NullableAnnotation.Annotated && typeSym.TypeKind == TypeKind.Struct ? SimpleMemberAccess(writeTarget, IdentifierName("Value")) : writeTarget;
-                        return Statements
-                        (
-                               Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
-                               InvocationExprStatement(IdentifierName(SelfFullName(trueType)), IdentifierName("WriteBson"), RefArgument(writerId), Argument(target))
-                        );
-                    }
-                    else
-                    {
-                        GeneratorDiagnostics.ReportSerializationMapUsingWarning(ctx.NameSym);
-                        return Statements(
-                                Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
-                                OtherWriteBson(ctx)
-                            );
-                    }
-                }
+                GeneratorDiagnostics.ReportSerializationMapUsingWarning(ctx.NameSym);
+                return Statements(
+                        Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
+                        OtherWriteBson(ctx)
+                    );
             }
-            return default;
         }
         private static bool TryGetSimpleWriteOperation(ISymbol nameSym, ITypeSymbol typeSymbol, SyntaxToken bsonNameToken, ExpressionSyntax writeTarget, out InvocationExpressionSyntax expr)
         {
