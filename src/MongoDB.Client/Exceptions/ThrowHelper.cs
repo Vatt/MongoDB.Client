@@ -44,14 +44,14 @@ namespace MongoDB.Client.Exceptions
         [DoesNotReturn]
         public static T ConnectionException<T>(System.Net.EndPoint endpoint)
         {
-            throw new Exception("Cant connect to endpoint: " + endpoint.ToString()); // TODO: custom excention
+            throw new MongoException("Cant connect to endpoint: " + endpoint.ToString()); // TODO: custom excention
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         [DoesNotReturn]
         public static T UnsupportedTypeException<T>(Type type)
         {
-            throw new Exception("Unsupported type: " + type.ToString()); // TODO: custom excention
+            throw new MongoException("Unsupported type: " + type.ToString()); // TODO: custom excention
         }
 
 
@@ -211,6 +211,20 @@ namespace MongoDB.Client.Exceptions
         public static void InvalidBsonException()
         {
             throw new MongoException("Invalid bson");
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
+        public static void ThrowNotInitialized()
+        {
+            throw new MongoException("Client must be initialized");
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
+        public static T InvalidReturnType<T>(Type expected, Type actual)
+        {
+            throw new MongoException($"Expected '{expected}' bat was '{actual}'");
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using MongoDB.Client.Exceptions;
 using System;
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
@@ -72,7 +73,7 @@ namespace MongoDB.Client.Protocol.Core
                     ThrowHelper.ConnectionTerminated();
                 }
 
-                return new ValueTask<ProtocolReadResult<TReadMessage>>(new ProtocolReadResult<TReadMessage>(default, _isCanceled, _isCompleted));
+                return new ValueTask<ProtocolReadResult<TReadMessage>>(new ProtocolReadResult<TReadMessage>(default!, _isCanceled, _isCompleted));
             }
 
             return DoAsyncRead(reader, cancellationToken);
@@ -104,7 +105,7 @@ namespace MongoDB.Client.Protocol.Core
                 }
             }
 
-            return new ValueTask<ProtocolReadResult<TReadMessage>>(new ProtocolReadResult<TReadMessage>(default, _isCanceled, _isCompleted));
+            return new ValueTask<ProtocolReadResult<TReadMessage>>(new ProtocolReadResult<TReadMessage>(default!, _isCanceled, _isCompleted));
         }
 
         private async ValueTask<ProtocolReadResult<TReadMessage>> ContinueDoAsyncRead<TReadMessage>(ValueTask<ReadResult> readTask, IMessageReader<TReadMessage> reader, CancellationToken cancellationToken)
@@ -126,7 +127,7 @@ namespace MongoDB.Client.Protocol.Core
                 readTask = _reader.ReadAsync(cancellationToken);
             }
 
-            return new ProtocolReadResult<TReadMessage>(default, _isCanceled, _isCompleted);
+            return new ProtocolReadResult<TReadMessage>(default!, _isCanceled, _isCompleted);
         }
 
         private (bool ShouldContinue, bool HasMessage) TrySetMessage<TReadMessage>(ReadResult result, IMessageReader<TReadMessage> reader, out ProtocolReadResult<TReadMessage> readResult)
@@ -172,7 +173,7 @@ namespace MongoDB.Client.Protocol.Core
             return (true, false);
         }
 
-        private bool TryParseMessage<TReadMessage>(IMessageReader<TReadMessage> reader, in ReadOnlySequence<byte> buffer, out TReadMessage protocolMessage)
+        private bool TryParseMessage<TReadMessage>(IMessageReader<TReadMessage> reader, in ReadOnlySequence<byte> buffer, [MaybeNullWhen(false)] out TReadMessage protocolMessage)
         {
             return reader.TryParseMessage(buffer, ref _consumed, ref _examined, out protocolMessage);
         }

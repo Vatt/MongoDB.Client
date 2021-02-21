@@ -234,7 +234,7 @@ namespace MongoDB.Client.Protocol.Core
         public void Dispose()
         {
             ReturnBuffer();
-            _buffer = null; // This will cause a NRE if we use after dispose rather than writing data into a random array
+            _buffer = null!; // This will cause a NRE if we use after dispose rather than writing data into a random array
         }
 
         private void ReturnBuffer()

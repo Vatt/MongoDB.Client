@@ -66,7 +66,7 @@ namespace MongoDB.Client.Bson.Generators
                 foreach (var node in tree.GetRoot().DescendantNodes())
                 {
                     SemanticModel model = context.Compilation.GetSemanticModel(node.SyntaxTree);
-                    INamedTypeSymbol? symbol = model.GetDeclaredSymbol(node) as INamedTypeSymbol;
+                    INamedTypeSymbol symbol = model.GetDeclaredSymbol(node) as INamedTypeSymbol;
                     if (symbol is null)
                     {
                         continue;

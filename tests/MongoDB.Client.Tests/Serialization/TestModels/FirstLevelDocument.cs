@@ -1,6 +1,7 @@
 ﻿using MongoDB.Client.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
@@ -16,7 +17,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return TextField == other.TextField && IntField == other.IntField && InnerDocuments.SequentialEquals(other.InnerDocuments);
+            return TextField == other.TextField && IntField == other.IntField && InnerDocuments.SequenceEqual(other.InnerDocuments);
         }
 
         public override bool Equals(object obj)

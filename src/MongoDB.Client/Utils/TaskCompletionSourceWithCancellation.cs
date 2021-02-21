@@ -23,7 +23,7 @@ namespace MongoDB.Client.Utils
         public async ValueTask<T> WaitWithCancellationAsync(CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;
-            using (cancellationToken.UnsafeRegister(s => ((TaskCompletionSourceWithCancellation<T>)s).OnCancellation(), this))
+            using (cancellationToken.UnsafeRegister(s => ((TaskCompletionSourceWithCancellation<T>)s!).OnCancellation(), this))
             {
                 return await Task.ConfigureAwait(false);
             }

@@ -13,7 +13,7 @@ namespace MongoDB.Client
             return cursorResult.MongoCursor.ToList();
         }
 
-        public static async ValueTask<T> FirstOrDefaultAsync<T>(this ValueTask<CursorResult<T>> cursorTask)
+        public static async ValueTask<T?> FirstOrDefaultAsync<T>(this ValueTask<CursorResult<T>> cursorTask)
         {
             var cursorResult = await cursorTask.ConfigureAwait(false);
             return cursorResult.MongoCursor.Items.FirstOrDefault();

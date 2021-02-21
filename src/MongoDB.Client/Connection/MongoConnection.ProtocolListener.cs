@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Common;
@@ -13,23 +14,27 @@ namespace MongoDB.Client.Connection
     {
         private async Task StartProtocolListenerAsync()
         {
+            if (_protocolReader is null)
+            {
+                ThrowHelper.ThrowNotInitialized();
+            }
             MongoResponseMessage message;
             MongoRequest? request;
             while (!_shutdownCts.IsCancellationRequested)
             {
                 try
                 {
-                    var header = await ReadAsyncPrivate(ProtocolReaders.MessageHeaderReader, _shutdownCts.Token).ConfigureAwait(false);
+                    var header = await ReadAsyncPrivate(_protocolReader, ProtocolReaders.MessageHeaderReader, _shutdownCts.Token).ConfigureAwait(false);
                     switch (header.Opcode)
                     {
                         case Opcode.Reply:
                             _logger.GotReplyMessage(header.ResponseTo);
-                            var replyResult = await ReadAsyncPrivate(ProtocolReaders.ReplyMessageReader, _shutdownCts.Token).ConfigureAwait(false);
+                            var replyResult = await ReadAsyncPrivate(_protocolReader, ProtocolReaders.ReplyMessageReader, _shutdownCts.Token).ConfigureAwait(false);
                             message = new ReplyMessage(header, replyResult);
                             break;
                         case Opcode.OpMsg:
                             _logger.GotMsgMessage(header.ResponseTo);
-                            var msgResult = await ReadAsyncPrivate(ProtocolReaders.MsgMessageReader, _shutdownCts.Token).ConfigureAwait(false);
+                            var msgResult = await ReadAsyncPrivate(_protocolReader, ProtocolReaders.MsgMessageReader, _shutdownCts.Token).ConfigureAwait(false);
                             message = new ResponseMsgMessage(header, msgResult);
                             break;
                         case Opcode.Message:
@@ -48,14 +53,13 @@ namespace MongoDB.Client.Connection
                             }
                             continue;
                             //TODO: need to read pipe to end
-                            break;
                     }
 
                     if (_completions.TryRemove(message.Header.ResponseTo, out request))
                     {
                         try
                         {
-                            var result = await request.ParseAsync(_protocolReader, message).ConfigureAwait(false);
+                            var result = await request.ParseAsync!(_protocolReader, message).ConfigureAwait(false);
                             request.CompletionSource.TrySetResult(result);
                         }
                         catch (Exception e)
@@ -75,10 +79,10 @@ namespace MongoDB.Client.Connection
             }
         }
 
-        private async ValueTask<T> ReadAsyncPrivate<T>(IMessageReader<T> reader, CancellationToken token)
+        private static async ValueTask<T> ReadAsyncPrivate<T>(ProtocolReader protocolReader, IMessageReader<T> reader, CancellationToken token)
         {
-            var result = await _protocolReader.ReadAsync(reader, token).ConfigureAwait(false);
-            _protocolReader.Advance();
+            var result = await protocolReader.ReadAsync(reader, token).ConfigureAwait(false);
+            protocolReader.Advance();
             if (result.IsCanceled || result.IsCompleted)
             {
                 //TODO: DO SOME
