@@ -169,7 +169,9 @@ namespace MongoDB.Client.Tests.Models
         {
             return HashCode.Combine(Field, Prop);
         }
+        public static IntNullable Create() => new IntNullable() { Prop = 42, Field = null };
     }
+    
     [BsonSerializable]
     public partial class DoubleNullable : IEquatable<DoubleNullable>
     {
@@ -195,7 +197,9 @@ namespace MongoDB.Client.Tests.Models
         {
             return HashCode.Combine(Field, Prop);
         }
+        public static DoubleNullable Create() => new DoubleNullable() { Prop = 42, Field = null };
     }
+    
     [BsonSerializable]
     public partial class LongNullable : IEquatable<LongNullable>
     {
@@ -221,7 +225,9 @@ namespace MongoDB.Client.Tests.Models
         {
             return HashCode.Combine(Field, Prop);
         }
+        public static LongNullable Create() => new LongNullable() { Prop = 42, Field = null };
     }
+
     [BsonSerializable]
     public partial class StringNullable : IEquatable<StringNullable>
     {
@@ -247,7 +253,10 @@ namespace MongoDB.Client.Tests.Models
         {
             return HashCode.Combine(Field, Prop);
         }
+
+        public static StringNullable Create() => new StringNullable() { Prop = "42", Field = "42" };
     }
+    
     [BsonSerializable]
     public partial class DateTimeOffsetNullable : IEquatable<DateTimeOffsetNullable>
     {
@@ -273,7 +282,13 @@ namespace MongoDB.Client.Tests.Models
         {
             return HashCode.Combine(Field, Prop);
         }
+        public static DateTimeOffsetNullable Create() => new DateTimeOffsetNullable() 
+        { 
+            Prop = new DateTimeOffset(2021, 01, 01, 5, 30, 0, TimeSpan.Zero), 
+            Field = null 
+        };
     }
+    
     [BsonSerializable]
     public partial class GuidNullable : IEquatable<GuidNullable>
     {
@@ -299,7 +314,10 @@ namespace MongoDB.Client.Tests.Models
         {
             return HashCode.Combine(Field, Prop);
         }
+
+        public static GuidNullable Create() => new() { Field = Guid.NewGuid(), Prop = null };
     }
+    
     [BsonSerializable]
     public partial class BsonObjectIdNullable : IEquatable<BsonObjectIdNullable>
     {
@@ -325,7 +343,10 @@ namespace MongoDB.Client.Tests.Models
         {
             return HashCode.Combine(Field, Prop);
         }
+
+        public static BsonObjectIdNullable Create() => new() { Prop = BsonObjectId.NewObjectId(), Field = null };
     }
+
     [BsonSerializable]
     public partial class RecordNullable : IEquatable<RecordNullable>
     {
@@ -355,6 +376,7 @@ namespace MongoDB.Client.Tests.Models
             return HashCode.Combine(Field, Prop);
         }
     }
+
     [BsonSerializable]
     public partial class StructNullable : IEquatable<StructNullable>
     {
@@ -405,6 +427,7 @@ namespace MongoDB.Client.Tests.Models
             return HashCode.Combine(Field, Prop);
         }
     }
+    
     [BsonSerializable]
     public partial class ClassNullable : IEquatable<ClassNullable>
     {
@@ -560,6 +583,82 @@ namespace MongoDB.Client.Tests.Models
                 NullableBsonObjectId = new() { BsonObjectId.NewObjectId(), null, BsonObjectId.NewObjectId() },
                 NullList = null
             };
+        }
+    }
+
+    [BsonSerializable]
+    public partial struct OtherModelsNullable : IEquatable<OtherModelsNullable>
+    {
+        public ListElementNullable? Prop1 { get; set; }
+        public ListNullable? Prop2 { get; set; }
+        public ClassNullable? Prop3 { get; set; }
+
+        public StructNullable? Prop4;
+        public RecordNullable? Prop5 { get; set; }
+        public BsonObjectIdNullable? Prop6 { get; set; }
+        public GuidNullable? Prop7 { get; set; }
+        public DateTimeOffsetNullable? Prop8 { get; set; }
+        public StringNullable? Prop9 { get; set; }
+        public LongNullable? Prop10 { get; set; }
+        public DoubleNullable? Prop11 { get; set; }
+        public IntNullable? Prop12 { get; set; }
+        public GenericNullable? Prop13 { get; set; }
+        public GenericWithNulalbleListTest<GenericNullable, RecordNullable>? Prop14 { get; set; }
+
+        public static OtherModelsNullable Create()
+        {
+            return new()
+            {
+                Prop1 = ListElementNullable.Create(),
+                Prop2 = ListNullable.Create(),
+                Prop3 = ClassNullable.Create(),
+                Prop4 = StructNullable.Create(),
+                Prop5 = RecordNullable.Create(),
+                Prop6 = BsonObjectIdNullable.Create(),
+                Prop7 = GuidNullable.Create(),
+                Prop8 = DateTimeOffsetNullable.Create(),
+                Prop9 = StringNullable.Create(),
+                Prop10 = LongNullable.Create(),
+                Prop11 = DoubleNullable.Create(),
+                Prop12 = IntNullable.Create(),
+                Prop13 = GenericNullable.Create(),
+                Prop14 = GenericWithNulalbleListTest<GenericNullable, RecordNullable>.Create(
+                    GenericNullable.Create(), null, GenericNullable.Create(),
+                    RecordNullable.Create(), null, RecordNullable.Create()),
+
+            };
+        }
+
+        public bool Equals(OtherModelsNullable other)
+        {
+            return Equals(Prop4, other.Prop4) && Equals(Prop1, other.Prop1) && Equals(Prop2, other.Prop2) && Equals(Prop3, other.Prop3) && Equals(Prop5, other.Prop5) && 
+                   Equals(Prop6, other.Prop6) && Equals(Prop7, other.Prop7) && Equals(Prop8, other.Prop8) && Equals(Prop9, other.Prop9) && Equals(Prop10, other.Prop10) && 
+                   Equals(Prop11, other.Prop11) && Equals(Prop12, other.Prop12) && Equals(Prop13, other.Prop13) && Equals(Prop14, other.Prop14);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is OtherModelsNullable other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = new HashCode();
+            hashCode.Add(Prop4);
+            hashCode.Add(Prop1);
+            hashCode.Add(Prop2);
+            hashCode.Add(Prop3);
+            hashCode.Add(Prop5);
+            hashCode.Add(Prop6);
+            hashCode.Add(Prop7);
+            hashCode.Add(Prop8);
+            hashCode.Add(Prop9);
+            hashCode.Add(Prop10);
+            hashCode.Add(Prop11);
+            hashCode.Add(Prop12);
+            hashCode.Add(Prop13);
+            hashCode.Add(Prop14);
+            return hashCode.ToHashCode();
         }
     }
 }

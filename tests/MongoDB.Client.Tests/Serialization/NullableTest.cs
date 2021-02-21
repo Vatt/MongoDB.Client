@@ -11,7 +11,7 @@ namespace MongoDB.Client.Tests.Serialization
         [Fact]
         public async Task IntNullableTest()
         {
-            var model = new IntNullable() { Prop = 42, Field = null };
+            var model = IntNullable.Create();
             var result = await RoundTripAsync(model);
             Assert.Equal(model, result);
 
@@ -19,28 +19,28 @@ namespace MongoDB.Client.Tests.Serialization
         [Fact]
         public async Task DoubleNullableTest()
         {
-            var model = new DoubleNullable() { Prop = 42, Field = null };
+            var model = DoubleNullable.Create();
             var result = await RoundTripAsync(model);
             Assert.Equal(model, result);
         }
         [Fact]
         public async Task LongNullableTest()
         {
-            var model = new LongNullable() { Prop = 42, Field = null };
+            var model = LongNullable.Create();
             var result = await RoundTripAsync(model);
             Assert.Equal(model, result);
         }
         [Fact]
         public async Task StringNullableTest()
         {
-            var model = new StringNullable() { Prop = "42", Field = "42" };
+            var model = StringNullable.Create();
             var result = await RoundTripAsync(model);
             Assert.Equal(model, result);
         }
         [Fact]
         public async Task DateTimeOffsetNullableTest()
         {
-            var model = new DateTimeOffsetNullable() { Prop = new DateTimeOffset(2021, 01, 01, 5, 30, 0, TimeSpan.Zero), Field = null };
+            var model = DateTimeOffsetNullable.Create();
             var result = await RoundTripAsync(model);
             Assert.Equal(model, result);
         }
@@ -104,6 +104,13 @@ namespace MongoDB.Client.Tests.Serialization
         public async Task GenericWithNulalbleListTest()
         {
             var model = GenericWithNulalbleListTest<BsonObjectId, string>.Create(BsonObjectId.NewObjectId(), BsonObjectId.NewObjectId(), BsonObjectId.NewObjectId(), "42", "43", "43");
+            var result = await RoundTripAsync(model);
+            Assert.Equal(model, result);
+        }
+        [Fact]
+        public async Task OtherModelsNullableTest()
+        {
+            var model = OtherModelsNullable.Create();
             var result = await RoundTripAsync(model);
             Assert.Equal(model, result);
         }
