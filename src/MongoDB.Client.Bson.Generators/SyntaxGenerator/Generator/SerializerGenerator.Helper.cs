@@ -13,7 +13,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private const string IgnoreAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonIgnoreAttribute";
         private const string BsonElementAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonElementAttribute";
         private const string BsonIdAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonIdAttribute";
-        private const string  BsonWriteIgnoreIfAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonWriteIgnoreIfAttribute";
+        private const string BsonWriteIgnoreIfAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonWriteIgnoreIfAttribute";
         public static bool IsBsonSerializable(ISymbol symbol)
         {
             //if (symbol.GetAttributes().Length == 0)

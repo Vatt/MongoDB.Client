@@ -1,9 +1,6 @@
 ﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Tests.Models;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -12,7 +9,7 @@ namespace MongoDB.Client.Tests.Serialization
     public class NullableTest : BaseSerialization
     {
         [Fact]
-        public async Task  IntNullableTest()
+        public async Task IntNullableTest()
         {
             var model = new IntNullable() { Prop = 42, Field = null };
             var result = await RoundTripAsync(model);
@@ -43,7 +40,7 @@ namespace MongoDB.Client.Tests.Serialization
         [Fact]
         public async Task DateTimeOffsetNullableTest()
         {
-            var model = new DateTimeOffsetNullable() { Prop = new DateTimeOffset(2021, 01, 01, 5, 30, 0,TimeSpan.Zero), Field = null };
+            var model = new DateTimeOffsetNullable() { Prop = new DateTimeOffset(2021, 01, 01, 5, 30, 0, TimeSpan.Zero), Field = null };
             var result = await RoundTripAsync(model);
             Assert.Equal(model, result);
         }
@@ -104,7 +101,7 @@ namespace MongoDB.Client.Tests.Serialization
             Assert.Equal(model, result);
         }
         [Fact]
-        public async Task GenericWithNulalbleListTestTest()
+        public async Task GenericWithNulalbleListTest()
         {
             var model = GenericWithNulalbleListTest<BsonObjectId, string>.Create(BsonObjectId.NewObjectId(), BsonObjectId.NewObjectId(), BsonObjectId.NewObjectId(), "42", "43", "43");
             var result = await RoundTripAsync(model);

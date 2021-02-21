@@ -3,22 +3,33 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MongoDB.Client.Tests.Models
 {
     [BsonSerializable]
     public partial class GenericWithNulalbleListTest<T, TT> : IEquatable<GenericWithNulalbleListTest<T, TT>>
     {
+        [BsonSerializable]
+        public partial struct InnerGenericStruct<TTT>
+        {
+            public TTT A, B, C;
+            public InnerGenericStruct(TTT a, TTT b, TTT c)
+            {
+                A = a; B = b; C = c;
+            }
+        }
         public List<T?> List1 { get; set; }
         public List<TT>? List2 { get; set; }
-        public static GenericWithNulalbleListTest<T, TT> Create(T le1, T le2, T le3, TT le4, TT le5, TT le6 )
+        public List<InnerGenericStruct<T>?>? List3 { get; set; }
+        public List<InnerGenericStruct<T>>? List4 { get; set; }
+        public static GenericWithNulalbleListTest<T, TT> Create(T le1, T le2, T le3, TT le4, TT le5, TT le6)
         {
             return new()
             {
-                List1 = new(){ le1, le2, le3 },
-                List2 = new(){ le4, le5, le6 }
+                List1 = new() { le1, le2, le3 },
+                List2 = new() { le4, le5, le6 },
+                List3 = new() { new InnerGenericStruct<T>(le1, le2, le3), null, new InnerGenericStruct<T>(le1, le2, le3) },
+                List4 = null,
             };
         }
 
@@ -26,7 +37,7 @@ namespace MongoDB.Client.Tests.Models
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return List1.SequenceEqual(other.List1) && List2.SequenceEqual(other.List2);
+            return Nullable.Equals(List3, other.List3) && List1.SequenceEqual(other.List1) && List2.SequenceEqual(other.List2);
         }
 
         public override bool Equals(object obj)
@@ -34,7 +45,7 @@ namespace MongoDB.Client.Tests.Models
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((GenericWithNulalbleListTest<T, TT>) obj);
+            return Equals((GenericWithNulalbleListTest<T, TT>)obj);
         }
 
         public override int GetHashCode()
@@ -151,7 +162,7 @@ namespace MongoDB.Client.Tests.Models
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((IntNullable) obj);
+            return Equals((IntNullable)obj);
         }
 
         public override int GetHashCode()
@@ -177,7 +188,7 @@ namespace MongoDB.Client.Tests.Models
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((DoubleNullable) obj);
+            return Equals((DoubleNullable)obj);
         }
 
         public override int GetHashCode()
@@ -203,7 +214,7 @@ namespace MongoDB.Client.Tests.Models
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((LongNullable) obj);
+            return Equals((LongNullable)obj);
         }
 
         public override int GetHashCode()
@@ -229,7 +240,7 @@ namespace MongoDB.Client.Tests.Models
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((StringNullable) obj);
+            return Equals((StringNullable)obj);
         }
 
         public override int GetHashCode()
@@ -255,7 +266,7 @@ namespace MongoDB.Client.Tests.Models
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((DateTimeOffsetNullable) obj);
+            return Equals((DateTimeOffsetNullable)obj);
         }
 
         public override int GetHashCode()
@@ -281,7 +292,7 @@ namespace MongoDB.Client.Tests.Models
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((GuidNullable) obj);
+            return Equals((GuidNullable)obj);
         }
 
         public override int GetHashCode()
@@ -307,7 +318,7 @@ namespace MongoDB.Client.Tests.Models
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((BsonObjectIdNullable) obj);
+            return Equals((BsonObjectIdNullable)obj);
         }
 
         public override int GetHashCode()
@@ -336,7 +347,7 @@ namespace MongoDB.Client.Tests.Models
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((RecordNullable) obj);
+            return Equals((RecordNullable)obj);
         }
 
         public override int GetHashCode()
@@ -349,9 +360,9 @@ namespace MongoDB.Client.Tests.Models
     {
         [BsonSerializable]
         public partial struct NullableStruct : IEquatable<NullableStruct>
-        { 
-            public int? A; 
-            public long? B; 
+        {
+            public int? A;
+            public long? B;
             public double? C;
 
             public bool Equals(NullableStruct other)
@@ -386,7 +397,7 @@ namespace MongoDB.Client.Tests.Models
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((StructNullable) obj);
+            return Equals((StructNullable)obj);
         }
 
         public override int GetHashCode()
@@ -416,7 +427,7 @@ namespace MongoDB.Client.Tests.Models
                 if (ReferenceEquals(null, obj)) return false;
                 if (ReferenceEquals(this, obj)) return true;
                 if (obj.GetType() != this.GetType()) return false;
-                return Equals((NullableClass) obj);
+                return Equals((NullableClass)obj);
             }
 
             public override int GetHashCode()
@@ -440,7 +451,7 @@ namespace MongoDB.Client.Tests.Models
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((ClassNullable) obj);
+            return Equals((ClassNullable)obj);
         }
 
         public override int GetHashCode()
@@ -467,7 +478,7 @@ namespace MongoDB.Client.Tests.Models
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((ListNullable) obj);
+            return Equals((ListNullable)obj);
         }
 
         public override int GetHashCode()
@@ -475,7 +486,7 @@ namespace MongoDB.Client.Tests.Models
             return HashCode.Combine(Field, Prop);
         }
 
-        public static ListNullable Create() => new() {Field = new() {"42", "42", "42"}, Prop = new() {42, 42, 42}};
+        public static ListNullable Create() => new() { Field = new() { "42", "42", "42" }, Prop = new() { 42, 42, 42 } };
     }
 
     [BsonSerializable]
@@ -497,10 +508,10 @@ namespace MongoDB.Client.Tests.Models
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return NullableInts.SequenceEqual(other.NullableInts) && NullableStrings.SequenceEqual(other.NullableStrings) && 
-                   NullableLongs.SequenceEqual(other.NullableLongs) && NullableGuids.SequenceEqual(other.NullableGuids) && 
-                   NullableDates.SequenceEqual(other.NullableDates) && NullableBsonObjectId.SequenceEqual(other.NullableBsonObjectId) && 
-                   NullableDoubles.SequenceEqual(other.NullableDoubles) && NullableRecords.SequenceEqual(other.NullableRecords) && 
+            return NullableInts.SequenceEqual(other.NullableInts) && NullableStrings.SequenceEqual(other.NullableStrings) &&
+                   NullableLongs.SequenceEqual(other.NullableLongs) && NullableGuids.SequenceEqual(other.NullableGuids) &&
+                   NullableDates.SequenceEqual(other.NullableDates) && NullableBsonObjectId.SequenceEqual(other.NullableBsonObjectId) &&
+                   NullableDoubles.SequenceEqual(other.NullableDoubles) && NullableRecords.SequenceEqual(other.NullableRecords) &&
                    NullableClasses.SequenceEqual(other.NullableClasses) && NullableStructures.SequenceEqual(other.NullableStructures);
         }
 
@@ -509,7 +520,7 @@ namespace MongoDB.Client.Tests.Models
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((ListElementNullable) obj);
+            return Equals((ListElementNullable)obj);
         }
 
         public override int GetHashCode()
@@ -532,21 +543,21 @@ namespace MongoDB.Client.Tests.Models
         {
             return new()
             {
-                NullableRecords = new() {RecordNullable.Create(), null, RecordNullable.Create()},
-                NullableStructures = new() {StructNullable.Create(), null, StructNullable.Create()},
-                NullableClasses = new() {ClassNullable.Create(), null, null},
+                NullableRecords = new() { RecordNullable.Create(), null, RecordNullable.Create() },
+                NullableStructures = new() { StructNullable.Create(), null, StructNullable.Create() },
+                NullableClasses = new() { ClassNullable.Create(), null, null },
                 NullableDates = new()
                 {
-                    new DateTimeOffset(2021, 01, 01, 5, 30, 0, TimeSpan.Zero), 
+                    new DateTimeOffset(2021, 01, 01, 5, 30, 0, TimeSpan.Zero),
                     null,
                     new DateTimeOffset(2021, 01, 01, 5, 30, 0, TimeSpan.Zero)
                 },
-                NullableDoubles = new() {42, null, 42},
-                NullableGuids = new() {Guid.NewGuid(), null, Guid.NewGuid()},
-                NullableInts = new() {42, null, 42},
-                NullableLongs = new() {42, null, 42},
-                NullableStrings = new() {"42", null, "42"},
-                NullableBsonObjectId = new() {BsonObjectId.NewObjectId(), null, BsonObjectId.NewObjectId()},
+                NullableDoubles = new() { 42, null, 42 },
+                NullableGuids = new() { Guid.NewGuid(), null, Guid.NewGuid() },
+                NullableInts = new() { 42, null, 42 },
+                NullableLongs = new() { 42, null, 42 },
+                NullableStrings = new() { "42", null, "42" },
+                NullableBsonObjectId = new() { BsonObjectId.NewObjectId(), null, BsonObjectId.NewObjectId() },
                 NullList = null
             };
         }

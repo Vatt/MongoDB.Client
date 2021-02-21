@@ -1,6 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
-using System;
 using System.Text;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
@@ -63,7 +61,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         public static void Init(Compilation compilation)
         {
             _compilation = compilation;
-            System_DateTimeOffset =_compilation.GetTypeByMetadataName("System.DateTimeOffset")!;
+            System_DateTimeOffset = _compilation.GetTypeByMetadataName("System.DateTimeOffset")!;
             System_Guid = _compilation.GetTypeByMetadataName("System.Guid")!;
             BsonObjectId = _compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonObjectId")!;
             BsonArray = _compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonArray")!;

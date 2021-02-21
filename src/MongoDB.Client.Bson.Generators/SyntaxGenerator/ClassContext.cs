@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
-using System.Collections.Generic;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
+using System.Collections.Generic;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
@@ -24,7 +24,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 
             foreach (var member in Declaration.GetMembers())
             {
-                if ((member.IsStatic && Declaration.TypeKind != TypeKind.Enum) || member.IsAbstract || 
+                if ((member.IsStatic && Declaration.TypeKind != TypeKind.Enum) || member.IsAbstract ||
                     SerializerGenerator.IsIgnore(member) || (member.Kind != SymbolKind.Property && member.Kind != SymbolKind.Field))
                 {
                     continue;

@@ -120,7 +120,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var (operation, tempVar) = ReadOperation(ctx.Root, ctx.NameSym, typeArg, ctx.Root.BsonReaderId, TypedVariableDeclarationExpr(TypeFullName(typeArg), tempArrayRead), bsonTypeToken);
             if (operation == default)
             {
-                operation = InvocationExpr(IdentifierName(SelfFullName(typeArg)), IdentifierName("TryParseBson"), RefArgument(ctx.Root.BsonReaderId), OutArgument(TypedVariableDeclarationExpr(TypeFullName(typeArg), tempArrayRead)));
+                //operation = InvocationExpr(IdentifierName(SelfFullName(typeArg)), IdentifierName("TryParseBson"), RefArgument(ctx.Root.BsonReaderId), OutArgument(TypedVariableDeclarationExpr(TypeFullName(typeArg), tempArrayRead)));
+                operation = InvocationExpr(IdentifierName(typeArg.ToString()), IdentifierName("TryParseBson"), RefArgument(ctx.Root.BsonReaderId), OutArgument(TypedVariableDeclarationExpr(TypeFullName(typeArg), tempArrayRead)));
             }
             return SF.MethodDeclaration(
                     attributeLists: default,
@@ -152,7 +153,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                     SF.IfStatement(
                                         condition: BinaryExprEqualsEquals(bsonTypeToken, NumericLiteralExpr(10)),
                                         statement: SF.Block(
-                                            InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(DefaultLiteralExpr())), 
+                                            InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(DefaultLiteralExpr())),
                                             SF.ContinueStatement()
                                             )),
                                     IfNotReturnFalseElse(

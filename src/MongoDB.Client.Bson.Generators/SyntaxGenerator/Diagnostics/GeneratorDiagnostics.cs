@@ -12,16 +12,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics
         private static readonly string UnsuportedGenericTypeError = "MONGO02";
         private static readonly string NullableFieldsError = "MONGO03";
         private static readonly string SerializationMapUsingWarning = "MONGO04";
-        private static readonly string CustomMessageWarning = "MONGO05";
         public static void Init(GeneratorExecutionContext ctx)
         {
             _ctx = ctx;
-        }
-        public static void CustomWarning(string message, ISymbol sym)
-        {
-            
-            _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(CustomMessageWarning, "Generation failed",
-                message, "SourceGenerator", DiagnosticSeverity.Warning, true), sym.Locations[0]));
         }
         public static void ReportUnhandledException(Exception ex)
         {

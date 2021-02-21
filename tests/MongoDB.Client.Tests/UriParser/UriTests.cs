@@ -1,11 +1,6 @@
 ﻿using MongoDB.Client.Utils;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace MongoDB.Client.Tests.UriParser
@@ -40,7 +35,7 @@ namespace MongoDB.Client.Tests.UriParser
             Assert.Equal("Unspecified/192.168.1.1:3341", result.Hosts.ToArray()[3].ToString());
             Assert.Equal("TestAdminDB", result.AdminDb);
             Assert.True(result.Options.Count == 3);
-            if(result.Options.TryGetValue("replicaSet", out var replicaSet))
+            if (result.Options.TryGetValue("replicaSet", out var replicaSet))
             {
                 Assert.Equal("rs0", replicaSet);
             }

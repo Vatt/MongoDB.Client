@@ -104,7 +104,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
                 //if((trueType.IsReferenceType || trueType.TypeKind == TypeKind.Struct) && trueType.SpecialType == SpecialType.None)
-                if(trueType.IsReferenceType)
+                if (trueType.IsReferenceType)
                 {
                     member.AssignedVariable = SF.Identifier($"{trueType.Name}{member.NameSym.Name}");
                     variables.Add(DefaultLocalDeclarationStatement(SF.ParseTypeName(trueType.ToString()), member.AssignedVariable));
@@ -170,7 +170,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                 condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
                                 statement:
                                 tempVar.HasValue
-                                    ? SF.Block(IfNotReturnFalse(operation),SimpleAssignExprStatement(member.AssignedVariable, tempVar.Value), SF.ContinueStatement())
+                                    ? SF.Block(IfNotReturnFalse(operation), SimpleAssignExprStatement(member.AssignedVariable, tempVar.Value), SF.ContinueStatement())
                                     : SF.Block(IfNotReturnFalse(operation), SF.ContinueStatement())
                             ));
                     }
@@ -190,13 +190,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                             else
                             {
                                 var localTryParseVar = Identifier($"{member.AssignedVariable.ToString()}TryParseTemp");
-                                var condition = InvocationExpr(IdentifierName(trueType.ToString()), IdentifierName("TryParseBson"), 
+                                var condition = InvocationExpr(IdentifierName(trueType.ToString()), IdentifierName("TryParseBson"),
                                                                RefArgument(ctx.BsonReaderId), OutArgument(VarVariableDeclarationExpr(localTryParseVar)));
                                 statements.Add(
                                                SF.IfStatement(
                                                    condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
                                                    statement:
-                                                   SF.Block(IfNotReturnFalse(condition), SimpleAssignExprStatement(member.AssignedVariable, localTryParseVar),  SF.ContinueStatement())));
+                                                   SF.Block(IfNotReturnFalse(condition), SimpleAssignExprStatement(member.AssignedVariable, localTryParseVar), SF.ContinueStatement())));
                             }
 
                         }
@@ -220,21 +220,21 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return statements.ToArray();
         }
 
-        private static (ExpressionSyntax, SyntaxToken?) ReadOperation(ContextCore ctx, ISymbol nameSym, ITypeSymbol typeSym, 
+        private static (ExpressionSyntax, SyntaxToken?) ReadOperation(ContextCore ctx, ISymbol nameSym, ITypeSymbol typeSym,
             ExpressionSyntax readerId, ExpressionSyntax readTarget, SyntaxToken bsonType)
         {
 
             if (ctx.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(typeSym.Name)) != default)
             {
                 var temp = Identifier($"{nameSym.Name.ToString()}TempGenericNullable");
-                if(typeSym.NullableAnnotation == NullableAnnotation.Annotated)
+                if (typeSym.NullableAnnotation == NullableAnnotation.Annotated)
                 {
                     return (TryReadGenericNullable(TypeName(typeSym.OriginalDefinition), bsonType, VarVariableDeclarationExpr(temp)), temp);
                 }
                 else
                 {
                     return (TryReadGeneric(bsonType, readTarget), null);
-                }                
+                }
             }
             if (typeSym is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)
             {

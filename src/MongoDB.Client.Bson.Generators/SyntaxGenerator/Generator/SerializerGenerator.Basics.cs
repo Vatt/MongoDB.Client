@@ -10,7 +10,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
     {
         public static ITypeSymbol ExtractTypeFromNullableIfNeed(ITypeSymbol original)
         {
-            if(original is INamedTypeSymbol namedType)
+            if (original is INamedTypeSymbol namedType)
             {
                 if (original.NullableAnnotation == NullableAnnotation.NotAnnotated || original.NullableAnnotation == NullableAnnotation.None)
                 {
@@ -18,7 +18,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 }
                 if (namedType.IsReferenceType)
                 {
-                    if(namedType.IsGenericType)
+                    if (namedType.IsGenericType)
                     {
                         var constucted = namedType.OriginalDefinition.Construct(namedType.TypeArguments.ToArray());
                         return constucted;

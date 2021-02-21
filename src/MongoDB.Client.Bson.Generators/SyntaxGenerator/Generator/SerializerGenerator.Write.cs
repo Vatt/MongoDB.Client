@@ -68,7 +68,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                 condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
                                 statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
                                 @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, trueType, ctx.BsonWriterId, writeTarget)))));
-                }else if(IsBsonSerializable(trueType) && member.TypeSym.NullableAnnotation == NullableAnnotation.Annotated)
+                }
+                else if (IsBsonSerializable(trueType) && member.TypeSym.NullableAnnotation == NullableAnnotation.Annotated)
                 {
                     writeStatement =
                         Statements(
@@ -76,7 +77,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                 condition: BinaryExprEqualsEquals(SimpleMemberAccess(writeTarget, IdentifierName("HasValue")), FalseLiteralExpr()),
                                 statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
                                 @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget)))));
-                }else if (IsBsonSerializable(trueType) && ( member.TypeSym.NullableAnnotation == NullableAnnotation.NotAnnotated || member.TypeSym.NullableAnnotation == NullableAnnotation.None))
+                }
+                else if (IsBsonSerializable(trueType) && (member.TypeSym.NullableAnnotation == NullableAnnotation.NotAnnotated || member.TypeSym.NullableAnnotation == NullableAnnotation.None))
                 {
                     writeStatement = WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget);
                 }

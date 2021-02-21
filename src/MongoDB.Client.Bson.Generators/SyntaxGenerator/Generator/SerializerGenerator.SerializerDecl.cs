@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -134,6 +135,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 }
                 if (symbol is INamedTypeSymbol namedSym && namedSym.GetMembers().Any(x => x.Kind == SymbolKind.Property && x.Name == "EqualityContract" && x.IsImplicitlyDeclared)) // record shit check
                 {
+                    TypeParameterSyntax[] typeParams = namedSym.TypeArguments.IsEmpty ? null : namedSym.TypeArguments.Select(x => TypeParameter(x)).ToArray();
                     decl = SF.RecordDeclaration(
                          default,
                          new(PublicKeyword(), PartialKeyword()),
@@ -141,20 +143,34 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                          SF.Identifier(SelfName(namedSym)),
                          default, default, default, default,
                          OpenBraceToken(), new SyntaxList<MemberDeclarationSyntax>().Add(member), CloseBraceToken(), default);
+                    //((RecordDeclarationSyntax)decl).AddTypeParameterListParameters
                     return ProcessNested(decl, symbol.ContainingSymbol);
                 }
 
                 switch (((INamedTypeSymbol)symbol).TypeKind)
                 {
                     case TypeKind.Class:
+                        namedSym = (INamedTypeSymbol)symbol;
+                        TypeParameterSyntax[] typeParams = namedSym.TypeArguments.IsEmpty ? null : namedSym.TypeArguments.Select(x => TypeParameter(x)).ToArray();
                         decl = SF.ClassDeclaration(symbol.Name)
                             .AddModifiers(PublicKeyword(), PartialKeyword())
                             .AddMembers(member);
+                        if (typeParams is not null)
+                        {
+                            decl = ((ClassDeclarationSyntax)decl).AddTypeParameterListParameters(typeParams);
+                        }
+
                         break;
                     case TypeKind.Struct:
+                        namedSym = (INamedTypeSymbol)symbol;
+                        typeParams = namedSym.TypeArguments.IsEmpty ? null : namedSym.TypeArguments.Select(x => TypeParameter(x)).ToArray();
                         decl = SF.StructDeclaration(symbol.Name)
                             .AddModifiers(PublicKeyword(), StaticKeyword())
                             .AddMembers(member);
+                        if (typeParams is not null)
+                        {
+                            decl = ((StructDeclarationSyntax)decl).AddTypeParameterListParameters(typeParams);
+                        }
                         break;
                 }
                 return ProcessNested(decl, symbol.ContainingSymbol);

@@ -325,7 +325,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static ExpressionStatementSyntax SimpleAssignExprStatement(ExpressionSyntax left, SyntaxToken right)
         {
-            return SF.ExpressionStatement(SimpleAssignExpr(left , right));
+            return SF.ExpressionStatement(SimpleAssignExpr(left, right));
         }
         public static AssignmentExpressionSyntax SimpleAssignExpr(ExpressionSyntax left, ExpressionSyntax right)
         {

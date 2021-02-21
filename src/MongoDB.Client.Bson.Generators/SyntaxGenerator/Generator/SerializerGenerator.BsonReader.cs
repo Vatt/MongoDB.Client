@@ -68,7 +68,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static InvocationExpressionSyntax TryReadGenericNullable(TypeSyntax typeParam, SyntaxToken bsonType, ExpressionSyntax assignOrDecl, IdentifierNameSyntax readerId = default)
         {
-            return InvocationExpr(readerId ?? DefaultBsonReaderId, GenericName(Identifier("TryReadGeneric"), typeParam) , Argument(bsonType), OutArgument(assignOrDecl));
+            return InvocationExpr(readerId ?? DefaultBsonReaderId, GenericName(Identifier("TryReadGeneric"), typeParam), Argument(bsonType), OutArgument(assignOrDecl));
         }
         public static InvocationExpressionSyntax TrySkipCString(IdentifierNameSyntax readerId = default)
         {
