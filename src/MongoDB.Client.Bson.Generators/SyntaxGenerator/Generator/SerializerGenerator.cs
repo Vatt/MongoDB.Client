@@ -90,6 +90,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Argument(colonName, SF.Token(SyntaxKind.OutKeyword), expr);
         }
+        public static ArgumentSyntax OutArgument(SyntaxToken token, NameColonSyntax colonName = default)
+        {
+            return OutArgument(IdentifierName(token), colonName);
+        }
         public static ArgumentSyntax Argument(SyntaxToken token, NameColonSyntax colonName = default)
         {
             return SF.Argument(colonName, default, IdentifierName(token));

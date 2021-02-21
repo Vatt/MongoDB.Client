@@ -12,7 +12,7 @@ namespace MongoDB.Client.Tests.Models
         [BsonSerializable]
         public partial struct InnerGenericStruct<TTT>
         {
-            public TTT A, B, C;
+            public readonly TTT A, B, C;
             public InnerGenericStruct(TTT a, TTT b, TTT c)
             {
                 A = a; B = b; C = c;

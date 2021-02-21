@@ -254,5 +254,45 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var declarator = SF.VariableDeclarator(variable, default, SF.EqualsValueClause(DefaultLiteralExpr()));
             return SF.LocalDeclarationStatement(SF.VariableDeclaration(type, SeparatedList(declarator)));
         }
+        public static BlockSyntax Block(params StatementSyntax[] statements)
+        {
+            return SF.Block(statements);
+        }
+        public static BlockSyntax Block(StatementSyntax[] statements, StatementSyntax statement)
+        {
+            return SF.Block(statements).AddStatements(statement);
+        }
+        public static BlockSyntax Block(ExpressionStatementSyntax expr, StatementSyntax[] statements1, params StatementSyntax[] statements2)
+        {
+            return SF.Block(expr).AddStatements(statements1).AddStatements(statements2);
+        }
+        public static BlockSyntax Block(IfStatementSyntax if1, IfStatementSyntax if2, IfStatementSyntax if3, StatementSyntax[] statements1, params StatementSyntax[] statements2)
+        {
+            return SF.Block(if1, if2, if3).AddStatements(statements1).AddStatements(statements2);
+        }
+        public static BlockSyntax Block(params ExpressionSyntax[] expressions)
+        {
+            return SF.Block(expressions.Select(e => Statement(e)));
+        }
+        public static ContinueStatementSyntax ContinueStatement()
+        {
+            return SF.ContinueStatement();
+        }
+        public static ReturnStatementSyntax ReturnStatement(ExpressionSyntax? expr = null)
+        {
+            return SF.ReturnStatement(expr);
+        }
+        public static NameColonSyntax NameColon(SyntaxToken name)
+        {
+            return SF.NameColon(IdentifierName(name));
+        }
+        public static NameColonSyntax NameColon(IdentifierNameSyntax name)
+        {
+            return SF.NameColon(name);
+        }
+        public static NameColonSyntax NameColon(ISymbol symbol)
+        {
+            return SF.NameColon(IdentifierName(symbol.Name));
+        }
     }
 }
