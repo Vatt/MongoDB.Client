@@ -81,7 +81,7 @@ namespace MongoDB.Client.Bson.Reader
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetDouble(out double value)
         {
-            if (TryGetInt64(out var temp))
+            if (TryGetInt64(out long temp))
             {
                 value = BitConverter.Int64BitsToDouble(temp);
                 return true;
@@ -118,7 +118,7 @@ namespace MongoDB.Client.Bson.Reader
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetString([MaybeNullWhen(false)] out string value)
         {
-            if (TryGetInt32(out var length))
+            if (TryGetInt32(out int length))
             {
                 var stringLength = length - 1;
                 if (_input.UnreadSpan.Length >= length)
@@ -151,7 +151,7 @@ namespace MongoDB.Client.Bson.Reader
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetStringAsSpan(out ReadOnlySpan<byte> value)
         {
-            if (TryGetInt32(out var length))
+            if (TryGetInt32(out int length))
             {
                 if (_input.UnreadSpan.Length >= length)
                 {
@@ -223,7 +223,7 @@ namespace MongoDB.Client.Bson.Reader
         public bool TryGetBinaryData(out BsonBinaryData value)
         {
             value = default;
-            if (!TryGetInt32(out var len))
+            if (!TryGetInt32(out int len))
             {
                 return false;
             }
@@ -281,7 +281,7 @@ namespace MongoDB.Client.Bson.Reader
 
         public bool TryGetBinaryDataGuid(out Guid value)
         {
-            if (TryGetInt32(out var len))
+            if (TryGetInt32(out int len))
             {
                 if (_input.Remaining > len)
                 {
@@ -337,7 +337,7 @@ namespace MongoDB.Client.Bson.Reader
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetUtcDatetime([MaybeNullWhen(false)] out DateTimeOffset value)
         {
-            if (TryGetInt64(out var data))
+            if (TryGetInt64(out long data))
             {
                 value = DateTimeOffset.FromUnixTimeMilliseconds(data);
                 return true;
@@ -365,7 +365,7 @@ namespace MongoDB.Client.Bson.Reader
         public bool TryGetDatetimeFromDocument(out DateTimeOffset date)
         {
             date = default;
-            if (!TryGetInt32(out var docLength))
+            if (!TryGetInt32(out int docLength))
             {
                 return false;
             }
@@ -380,7 +380,7 @@ namespace MongoDB.Client.Bson.Reader
                 return false;
             }
 
-            if (!TryGetInt64(out var longDate))
+            if (!TryGetInt64(out long longDate))
             {
                 return false;
             }
@@ -395,7 +395,7 @@ namespace MongoDB.Client.Bson.Reader
                 return false;
             }
 
-            if (!TryGetInt64(out var ticks))
+            if (!TryGetInt64(out long ticks))
             {
                 return false;
             }
@@ -410,7 +410,7 @@ namespace MongoDB.Client.Bson.Reader
                 return false;
             }
 
-            if (!TryGetInt32(out var offset))
+            if (!TryGetInt32(out int offset))
             {
                 return false;
             }

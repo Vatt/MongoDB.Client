@@ -12,13 +12,20 @@ namespace MongoDB.Client.Bson.Generators
 {
     //object - отдельная ветка генератора 
     [Generator]
-    partial class BsonSerializerGenerator : ISourceGenerator
+    class BsonSerializerGenerator : ISourceGenerator
     {
+        public static GeneratorExecutionContext Context;
+        public static Compilation Compilation;
         public void Execute(GeneratorExecutionContext context)
         {
             //System.Diagnostics.Debugger.Launch();
-            TypeLib.TypeLibInit(context.Compilation);
+
+
+            Context = context;
+            Compilation = Context.Compilation;
+            TypeLib.Init(Compilation);
             GeneratorDiagnostics.Init(context);
+
             try
             {
                 var masterContext = new MasterContext(CollectSymbols(context));
@@ -31,7 +38,6 @@ namespace MongoDB.Client.Bson.Generators
                     }
                     var source = units[index].NormalizeWhitespace().ToString();
                     context.AddSource(SerializerGenerator.SerializerName(masterContext.Contexts[index]), SourceText.From(source, Encoding.UTF8));
-                    //System.Diagnostics.Debugger.Break();
                 }
             }
             catch (Exception ex)

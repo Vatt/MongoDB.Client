@@ -25,7 +25,7 @@ namespace MongoDB.Client.Bson.Reader
         }
 
 
-        public unsafe bool TryReadGeneric<T>(int bsonType, [MaybeNullWhen(false)] out T? genericValue)
+        public unsafe bool TryReadGeneric<T>(int bsonType, [MaybeNullWhen(false)] out T genericValue)
         {
             genericValue = default(T);
             if (SerializerFnPtrProvider<T>.IsSerializable)
@@ -65,19 +65,19 @@ namespace MongoDB.Client.Bson.Reader
         SIMPLE_BSON_TYPE:
             if (typeof(T) == typeof(DateTimeOffset))
             {
-                if (!TryGetDateTimeWithBsonType(bsonType, out var value)) { return false; }
+                if (!TryGetDateTimeWithBsonType(bsonType, out DateTimeOffset value)) { return false; }
                 genericValue = (T)(object)value;
                 return true;
             }
             if (typeof(T) == typeof(BsonObjectId))
             {
-                if (!TryGetObjectId(out var value)) { return false; }
+                if (!TryGetObjectId(out BsonObjectId value)) { return false; }
                 genericValue = (T)(object)value;
                 return true;
             }
             if (typeof(T) == typeof(Guid))
             {
-                if (!TryGetGuidWithBsonType(bsonType, out var value)) { return false; }
+                if (!TryGetGuidWithBsonType(bsonType, out Guid value)) { return false; }
                 genericValue = (T)(object)value;
                 return true;
             }
@@ -139,7 +139,7 @@ namespace MongoDB.Client.Bson.Reader
                     }
                 case 2:
                     {
-                        if (TryGetInt32(out var length))
+                        if (TryGetInt32(out int length))
                         {
                             return TryAdvance(length);
                         }
@@ -149,7 +149,7 @@ namespace MongoDB.Client.Bson.Reader
                 case 3:
                     {
 
-                        if (TryGetInt32(out var docLength))
+                        if (TryGetInt32(out int docLength))
                         {
                             return TryAdvance(docLength - sizeof(int));
                         }
@@ -157,7 +157,7 @@ namespace MongoDB.Client.Bson.Reader
                     }
                 case 4:
                     {
-                        if (TryGetInt32(out var arrayLength))
+                        if (TryGetInt32(out int arrayLength))
                         {
                             return TryAdvance(arrayLength - sizeof(int));
                         }
@@ -166,7 +166,7 @@ namespace MongoDB.Client.Bson.Reader
                     }
                 case 5:
                     {
-                        if (TryGetInt32(out var binDataLength))
+                        if (TryGetInt32(out int binDataLength))
                         {
                             return TryAdvance(binDataLength + 1);
                         }
