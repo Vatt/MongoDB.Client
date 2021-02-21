@@ -30,13 +30,7 @@ namespace MongoDB.Client.Protocol.Readers
         public FindMsgType0BodyReaderUnsafe(ResponseMsgMessage message)
         {
             Message = message;
-            _cursorResult = new CursorResult<T>
-            {
-                MongoCursor = new MongoCursor<T>
-                {
-                    Items = ListsPool<T>.Pool.Get()
-                }
-            };
+            _cursorResult = new CursorResult<T>(new MongoCursor<T>(ListsPool<T>.Pool.Get()));
             _payloadLength = message.Header.MessageLength;
             _state = ParserState.Initial;
         }
