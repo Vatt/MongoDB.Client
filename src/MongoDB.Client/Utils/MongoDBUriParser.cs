@@ -1,5 +1,4 @@
-﻿using MongoDB.Client.Exceptions;
-using Sprache;
+﻿using Sprache;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -63,9 +62,8 @@ namespace MongoDB.Client.Utils
                 {
                     return true;
                 }
-
-                string tags;                
-                if (Options.TryGetValue("readPreferenceTags", out tags))
+           
+                if (Options.TryGetValue("readPreferenceTags", out var tags))
                 {
                     tags = tags + "&" + splited[1];
                     Options["readPreferenceTags"] = tags;
