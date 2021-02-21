@@ -16,7 +16,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     modifiers: new(PublicKeyword(), StaticKeyword()),
                     explicitInterfaceSpecifier: default,// SF.ExplicitInterfaceSpecifier(GenericName(SerializerInterfaceToken, TypeFullName(ctx.Declaration))),
                     returnType: VoidPredefinedType(),
-                    identifier: SF.Identifier("WriteBson"),
+                    identifier: Identifier("WriteBson"),
                     parameterList: ParameterList(
                         RefParameter(ctx.BsonWriterType, ctx.BsonWriterToken),
                         InParameter(TypeFullName(ctx.Declaration), ctx.TryParseOutVarToken)),
@@ -43,64 +43,59 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         private static BlockSyntax WriteMethodBody(ContextCore ctx)
         {
-            var checkpoint = SF.Identifier("checkpoint");
-            var reserved = SF.Identifier("reserved");
-            var docLength = SF.Identifier("docLength");
-            var sizeSpan = SF.Identifier("sizeSpan");
-            List<StatementSyntax> statements = new();
+            var checkpoint = Identifier("checkpoint");
+            var reserved = Identifier("reserved");
+            var docLength = Identifier("docLength");
+            var sizeSpan = Identifier("sizeSpan");
+            StatementsBuilder statements = new();
 
             foreach (var member in ctx.Members)
             {
-                StatementSyntax[] writeStatement;
+                StatementsBuilder builder = new();
                 var writeTarget = SimpleMemberAccess(ctx.WriterInputVar, IdentifierName(member.NameSym));
                 ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
                 TryGetBsonWriteIgnoreIfAttr(member, out var condition);
                 if (member.TypeSym.TypeKind == TypeKind.Enum)
                 {
-                    writeStatement = Statements(GenerateWriteEnum(ctx, member, writeTarget));
+                    builder.Add(GenerateWriteEnum(ctx, member, writeTarget));
                     goto CONDITION_CHECK;
                 }
                 if (member.TypeSym.IsReferenceType)
                 {
-                    writeStatement =
-                        Statements(
-                            SF.IfStatement(
+                    builder.IfStatement(
                                 condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
-                                statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
-                                @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, trueType, ctx.BsonWriterId, writeTarget)))));
+                                statement: Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
+                                @else: Block(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, trueType, ctx.BsonWriterId, writeTarget)));
                 }
                 else if (IsBsonSerializable(trueType) && member.TypeSym.NullableAnnotation == NullableAnnotation.Annotated)
                 {
-                    writeStatement =
-                        Statements(
-                            SF.IfStatement(
+                    builder.IfStatement(
                                 condition: BinaryExprEqualsEquals(SimpleMemberAccess(writeTarget, IdentifierName("HasValue")), FalseLiteralExpr()),
                                 statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
-                                @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget)))));
+                                @else: Block(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget)));
                 }
                 else if (IsBsonSerializable(trueType) && (member.TypeSym.NullableAnnotation == NullableAnnotation.NotAnnotated || member.TypeSym.NullableAnnotation == NullableAnnotation.None))
                 {
-                    writeStatement = WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget);
+                    builder.Add(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget));
                 }
                 else
                 {
                     if (member.BsonElementAlias.Equals("_id") && TypeLib.IsBsonObjectId(trueType))
                     {
-                        statements.Add(
-                            SF.IfStatement(
-                                BinaryExprEqualsEquals(writeTarget, Default(TypeFullName(trueType))),
-                                SF.Block(SimpleAssignExprStatement(writeTarget, NewBsonObjectId()))));
+                        statements.IfStatement(
+                                    BinaryExprEqualsEquals(writeTarget, Default(TypeFullName(trueType))),
+                                    Block(SimpleAssignExprStatement(writeTarget, NewBsonObjectId())));
                     }
-                    writeStatement = WriteOperation(member, StaticFieldNameToken(member), member.NameSym, trueType, ctx.BsonWriterId, writeTarget);
+                    builder.Add(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, trueType, ctx.BsonWriterId, writeTarget));
                 }
             CONDITION_CHECK:
                 if (condition != null)
                 {
-                    statements.Add(IfNot(condition, SF.Block(writeStatement)));
+                    statements.IfNot(condition, Block(builder.Build()));
                 }
                 else
                 {
-                    statements.AddRange(writeStatement);
+                    statements.Add(builder);
                 }
             }
 
@@ -108,7 +103,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     VarLocalDeclarationStatement(checkpoint, WriterWritten()),
                     VarLocalDeclarationStatement(reserved, WriterReserve(4)))
                 .AddStatements(
-                    statements.ToArray())
+                    statements.Build())
                 .AddStatements(
                     WriteByteStatement((byte)'\x00'),
                     VarLocalDeclarationStatement(docLength, BinaryExprMinus(WriterWritten(), checkpoint)),

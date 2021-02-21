@@ -206,6 +206,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                                    OutArgument(member.AssignedVariable));
                     builder.IfStatement(condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
                                         statement: Block(IfNotReturnFalse(condition), ContinueStatement()));
+                    return true;
                 }
                 else
                 {
@@ -219,6 +220,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                                 IfNotReturnFalse(condition),
                                                 SimpleAssignExprStatement(member.AssignedVariable, localTryParseVar),
                                                 ContinueStatement()));
+                    return true;
                 }
             }
             return false;

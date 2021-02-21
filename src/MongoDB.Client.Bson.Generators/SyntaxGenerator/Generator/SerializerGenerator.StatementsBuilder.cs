@@ -25,6 +25,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     _statements.Add(Statement(expr));
                 }
             }
+            public void Add(params StatementSyntax[] statements)
+            {
+                _statements.AddRange(statements);
+            }
+            public void Add(StatementsBuilder other)
+            {
+                _statements.AddRange(other.Build());
+            }
             public void Add(StatementSyntax expr)
             {
                 _statements.Add(expr);
@@ -33,9 +41,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 Add(SF.IfStatement(condition, statement));
             }
+            public void IfStatement(ExpressionSyntax condition, StatementSyntax statement, BlockSyntax @else)
+            {
+                Add(SF.IfStatement(condition, statement, SF.ElseClause(@else)));
+            }
             public void DefaultLocalDeclarationStatement(TypeSyntax type, SyntaxToken variable)
             {
                 Add(SerializerGenerator.DefaultLocalDeclarationStatement(type, variable));
+            }
+            public void IfNot(ExpressionSyntax condition, params StatementSyntax[] statement)
+            {
+                Add(SerializerGenerator.IfNot(condition, statement));
             }
         }
     }
