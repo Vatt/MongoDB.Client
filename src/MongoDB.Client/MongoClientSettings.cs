@@ -8,12 +8,8 @@ namespace MongoDB.Client
 {
     public class MongoClientSettings
     {
-        public MongoClientSettings(IEnumerable<EndPoint> endpoints, string login, string password)
+        public MongoClientSettings(IEnumerable<EndPoint> endpoints, string? login, string? password)
         {
-            // if (endpoints is {Length: 0})
-            // {
-            //     throw new ArgumentException("Endpoints must not be empty");
-            // }
             Login = login;
             Password = password;
             Endpoints = endpoints.ToImmutableArray();

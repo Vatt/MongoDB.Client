@@ -2,12 +2,35 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
+using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        public static ITypeSymbol ExtractTypeFromNullableIfNeed(ITypeSymbol original)
+        {
+            if (original is INamedTypeSymbol namedType)
+            {
+                if (original.NullableAnnotation == NullableAnnotation.NotAnnotated || original.NullableAnnotation == NullableAnnotation.None)
+                {
+                    return original;
+                }
+                if (namedType.IsReferenceType)
+                {
+                    if (namedType.IsGenericType)
+                    {
+                        var constucted = namedType.OriginalDefinition.Construct(namedType.TypeArguments.ToArray());
+                        return constucted;
+                    }
 
+                    return namedType.OriginalDefinition;
+                }
+
+                return namedType.TypeArguments[0];
+            }
+            return original;
+        }
         public static GenericNameSyntax ReadOnlySpanByte()
         {
             return GenericName(SF.Identifier("ReadOnlySpan"), BytePredefinedType());
@@ -178,6 +201,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static DeclarationExpressionSyntax VarVariableDeclarationExpr(SyntaxToken varId)
         {
             return SF.DeclarationExpression(SF.IdentifierName("var"), SF.SingleVariableDesignation(varId));
+        }
+        public static DeclarationExpressionSyntax IntVariableDeclarationExpr(SyntaxToken varId)
+        {
+            return SF.DeclarationExpression(IntPredefinedType(), SF.SingleVariableDesignation(varId));
         }
         public static DeclarationExpressionSyntax TypedVariableDeclarationExpr(TypeSyntax type, SyntaxToken varId)
         {

@@ -23,13 +23,7 @@ namespace MongoDB.Client.Protocol.Readers
         {
             Serializer = serializer;
             Message = message;
-            _cursorResult = new CursorResult<T>
-            {
-                MongoCursor = new MongoCursor<T>
-                {
-                    Items = ListsPool<T>.Pool.Get()
-                }
-            };
+            _cursorResult = new CursorResult<T>(new MongoCursor<T>(ListsPool<T>.Pool.Get()));
         }
 
         public abstract bool TryParseMessage(in ReadOnlySequence<byte> input, ref SequencePosition consumed, ref SequencePosition examined, [MaybeNullWhen(false)] out CursorResult<T> message);
