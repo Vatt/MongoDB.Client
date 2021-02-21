@@ -1,5 +1,4 @@
 ﻿using MongoDB.Client.Utils;
-using System;
 using System.Linq;
 using Xunit;
 
@@ -16,15 +15,8 @@ namespace MongoDB.Client.Tests.UriParser
         [Fact]
         public void UriTest1()
         {
-            MongoUriParseResult result = default;
-            try
-            {
-                result = MongoDBUriParser.ParseUri(uri1);
-            }
-            catch (Exception _)
-            {
-                Assert.True(false);
-            }
+            MongoUriParseResult result = MongoDBUriParser.ParseUri(uri1);
+
             Assert.NotNull(result.Login);
             Assert.NotNull(result.Password);
             Assert.Equal("gamover", result.Login);
@@ -63,15 +55,8 @@ namespace MongoDB.Client.Tests.UriParser
         [Fact]
         public void UriTest2()
         {
-            MongoUriParseResult result = default;
-            try
-            {
-                result = MongoDBUriParser.ParseUri(uri2);
-            }
-            catch (Exception _)
-            {
-                Assert.True(false);
-            }
+            MongoUriParseResult result = MongoDBUriParser.ParseUri(uri2);
+
             Assert.NotNull(result.Login);
             Assert.NotNull(result.Password);
             Assert.Equal("myDBReader", result.Login);
@@ -101,15 +86,8 @@ namespace MongoDB.Client.Tests.UriParser
         [Fact]
         public void UriTest3()
         {
-            MongoUriParseResult result = default;
-            try
-            {
-                result = MongoDBUriParser.ParseUri(uri3);
-            }
-            catch (Exception _)
-            {
-                Assert.True(false);
-            }
+            MongoUriParseResult result = MongoDBUriParser.ParseUri(uri3);
+
             Assert.NotNull(result.Login);
             Assert.NotNull(result.Password);
             Assert.Equal("sysop", result.Login);
@@ -121,15 +99,8 @@ namespace MongoDB.Client.Tests.UriParser
         [Fact]
         public void UriTest4()
         {
-            MongoUriParseResult result = default;
-            try
-            {
-                result = MongoDBUriParser.ParseUri(uri4);
-            }
-            catch (Exception ex)
-            {
-                Assert.True(false);
-            }
+            MongoUriParseResult result = MongoDBUriParser.ParseUri(uri4);
+
             Assert.Null(result.Login);
             Assert.Null(result.Password);
             Assert.Equal("Unspecified/mongos1.example.com:27017", result.Hosts.ToArray()[0].ToString());
@@ -157,15 +128,7 @@ namespace MongoDB.Client.Tests.UriParser
         [Fact]
         public void UriTest5()
         {
-            MongoUriParseResult result = default;
-            try
-            {
-                result = MongoDBUriParser.ParseUri(uri5);
-            }
-            catch (Exception ex)
-            {
-                Assert.True(false);
-            }
+            MongoUriParseResult result = MongoDBUriParser.ParseUri(uri5);
             Assert.Equal("mongodb+srv://", result.Scheme);
             Assert.Null(result.Login);
             Assert.Null(result.Password);
