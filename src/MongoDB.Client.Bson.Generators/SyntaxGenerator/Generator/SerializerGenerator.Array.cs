@@ -195,7 +195,21 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             else
             {
-                writeOperation = WriteOperation(ctx, index, ctx.NameSym, typeArg, classCtx.BsonWriterId, ElementAccessExpr(IdentifierName(array), index));
+                var operation = WriteOperation(ctx, index, ctx.NameSym, typeArg, classCtx.BsonWriterId, ElementAccessExpr(IdentifierName(array), index));
+                if (typeArg.NullableAnnotation == NullableAnnotation.Annotated && typeArg.TypeKind == TypeKind.Struct)
+                {
+                    writeOperation =
+                        Statements(
+                            SF.IfStatement(
+                                condition: BinaryExprEqualsEquals(SimpleMemberAccess(ElementAccessExpr(array, index), IdentifierName("HasValue")), FalseLiteralExpr()),
+                                statement: SF.Block(Statement(WriteBsonNull(index))),
+                                @else: SF.ElseClause(SF.Block(operation))));
+                }
+                else
+                {
+                    writeOperation = operation;
+                }
+
             }
             return SF.MethodDeclaration(
                     attributeLists: default,
