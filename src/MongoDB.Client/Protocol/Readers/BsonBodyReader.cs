@@ -33,10 +33,7 @@ namespace MongoDB.Client.Protocol.Readers
             consumed = bsonReader.Position;
             examined = bsonReader.Position;
             Consumed = bsonReader.BytesConsumed;
-            message = new BsonParseResult
-            {
-                Document = document
-            };
+            message = new BsonParseResult(document);
             return true;
         }
     }
