@@ -229,7 +229,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             ExpressionSyntax readerId, ExpressionSyntax readTarget, SyntaxToken bsonType)
         {
 
-            if (ctx.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(typeSym.Name)) != default)
+            if (ctx.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(typeSym.Name)) != default) // generic type arguments
             {
                 var temp = Identifier($"{nameSym.Name.ToString()}TempGenericNullable");
                 if (typeSym.NullableAnnotation == NullableAnnotation.Annotated)

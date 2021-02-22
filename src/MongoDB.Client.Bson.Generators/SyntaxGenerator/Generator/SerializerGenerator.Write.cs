@@ -57,7 +57,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 TryGetBsonWriteIgnoreIfAttr(member, out var condition);
                 if (member.TypeSym.TypeKind == TypeKind.Enum)
                 {
-                    builder.Add(GenerateWriteEnum(ctx, member, writeTarget));
+                    builder.Statements(GenerateWriteEnum(ctx, member, writeTarget));
                     goto CONDITION_CHECK;
                 }
                 if (member.TypeSym.IsReferenceType)
@@ -74,9 +74,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                 statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
                                 @else: Block(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget)));
                 }
-                else if (IsBsonSerializable(trueType) && (member.TypeSym.NullableAnnotation == NullableAnnotation.NotAnnotated || member.TypeSym.NullableAnnotation == NullableAnnotation.None))
+                else if (IsBsonSerializable(trueType) && member.TypeSym.NullableAnnotation != NullableAnnotation.Annotated)
                 {
-                    builder.Add(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget));
+                    builder.Statements(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget));
                 }
                 else
                 {
@@ -86,7 +86,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                     BinaryExprEqualsEquals(writeTarget, Default(TypeFullName(trueType))),
                                     Block(SimpleAssignExprStatement(writeTarget, NewBsonObjectId())));
                     }
-                    builder.Add(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, trueType, ctx.BsonWriterId, writeTarget));
+                    builder.Statements(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, trueType, ctx.BsonWriterId, writeTarget));
                 }
             CONDITION_CHECK:
                 if (condition != null)
@@ -95,11 +95,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 }
                 else
                 {
-                    statements.Add(builder);
+                    statements.Statements(builder);
                 }
             }
 
-            return SF.Block(
+            return Block(
                     VarLocalDeclarationStatement(checkpoint, WriterWritten()),
                     VarLocalDeclarationStatement(reserved, WriterReserve(4)))
                 .AddStatements(
@@ -120,7 +120,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             if (TryGetSimpleWriteOperation(nameSym, trueType, name, writeTarget, out var expr))
             {
 
-                return new StatementSyntax[] { Statement(expr) };
+                return new[] { Statement(expr) };
             }
             if (ctx.Root.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(trueType.Name)) != default)
             {
