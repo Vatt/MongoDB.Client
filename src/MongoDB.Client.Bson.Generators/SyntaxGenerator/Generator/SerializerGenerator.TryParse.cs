@@ -114,7 +114,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     continue;
                 }
-                GeneratorDiagnostics.ReportSerializationMapUsingWarning(member.NameSym);
+                GeneratorDiagnostics.ReportSerializerMapUsingWarning(member.NameSym);
                 builder.IfStatement(
                             condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
                             statement: Block(

@@ -71,7 +71,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     builder.IfStatement(
                                 condition: BinaryExprEqualsEquals(SimpleMemberAccess(writeTarget, IdentifierName("HasValue")), FalseLiteralExpr()),
-                                statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
+                                statement: Block(WriteBsonNull(StaticFieldNameToken(member))),
                                 @else: Block(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget)));
                 }
                 else if (IsBsonSerializable(trueType) && member.TypeSym.NullableAnnotation != NullableAnnotation.Annotated)
@@ -84,7 +84,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     {
                         statements.IfStatement(
                                     BinaryExprEqualsEquals(writeTarget, Default(TypeFullName(trueType))),
-                                    Block(SimpleAssignExprStatement(writeTarget, NewBsonObjectId())));
+                                    Block(SimpleAssignExpr(writeTarget, NewBsonObjectId())));
                     }
                     builder.Statements(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, trueType, ctx.BsonWriterId, writeTarget));
                 }
@@ -153,7 +153,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             else
             {
-                GeneratorDiagnostics.ReportSerializationMapUsingWarning(ctx.NameSym);
+                GeneratorDiagnostics.ReportSerializerMapUsingWarning(ctx.NameSym);
                 return Statements(
                         Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
                         OtherWriteBson(ctx)

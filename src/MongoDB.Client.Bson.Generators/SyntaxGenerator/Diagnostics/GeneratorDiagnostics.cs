@@ -43,7 +43,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics
             var message = $"Field or Property {decl.Name} has an unsuported generic type {type.Name}";
             _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(UnsuportedGenericTypeError, "Generation failed", message, "SourceGenerator", DiagnosticSeverity.Error, true), decl.Locations[0]));
         }
-        public static void ReportSerializationMapUsingWarning(ISymbol decl)
+        public static void ReportSerializerMapUsingWarning(ISymbol decl)
         {
             var message = "Undefined serializer type. Using SerializersMap";
             _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(SerializationMapUsingWarning, "Generation warn", message, "SourceGenerator", DiagnosticSeverity.Warning, true), decl.Locations[0]));
