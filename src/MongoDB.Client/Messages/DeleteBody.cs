@@ -7,7 +7,7 @@ namespace MongoDB.Client.Messages
     public partial class DeleteBody
     {
         [BsonElement("q")]
-        public BsonDocument Filter { get; set; }
+        public BsonDocument? Filter { get; set; }
 
         [BsonElement("limit")]
         public int Limit { get; set; }

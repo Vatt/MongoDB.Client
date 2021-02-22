@@ -6,15 +6,15 @@ namespace MongoDB.Client.Messages
     public partial class InsertHeader
     {
         [BsonElement("insert")]
-        public string Insert { get; set; }
+        public string? Insert { get; set; }
 
         [BsonElement("ordered")]
         public bool Ordered { get; set; }
 
         [BsonElement("$db")]
-        public string Db { get; set; }
+        public string? Db { get; set; }
 
         [BsonElement("lsid")]
-        public SessionId Lsid { get; set; }
+        public SessionId? Lsid { get; set; }
     }
 }

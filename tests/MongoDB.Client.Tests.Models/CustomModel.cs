@@ -18,9 +18,9 @@ namespace MongoDB.Client.Tests.Models
         private static ReadOnlySpan<byte> CustomModelA => new byte[1] { 65 };
         private static ReadOnlySpan<byte> CustomModelB => new byte[1] { 66 };
         private static ReadOnlySpan<byte> CustomModelC => new byte[1] { 67 };
-        public static bool TryParseBson(ref MongoDB.Client.Bson.Reader.BsonReader reader, out MongoDB.Client.Tests.Models.CustomModel message)
+        public static bool TryParseBson(ref Bson.Reader.BsonReader reader, out CustomModel message)
         {
-            message = default;
+            message = default!;
             int Int32A = default;
             int Int32B = default;
             int Int32C = default;
