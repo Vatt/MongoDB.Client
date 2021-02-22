@@ -7,7 +7,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics
     static class GeneratorDiagnostics
     {
         private static GeneratorExecutionContext _ctx;
-
         private static readonly string UnhandledExceptionError = "MONGO00";
         private static readonly string UnsuportedTypeError = "MONGO01";
         private static readonly string UnsuportedGenericTypeError = "MONGO02";

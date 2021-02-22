@@ -62,7 +62,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     {
                         methods.Add(ReadArrayMethod(member, type));
                         type = type.TypeArguments[0] as INamedTypeSymbol;
-                        if (type is null || type.TypeArguments.IsEmpty)
+                        //if (type is null || type.TypeArguments.IsEmpty)
+                        if (type is null || (TypeLib.IsListOrIList(type) == false))
                         {
                             break;
                         }
@@ -90,7 +91,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     {
                         methods.Add(WriteArrayMethod(member, type));
                         type = type.TypeArguments[0] as INamedTypeSymbol;
-                        if (type is null || type.TypeArguments.IsEmpty)
+                        //if (type is null || type.TypeArguments.IsEmpty)
+                        if (type is null || (TypeLib.IsListOrIList(type) == false))
                         {
                             break;
                         }
@@ -111,12 +113,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var outMessage = SF.Identifier("array");
             var tempArrayRead = SF.Identifier("temp");
 
-            var typeArg = (type as INamedTypeSymbol).TypeArguments[0];
+            var typeArg = ExtractTypeFromNullableIfNeed((type as INamedTypeSymbol).TypeArguments[0]);
 
-            ExpressionSyntax operation = ReadOperation(ctx.Root, ctx.NameSym, typeArg, ctx.Root.BsonReaderId, TypedVariableDeclarationExpr(TypeFullName(typeArg), tempArrayRead), bsonTypeToken);
+            var trueType = ExtractTypeFromNullableIfNeed(type);
+
+            var (operation, tempVar) = ReadOperation(ctx.Root, ctx.NameSym, typeArg, ctx.Root.BsonReaderId, TypedVariableDeclarationExpr(TypeFullName(typeArg), tempArrayRead), bsonTypeToken);
             if (operation == default)
             {
-                operation = InvocationExpr(IdentifierName(SelfFullName(typeArg)), IdentifierName("TryParseBson"), RefArgument(ctx.Root.BsonReaderId), OutArgument(TypedVariableDeclarationExpr(TypeFullName(typeArg), tempArrayRead)));
+                //operation = InvocationExpr(IdentifierName(SelfFullName(typeArg)), IdentifierName("TryParseBson"), RefArgument(ctx.Root.BsonReaderId), OutArgument(TypedVariableDeclarationExpr(TypeFullName(typeArg), tempArrayRead)));
+                operation = InvocationExpr(IdentifierName(typeArg.ToString()), IdentifierName("TryParseBson"), RefArgument(ctx.Root.BsonReaderId), OutArgument(TypedVariableDeclarationExpr(TypeFullName(typeArg), tempArrayRead)));
             }
             return SF.MethodDeclaration(
                     attributeLists: default,
@@ -133,8 +138,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     semicolonToken: default)
                 .WithBody(
                     SF.Block(
-                        SimpleAssignExprStatement(IdentifierName(outMessage), ObjectCreation(TypeFullName(type))),
-                        IfNotReturnFalse(TryGetInt32(VarVariableDeclarationExpr(docLenToken))),
+                        SimpleAssignExprStatement(IdentifierName(outMessage), ObjectCreation(TypeFullName(trueType))),
+                        IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(docLenToken))),
                         VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemaining(), SizeOfInt())),
                         SF.WhileStatement(
                             condition:
@@ -155,7 +160,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                         condition: operation,
                                         @else:
                                             SF.Block(
-                                                InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(tempArrayRead)),
+                                                InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(tempVar.HasValue ? tempVar.Value : tempArrayRead)),
                                                 SF.ContinueStatement())))),
                         IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
                         SF.IfStatement(
@@ -168,7 +173,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
         private static MethodDeclarationSyntax WriteArrayMethod(MemberContext ctx, ITypeSymbol type)
         {
-            ITypeSymbol trueType = type.Name.Equals("Nullable") ? ((INamedTypeSymbol)type).TypeParameters[0] : type;
+            //ITypeSymbol trueType = type.Name.Equals("Nullable") ? ((INamedTypeSymbol)type).TypeArguments[0] : type;
+            ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
             var classCtx = ctx.Root;
             var checkpoint = SF.Identifier("checkpoint");
             var reserved = SF.Identifier("reserved");
@@ -189,7 +195,21 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             else
             {
-                writeOperation = WriteOperation(ctx, index, ctx.NameSym, typeArg, classCtx.BsonWriterId, ElementAccessExpr(IdentifierName(array), index));
+                var operation = WriteOperation(ctx, index, ctx.NameSym, typeArg, classCtx.BsonWriterId, ElementAccessExpr(IdentifierName(array), index));
+                if (typeArg.NullableAnnotation == NullableAnnotation.Annotated && typeArg.TypeKind == TypeKind.Struct)
+                {
+                    writeOperation =
+                        Statements(
+                            SF.IfStatement(
+                                condition: BinaryExprEqualsEquals(SimpleMemberAccess(ElementAccessExpr(array, index), IdentifierName("HasValue")), FalseLiteralExpr()),
+                                statement: SF.Block(Statement(WriteBsonNull(index))),
+                                @else: SF.ElseClause(SF.Block(operation))));
+                }
+                else
+                {
+                    writeOperation = operation;
+                }
+
             }
             return SF.MethodDeclaration(
                     attributeLists: default,

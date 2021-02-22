@@ -2,7 +2,7 @@
 using MongoDB.Client.Bson.Serialization.Attributes;
 using System;
 
-namespace MongoDB.Client.Connection
+namespace MongoDB.Client.Messages
 {
     [BsonSerializable]
     public partial class MongoTopologyVersion
@@ -21,7 +21,7 @@ namespace MongoDB.Client.Connection
         public bool IsMaster { get; set; }
 
         [BsonElement("topologyVersion")]
-        public MongoTopologyVersion Topology { get; set; }
+        public MongoTopologyVersion? Topology { get; set; }
 
         [BsonElement("maxBsonObjectSize")]
         public int MaxBsonObjectSize { get; set; }

@@ -8,11 +8,11 @@ namespace MongoDB.Client.Messages
     {
         [BsonElement("find")]
         [BsonWriteIgnoreIf("Find is null")]
-        public string Find { get; set; }
+        public string? Find { get; set; }
 
         [BsonElement("filter")]
         [BsonWriteIgnoreIf("Filter is null")]
-        public BsonDocument Filter { get; set; }
+        public BsonDocument? Filter { get; set; }
 
         [BsonElement("limit")]
         [BsonWriteIgnoreIf("Limit < 1")]
@@ -26,14 +26,14 @@ namespace MongoDB.Client.Messages
 
         [BsonElement("collection")]
         [BsonWriteIgnoreIf("Collection is null")]
-        public string Collection { get; set; }
+        public string? Collection { get; set; }
 
 
 
         [BsonElement("$db")]
-        public string Db { get; set; }
+        public string? Db { get; set; }
 
         [BsonElement("lsid")]
-        public SessionId Lsid { get; set; }
+        public SessionId? Lsid { get; set; }
     }
 }

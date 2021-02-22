@@ -164,7 +164,7 @@ namespace MongoDB.Client.Protocol.Readers
                 if (name == "cursor")
                 {
                     var initConsumed = reader.BytesConsumed;
-                    if (!reader.TryGetInt32(out var cursorLength))
+                    if (!reader.TryGetInt32(out int cursorLength))
                     {
                         return false;
                     }
@@ -223,7 +223,7 @@ namespace MongoDB.Client.Protocol.Readers
 
                 if (name == "ok")
                 {
-                    if (!reader.TryGetDouble(out var okValue))
+                    if (!reader.TryGetDouble(out double okValue))
                     {
                         return false;
                     }
@@ -243,7 +243,7 @@ namespace MongoDB.Client.Protocol.Readers
 
                 if (name == "code")
                 {
-                    if (!reader.TryGetInt32(out var codeValue))
+                    if (!reader.TryGetInt32(out int codeValue))
                     {
                         return false;
                     }
@@ -352,7 +352,7 @@ namespace MongoDB.Client.Protocol.Readers
             modelsLength = 0;
             if (name == "id")
             {
-                if (!reader.TryGetInt64(out var idValue))
+                if (!reader.TryGetInt64(out long idValue))
                 {
                     return false;
                 }
@@ -374,7 +374,7 @@ namespace MongoDB.Client.Protocol.Readers
 
             if (name == "ok")
             {
-                if (!reader.TryGetDouble(out var okValue))
+                if (!reader.TryGetDouble(out double okValue))
                 {
                     return false;
                 }
@@ -425,7 +425,7 @@ namespace MongoDB.Client.Protocol.Readers
                 if (name.SequenceEqual(CursorSpan))
                 {
                     var initConsumed = reader.BytesConsumed;
-                    if (!reader.TryGetInt32(out var cursorLength)) { return false; }
+                    if (!reader.TryGetInt32(out int cursorLength)) { return false; }
 
                     while (reader.BytesConsumed - initConsumed < cursorLength - 1)
                     {
@@ -457,7 +457,7 @@ namespace MongoDB.Client.Protocol.Readers
 
                 if (name.SequenceEqual(OkSpan))
                 {
-                    if (!reader.TryGetDouble(out var okValue)) { return false; }
+                    if (!reader.TryGetDouble(out double okValue)) { return false; }
                     _cursorResult.Ok = okValue;
                     continue;
                 }
@@ -471,7 +471,7 @@ namespace MongoDB.Client.Protocol.Readers
 
                 if (name.SequenceEqual(CodeSpan))
                 {
-                    if (!reader.TryGetInt32(out var codeValue)) { return false; }
+                    if (!reader.TryGetInt32(out int codeValue)) { return false; }
                     _cursorResult.Code = codeValue;
                     continue;
                 }
@@ -531,7 +531,7 @@ namespace MongoDB.Client.Protocol.Readers
             modelsLength = 0;
             if (name.SequenceEqual(IdSpan))
             {
-                if (!reader.TryGetInt64(out var idValue)) { return false; }
+                if (!reader.TryGetInt64(out long idValue)) { return false; }
                 _cursorResult.MongoCursor.Id = idValue;
                 return true;
             }
@@ -543,7 +543,7 @@ namespace MongoDB.Client.Protocol.Readers
             }
             if (name.SequenceEqual(OkSpan))
             {
-                if (!reader.TryGetDouble(out var okValue)) { return false; }
+                if (!reader.TryGetDouble(out double okValue)) { return false; }
                 _cursorResult.Ok = okValue;
                 return true;
             }

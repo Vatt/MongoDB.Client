@@ -2,17 +2,18 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
+
+namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
-    internal static class Helper
+    internal static partial class SerializerGenerator
     {
-        public static string BsonSerializableAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonSerializableAttribute";
-        public static string BsonEnumAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonEnumAttribute";
-        public static string BsonConstructorAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonConstructorAttribute";
-        public static string IgnoreAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonIgnoreAttribute";
-        public static string BsonElementAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonElementAttribute";
-        public static string BsonIdAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonIdAttribute";
-        public static string BsonWriteIgnoreIfAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonWriteIgnoreIfAttribute";
+        private const string BsonSerializableAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonSerializableAttribute";
+        private const string BsonEnumAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonEnumAttribute";
+        private const string BsonConstructorAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonConstructorAttribute";
+        private const string IgnoreAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonIgnoreAttribute";
+        private const string BsonElementAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonElementAttribute";
+        private const string BsonIdAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonIdAttribute";
+        private const string BsonWriteIgnoreIfAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonWriteIgnoreIfAttribute";
         public static bool IsBsonSerializable(ISymbol symbol)
         {
             //if (symbol.GetAttributes().Length == 0)
@@ -21,7 +22,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             //}
             foreach (var attr in symbol.GetAttributes())
             {
-                if (attr.AttributeClass.ToString().Equals(BsonSerializableAttr))
+                if (attr.AttributeClass != null && attr.AttributeClass.ToString().Equals(BsonSerializableAttr))
                 {
                     return true;
                 }
@@ -35,7 +36,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     {
 
                         var parseMethodSym = method as IMethodSymbol;
-                        if (parseMethodSym.ReturnType.SpecialType != SpecialType.System_Boolean)
+                        if (parseMethodSym != null && parseMethodSym.ReturnType.SpecialType != SpecialType.System_Boolean)
                         {
                             return false;
                         }
@@ -66,7 +67,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     .Where(method =>
                     {
                         var writeMethodSym = method as IMethodSymbol;
-                        if (writeMethodSym.ReturnType.SpecialType != SpecialType.System_Void)
+                        if (writeMethodSym != null && writeMethodSym.ReturnType.SpecialType != SpecialType.System_Void)
                         {
                             return false;
                         }
@@ -91,7 +92,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                         return false;
                     })
                     .FirstOrDefault();
-                return parseMethod != default && writeMethod != default;
+                return parseMethod != null && writeMethod != null;
 
             }
 
@@ -106,7 +107,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             }
             foreach (var attr in ctx.NameSym.GetAttributes())
             {
-                if (attr.AttributeClass.ToString().Equals(BsonWriteIgnoreIfAttr))
+                if (attr.AttributeClass != null && attr.AttributeClass.ToString().Equals(BsonWriteIgnoreIfAttr))
                 {
                     expr = SF.ParseExpression((string)attr.ConstructorArguments[0].Value);
 

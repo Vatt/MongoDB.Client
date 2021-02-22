@@ -134,6 +134,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 }
                 if (symbol is INamedTypeSymbol namedSym && namedSym.GetMembers().Any(x => x.Kind == SymbolKind.Property && x.Name == "EqualityContract" && x.IsImplicitlyDeclared)) // record shit check
                 {
+                    TypeParameterSyntax[] typeParams = namedSym.TypeArguments.IsEmpty ? null : namedSym.TypeArguments.Select(x => TypeParameter(x)).ToArray();
                     decl = SF.RecordDeclaration(
                          default,
                          new(PublicKeyword(), PartialKeyword()),
@@ -141,20 +142,34 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                          SF.Identifier(SelfName(namedSym)),
                          default, default, default, default,
                          OpenBraceToken(), new SyntaxList<MemberDeclarationSyntax>().Add(member), CloseBraceToken(), default);
+                    //((RecordDeclarationSyntax)decl).AddTypeParameterListParameters
                     return ProcessNested(decl, symbol.ContainingSymbol);
                 }
 
                 switch (((INamedTypeSymbol)symbol).TypeKind)
                 {
                     case TypeKind.Class:
+                        namedSym = (INamedTypeSymbol)symbol;
+                        TypeParameterSyntax[] typeParams = namedSym.TypeArguments.IsEmpty ? null : namedSym.TypeArguments.Select(x => TypeParameter(x)).ToArray();
                         decl = SF.ClassDeclaration(symbol.Name)
                             .AddModifiers(PublicKeyword(), PartialKeyword())
                             .AddMembers(member);
+                        if (typeParams is not null)
+                        {
+                            decl = ((ClassDeclarationSyntax)decl).AddTypeParameterListParameters(typeParams);
+                        }
+
                         break;
                     case TypeKind.Struct:
+                        namedSym = (INamedTypeSymbol)symbol;
+                        typeParams = namedSym.TypeArguments.IsEmpty ? null : namedSym.TypeArguments.Select(x => TypeParameter(x)).ToArray();
                         decl = SF.StructDeclaration(symbol.Name)
                             .AddModifiers(PublicKeyword(), StaticKeyword())
                             .AddMembers(member);
+                        if (typeParams is not null)
+                        {
+                            decl = ((StructDeclarationSyntax)decl).AddTypeParameterListParameters(typeParams);
+                        }
                         break;
                 }
                 return ProcessNested(decl, symbol.ContainingSymbol);
@@ -188,7 +203,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
                 if (member.TypeSym.TypeKind == TypeKind.Enum)
                 {
-                    int repr = Helper.GetEnumRepresentation(member.NameSym);
+                    int repr = GetEnumRepresentation(member.NameSym);
                     if (repr != 1) // static name spans only for string representation
                     {
                         continue;
@@ -206,7 +221,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     foreach (var enumMember in typedMetadata.GetMembers().Where(sym => sym.Kind == SymbolKind.Field))
                     {
                         var list = new List<MemberDeclarationSyntax>();
-                        var (bsonValue, bsonAlias) = Helper.GetMemberAlias(enumMember);
+                        var (bsonValue, bsonAlias) = GetMemberAlias(enumMember);
                         var bytes = Encoding.UTF8.GetBytes(bsonValue);
                         declarations[member.TypeSym].Add(
                             SF.PropertyDeclaration(

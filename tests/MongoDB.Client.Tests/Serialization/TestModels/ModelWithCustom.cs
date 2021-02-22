@@ -22,7 +22,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
             int Int32A = default;
             int Int32B = default;
             int Int32C = default;
-            if (!reader.TryGetInt32(out var docLength))
+            if (!reader.TryGetInt32(out int docLength))
             {
                 return false;
             }
@@ -88,10 +88,10 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
 
             if (endMarker != 0)
             {
-                throw new MongoDB.Client.Bson.Serialization.Exceptions.SerializerEndMarkerException(nameof(MongoDB.Client.Tests.Serialization.TestModels.CustomModel), endMarker);
+                throw new Bson.Serialization.Exceptions.SerializerEndMarkerException(nameof(CustomModel), endMarker);
             }
 
-            message = new MongoDB.Client.Tests.Serialization.TestModels.CustomModel2(A: Int32A, B: Int32B, C: Int32C);
+            message = new CustomModel2(A: Int32A, B: Int32B, C: Int32C);
             return true;
         }
 
@@ -121,7 +121,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
             int Int32A = default;
             int Int32B = default;
             int Int32C = default;
-            if (!reader.TryGetInt32(out var docLength))
+            if (!reader.TryGetInt32(out int docLength))
             {
                 return false;
             }
