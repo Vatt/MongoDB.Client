@@ -9,18 +9,18 @@ namespace MongoDB.Client.Messages
         public int NIndexesWas { get; set; }
 
         [BsonElement("ns")]
-        public string Namespace { get; set; }
+        public string? Namespace { get; set; }
 
         [BsonElement("ok")]
         public double Ok { get; set; }
 
         [BsonElement("errmsg")]
-        public string ErrorMessage { get; set; }
+        public string? ErrorMessage { get; set; }
 
         [BsonElement("code")]
         public int Code { get; set; }
 
         [BsonElement("codeName")]
-        public string CodeName { get; set; }
+        public string? CodeName { get; set; }
     }
 }

@@ -33,14 +33,14 @@ namespace MongoDB.Client.Tests.Models
             };
         }
 
-        public bool Equals(GenericWithNulalbleListTest<T, TT> other)
+        public bool Equals(GenericWithNulalbleListTest<T, TT>? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return List1.SequenceEqual(other.List1) && List2.SequenceEqual(other.List2);
+            return List1.SequenceEqual(other.List1) && List2!.SequenceEqual(other!.List2!);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
@@ -64,14 +64,14 @@ namespace MongoDB.Client.Tests.Models
             public T? TProp { get; set; }
             public TT? TTProp { get; set; }
 
-            public bool Equals(GenericClass<T, TT> other)
+            public bool Equals(GenericClass<T, TT>? other)
             {
                 if (ReferenceEquals(null, other)) return false;
                 if (ReferenceEquals(this, other)) return true;
                 return EqualityComparer<T?>.Default.Equals(TProp, other.TProp) && EqualityComparer<TT?>.Default.Equals(TTProp, other.TTProp);
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 if (ReferenceEquals(null, obj)) return false;
                 if (ReferenceEquals(this, obj)) return true;
@@ -95,7 +95,7 @@ namespace MongoDB.Client.Tests.Models
                 return EqualityComparer<T?>.Default.Equals(TProp, other.TProp) && EqualityComparer<TT?>.Default.Equals(TTProp, other.TTProp);
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 return obj is GenericStruct<T, TT> other && Equals(other);
             }
@@ -112,14 +112,14 @@ namespace MongoDB.Client.Tests.Models
         public GenericStruct<int, string> StructProp { get; set; }
         public GenericRecord<int, string> RecordProp { get; set; }
 
-        public bool Equals(GenericNullable other)
+        public bool Equals(GenericNullable? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
             return Equals(ClassProp, other.ClassProp) && StructProp.Equals(other.StructProp) && Equals(RecordProp, other.RecordProp);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
@@ -137,7 +137,7 @@ namespace MongoDB.Client.Tests.Models
             return new()
             {
                 ClassProp = new GenericClass<int, string>() { TProp = default, TTProp = "42" },
-                RecordProp = new GenericRecord<int, string>(42, null),
+                RecordProp = new GenericRecord<int, string>(42, null!),
                 StructProp = new GenericStruct<int, string>() { TProp = 42, TTProp = string.Empty }
             };
         }
@@ -150,14 +150,14 @@ namespace MongoDB.Client.Tests.Models
         public int? Prop { get; set; }
         public int? Field;
 
-        public bool Equals(IntNullable other)
+        public bool Equals(IntNullable? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
             return Field == other.Field && Prop == other.Prop;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
@@ -178,14 +178,14 @@ namespace MongoDB.Client.Tests.Models
         public double? Prop { get; set; }
         public double? Field;
 
-        public bool Equals(DoubleNullable other)
+        public bool Equals(DoubleNullable? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
             return Nullable.Equals(Field, other.Field) && Nullable.Equals(Prop, other.Prop);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
@@ -206,14 +206,14 @@ namespace MongoDB.Client.Tests.Models
         public long? Prop { get; set; }
         public long? Field;
 
-        public bool Equals(LongNullable other)
+        public bool Equals(LongNullable? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
             return Field == other.Field && Prop == other.Prop;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
@@ -234,14 +234,14 @@ namespace MongoDB.Client.Tests.Models
         public string? Prop { get; set; }
         public string? Field;
 
-        public bool Equals(StringNullable other)
+        public bool Equals(StringNullable? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
             return Field == other.Field && Prop == other.Prop;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
@@ -263,14 +263,14 @@ namespace MongoDB.Client.Tests.Models
         public DateTimeOffset? Prop { get; set; }
         public DateTimeOffset? Field;
 
-        public bool Equals(DateTimeOffsetNullable other)
+        public bool Equals(DateTimeOffsetNullable? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
             return Nullable.Equals(Field, other.Field) && Nullable.Equals(Prop, other.Prop);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
@@ -295,14 +295,14 @@ namespace MongoDB.Client.Tests.Models
         public Guid? Prop { get; set; }
         public Guid? Field;
 
-        public bool Equals(GuidNullable other)
+        public bool Equals(GuidNullable? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
             return Nullable.Equals(Field, other.Field) && Nullable.Equals(Prop, other.Prop);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
@@ -324,14 +324,14 @@ namespace MongoDB.Client.Tests.Models
         public BsonObjectId? Prop { get; set; }
         public BsonObjectId? Field;
 
-        public bool Equals(BsonObjectIdNullable other)
+        public bool Equals(BsonObjectIdNullable? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
             return Nullable.Equals(Field, other.Field) && Nullable.Equals(Prop, other.Prop);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
@@ -356,14 +356,14 @@ namespace MongoDB.Client.Tests.Models
         public NullableRecord? Field;
         public static RecordNullable Create() => new RecordNullable { Prop = new NullableRecord(42, null, 42), Field = new NullableRecord(null, null, null) };
 
-        public bool Equals(RecordNullable other)
+        public bool Equals(RecordNullable? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
             return Equals(Field, other.Field) && Equals(Prop, other.Prop);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
@@ -392,7 +392,7 @@ namespace MongoDB.Client.Tests.Models
                 return A == other.A && B == other.B && Nullable.Equals(C, other.C);
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 return obj is NullableStruct other && Equals(other);
             }
@@ -407,14 +407,14 @@ namespace MongoDB.Client.Tests.Models
         public NullableStruct? Field;
         public static StructNullable Create() => new StructNullable { Prop = new NullableStruct { A = 42, B = null, C = 42 }, Field = new NullableStruct { A = null, B = null, C = null } };
 
-        public bool Equals(StructNullable other)
+        public bool Equals(StructNullable? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
             return Nullable.Equals(Field, other.Field) && Nullable.Equals(Prop, other.Prop);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
@@ -438,14 +438,14 @@ namespace MongoDB.Client.Tests.Models
             public long? B;
             public double? C;
 
-            public bool Equals(NullableClass other)
+            public bool Equals(NullableClass? other)
             {
                 if (ReferenceEquals(null, other)) return false;
                 if (ReferenceEquals(this, other)) return true;
                 return A == other.A && B == other.B && Nullable.Equals(C, other.C);
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 if (ReferenceEquals(null, obj)) return false;
                 if (ReferenceEquals(this, obj)) return true;
@@ -462,14 +462,14 @@ namespace MongoDB.Client.Tests.Models
         public NullableClass? Field;
         public static ClassNullable Create() => new ClassNullable { Prop = new NullableClass { A = 42, B = null, C = 42 }, Field = new NullableClass { A = null, B = null, C = null } };
 
-        public bool Equals(ClassNullable other)
+        public bool Equals(ClassNullable? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
             return Equals(Field, other.Field) && Equals(Prop, other.Prop);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
@@ -489,14 +489,14 @@ namespace MongoDB.Client.Tests.Models
         public List<int>? Prop { get; set; }
         public List<string>? Field;
 
-        public bool Equals(ListNullable other)
+        public bool Equals(ListNullable? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return Field.SequenceEqual(other.Field) && Prop.SequenceEqual(other.Prop);
+            return Field!.SequenceEqual(other!.Field!) && Prop!.SequenceEqual(other!.Prop!);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
@@ -527,18 +527,18 @@ namespace MongoDB.Client.Tests.Models
         public List<StructNullable?>? NullableStructures { get; set; }
         public List<List<StructNullable?>?>? NullList { get; set; }
 
-        public bool Equals(ListElementNullable other)
+        public bool Equals(ListElementNullable? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return NullableInts.SequenceEqual(other.NullableInts) && NullableStrings.SequenceEqual(other.NullableStrings) &&
-                   NullableLongs.SequenceEqual(other.NullableLongs) && NullableGuids.SequenceEqual(other.NullableGuids) &&
-                   NullableDates.SequenceEqual(other.NullableDates) && NullableBsonObjectId.SequenceEqual(other.NullableBsonObjectId) &&
-                   NullableDoubles.SequenceEqual(other.NullableDoubles) && NullableRecords.SequenceEqual(other.NullableRecords) &&
-                   NullableClasses.SequenceEqual(other.NullableClasses) && NullableStructures.SequenceEqual(other.NullableStructures);
+            return NullableInts!.SequenceEqual(other.NullableInts!) && NullableStrings!.SequenceEqual(other.NullableStrings!) &&
+                   NullableLongs!.SequenceEqual(other.NullableLongs!) && NullableGuids!.SequenceEqual(other.NullableGuids!) &&
+                   NullableDates!.SequenceEqual(other.NullableDates!) && NullableBsonObjectId!.SequenceEqual(other.NullableBsonObjectId!) &&
+                   NullableDoubles!.SequenceEqual(other.NullableDoubles!) && NullableRecords!.SequenceEqual(other.NullableRecords!) &&
+                   NullableClasses!.SequenceEqual(other.NullableClasses!) && NullableStructures!.SequenceEqual(other.NullableStructures!);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
@@ -623,8 +623,8 @@ namespace MongoDB.Client.Tests.Models
                 Prop12 = IntNullable.Create(),
                 Prop13 = GenericNullable.Create(),
                 Prop14 = GenericWithNulalbleListTest<GenericNullable, RecordNullable>.Create(
-                    GenericNullable.Create(), null, GenericNullable.Create(),
-                    RecordNullable.Create(), null, RecordNullable.Create()),
+                    GenericNullable.Create(), null!, GenericNullable.Create(),
+                    RecordNullable.Create(), null!, RecordNullable.Create()),
 
             };
         }
@@ -636,7 +636,7 @@ namespace MongoDB.Client.Tests.Models
                    Equals(Prop11, other.Prop11) && Equals(Prop12, other.Prop12) && Equals(Prop13, other.Prop13) && Equals(Prop14, other.Prop14);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is OtherModelsNullable other && Equals(other);
         }

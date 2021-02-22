@@ -21,7 +21,7 @@ namespace MongoDB.Client.Messages
         public bool IsMaster { get; set; }
 
         [BsonElement("topologyVersion")]
-        public MongoTopologyVersion Topology { get; set; }
+        public MongoTopologyVersion? Topology { get; set; }
 
         [BsonElement("maxBsonObjectSize")]
         public int MaxBsonObjectSize { get; set; }

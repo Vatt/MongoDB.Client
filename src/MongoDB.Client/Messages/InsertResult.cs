@@ -13,7 +13,7 @@ namespace MongoDB.Client.Messages
         public double Ok { get; set; }
 
         [BsonElement("writeErrors")]
-        public List<InsertError> WriteErrors { get; set; }
+        public List<InsertError>? WriteErrors { get; set; }
     }
 
     [BsonSerializable]
@@ -26,6 +26,6 @@ namespace MongoDB.Client.Messages
         public int Code { get; set; }
 
         [BsonElement("errmsg")]
-        public string ErrorMessage { get; set; }
+        public string? ErrorMessage { get; set; }
     }
 }
