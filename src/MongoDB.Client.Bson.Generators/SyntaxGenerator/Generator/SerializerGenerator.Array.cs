@@ -160,7 +160,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                    IfNotReturnFalseElse(
                                        condition: operation,
                                        @else:
-                                           SF.Block(
+                                           Block(
                                                InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(tempVar.HasValue ? tempVar.Value : tempArrayRead)),
                                                ContinueStatement())))),
                        IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),

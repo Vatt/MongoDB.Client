@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -99,7 +100,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         private static StatementSyntax[] Operations(ContextCore ctx, SyntaxToken bsonType, SyntaxToken bsonName)
         {
-            StatementsBuilder builder = new();
+            var builder = ImmutableList.CreateBuilder<StatementSyntax>();
             foreach (var member in ctx.Members)
             {
                 if (TryGenerateParseEnum(member, bsonName, builder))
@@ -121,11 +122,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                         OtherTryParseBson(member),
                                         ContinueStatement()));
             }
-            return builder.Build();
+            return builder.ToArray();
         }
         private static StatementSyntax[] DeclareTempVariables(ContextCore ctx)
         {
-            StatementsBuilder variables = new();
+            ImmutableList<StatementSyntax>.Builder variables = ImmutableList.CreateBuilder<StatementSyntax>();
             foreach (var member in ctx.Members)
             {
                 var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
@@ -142,9 +143,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             }
 
-            return variables.Build();
+            return variables.ToArray();
         }
-        private static bool TryGenerateParseEnum(MemberContext member, SyntaxToken bsonName, StatementsBuilder builder)
+        private static bool TryGenerateParseEnum(MemberContext member, SyntaxToken bsonName, ImmutableList<StatementSyntax>.Builder builder)
         {
             var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
             if (trueType.TypeKind != TypeKind.Enum)
@@ -180,7 +181,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return true;
         }
-        private static bool TryGenerateSimpleReadOperation(ContextCore ctx, MemberContext member, SyntaxToken bsonType, SyntaxToken bsonName, StatementsBuilder builder)
+        private static bool TryGenerateSimpleReadOperation(ContextCore ctx, MemberContext member, SyntaxToken bsonType, SyntaxToken bsonName, ImmutableList<StatementSyntax>.Builder builder)
         {
             var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
             var (operation, tempVar) = ReadOperation(ctx, member.NameSym, trueType, ctx.BsonReaderId, IdentifierName(member.AssignedVariable), bsonType);
@@ -194,7 +195,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return false;
         }
-        private static bool TryGenerateTryParseBson(ContextCore ctx, MemberContext member, SyntaxToken bsonName, StatementsBuilder builder)
+        private static bool TryGenerateTryParseBson(ContextCore ctx, MemberContext member, SyntaxToken bsonName, ImmutableList<StatementSyntax>.Builder builder)
         {
             var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
             if (IsBsonSerializable(trueType))

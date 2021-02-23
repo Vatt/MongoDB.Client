@@ -28,26 +28,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     semicolonToken: default)
                 .WithBody(WriteMethodBody(ctx));
         }
-        public static bool TryGenerateWriteEnum(ContextCore ctx, MemberContext member, ExpressionSyntax writeTarget, out ImmutableList<ExpressionSyntax> statements)
-        {
-            statements = default;
-            if (member.TypeSym.TypeKind != TypeKind.Enum)
-            {
-                return false;
-            }
-            int repr = GetEnumRepresentation(member.NameSym);
-            if (repr == -1) { repr = 2; }
-            if (repr != 1)
-            {
-                statements = ImmutableList.Create(Write_Type_Name_Value(StaticFieldNameToken(member), repr == 2 ? CastToInt(writeTarget) : CastToLong(writeTarget)));
-            }
-            else
-            {
-                var methodName = IdentifierName(WriteStringReprEnumMethodName(ctx, member.TypeMetadata, member.NameSym));
-                statements = ImmutableList.Create(InvocationExpr(methodName, RefArgument(ctx.BsonWriterToken), Argument(StaticFieldNameToken(member)), Argument(writeTarget)));
-            }
-            return true;
-        }
         private static BlockSyntax WriteMethodBody(ContextCore ctx)
         {
             var checkpoint = Identifier("checkpoint");
@@ -62,12 +42,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var writeTarget = SimpleMemberAccess(ctx.WriterInputVar, IdentifierName(member.NameSym));
                 ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
                 TryGetBsonWriteIgnoreIfAttr(member, out var condition);
+                
                 if (member.BsonElementAlias.Equals("_id") && TypeLib.IsBsonObjectId(trueType))
                 {
                     inner.IfStatement(
                             BinaryExprEqualsEquals(writeTarget, Default(TypeFullName(trueType))),
                             Block(SimpleAssignExprStatement(writeTarget, NewBsonObjectId())));
                 }
+
                 if (trueType.IsReferenceType)
                 {
                     inner.IfStatement(
@@ -110,25 +92,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     Statement(WriterCommit())
                     );
         }
-        public static bool TryGenerateBsonWrite(MemberContext ctx, ITypeSymbol typeSym, ExpressionSyntax writeTarget, out ImmutableList<ExpressionSyntax> expressions)
-        {
-            expressions = default;
-            ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(typeSym);
-            ExpressionSyntax writerId = ctx.Root.BsonWriterId;
-            if (IsBsonSerializable(trueType) == false)
-            {
-                return false;
-            }
-            expressions = ImmutableList.Create(
-                Write_Type_Name(3, StaticFieldNameToken(ctx)),
-                InvocationExpr(IdentifierName(trueType.ToString()), IdentifierName("WriteBson"), RefArgument(writerId), Argument(writeTarget)));
-            return true;
-            
-        }
         public static StatementSyntax[] WriteOperation(MemberContext ctx, SyntaxToken name, ISymbol nameSym, ITypeSymbol typeSym, ExpressionSyntax writerId, ExpressionSyntax writeTarget)
         {
             var trueType = ExtractTypeFromNullableIfNeed(typeSym);
-            if (TryGetSimpleWriteOperation(nameSym, trueType, name, writeTarget, out var expr))
+            if (TryGenerateSimpleWriteOperation(nameSym, trueType, name, writeTarget, out var expr))
             {
 
                 return Statements(expr);
@@ -167,7 +134,42 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     OtherWriteBson(ctx)
                 );
         }
-        private static bool TryGetSimpleWriteOperation(ISymbol nameSym, ITypeSymbol typeSymbol, SyntaxToken bsonNameToken, ExpressionSyntax writeTarget, out ExpressionSyntax expr)
+        public static bool TryGenerateWriteEnum(ContextCore ctx, MemberContext member, ExpressionSyntax writeTarget, out ImmutableList<ExpressionSyntax> statements)
+        {
+            statements = default;
+            if (member.TypeSym.TypeKind != TypeKind.Enum)
+            {
+                return false;
+            }
+            int repr = GetEnumRepresentation(member.NameSym);
+            if (repr == -1) { repr = 2; }
+            if (repr != 1)
+            {
+                statements = ImmutableList.Create(Write_Type_Name_Value(StaticFieldNameToken(member), repr == 2 ? CastToInt(writeTarget) : CastToLong(writeTarget)));
+            }
+            else
+            {
+                var methodName = IdentifierName(WriteStringReprEnumMethodName(ctx, member.TypeMetadata, member.NameSym));
+                statements = ImmutableList.Create(InvocationExpr(methodName, RefArgument(ctx.BsonWriterToken), Argument(StaticFieldNameToken(member)), Argument(writeTarget)));
+            }
+            return true;
+        }
+        public static bool TryGenerateBsonWrite(MemberContext ctx, ITypeSymbol typeSym, ExpressionSyntax writeTarget, out ImmutableList<ExpressionSyntax> expressions)
+        {
+            expressions = default;
+            ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(typeSym);
+            ExpressionSyntax writerId = ctx.Root.BsonWriterId;
+            if (IsBsonSerializable(trueType) == false)
+            {
+                return false;
+            }
+            expressions = ImmutableList.Create(
+                Write_Type_Name(3, StaticFieldNameToken(ctx)),
+                InvocationExpr(IdentifierName(trueType.ToString()), IdentifierName("WriteBson"), RefArgument(writerId), Argument(writeTarget)));
+            return true;
+
+        }
+        private static bool TryGenerateSimpleWriteOperation(ISymbol nameSym, ITypeSymbol typeSymbol, SyntaxToken bsonNameToken, ExpressionSyntax writeTarget, out ExpressionSyntax expr)
         {
             expr = default;
             var bsonName = IdentifierName(bsonNameToken);

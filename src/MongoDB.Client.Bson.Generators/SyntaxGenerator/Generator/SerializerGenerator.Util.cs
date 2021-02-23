@@ -31,43 +31,4 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             builder.Add(SerializerGenerator.DefaultLocalDeclarationStatement(type, variable));
         }
     }
-    internal static partial class SerializerGenerator
-    {
-        internal class StatementsBuilder
-        {
-            private List<StatementSyntax> _statements = new();
-            public bool IsEmpty => _statements.Count > 0;
-            public StatementSyntax[] Build()
-            {
-                return _statements.ToArray();
-            }
-            public void Statements(params ExpressionSyntax[] exprs)
-            {
-                foreach (var expr in exprs)
-                {
-                    _statements.Add(SerializerGenerator.Statement(expr));
-                }
-            }
-            public void Statements(params StatementSyntax[] statements)
-            {
-                _statements.AddRange(statements);
-            }
-            public void Statements(StatementsBuilder other)
-            {
-                _statements.AddRange(other.Build());
-            }
-            public void Statements(StatementSyntax expr)
-            {
-                _statements.Add(expr);
-            }
-            public void IfStatement(ExpressionSyntax condition, StatementSyntax statement)
-            {
-                Statements(SF.IfStatement(condition, statement));
-            }
-            public void DefaultLocalDeclarationStatement(TypeSyntax type, SyntaxToken variable)
-            {
-                Statements(SerializerGenerator.DefaultLocalDeclarationStatement(type, variable));
-            }
-        }
-    }
 }
