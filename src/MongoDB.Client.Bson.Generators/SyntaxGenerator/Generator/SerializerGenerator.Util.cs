@@ -2,9 +2,27 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
+    public static class ImmutableListExt
+    {
+        public static ImmutableList<StatementSyntax> ToStatements<T>(this ImmutableList<T> source)
+            where T : ExpressionSyntax
+        {
+            return source.Select(x => SF.ExpressionStatement(x)).ToImmutableList<StatementSyntax>();
+        }
+        public static void IfStatement(this ImmutableList<StatementSyntax>.Builder builder, ExpressionSyntax condition, StatementSyntax statement, BlockSyntax @else)
+        {
+            builder.Add(SerializerGenerator.IfStatement(condition, statement, @else));
+        }
+        public static void IfNot(this ImmutableList<StatementSyntax>.Builder builder, ExpressionSyntax condition, params StatementSyntax[] statement)
+        {
+            builder.Add(SerializerGenerator.IfNot(condition, statement));
+        }
+    }
     internal static partial class SerializerGenerator
     {
         internal class StatementsBuilder
@@ -49,6 +67,18 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             public void IfNot(ExpressionSyntax condition, params StatementSyntax[] statement)
             {
                 Statements(SerializerGenerator.IfNot(condition, statement));
+            }
+            public void If(ExpressionSyntax condition, StatementSyntax statement, BlockSyntax @else)
+            {
+                Statements(SerializerGenerator.IfStatement(condition, statement, @else));
+            }
+            public void  Write_Type_Name_Value(SyntaxToken name, ExpressionSyntax value)
+            {
+                Statements(SerializerGenerator.Write_Type_Name_Value(name, value));
+            }
+            public void InvocationExpr(IdentifierNameSyntax member, params ArgumentSyntax[] args)
+            {
+                Statements(SerializerGenerator.InvocationExpr(member, args));
             }
         }
     }

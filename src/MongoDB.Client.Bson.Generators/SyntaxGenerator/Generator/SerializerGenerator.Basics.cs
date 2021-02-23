@@ -40,15 +40,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return GenericName(SF.Identifier("Span"), BytePredefinedType());
         }
 
-        public static InvocationExpressionSyntax SpanSequenceEqual(ExpressionSyntax spanName, ExpressionSyntax otherSpanName)
+        public static ExpressionSyntax SpanSequenceEqual(ExpressionSyntax spanName, ExpressionSyntax otherSpanName)
         {
             return InvocationExpr(spanName, SF.IdentifierName("SequenceEqual"), SF.Argument(otherSpanName));
         }
-        public static InvocationExpressionSyntax NewBsonObjectId()
+        public static ExpressionSyntax NewBsonObjectId()
         {
             return InvocationExpr(TypeFullName(TypeLib.BsonObjectId), SF.IdentifierName("NewObjectId"));
         }
-        public static InvocationExpressionSyntax SpanSequenceEqual(SyntaxToken spanName, SyntaxToken otherSpanName)
+        public static ExpressionSyntax SpanSequenceEqual(SyntaxToken spanName, SyntaxToken otherSpanName)
         {
             return InvocationExpr(IdentifierName(spanName), SF.IdentifierName("SequenceEqual"), SF.Argument(IdentifierName(otherSpanName)));
         }
@@ -91,7 +91,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.IfStatement(SF.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, condition), SF.Block(returnStatement));
         }
-
+        public static IfStatementSyntax IfStatement(ExpressionSyntax condition, StatementSyntax statement, BlockSyntax @else )
+        {
+            return SF.IfStatement(condition, statement, SF.ElseClause(@else));
+        }
         public static IfStatementSyntax IfNotReturnFalse(ExpressionSyntax condition)
         {
             return IfNotReturn(condition, SF.ReturnStatement(FalseLiteralExpr()));
