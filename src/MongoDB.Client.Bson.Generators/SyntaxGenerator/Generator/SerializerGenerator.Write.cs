@@ -62,28 +62,33 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var writeTarget = SimpleMemberAccess(ctx.WriterInputVar, IdentifierName(member.NameSym));
                 ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
                 TryGetBsonWriteIgnoreIfAttr(member, out var condition);
-                if(trueType.IsReferenceType)
+                if (member.BsonElementAlias.Equals("_id") && TypeLib.IsBsonObjectId(trueType))
+                {
+                    inner.IfStatement(
+                            BinaryExprEqualsEquals(writeTarget, Default(TypeFullName(trueType))),
+                            Block(SimpleAssignExprStatement(writeTarget, NewBsonObjectId())));
+                }
+                if (trueType.IsReferenceType)
                 {
                     inner.IfStatement(
                                 condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
                                 statement: Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
-                                @else: Block(WriteOperation(member, StaticFieldNameToken(member), writeTarget)));
-                    goto CONDITION_CHECK;
-                }
-                if(member.TypeSym.NullableAnnotation == NullableAnnotation.Annotated && trueType.TypeKind == TypeKind.Struct)
+                                @else: Block(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget)));
+                }else if(member.TypeSym.NullableAnnotation == NullableAnnotation.Annotated && trueType.TypeKind == TypeKind.Struct)
                 {
                     var nullableStrcutTarget = SimpleMemberAccess(writeTarget, IdentifierName("Value"));
                     inner.IfStatement(
                             condition: BinaryExprEqualsEquals(SimpleMemberAccess(writeTarget, IdentifierName("HasValue")), FalseLiteralExpr()),
                             statement: Block(WriteBsonNull(StaticFieldNameToken(member))),
-                            @else: Block(WriteOperation(member, StaticFieldNameToken(member), nullableStrcutTarget)));
-                    goto CONDITION_CHECK;
+                            @else: Block(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, nullableStrcutTarget)));
                 }
-
-            CONDITION_CHECK:
+                else
+                {
+                    inner.AddRange(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget));
+                }
                 if (condition != null)
                 {
-                    statements.IfNot(condition, Block(inner.ToArray()));
+                    statements.IfNot(condition, Block(inner));
                 }
                 else
                 {
@@ -105,11 +110,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     Statement(WriterCommit())
                     );
         }
-        public static bool TryGenerateBsonWrite(MemberContext ctx, ExpressionSyntax writeTarget, out ImmutableList<ExpressionSyntax> expressions)
+        public static bool TryGenerateBsonWrite(MemberContext ctx, ITypeSymbol typeSym, ExpressionSyntax writeTarget, out ImmutableList<ExpressionSyntax> expressions)
         {
             expressions = default;
-            ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(ctx.TypeSym);
-            ITypeSymbol typeSym = ctx.TypeSym;
+            ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(typeSym);
             ExpressionSyntax writerId = ctx.Root.BsonWriterId;
             if (IsBsonSerializable(trueType) == false)
             {
@@ -121,17 +125,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return true;
             
         }
-        public static StatementSyntax[] WriteOperation(MemberContext ctx, SyntaxToken name, ExpressionSyntax writeTarget)
+        public static StatementSyntax[] WriteOperation(MemberContext ctx, SyntaxToken name, ISymbol nameSym, ITypeSymbol typeSym, ExpressionSyntax writerId, ExpressionSyntax writeTarget)
         {
-            var typeSym = ctx.TypeSym;
-            var trueType = ExtractTypeFromNullableIfNeed(ctx.TypeSym);
-            var nameSym = ctx.NameSym;
-            var writerId = ctx.Root.BsonWriterId;
-            ImmutableList<ExpressionSyntax> expressions;
+            var trueType = ExtractTypeFromNullableIfNeed(typeSym);
             if (TryGetSimpleWriteOperation(nameSym, trueType, name, writeTarget, out var expr))
             {
 
                 return Statements(expr);
+            }
+            if (TryGenerateWriteEnum(ctx.Root, ctx, writeTarget, out var enumStatements))
+            {
+                return enumStatements.ToStatements().ToArray();
             }
             if (ctx.Root.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(trueType.Name)) != default)
             {
@@ -153,7 +157,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     );
                 }
             }
-            if (TryGenerateBsonWrite(ctx, writeTarget, out var bsonWriteExpr))
+            if (TryGenerateBsonWrite(ctx, typeSym, writeTarget, out var bsonWriteExpr))
             {
                 return bsonWriteExpr.ToStatements().ToArray();
             }

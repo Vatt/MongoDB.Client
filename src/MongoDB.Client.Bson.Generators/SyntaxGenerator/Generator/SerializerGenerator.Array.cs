@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
@@ -137,37 +138,37 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     typeParameterList: default,
                     semicolonToken: default)
                 .WithBody(
-                    SF.Block(
-                        SimpleAssignExprStatement(IdentifierName(outMessage), ObjectCreation(TypeFullName(trueType))),
-                        IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(docLenToken))),
-                        VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemaining(), SizeOfInt())),
-                        SF.WhileStatement(
-                            condition:
-                                BinaryExprLessThan(
-                                    BinaryExprMinus(IdentifierName(unreadedToken), ReaderRemaining()),
-                                    BinaryExprMinus(IdentifierName(docLenToken), NumericLiteralExpr(1))),
-                            statement:
-                                SF.Block(
-                                    IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(bsonTypeToken))),
-                                    IfNotReturnFalse(TrySkipCString()),
-                                    SF.IfStatement(
-                                        condition: BinaryExprEqualsEquals(bsonTypeToken, NumericLiteralExpr(10)),
-                                        statement: SF.Block(
-                                            InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(DefaultLiteralExpr())),
-                                            SF.ContinueStatement()
-                                            )),
-                                    IfNotReturnFalseElse(
-                                        condition: operation,
-                                        @else:
-                                            SF.Block(
-                                                InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(tempVar.HasValue ? tempVar.Value : tempArrayRead)),
-                                                SF.ContinueStatement())))),
-                        IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
-                        SF.IfStatement(
-                            BinaryExprNotEquals(endMarkerToken, NumericLiteralExpr((byte)'\x00')),
-                            SF.Block(SF.ExpressionStatement(SerializerEndMarkerException(ctx.Root.Declaration, IdentifierName(endMarkerToken))))),
-                        SF.ReturnStatement(TrueLiteralExpr())
-                        ));
+                   Block(
+                       SimpleAssignExprStatement(IdentifierName(outMessage), ObjectCreation(TypeFullName(trueType))),
+                       IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(docLenToken))),
+                       VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemaining(), SizeOfInt())),
+                       SF.WhileStatement(
+                           condition:
+                               BinaryExprLessThan(
+                                   BinaryExprMinus(IdentifierName(unreadedToken), ReaderRemaining()),
+                                   BinaryExprMinus(IdentifierName(docLenToken), NumericLiteralExpr(1))),
+                           statement:
+                               Block(
+                                   IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(bsonTypeToken))),
+                                   IfNotReturnFalse(TrySkipCString()),
+                                   IfStatement(
+                                       condition: BinaryExprEqualsEquals(bsonTypeToken, NumericLiteralExpr(10)),
+                                       statement: Block(
+                                           InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(DefaultLiteralExpr())),
+                                           ContinueStatement()
+                                           )),
+                                   IfNotReturnFalseElse(
+                                       condition: operation,
+                                       @else:
+                                           SF.Block(
+                                               InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(tempVar.HasValue ? tempVar.Value : tempArrayRead)),
+                                               ContinueStatement())))),
+                       IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
+                       IfStatement(
+                           BinaryExprNotEquals(endMarkerToken, NumericLiteralExpr((byte)'\x00')),
+                           Block(Statement(SerializerEndMarkerException(ctx.Root.Declaration, IdentifierName(endMarkerToken))))),
+                       ReturnStatement(TrueLiteralExpr())
+                       ));
 
         }
 
@@ -176,41 +177,34 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             //ITypeSymbol trueType = type.Name.Equals("Nullable") ? ((INamedTypeSymbol)type).TypeArguments[0] : type;
             ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
             var classCtx = ctx.Root;
-            var checkpoint = SF.Identifier("checkpoint");
-            var reserved = SF.Identifier("reserved");
-            var docLength = SF.Identifier("docLength");
-            var sizeSpan = SF.Identifier("sizeSpan");
-            var index = SF.Identifier("index");
-            var array = SF.Identifier("array");
+            var checkpoint = Identifier("checkpoint");
+            var reserved = Identifier("reserved");
+            var docLength = Identifier("docLength");
+            var sizeSpan = Identifier("sizeSpan");
+            var index = Identifier("index");
+            var array = Identifier("array");
             var typeArg = (trueType as INamedTypeSymbol).TypeArguments[0];
-            StatementSyntax[] writeOperation = default;
+            var  writeOperation = ImmutableList.CreateBuilder<StatementSyntax>();
             if (typeArg.IsReferenceType)
             {
-                writeOperation =
-                    Statements(
-                        SF.IfStatement(
+                writeOperation.IfStatement(
                             condition: BinaryExprEqualsEquals(ElementAccessExpr(array, index), NullLiteralExpr()),
-                            statement: SF.Block(Statement(WriteBsonNull(index))),
-                            @else: SF.ElseClause(SF.Block(WriteOperation(ctx, index, ctx.NameSym, typeArg, classCtx.BsonWriterId, ElementAccessExpr(array, index))))));
+                            statement: Block(WriteBsonNull(index)),
+                            @else: Block(WriteOperation(ctx, index, ctx.NameSym, typeArg, classCtx.BsonWriterId, ElementAccessExpr(array, index))));
+            }
+            else if (typeArg.NullableAnnotation == NullableAnnotation.Annotated && typeArg.TypeKind == TypeKind.Struct)
+            {
+                var operation = WriteOperation(ctx, index, ctx.NameSym, typeArg, classCtx.BsonWriterId, SimpleMemberAccess(ElementAccessExpr(IdentifierName(array), index), IdentifierName("Value")));
+                writeOperation.IfStatement(
+                            condition: BinaryExprEqualsEquals(SimpleMemberAccess(ElementAccessExpr(array, index), IdentifierName("HasValue")), FalseLiteralExpr()),
+                            statement: Block(WriteBsonNull(index)),
+                            @else: Block(operation));
             }
             else
             {
-                var operation = WriteOperation(ctx, index, ctx.NameSym, typeArg, classCtx.BsonWriterId, ElementAccessExpr(IdentifierName(array), index));
-                if (typeArg.NullableAnnotation == NullableAnnotation.Annotated && typeArg.TypeKind == TypeKind.Struct)
-                {
-                    writeOperation =
-                        Statements(
-                            SF.IfStatement(
-                                condition: BinaryExprEqualsEquals(SimpleMemberAccess(ElementAccessExpr(array, index), IdentifierName("HasValue")), FalseLiteralExpr()),
-                                statement: SF.Block(Statement(WriteBsonNull(index))),
-                                @else: SF.ElseClause(SF.Block(operation))));
-                }
-                else
-                {
-                    writeOperation = operation;
-                }
-
+                writeOperation.AddRange(WriteOperation(ctx, index, ctx.NameSym, typeArg, classCtx.BsonWriterId, ElementAccessExpr(IdentifierName(array), index)));
             }
+
             return SF.MethodDeclaration(
                     attributeLists: default,
                     modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()),
@@ -225,14 +219,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     expressionBody: default,
                     typeParameterList: default,
                     semicolonToken: default)
-                .WithBody(SF.Block(
+                .WithBody(
+                Block(
                     VarLocalDeclarationStatement(checkpoint, WriterWritten()),
                     VarLocalDeclarationStatement(reserved, WriterReserve(4)),
                     ForStatement(
                         indexVar: index,
                         condition: BinaryExprLessThan(index, SimpleMemberAccess(array, IdentifierName("Count"))),
                         incrementor: PostfixUnaryExpr(index),
-                        body: SF.Block(writeOperation!)),
+                        body: Block(writeOperation!)),
                     WriteByteStatement((byte)'\x00'),
                     VarLocalDeclarationStatement(docLength, BinaryExprMinus(WriterWritten(), IdentifierName(checkpoint))),
                     LocalDeclarationStatement(SpanByte(), sizeSpan, StackAllocByteArray(4)),

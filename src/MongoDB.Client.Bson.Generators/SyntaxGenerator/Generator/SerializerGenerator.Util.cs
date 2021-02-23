@@ -7,7 +7,7 @@ using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
-    public static class ImmutableListExt
+    public static class ImmutableListBuilderExt
     {
         public static ImmutableList<StatementSyntax> ToStatements<T>(this ImmutableList<T> source)
             where T : ExpressionSyntax
@@ -18,9 +18,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             builder.Add(SerializerGenerator.IfStatement(condition, statement, @else));
         }
+        public static void IfStatement(this ImmutableList<StatementSyntax>.Builder builder, ExpressionSyntax condition, StatementSyntax statement)
+        {
+            builder.Add(SerializerGenerator.IfStatement(condition, statement));
+        }
         public static void IfNot(this ImmutableList<StatementSyntax>.Builder builder, ExpressionSyntax condition, params StatementSyntax[] statement)
         {
             builder.Add(SerializerGenerator.IfNot(condition, statement));
+        }
+        public static  void DefaultLocalDeclarationStatement(this ImmutableList<StatementSyntax>.Builder builder, TypeSyntax type, SyntaxToken variable)
+        {
+            builder.Add(SerializerGenerator.DefaultLocalDeclarationStatement(type, variable));
         }
     }
     internal static partial class SerializerGenerator
@@ -56,29 +64,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 Statements(SF.IfStatement(condition, statement));
             }
-            public void IfStatement(ExpressionSyntax condition, StatementSyntax statement, BlockSyntax @else)
-            {
-                Statements(SF.IfStatement(condition, statement, SF.ElseClause(@else)));
-            }
             public void DefaultLocalDeclarationStatement(TypeSyntax type, SyntaxToken variable)
             {
                 Statements(SerializerGenerator.DefaultLocalDeclarationStatement(type, variable));
-            }
-            public void IfNot(ExpressionSyntax condition, params StatementSyntax[] statement)
-            {
-                Statements(SerializerGenerator.IfNot(condition, statement));
-            }
-            public void If(ExpressionSyntax condition, StatementSyntax statement, BlockSyntax @else)
-            {
-                Statements(SerializerGenerator.IfStatement(condition, statement, @else));
-            }
-            public void  Write_Type_Name_Value(SyntaxToken name, ExpressionSyntax value)
-            {
-                Statements(SerializerGenerator.Write_Type_Name_Value(name, value));
-            }
-            public void InvocationExpr(IdentifierNameSyntax member, params ArgumentSyntax[] args)
-            {
-                Statements(SerializerGenerator.InvocationExpr(member, args));
             }
         }
     }

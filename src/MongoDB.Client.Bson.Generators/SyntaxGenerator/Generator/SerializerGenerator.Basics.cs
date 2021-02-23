@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
@@ -94,6 +95,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static IfStatementSyntax IfStatement(ExpressionSyntax condition, StatementSyntax statement, BlockSyntax @else )
         {
             return SF.IfStatement(condition, statement, SF.ElseClause(@else));
+        }
+        public static IfStatementSyntax IfStatement(ExpressionSyntax condition, StatementSyntax statement)
+        {
+            return SF.IfStatement(condition, statement);
         }
         public static IfStatementSyntax IfNotReturnFalse(ExpressionSyntax condition)
         {
@@ -260,6 +265,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static BlockSyntax Block(params StatementSyntax[] statements)
         {
             return SF.Block(statements);
+        }
+        public static BlockSyntax Block(ImmutableList<StatementSyntax>.Builder buiider)
+        {
+            return Block(buiider.ToArray());
         }
         public static BlockSyntax Block(StatementSyntax[] statements, StatementSyntax statement)
         {
