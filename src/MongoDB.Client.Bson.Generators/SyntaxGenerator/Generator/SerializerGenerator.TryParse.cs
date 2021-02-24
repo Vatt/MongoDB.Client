@@ -57,6 +57,26 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         .AddStatements(CreateMessage(ctx))
                         .AddStatements(ReturnStatement(TrueLiteralExpr())));
         }
+        private static StatementSyntax[] DeclareTempVariables(ContextCore ctx)
+        {
+            ImmutableList<StatementSyntax>.Builder variables = ImmutableList.CreateBuilder<StatementSyntax>();
+            foreach (var member in ctx.Members)
+            {
+                var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
+                if (trueType.IsReferenceType)
+                {
+                    member.AssignedVariable = Identifier($"{trueType.Name}{member.NameSym.Name}");
+                    variables.DefaultLocalDeclarationStatement(SF.ParseTypeName(trueType.ToString()), member.AssignedVariable);
+                }
+                else
+                {
+                    member.AssignedVariable = Identifier($"{member.TypeSym.Name}{member.NameSym.Name}");
+                    variables.DefaultLocalDeclarationStatement(SF.ParseTypeName(member.TypeSym.ToString()), member.AssignedVariable);
+                }
+
+            }
+            return variables.ToArray();
+        }
         private static StatementSyntax[] CreateMessage(ContextCore ctx)
         {
             var result = new List<ExpressionStatementSyntax>();
@@ -103,7 +123,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
             foreach (var member in ctx.Members)
             {
-                if (TryGenerateParseEnum(member, bsonName, builder))
+                if(TryGenerateParseEnum(member, bsonName, builder))
                 {
                     continue;
                 }
@@ -124,27 +144,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return builder.ToArray();
         }
-        private static StatementSyntax[] DeclareTempVariables(ContextCore ctx)
-        {
-            ImmutableList<StatementSyntax>.Builder variables = ImmutableList.CreateBuilder<StatementSyntax>();
-            foreach (var member in ctx.Members)
-            {
-                var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
-                if (trueType.IsReferenceType)
-                {
-                    member.AssignedVariable = Identifier($"{trueType.Name}{member.NameSym.Name}");
-                    variables.DefaultLocalDeclarationStatement(SF.ParseTypeName(trueType.ToString()), member.AssignedVariable);
-                }
-                else
-                {
-                    member.AssignedVariable = Identifier($"{member.TypeSym.Name}{member.NameSym.Name}");
-                    variables.DefaultLocalDeclarationStatement(SF.ParseTypeName(member.TypeSym.ToString()), member.AssignedVariable);
-                }
 
-            }
-
-            return variables.ToArray();
-        }
         private static bool TryGenerateParseEnum(MemberContext member, SyntaxToken bsonName, ImmutableList<StatementSyntax>.Builder builder)
         {
             var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);

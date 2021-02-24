@@ -106,13 +106,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
         private static MethodDeclarationSyntax ReadArrayMethod(MemberContext ctx, ITypeSymbol type)
         {
-            var docLenToken = SF.Identifier("arrayDocLength");
-            var unreadedToken = SF.Identifier("arrayUnreaded");
-            var endMarkerToken = SF.Identifier("arrayEndMarker");
-            var bsonTypeToken = SF.Identifier("arrayBsonType");
-            var bsonNameToken = SF.Identifier("arrayBsonName");
-            var outMessage = SF.Identifier("array");
-            var tempArrayRead = SF.Identifier("temp");
+            var docLenToken = Identifier("arrayDocLength");
+            var unreadedToken = Identifier("arrayUnreaded");
+            var endMarkerToken = Identifier("arrayEndMarker");
+            var bsonTypeToken = Identifier("arrayBsonType");
+            var bsonNameToken = Identifier("arrayBsonName");
+            var outMessage = Identifier("array");
+            var tempArrayRead = Identifier("temp");
 
             var typeArg = ExtractTypeFromNullableIfNeed((type as INamedTypeSymbol).TypeArguments[0]);
 

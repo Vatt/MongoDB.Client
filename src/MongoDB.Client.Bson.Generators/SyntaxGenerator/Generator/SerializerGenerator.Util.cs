@@ -14,6 +14,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return source.Select(x => SF.ExpressionStatement(x)).ToImmutableList<StatementSyntax>();
         }
+        public static void Add(this ImmutableList<StatementSyntax>.Builder builder, ExpressionSyntax expr)
+        {
+            builder.Add(SerializerGenerator.Statement(expr));
+        }
         public static void IfStatement(this ImmutableList<StatementSyntax>.Builder builder, ExpressionSyntax condition, StatementSyntax statement, BlockSyntax @else)
         {
             builder.Add(SerializerGenerator.IfStatement(condition, statement, @else));
@@ -29,6 +33,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static  void DefaultLocalDeclarationStatement(this ImmutableList<StatementSyntax>.Builder builder, TypeSyntax type, SyntaxToken variable)
         {
             builder.Add(SerializerGenerator.DefaultLocalDeclarationStatement(type, variable));
+        }
+        public static void TryReadGeneric(this ImmutableList<StatementSyntax>.Builder builder, SyntaxToken bsonType, ExpressionSyntax assignOrDecl)
+        {
+            builder.Add(SerializerGenerator.TryReadGeneric(bsonType, assignOrDecl));
+        }
+        public static void TryReadGenericNullable(this ImmutableList<StatementSyntax>.Builder builder, TypeSyntax typeParam, SyntaxToken bsonType, ExpressionSyntax assignOrDecl)
+        {
+            builder.Add(SerializerGenerator.TryReadGenericNullable(typeParam, bsonType, assignOrDecl));
         }
     }
 }
