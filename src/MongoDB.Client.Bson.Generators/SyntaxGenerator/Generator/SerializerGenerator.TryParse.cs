@@ -10,6 +10,27 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        private readonly struct ReadOperationContext
+        {
+            public ExpressionSyntax Expr { get; }
+            public SyntaxToken? TempVariable { get; }
+            public ReadOperationContext(ExpressionSyntax expr)
+            {
+                Expr = expr;
+                TempVariable = null;
+            }
+            public ReadOperationContext(ExpressionSyntax expr, SyntaxToken tempVar)
+            {
+                Expr = expr;
+                TempVariable = tempVar;
+            }
+            public void Deconstruct(out ExpressionSyntax expr, out SyntaxToken? tempVar)
+            {
+                expr = Expr;
+                tempVar = TempVariable;
+            }
+            public static implicit operator ReadOperationContext(ExpressionSyntax expr) => new ReadOperationContext(expr);
+        }
         private static MethodDeclarationSyntax TryParseMethod(ContextCore ctx)
         {
             var decl = ctx.Declaration;
@@ -226,32 +247,30 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return false;
         }
-        private static (ExpressionSyntax, SyntaxToken?) ReadOperation(ContextCore ctx, ISymbol nameSym, ITypeSymbol typeSym,
-            ExpressionSyntax readerId, ExpressionSyntax readTarget, SyntaxToken bsonType)
+        private static ReadOperationContext ReadOperation(ContextCore ctx, ISymbol nameSym, ITypeSymbol typeSym, ExpressionSyntax readerId, ExpressionSyntax readTarget, SyntaxToken bsonType)
         {
-
             if (ctx.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(typeSym.Name)) != default) // generic type arguments
             {
                 var temp = Identifier($"{nameSym.Name.ToString()}TempGenericNullable");
                 if (typeSym.NullableAnnotation == NullableAnnotation.Annotated)
                 {
-                    return (TryReadGenericNullable(TypeName(typeSym.OriginalDefinition), bsonType, VarVariableDeclarationExpr(temp)), temp);
+                    return new(TryReadGenericNullable(TypeName(typeSym.OriginalDefinition), bsonType, VarVariableDeclarationExpr(temp)), temp);
                 }
                 else
                 {
-                    return (TryReadGeneric(bsonType, readTarget), null);
+                    return TryReadGeneric(bsonType, readTarget);
                 }
             }
             if (typeSym is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)
             {
                 if (TypeLib.IsListOrIList(namedType))
                 {
-                    return (InvocationExpr(IdentifierName(ReadArrayMethodName(nameSym, typeSym)), RefArgument(readerId), OutArgument(readTarget)), null);
+                    return InvocationExpr(IdentifierName(ReadArrayMethodName(nameSym, typeSym)), RefArgument(readerId), OutArgument(readTarget));
                 }
             }
             if (TryGetSimpleReadOperation(nameSym, typeSym, IdentifierName(bsonType), readTarget, out var simpleOperation))
             {
-                return (simpleOperation, null);
+                return simpleOperation;
             }
             return default;
         }
