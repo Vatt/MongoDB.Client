@@ -20,13 +20,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static MethodDeclarationSyntax[] GenerateWriteStringReprEnumMethods(ContextCore ctx)
         {
             List<MethodDeclarationSyntax> methods = new();
-
-            foreach (var member in ctx.Members.Where(member => member.TypeSym.TypeKind == TypeKind.Enum))
+            HashSet<ISymbol> alreadyCreated = new();
+            //foreach (var member in ctx.Members.Where(member => member.TypeSym.TypeKind == TypeKind.Enum))
+            foreach (var member in ctx.Members.Where(member => ExtractTypeFromNullableIfNeed(member.TypeSym).TypeKind == TypeKind.Enum))
             {
                 var repr = GetEnumRepresentation(member.NameSym);
-                if (repr == 1)
+                var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
+                if (repr == 1 && alreadyCreated.Contains(trueType) == false)
                 {
                     methods.Add(WriteStringReprEnumMethod(member));
+                    alreadyCreated.Add(trueType);
+
                 }
             }
             return methods.ToArray();
@@ -91,14 +95,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static MethodDeclarationSyntax WriteStringReprEnumMethod(MemberContext ctx)
         {
             var spanNameArg = SF.Identifier("name");
-            var metadata = ctx.TypeMetadata as INamedTypeSymbol;
+            var trueType = ExtractTypeFromNullableIfNeed(ctx.TypeSym);
             var repr = GetEnumRepresentation(ctx.NameSym);
             if (repr != 1)
             {
                 return default;
             }
             List<StatementSyntax> statements = new();
-            foreach (var member in metadata.GetMembers().Where(sym => sym.Kind == SymbolKind.Field))
+            foreach (var member in trueType.GetMembers().Where(sym => sym.Kind == SymbolKind.Field))
             {
                 var (_, alias) = GetMemberAlias(member);
                 statements.Add(
@@ -107,7 +111,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         statement: SF.Block(
                             //Statement(Write_Type_Name(2, IdentifierName(StaticFieldNameToken(ctx)))),
                             Statement(Write_Type_Name(2, spanNameArg)),
-                            Statement(WriteString(StaticEnumFieldNameToken(metadata, alias))))
+                            Statement(WriteString(StaticEnumFieldNameToken(trueType, alias))))
                     ));
             }
             return SF.MethodDeclaration(
@@ -115,10 +119,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()),
                     explicitInterfaceSpecifier: default,
                     returnType: VoidPredefinedType(),
-                    identifier: WriteStringReprEnumMethodName(ctx.Root, metadata, ctx.NameSym),
+                    identifier: WriteStringReprEnumMethodName(ctx.Root, trueType, ctx.NameSym),
                     parameterList: ParameterList(RefParameter(ctx.Root.BsonWriterType, ctx.Root.BsonWriterToken),
                                                  Parameter(ReadOnlySpanByte(), spanNameArg),
-                                                 Parameter(TypeFullName(ctx.TypeSym), ctx.Root.WriterInputVarToken)),
+                                                 Parameter(TypeFullName(trueType), ctx.Root.WriterInputVarToken)),
 
                     body: default,
                     constraintClauses: default,

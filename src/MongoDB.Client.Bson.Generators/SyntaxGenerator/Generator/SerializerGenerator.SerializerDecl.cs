@@ -200,8 +200,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             Dictionary<ISymbol, List<MemberDeclarationSyntax>> declarations = new();
             foreach (var member in ctx.Members)
             {
-
-                if (member.TypeSym.TypeKind == TypeKind.Enum)
+                var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
+                if (trueType.TypeKind == TypeKind.Enum)
                 {
                     int repr = GetEnumRepresentation(member.NameSym);
                     if (repr != 1) // static name spans only for string representation
@@ -212,7 +212,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     {
                         continue;
                     }
-                    var typedMetadata = member.TypeMetadata as INamedTypeSymbol;
+                    //var typedMetadata = member.TypeMetadata as INamedTypeSymbol;
+                    var typedMetadata = trueType as INamedTypeSymbol;
                     if (typedMetadata == null)
                     {
                         GeneratorDiagnostics.ReportUnhandledException(nameof(GenerateEnumsStaticNamesSpansIfHave), member.NameSym);

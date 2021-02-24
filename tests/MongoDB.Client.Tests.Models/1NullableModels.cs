@@ -6,40 +6,59 @@ using System.Linq;
 
 namespace MongoDB.Client.Tests.Models
 {
-    //[BsonSerializable]
-    //public partial class EnumNullable
-    //{
-    //    public enum IntEnum
-    //    {
-    //        One, Two
-    //    }
-    //    public enum LongEnum
-    //    {
-    //        One, Two
-    //    }
-    //    public enum StringEnum
-    //    {
-    //        [BsonElement("StringField1Alias")]
-    //        StringField1,
-    //        StringFeild2
-    //    }
-    //    public IntEnum? IntEnum1 { get; set; }
-    //    public IntEnum? IntEnum2 { get; set; }
+    [BsonSerializable]
+    public partial class EnumNullable
+    {
+        public enum IntEnum
+        {
+            One, Two
+        }
+        public enum LongEnum
+        {
+            One, Two
+        }
+        public enum StringEnum
+        {
+            [BsonElement("StringField1Alias")]
+            StringField1,
+            [BsonElement("StringField2Alias")]
+            StringFeild2
+        }
+        public IntEnum? IntEnum1 { get; set; }
+        public IntEnum? IntEnum2 { get; set; }
+        public IntEnum? IntEnum3 { get; set; }
 
-    //    [BsonEnum(EnumRepresentation.Int64)]
-    //    public LongEnum? LongEnum1 { get; set; }
+        [BsonEnum(EnumRepresentation.Int64)]
+        public LongEnum? LongEnum1 { get; set; }
 
-    //    [BsonEnum(EnumRepresentation.Int64)]
-    //    public LongEnum? LongEnum2 { get; set; }
+        [BsonEnum(EnumRepresentation.Int64)]
+        public LongEnum? LongEnum2 { get; set; }   
+        [BsonEnum(EnumRepresentation.Int64)]
+        public LongEnum? LongEnum3 { get; set; }
 
-    //    [BsonEnum(EnumRepresentation.String)]
-    //    public StringEnum? StringEnum1 { get; set; }
+        [BsonEnum(EnumRepresentation.String)]
+        public StringEnum? StringEnum1 { get; set; }
 
-    //    [BsonEnum(EnumRepresentation.String)]
-    //    public StringEnum? StringEnum2 { get; set; }
+        [BsonEnum(EnumRepresentation.String)]
+        public StringEnum? StringEnum2 { get; set; }
 
+        [BsonEnum(EnumRepresentation.String)]
+        public StringEnum? StringEnum3 { get; set; }
 
-    //}
+        public EnumNullable Create() => new EnumNullable
+        {
+            IntEnum1 = IntEnum.One,
+            IntEnum2 = IntEnum.Two,
+            IntEnum3 = null,
+            LongEnum1 = LongEnum.Two,
+            LongEnum2 = LongEnum.One,
+            LongEnum3 = null,
+            StringEnum1 = StringEnum.StringField1,
+            StringEnum2 = StringEnum.StringFeild2,
+            StringEnum3 = null,
+        };
+
+    }
 
     [BsonSerializable]
     public partial class GenericWithNulalbleListTest<T, TT> : IEquatable<GenericWithNulalbleListTest<T, TT>>
