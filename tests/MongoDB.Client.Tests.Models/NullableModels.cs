@@ -6,6 +6,41 @@ using System.Linq;
 
 namespace MongoDB.Client.Tests.Models
 {
+    //[BsonSerializable]
+    //public partial class EnumNullable
+    //{
+    //    public enum IntEnum
+    //    {
+    //        One, Two
+    //    }
+    //    public enum LongEnum
+    //    {
+    //        One, Two
+    //    }
+    //    public enum StringEnum
+    //    {
+    //        [BsonElement("StringField1Alias")]
+    //        StringField1,
+    //        StringFeild2
+    //    }
+    //    public IntEnum? IntEnum1 { get; set; }
+    //    public IntEnum? IntEnum2 { get; set; }
+
+    //    [BsonEnum(EnumRepresentation.Int64)]
+    //    public LongEnum? LongEnum1 { get; set; }
+
+    //    [BsonEnum(EnumRepresentation.Int64)]
+    //    public LongEnum? LongEnum2 { get; set; }
+
+    //    [BsonEnum(EnumRepresentation.String)]
+    //    public StringEnum? StringEnum1 { get; set; }
+
+    //    [BsonEnum(EnumRepresentation.String)]
+    //    public StringEnum? StringEnum2 { get; set; }
+
+
+    //}
+
     [BsonSerializable]
     public partial class GenericWithNulalbleListTest<T, TT> : IEquatable<GenericWithNulalbleListTest<T, TT>>
     {

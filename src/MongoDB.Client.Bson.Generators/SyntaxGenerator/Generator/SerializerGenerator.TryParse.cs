@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -9,20 +10,41 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        private readonly struct ReadOperationContext
+        {
+            public ExpressionSyntax Expr { get; }
+            public SyntaxToken? TempVariable { get; }
+            public ReadOperationContext(ExpressionSyntax expr)
+            {
+                Expr = expr;
+                TempVariable = null;
+            }
+            public ReadOperationContext(ExpressionSyntax expr, SyntaxToken tempVar)
+            {
+                Expr = expr;
+                TempVariable = tempVar;
+            }
+            public void Deconstruct(out ExpressionSyntax expr, out SyntaxToken? tempVar)
+            {
+                expr = Expr;
+                tempVar = TempVariable;
+            }
+            public static implicit operator ReadOperationContext(ExpressionSyntax expr) => new ReadOperationContext(expr);
+        }
         private static MethodDeclarationSyntax TryParseMethod(ContextCore ctx)
         {
             var decl = ctx.Declaration;
-            var docLenToken = SF.Identifier("docLength");
-            var unreadedToken = SF.Identifier("unreaded");
-            var endMarkerToken = SF.Identifier("endMarker");
-            var bsonTypeToken = SF.Identifier("bsonType");
-            var bsonNameToken = SF.Identifier("bsonName");
+            var docLenToken = Identifier("docLength");
+            var unreadedToken = Identifier("unreaded");
+            var endMarkerToken = Identifier("endMarker");
+            var bsonTypeToken = Identifier("bsonType");
+            var bsonNameToken = Identifier("bsonName");
             return SF.MethodDeclaration(
                     attributeLists: default,
                     modifiers: new(PublicKeyword(), StaticKeyword()),
                     explicitInterfaceSpecifier: default,//SF.ExplicitInterfaceSpecifier(GenericName(SerializerInterfaceToken, TypeFullName(decl))),
                     returnType: BoolPredefinedType(),
-                    identifier: SF.Identifier("TryParseBson"),
+                    identifier: Identifier("TryParseBson"),
                     parameterList: ParameterList(RefParameter(ctx.BsonReaderType, ctx.BsonReaderToken),
                                                  OutParameter(TypeFullName(ctx.Declaration), ctx.TryParseOutVarToken)),
                     body: default,
@@ -31,30 +53,50 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     typeParameterList: default,
                     semicolonToken: default)
                 .WithBody(
-                SF.Block(
-                    SimpleAssignExprStatement(ctx.TryParseOutVar, DefaultLiteralExpr()))
-                    .AddStatements(DeclareTempVariables(ctx)).AddStatements(
-                    IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(docLenToken))),
-                    VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemaining(), SizeOfInt())),
-                      SF.WhileStatement(
-                          condition:
-                          BinaryExprLessThan(
-                              BinaryExprMinus(IdentifierName(unreadedToken), ReaderRemaining()),
-                              BinaryExprMinus(IdentifierName(docLenToken), NumericLiteralExpr(1))),
-                          statement:
-                          SF.Block(
-                              IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(bsonTypeToken))),
-                              IfNotReturnFalse(TryGetCStringAsSpan(VarVariableDeclarationExpr(bsonNameToken))))
-                              .AddStatements(IfContinue(BinaryExprEqualsEquals(IdentifierName(bsonTypeToken), NumericLiteralExpr(10))))
-                              .AddStatements(Operations(ctx, bsonTypeToken, bsonNameToken))
-                              .AddStatements(IfNotReturnFalse(TrySkip(IdentifierName(bsonTypeToken))))),
-                      IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
-                      SF.IfStatement(
-                          condition:
-                              BinaryExprNotEquals(endMarkerToken, NumericLiteralExpr((byte)'\x00')),
-                          statement: SF.Block(SF.ExpressionStatement(SerializerEndMarkerException(ctx.Declaration, IdentifierName(endMarkerToken))))))
-                    .AddStatements(CreateMessage(ctx))
-                    .AddStatements(SF.ReturnStatement(TrueLiteralExpr())));
+                    Block(
+                     SimpleAssignExprStatement(ctx.TryParseOutVar, DefaultLiteralExpr()),
+                     DeclareTempVariables(ctx),
+                     IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(docLenToken))),
+                     VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemaining(), SizeOfInt())),
+                       SF.WhileStatement(
+                           condition:
+                              BinaryExprLessThan(
+                                  BinaryExprMinus(IdentifierName(unreadedToken), ReaderRemaining()),
+                                  BinaryExprMinus(IdentifierName(docLenToken), NumericLiteralExpr(1))),
+                           statement:
+                              Block(
+                                  IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(bsonTypeToken))),
+                                  IfNotReturnFalse(TryGetCStringAsSpan(VarVariableDeclarationExpr(bsonNameToken))),
+                                  IfContinue(BinaryExprEqualsEquals(IdentifierName(bsonTypeToken), NumericLiteralExpr(10))),
+                                  Operations(ctx, bsonTypeToken, bsonNameToken),
+                                  IfNotReturnFalse(TrySkip(IdentifierName(bsonTypeToken))))),
+                          IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
+                          SF.IfStatement(
+                              condition:
+                                  BinaryExprNotEquals(endMarkerToken, NumericLiteralExpr((byte)'\x00')),
+                              statement: Block(SerializerEndMarkerException(ctx.Declaration, IdentifierName(endMarkerToken)))))
+                        .AddStatements(CreateMessage(ctx))
+                        .AddStatements(ReturnStatement(TrueLiteralExpr())));
+        }
+        private static StatementSyntax[] DeclareTempVariables(ContextCore ctx)
+        {
+            ImmutableList<StatementSyntax>.Builder variables = ImmutableList.CreateBuilder<StatementSyntax>();
+            foreach (var member in ctx.Members)
+            {
+                var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
+                if (trueType.IsReferenceType)
+                {
+                    member.AssignedVariable = Identifier($"{trueType.Name}{member.NameSym.Name}");
+                    variables.DefaultLocalDeclarationStatement(SF.ParseTypeName(trueType.ToString()), member.AssignedVariable);
+                }
+                else
+                {
+                    member.AssignedVariable = Identifier($"{member.TypeSym.Name}{member.NameSym.Name}");
+                    variables.DefaultLocalDeclarationStatement(SF.ParseTypeName(member.TypeSym.ToString()), member.AssignedVariable);
+                }
+
+            }
+            return variables.ToArray();
         }
         private static StatementSyntax[] CreateMessage(ContextCore ctx)
         {
@@ -69,7 +111,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     var parameter = constructorParams!.Value.FirstOrDefault(param => param.Name.Equals(member.NameSym.Name));
                     if (parameter != default)
                     {
-                        args.Add(Argument(IdentifierName(member.AssignedVariable), SF.NameColon(IdentifierName(parameter.Name))));
+                        args.Add(Argument(member.AssignedVariable, NameColon(parameter)));
                     }
                     else
                     {
@@ -97,159 +139,142 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return result.ToArray();
         }
-        private static StatementSyntax[] DeclareTempVariables(ContextCore ctx)
-        {
-            List<StatementSyntax> variables = new();
-            foreach (var member in ctx.Members)
-            {
-                var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
-                //if((trueType.IsReferenceType || trueType.TypeKind == TypeKind.Struct) && trueType.SpecialType == SpecialType.None)
-                if (trueType.IsReferenceType)
-                {
-                    member.AssignedVariable = SF.Identifier($"{trueType.Name}{member.NameSym.Name}");
-                    variables.Add(DefaultLocalDeclarationStatement(SF.ParseTypeName(trueType.ToString()), member.AssignedVariable));
-                }
-                else
-                {
-                    member.AssignedVariable = SF.Identifier($"{member.TypeSym.Name}{member.NameSym.Name}");
-                    variables.Add(DefaultLocalDeclarationStatement(SF.ParseTypeName(member.TypeSym.ToString()), member.AssignedVariable));
-                }
-
-            }
-
-            return variables.ToArray();
-        }
         private static StatementSyntax[] Operations(ContextCore ctx, SyntaxToken bsonType, SyntaxToken bsonName)
         {
-            var decl = ctx.Declaration;
-            var members = ctx.Members;
-            List<StatementSyntax> statements = new();
-
-            foreach (var member in members)
+            var builder = ImmutableList.CreateBuilder<StatementSyntax>();
+            foreach (var member in ctx.Members)
             {
-                var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
-                if (trueType.TypeKind == TypeKind.Enum)
+                if (TryGenerateParseEnum(member, bsonName, builder))
                 {
-                    var localReadEnumVar = SF.Identifier($"{member.AssignedVariable}EnumTemp");
-                    int repr = GetEnumRepresentation(member.NameSym);
-                    if (repr == -1) { repr = 2; }
-                    if (repr != 1)
-                    {
-                        statements.Add(
-                          SF.IfStatement(
-                              condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
-                              statement: SF.Block(
-                                  repr == 2 ?
-                                    LocalDeclarationStatement(IntPredefinedType(), localReadEnumVar, DefaultLiteralExpr()) :
-                                    LocalDeclarationStatement(LongPredefinedType(), localReadEnumVar, DefaultLiteralExpr()),
-                                  repr == 2 ?
-                                    IfNotReturnFalseElse(TryGetInt32(localReadEnumVar), SF.Block(SimpleAssignExprStatement(member.AssignedVariable, Cast(trueType, localReadEnumVar)))) :
-                                    IfNotReturnFalseElse(TryGetInt64(localReadEnumVar), SF.Block(SimpleAssignExprStatement(member.AssignedVariable, Cast(trueType, localReadEnumVar)))),
-                                  SF.ContinueStatement()
-                            )));
-                    }
-                    else
-                    {
-                        var readMethod = IdentifierName(ReadStringReprEnumMethodName(ctx, member.TypeMetadata, member.NameSym));
-                        statements.Add(
-                            SF.IfStatement(
-                                condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
-                                statement: SF.Block(
-                                    IfNotReturnFalse(InvocationExpr(readMethod, RefArgument(ctx.BsonReaderToken), OutArgument(IdentifierName(member.AssignedVariable)))),
-                                    SF.ContinueStatement()
-                                )));
-                    }
+                    continue;
+                }
+                if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
+                {
+                    continue;
+                }
+                if (TryGenerateTryParseBson(ctx, member, bsonName, builder))
+                {
+                    continue;
+                }
+                GeneratorDiagnostics.ReportSerializerMapUsingWarning(member.NameSym);
+                builder.IfStatement(
+                            condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
+                            statement: Block(
+                                        OtherTryParseBson(member),
+                                        ContinueStatement()));
+            }
+            return builder.ToArray();
+        }
+
+        private static bool TryGenerateParseEnum(MemberContext member, SyntaxToken bsonName, ImmutableList<StatementSyntax>.Builder builder)
+        {
+            var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
+            if (trueType.TypeKind != TypeKind.Enum)
+            {
+                return false;
+            }
+            var localReadEnumVar = Identifier($"{member.AssignedVariable}EnumTemp");
+            int repr = GetEnumRepresentation(member.NameSym);
+            if (repr == -1) { repr = 2; }
+            if (repr != 1)
+            {
+                builder.IfStatement(
+                      condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
+                      statement: Block(
+                          repr == 2 ?
+                            LocalDeclarationStatement(IntPredefinedType(), localReadEnumVar, DefaultLiteralExpr()) :
+                            LocalDeclarationStatement(LongPredefinedType(), localReadEnumVar, DefaultLiteralExpr()),
+                          repr == 2 ?
+                            IfNotReturnFalseElse(TryGetInt32(localReadEnumVar), Block(SimpleAssignExprStatement(member.AssignedVariable, Cast(trueType, localReadEnumVar)))) :
+                            IfNotReturnFalseElse(TryGetInt64(localReadEnumVar), Block(SimpleAssignExprStatement(member.AssignedVariable, Cast(trueType, localReadEnumVar)))),
+                            ContinueStatement()
+                    ));
+            }
+            else
+            {
+                var readMethod = IdentifierName(ReadStringReprEnumMethodName(member.Root, member.TypeMetadata, member.NameSym));
+                builder.IfStatement(
+                        condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
+                        statement: Block(
+                            IfNotReturnFalse(InvocationExpr(readMethod, RefArgument(member.Root.BsonReaderToken), OutArgument(member.AssignedVariable))),
+                            ContinueStatement()
+                        ));
+            }
+            return true;
+        }
+        private static bool TryGenerateSimpleReadOperation(ContextCore ctx, MemberContext member, SyntaxToken bsonType, SyntaxToken bsonName, ImmutableList<StatementSyntax>.Builder builder)
+        {
+            var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
+            var (operation, tempVar) = ReadOperation(ctx, member.NameSym, trueType, ctx.BsonReaderId, IdentifierName(member.AssignedVariable), bsonType);
+            if (operation != default)
+            {
+                builder.IfStatement(condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
+                                    statement: tempVar.HasValue
+                                        ? Block(IfNotReturnFalse(operation), SimpleAssignExprStatement(member.AssignedVariable, tempVar.Value), ContinueStatement())
+                                        : Block(IfNotReturnFalse(operation), ContinueStatement()));
+                return true;
+            }
+            return false;
+        }
+        private static bool TryGenerateTryParseBson(ContextCore ctx, MemberContext member, SyntaxToken bsonName, ImmutableList<StatementSyntax>.Builder builder)
+        {
+            var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
+            if (IsBsonSerializable(trueType))
+            {
+                if (trueType.IsReferenceType)
+                {
+                    var condition = InvocationExpr(IdentifierName(trueType.ToString()), IdentifierName("TryParseBson"),
+                                                   RefArgument(ctx.BsonReaderId),
+                                                   OutArgument(member.AssignedVariable));
+                    builder.IfStatement(condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
+                                        statement: Block(IfNotReturnFalse(condition), ContinueStatement()));
+                    return true;
                 }
                 else
                 {
-                    var (operation, tempVar) = ReadOperation(ctx, member.NameSym, trueType, ctx.BsonReaderId, IdentifierName(member.AssignedVariable), bsonType);
-                    if (operation != default)
-                    {
-                        statements.Add(
-                            SF.IfStatement(
-                                condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
-                                statement:
-                                tempVar.HasValue
-                                    ? SF.Block(IfNotReturnFalse(operation), SimpleAssignExprStatement(member.AssignedVariable, tempVar.Value), SF.ContinueStatement())
-                                    : SF.Block(IfNotReturnFalse(operation), SF.ContinueStatement())
-                            ));
-                    }
-                    else
-                    {
-                        if (IsBsonSerializable(trueType))
-                        {
-                            if (trueType.IsReferenceType)
-                            {
-                                var condition = InvocationExpr(IdentifierName(trueType.ToString()), IdentifierName("TryParseBson"), RefArgument(ctx.BsonReaderId), OutArgument(IdentifierName(member.AssignedVariable)));
-                                statements.Add(
-                                               SF.IfStatement(
-                                                   condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
-                                                   statement:
-                                                   SF.Block(IfNotReturnFalse(condition), SF.ContinueStatement())));
-                            }
-                            else
-                            {
-                                var localTryParseVar = Identifier($"{member.AssignedVariable.ToString()}TryParseTemp");
-                                var condition = InvocationExpr(IdentifierName(trueType.ToString()), IdentifierName("TryParseBson"),
-                                                               RefArgument(ctx.BsonReaderId), OutArgument(VarVariableDeclarationExpr(localTryParseVar)));
-                                statements.Add(
-                                               SF.IfStatement(
-                                                   condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
-                                                   statement:
-                                                   SF.Block(IfNotReturnFalse(condition), SimpleAssignExprStatement(member.AssignedVariable, localTryParseVar), SF.ContinueStatement())));
-                            }
+                    var localTryParseVar = Identifier($"{member.AssignedVariable.ToString()}TryParseTemp");
+                    var condition = InvocationExpr(IdentifierName(trueType.ToString()), IdentifierName("TryParseBson"),
+                                                   RefArgument(ctx.BsonReaderId), OutArgument(VarVariableDeclarationExpr(localTryParseVar)));
 
-                        }
-                        else
-                        {
-                            GeneratorDiagnostics.ReportSerializationMapUsingWarning(member.NameSym);
-                            statements.Add(
-                                           SF.IfStatement(
-                                               condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
-                                               statement:
-                                               SF.Block(
-                                                   OtherTryParseBson(member))
-                                               .AddStatements(
-                                                   SF.ContinueStatement())));
-                        }
-                    }
-
+                    builder.IfStatement(condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
+                                        statement:
+                                            Block(
+                                                IfNotReturnFalse(condition),
+                                                SimpleAssignExprStatement(member.AssignedVariable, localTryParseVar),
+                                                ContinueStatement()));
+                    return true;
                 }
-
             }
-            return statements.ToArray();
+            return false;
         }
-
-        private static (ExpressionSyntax, SyntaxToken?) ReadOperation(ContextCore ctx, ISymbol nameSym, ITypeSymbol typeSym,
-            ExpressionSyntax readerId, ExpressionSyntax readTarget, SyntaxToken bsonType)
+        private static ReadOperationContext ReadOperation(ContextCore ctx, ISymbol nameSym, ITypeSymbol typeSym, ExpressionSyntax readerId, ExpressionSyntax readTarget, SyntaxToken bsonType)
         {
-
-            if (ctx.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(typeSym.Name)) != default)
+            if (ctx.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(typeSym.Name)) != default) // generic type arguments
             {
                 var temp = Identifier($"{nameSym.Name.ToString()}TempGenericNullable");
                 if (typeSym.NullableAnnotation == NullableAnnotation.Annotated)
                 {
-                    return (TryReadGenericNullable(TypeName(typeSym.OriginalDefinition), bsonType, VarVariableDeclarationExpr(temp)), temp);
+                    return new(TryReadGenericNullable(TypeName(typeSym.OriginalDefinition), bsonType, VarVariableDeclarationExpr(temp)), temp);
                 }
                 else
                 {
-                    return (TryReadGeneric(bsonType, readTarget), null);
+                    return TryReadGeneric(bsonType, readTarget);
                 }
             }
             if (typeSym is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)
             {
                 if (TypeLib.IsListOrIList(namedType))
                 {
-                    return (InvocationExpr(IdentifierName(ReadArrayMethodName(nameSym, typeSym)), RefArgument(readerId), OutArgument(readTarget)), null);
+                    return InvocationExpr(IdentifierName(ReadArrayMethodName(nameSym, typeSym)), RefArgument(readerId), OutArgument(readTarget));
                 }
             }
             if (TryGetSimpleReadOperation(nameSym, typeSym, IdentifierName(bsonType), readTarget, out var simpleOperation))
             {
-                return (simpleOperation, null);
+                return simpleOperation;
             }
             return default;
         }
-        private static bool TryGetSimpleReadOperation(ISymbol nameSym, ITypeSymbol typeSymbol, ExpressionSyntax bsonType, ExpressionSyntax variable, out InvocationExpressionSyntax expr)
+        private static bool TryGetSimpleReadOperation(ISymbol nameSym, ITypeSymbol typeSymbol, ExpressionSyntax bsonType, ExpressionSyntax variable, out ExpressionSyntax expr)
         {
             expr = default;
             switch (typeSymbol.SpecialType)

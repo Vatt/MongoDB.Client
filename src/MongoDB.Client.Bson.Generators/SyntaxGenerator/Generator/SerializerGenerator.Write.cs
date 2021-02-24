@@ -1,7 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -16,7 +16,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     modifiers: new(PublicKeyword(), StaticKeyword()),
                     explicitInterfaceSpecifier: default,// SF.ExplicitInterfaceSpecifier(GenericName(SerializerInterfaceToken, TypeFullName(ctx.Declaration))),
                     returnType: VoidPredefinedType(),
-                    identifier: SF.Identifier("WriteBson"),
+                    identifier: Identifier("WriteBson"),
                     parameterList: ParameterList(
                         RefParameter(ctx.BsonWriterType, ctx.BsonWriterToken),
                         InParameter(TypeFullName(ctx.Declaration), ctx.TryParseOutVarToken)),
@@ -27,84 +27,58 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     semicolonToken: default)
                 .WithBody(WriteMethodBody(ctx));
         }
-        public static StatementSyntax GenerateWriteEnum(ContextCore ctx, MemberContext member, ExpressionSyntax writeTarget)
-        {
-            int repr = GetEnumRepresentation(member.NameSym);
-            if (repr == -1) { repr = 2; }
-            if (repr != 1)
-            {
-                return Statement(Write_Type_Name_Value(StaticFieldNameToken(member), repr == 2 ? CastToInt(writeTarget) : CastToLong(writeTarget)));
-            }
-            else
-            {
-                var methodName = IdentifierName(WriteStringReprEnumMethodName(ctx, member.TypeMetadata, member.NameSym));
-                return InvocationExprStatement(methodName, RefArgument(ctx.BsonWriterToken), Argument(StaticFieldNameToken(member)), Argument(writeTarget));
-            }
-        }
         private static BlockSyntax WriteMethodBody(ContextCore ctx)
         {
-            var checkpoint = SF.Identifier("checkpoint");
-            var reserved = SF.Identifier("reserved");
-            var docLength = SF.Identifier("docLength");
-            var sizeSpan = SF.Identifier("sizeSpan");
-            List<StatementSyntax> statements = new();
+            var checkpoint = Identifier("checkpoint");
+            var reserved = Identifier("reserved");
+            var docLength = Identifier("docLength");
+            var sizeSpan = Identifier("sizeSpan");
+            var statements = ImmutableList.CreateBuilder<StatementSyntax>();
 
             foreach (var member in ctx.Members)
             {
-                StatementSyntax[] writeStatement;
+                var inner = ImmutableList.CreateBuilder<StatementSyntax>();
                 var writeTarget = SimpleMemberAccess(ctx.WriterInputVar, IdentifierName(member.NameSym));
                 ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
                 TryGetBsonWriteIgnoreIfAttr(member, out var condition);
-                if (member.TypeSym.TypeKind == TypeKind.Enum)
+
+                if (member.BsonElementAlias.Equals("_id") && TypeLib.IsBsonObjectId(trueType))
                 {
-                    writeStatement = Statements(GenerateWriteEnum(ctx, member, writeTarget));
-                    goto CONDITION_CHECK;
+                    inner.IfStatement(
+                            BinaryExprEqualsEquals(writeTarget, Default(TypeFullName(trueType))),
+                            Block(SimpleAssignExprStatement(writeTarget, NewBsonObjectId())));
                 }
-                if (member.TypeSym.IsReferenceType)
+
+                if (trueType.IsReferenceType)
                 {
-                    writeStatement =
-                        Statements(
-                            SF.IfStatement(
+                    inner.IfStatement(
                                 condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
-                                statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
-                                @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, trueType, ctx.BsonWriterId, writeTarget)))));
+                                statement: Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
+                                @else: Block(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget)));
                 }
-                else if (IsBsonSerializable(trueType) && member.TypeSym.NullableAnnotation == NullableAnnotation.Annotated)
+                else if (member.TypeSym.NullableAnnotation == NullableAnnotation.Annotated && trueType.TypeKind == TypeKind.Struct)
                 {
-                    writeStatement =
-                        Statements(
-                            SF.IfStatement(
-                                condition: BinaryExprEqualsEquals(SimpleMemberAccess(writeTarget, IdentifierName("HasValue")), FalseLiteralExpr()),
-                                statement: SF.Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
-                                @else: SF.ElseClause(SF.Block(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget)))));
-                }
-                else if (IsBsonSerializable(trueType) && (member.TypeSym.NullableAnnotation == NullableAnnotation.NotAnnotated || member.TypeSym.NullableAnnotation == NullableAnnotation.None))
-                {
-                    writeStatement = WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget);
+                    var nullableStrcutTarget = SimpleMemberAccess(writeTarget, IdentifierName("Value"));
+                    inner.IfStatement(
+                            condition: BinaryExprEqualsEquals(SimpleMemberAccess(writeTarget, IdentifierName("HasValue")), FalseLiteralExpr()),
+                            statement: Block(WriteBsonNull(StaticFieldNameToken(member))),
+                            @else: Block(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, nullableStrcutTarget)));
                 }
                 else
                 {
-                    if (member.BsonElementAlias.Equals("_id") && TypeLib.IsBsonObjectId(trueType))
-                    {
-                        statements.Add(
-                            SF.IfStatement(
-                                BinaryExprEqualsEquals(writeTarget, Default(TypeFullName(trueType))),
-                                SF.Block(SimpleAssignExprStatement(writeTarget, NewBsonObjectId()))));
-                    }
-                    writeStatement = WriteOperation(member, StaticFieldNameToken(member), member.NameSym, trueType, ctx.BsonWriterId, writeTarget);
+                    inner.AddRange(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget));
                 }
-            CONDITION_CHECK:
                 if (condition != null)
                 {
-                    statements.Add(IfNot(condition, SF.Block(writeStatement)));
+                    statements.IfNot(condition, Block(inner));
                 }
                 else
                 {
-                    statements.AddRange(writeStatement);
+                    statements.AddRange(inner);
                 }
             }
 
-            return SF.Block(
+            return Block(
                     VarLocalDeclarationStatement(checkpoint, WriterWritten()),
                     VarLocalDeclarationStatement(reserved, WriterReserve(4)))
                 .AddStatements(
@@ -118,14 +92,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     Statement(WriterCommit())
                     );
         }
-
         public static StatementSyntax[] WriteOperation(MemberContext ctx, SyntaxToken name, ISymbol nameSym, ITypeSymbol typeSym, ExpressionSyntax writerId, ExpressionSyntax writeTarget)
         {
-            ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(typeSym);
-            if (TryGetSimpleWriteOperation(nameSym, trueType, name, writeTarget, out var expr))
+            var trueType = ExtractTypeFromNullableIfNeed(typeSym);
+            if (TryGenerateSimpleWriteOperation(nameSym, trueType, name, writeTarget, out var expr))
             {
 
-                return new StatementSyntax[] { Statement(expr) };
+                return Statements(expr);
+            }
+            if (TryGenerateWriteEnum(ctx.Root, ctx, writeTarget, out var enumStatements))
+            {
+                return enumStatements.ToStatements().ToArray();
             }
             if (ctx.Root.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(trueType.Name)) != default)
             {
@@ -147,25 +124,52 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     );
                 }
             }
-            if (IsBsonSerializable(trueType))
+            if (TryGenerateBsonWrite(ctx, typeSym, writeTarget, out var bsonWriteExpr))
             {
-                var target = typeSym.NullableAnnotation == NullableAnnotation.Annotated && typeSym.TypeKind == TypeKind.Struct ? SimpleMemberAccess(writeTarget, IdentifierName("Value")) : writeTarget;
-                return Statements
-                (
-                       Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
-                       InvocationExprStatement(IdentifierName(trueType.ToString()), IdentifierName("WriteBson"), RefArgument(writerId), Argument(target))
+                return bsonWriteExpr.ToStatements().ToArray();
+            }
+            GeneratorDiagnostics.ReportSerializerMapUsingWarning(ctx.NameSym);
+            return Statements(
+                    Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
+                    OtherWriteBson(ctx)
                 );
+        }
+        public static bool TryGenerateWriteEnum(ContextCore ctx, MemberContext member, ExpressionSyntax writeTarget, out ImmutableList<ExpressionSyntax> statements)
+        {
+            statements = default;
+            if (member.TypeSym.TypeKind != TypeKind.Enum)
+            {
+                return false;
+            }
+            int repr = GetEnumRepresentation(member.NameSym);
+            if (repr == -1) { repr = 2; }
+            if (repr != 1)
+            {
+                statements = ImmutableList.Create(Write_Type_Name_Value(StaticFieldNameToken(member), repr == 2 ? CastToInt(writeTarget) : CastToLong(writeTarget)));
             }
             else
             {
-                GeneratorDiagnostics.ReportSerializationMapUsingWarning(ctx.NameSym);
-                return Statements(
-                        Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
-                        OtherWriteBson(ctx)
-                    );
+                var methodName = IdentifierName(WriteStringReprEnumMethodName(ctx, member.TypeMetadata, member.NameSym));
+                statements = ImmutableList.Create(InvocationExpr(methodName, RefArgument(ctx.BsonWriterToken), Argument(StaticFieldNameToken(member)), Argument(writeTarget)));
             }
+            return true;
         }
-        private static bool TryGetSimpleWriteOperation(ISymbol nameSym, ITypeSymbol typeSymbol, SyntaxToken bsonNameToken, ExpressionSyntax writeTarget, out InvocationExpressionSyntax expr)
+        public static bool TryGenerateBsonWrite(MemberContext ctx, ITypeSymbol typeSym, ExpressionSyntax writeTarget, out ImmutableList<ExpressionSyntax> expressions)
+        {
+            expressions = default;
+            ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(typeSym);
+            ExpressionSyntax writerId = ctx.Root.BsonWriterId;
+            if (IsBsonSerializable(trueType) == false)
+            {
+                return false;
+            }
+            expressions = ImmutableList.Create(
+                Write_Type_Name(3, StaticFieldNameToken(ctx)),
+                InvocationExpr(IdentifierName(trueType.ToString()), IdentifierName("WriteBson"), RefArgument(writerId), Argument(writeTarget)));
+            return true;
+
+        }
+        private static bool TryGenerateSimpleWriteOperation(ISymbol nameSym, ITypeSymbol typeSymbol, SyntaxToken bsonNameToken, ExpressionSyntax writeTarget, out ExpressionSyntax expr)
         {
             expr = default;
             var bsonName = IdentifierName(bsonNameToken);

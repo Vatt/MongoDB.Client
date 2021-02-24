@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
@@ -40,15 +41,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return GenericName(SF.Identifier("Span"), BytePredefinedType());
         }
 
-        public static InvocationExpressionSyntax SpanSequenceEqual(ExpressionSyntax spanName, ExpressionSyntax otherSpanName)
+        public static ExpressionSyntax SpanSequenceEqual(ExpressionSyntax spanName, ExpressionSyntax otherSpanName)
         {
             return InvocationExpr(spanName, SF.IdentifierName("SequenceEqual"), SF.Argument(otherSpanName));
         }
-        public static InvocationExpressionSyntax NewBsonObjectId()
+        public static ExpressionSyntax NewBsonObjectId()
         {
             return InvocationExpr(TypeFullName(TypeLib.BsonObjectId), SF.IdentifierName("NewObjectId"));
         }
-        public static InvocationExpressionSyntax SpanSequenceEqual(SyntaxToken spanName, SyntaxToken otherSpanName)
+        public static ExpressionSyntax SpanSequenceEqual(SyntaxToken spanName, SyntaxToken otherSpanName)
         {
             return InvocationExpr(IdentifierName(spanName), SF.IdentifierName("SequenceEqual"), SF.Argument(IdentifierName(otherSpanName)));
         }
@@ -91,7 +92,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.IfStatement(SF.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, condition), SF.Block(returnStatement));
         }
-
+        public static IfStatementSyntax IfStatement(ExpressionSyntax condition, StatementSyntax statement, BlockSyntax @else)
+        {
+            return SF.IfStatement(condition, statement, SF.ElseClause(@else));
+        }
+        public static IfStatementSyntax IfStatement(ExpressionSyntax condition, StatementSyntax statement)
+        {
+            return SF.IfStatement(condition, statement);
+        }
         public static IfStatementSyntax IfNotReturnFalse(ExpressionSyntax condition)
         {
             return IfNotReturn(condition, SF.ReturnStatement(FalseLiteralExpr()));
@@ -253,6 +261,50 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             var declarator = SF.VariableDeclarator(variable, default, SF.EqualsValueClause(DefaultLiteralExpr()));
             return SF.LocalDeclarationStatement(SF.VariableDeclaration(type, SeparatedList(declarator)));
+        }
+        public static BlockSyntax Block(params StatementSyntax[] statements)
+        {
+            return SF.Block(statements);
+        }
+        public static BlockSyntax Block(ImmutableList<StatementSyntax>.Builder buiider)
+        {
+            return Block(buiider.ToArray());
+        }
+        public static BlockSyntax Block(StatementSyntax[] statements, StatementSyntax statement)
+        {
+            return SF.Block(statements).AddStatements(statement);
+        }
+        public static BlockSyntax Block(ExpressionStatementSyntax expr, StatementSyntax[] statements1, params StatementSyntax[] statements2)
+        {
+            return SF.Block(expr).AddStatements(statements1).AddStatements(statements2);
+        }
+        public static BlockSyntax Block(IfStatementSyntax if1, IfStatementSyntax if2, IfStatementSyntax if3, StatementSyntax[] statements1, params StatementSyntax[] statements2)
+        {
+            return SF.Block(if1, if2, if3).AddStatements(statements1).AddStatements(statements2);
+        }
+        public static BlockSyntax Block(params ExpressionSyntax[] expressions)
+        {
+            return SF.Block(expressions.Select(e => Statement(e)));
+        }
+        public static ContinueStatementSyntax ContinueStatement()
+        {
+            return SF.ContinueStatement();
+        }
+        public static ReturnStatementSyntax ReturnStatement(ExpressionSyntax? expr = null)
+        {
+            return SF.ReturnStatement(expr);
+        }
+        public static NameColonSyntax NameColon(SyntaxToken name)
+        {
+            return SF.NameColon(IdentifierName(name));
+        }
+        public static NameColonSyntax NameColon(IdentifierNameSyntax name)
+        {
+            return SF.NameColon(name);
+        }
+        public static NameColonSyntax NameColon(ISymbol symbol)
+        {
+            return SF.NameColon(IdentifierName(symbol.Name));
         }
     }
 }
