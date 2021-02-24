@@ -45,6 +45,13 @@ namespace MongoDB.Client.Tests.Models
         [BsonEnum(EnumRepresentation.String)]
         public StringEnum? StringEnum3 { get; set; }
 
+        //public List<IntEnum?> IntEnumList { get; set; }
+
+        //[BsonEnum(EnumRepresentation.Int64)]
+        //public List<LongEnum?> LongEnumList { get; set; }
+
+        //[BsonEnum(EnumRepresentation.String)]
+        //public List<StringEnum?> StringEnumList { get; set; }
         public static EnumNullable Create() => new EnumNullable
         {
             IntEnum1 = IntEnum.One,
