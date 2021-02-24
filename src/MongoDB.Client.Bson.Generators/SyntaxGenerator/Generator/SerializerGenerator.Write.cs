@@ -56,7 +56,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                 statement: Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
                                 @else: Block(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget)));
                 }
-                else if (member.TypeSym.NullableAnnotation == NullableAnnotation.Annotated && trueType.TypeKind == TypeKind.Struct)
+                //else if (member.TypeSym.NullableAnnotation == NullableAnnotation.Annotated && trueType.TypeKind == TypeKind.Struct)
+                else if (member.TypeSym.NullableAnnotation == NullableAnnotation.Annotated && trueType.IsValueType == true)
                 {
                     var nullableStrcutTarget = SimpleMemberAccess(writeTarget, IdentifierName("Value"));
                     inner.IfStatement(
@@ -137,7 +138,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static bool TryGenerateWriteEnum(ContextCore ctx, MemberContext member, ExpressionSyntax writeTarget, out ImmutableList<ExpressionSyntax> statements)
         {
             statements = default;
-            if (member.TypeSym.TypeKind != TypeKind.Enum)
+            var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
+            if (trueType.TypeKind != TypeKind.Enum)
             {
                 return false;
             }
@@ -149,7 +151,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             else
             {
-                var methodName = IdentifierName(WriteStringReprEnumMethodName(ctx, member.TypeMetadata, member.NameSym));
+                //var methodName = IdentifierName(WriteStringReprEnumMethodName(ctx, member.TypeMetadata, member.NameSym));
+                var methodName = IdentifierName(WriteStringReprEnumMethodName(ctx, trueType, member.NameSym));
                 statements = ImmutableList.Create(InvocationExpr(methodName, RefArgument(ctx.BsonWriterToken), Argument(StaticFieldNameToken(member)), Argument(writeTarget)));
             }
             return true;

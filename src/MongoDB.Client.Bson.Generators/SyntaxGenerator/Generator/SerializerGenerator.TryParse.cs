@@ -192,7 +192,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             else
             {
-                var readMethod = IdentifierName(ReadStringReprEnumMethodName(member.Root, member.TypeMetadata, member.NameSym));
+                //var readMethod = IdentifierName(ReadStringReprEnumMethodName(member.Root, member.TypeMetadata, member.NameSym));
+                var readMethod = IdentifierName(ReadStringReprEnumMethodName(member.Root, trueType, member.NameSym));
                 builder.IfStatement(
                         condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
                         statement: Block(
