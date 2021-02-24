@@ -184,7 +184,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var index = Identifier("index");
             var array = Identifier("array");
             var typeArg = (trueType as INamedTypeSymbol).TypeArguments[0];
-            var  writeOperation = ImmutableList.CreateBuilder<StatementSyntax>();
+            var writeOperation = ImmutableList.CreateBuilder<StatementSyntax>();
             if (typeArg.IsReferenceType)
             {
                 writeOperation.IfStatement(

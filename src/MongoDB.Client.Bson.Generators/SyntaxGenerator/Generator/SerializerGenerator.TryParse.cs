@@ -144,15 +144,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
             foreach (var member in ctx.Members)
             {
-                if(TryGenerateParseEnum(member, bsonName, builder))
+                if (TryGenerateParseEnum(member, bsonName, builder))
                 {
                     continue;
                 }
-                if(TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
+                if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
                 {
                     continue;
                 }
-                if(TryGenerateTryParseBson(ctx, member, bsonName, builder))
+                if (TryGenerateTryParseBson(ctx, member, bsonName, builder))
                 {
                     continue;
                 }

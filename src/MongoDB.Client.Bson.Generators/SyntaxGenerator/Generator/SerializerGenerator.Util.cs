@@ -1,7 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -30,7 +28,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             builder.Add(SerializerGenerator.IfNot(condition, statement));
         }
-        public static  void DefaultLocalDeclarationStatement(this ImmutableList<StatementSyntax>.Builder builder, TypeSyntax type, SyntaxToken variable)
+        public static void DefaultLocalDeclarationStatement(this ImmutableList<StatementSyntax>.Builder builder, TypeSyntax type, SyntaxToken variable)
         {
             builder.Add(SerializerGenerator.DefaultLocalDeclarationStatement(type, variable));
         }

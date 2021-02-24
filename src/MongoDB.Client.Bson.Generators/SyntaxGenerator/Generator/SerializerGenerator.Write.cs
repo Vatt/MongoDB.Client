@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -42,7 +41,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var writeTarget = SimpleMemberAccess(ctx.WriterInputVar, IdentifierName(member.NameSym));
                 ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
                 TryGetBsonWriteIgnoreIfAttr(member, out var condition);
-                
+
                 if (member.BsonElementAlias.Equals("_id") && TypeLib.IsBsonObjectId(trueType))
                 {
                     inner.IfStatement(
@@ -56,7 +55,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                 condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
                                 statement: Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
                                 @else: Block(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, ctx.BsonWriterId, writeTarget)));
-                }else if(member.TypeSym.NullableAnnotation == NullableAnnotation.Annotated && trueType.TypeKind == TypeKind.Struct)
+                }
+                else if (member.TypeSym.NullableAnnotation == NullableAnnotation.Annotated && trueType.TypeKind == TypeKind.Struct)
                 {
                     var nullableStrcutTarget = SimpleMemberAccess(writeTarget, IdentifierName("Value"));
                     inner.IfStatement(
