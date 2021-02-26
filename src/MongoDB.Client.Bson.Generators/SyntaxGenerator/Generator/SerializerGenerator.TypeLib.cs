@@ -5,12 +5,16 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        //private static Compilation _compilation;
-        public static ISymbol System_DateTimeOffset => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.DateTimeOffset")!;
-        public static ISymbol System_Guid => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Guid")!;
-        public static ISymbol BsonObjectId => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonObjectId")!;
-        public static ISymbol BsonArray => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonArray")!;
-        public static ISymbol BsonDocument => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonDocument")!;
+        private static ISymbol _systemDateTimeOffset;
+        private static ISymbol _systemGuid;
+        private static ISymbol _bsonObjectId;
+        private static ISymbol _bsonArray;
+        private static ISymbol _bsonDocument;
+        public static ISymbol System_DateTimeOffset => _systemDateTimeOffset ??= BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.DateTimeOffset")!;
+        public static ISymbol System_Guid => _systemGuid ??= BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Guid")!;
+        public static ISymbol BsonObjectId => _bsonObjectId ??= BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonObjectId")!;
+        public static ISymbol BsonArray => _bsonArray ??= BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonArray")!;
+        public static ISymbol BsonDocument => _bsonDocument ??= BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonDocument")!;
         public static bool TryGetMetadata(ITypeSymbol source, out ISymbol result)
         {
             var str = source.ToString();

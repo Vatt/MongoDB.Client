@@ -6,8 +6,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        public static TypeSyntax BsonReaderType => SF.ParseTypeName("MongoDB.Client.Bson.Reader.BsonReader");
-        public static TypeSyntax BsonWriterType => SF.ParseTypeName("MongoDB.Client.Bson.Writer.BsonWriter");
+        public static readonly TypeSyntax BsonReaderType = SF.ParseTypeName("MongoDB.Client.Bson.Reader.BsonReader");
+        public static readonly TypeSyntax BsonWriterType = SF.ParseTypeName("MongoDB.Client.Bson.Writer.BsonWriter");
 
         public static SyntaxToken WriteBsonToken => Identifier("WriteBson");
         public static SyntaxToken TryParseToken => Identifier("TryParseBson");
