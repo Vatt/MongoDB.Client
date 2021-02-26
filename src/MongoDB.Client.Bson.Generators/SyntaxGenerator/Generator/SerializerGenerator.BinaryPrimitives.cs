@@ -7,15 +7,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
     {
         public static ExpressionSyntax BinaryPrimitivesWriteInt32LittleEndian(ExpressionSyntax destination, IdentifierNameSyntax value)
         {
-            return InvocationExpr(SF.IdentifierName("BinaryPrimitives"), SF.IdentifierName("WriteInt32LittleEndian"), SF.Argument(destination), SF.Argument(value));
+            return InvocationExpr(IdentifierName("BinaryPrimitives"), IdentifierName("WriteInt32LittleEndian"), Argument(destination), Argument(value));
         }
         public static ExpressionSyntax BinaryPrimitivesWriteInt32LittleEndian(SyntaxToken destination, SyntaxToken value)
         {
             return InvocationExpr(
-                SF.IdentifierName("BinaryPrimitives"),
-                SF.IdentifierName("WriteInt32LittleEndian"),
-                SF.Argument(IdentifierName(destination)),
-                SF.Argument(IdentifierName(value)));
+                IdentifierName("BinaryPrimitives"),
+                IdentifierName("WriteInt32LittleEndian"),
+                Argument(IdentifierName(destination)),
+                Argument(IdentifierName(value)));
         }
     }
 }

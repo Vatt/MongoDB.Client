@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
@@ -103,7 +104,60 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             return methods.ToArray();
         }
-
+        private static bool TryGenerateSimpleReadOpereation(MemberContext ctx, ITypeSymbol type, SyntaxToken readTarget, SyntaxToken bsonType, SyntaxToken outMessage, ImmutableList<StatementSyntax>.Builder builder)
+        {
+            var (operation, tempVar) = ReadOperation(ctx.Root, ctx.NameSym, type, ctx.Root.BsonReaderId, TypedVariableDeclarationExpr(TypeFullName(type), readTarget), bsonType);
+            if(operation == default)
+            {
+                return false;
+            }
+            builder.IfNotReturnFalseElse(condition: operation,
+                                         @else:
+                                            Block(
+                                                InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(tempVar.HasValue ? tempVar.Value : readTarget)),
+                                                ContinueStatement()));
+            return true;
+        }
+        private static bool TryGenerateTryParseBsonArrayOperation(MemberContext ctx, ITypeSymbol type, SyntaxToken readTarget, SyntaxToken outMessage, ImmutableList<StatementSyntax>.Builder builder)
+        {
+            if(IsBsonSerializable(type) == false)
+            {
+                return false;
+            }
+            var operation = InvocationExpr(IdentifierName(type.ToString()), IdentifierName("TryParseBson"), RefArgument(ctx.Root.BsonReaderId), OutArgument(TypedVariableDeclarationExpr(TypeFullName(type), readTarget)));
+            builder.IfNotReturnFalseElse(condition: operation,
+                                         @else: Block(InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(readTarget)), ContinueStatement()));
+            return true;
+        }
+        private static bool TryGenerateArrayReadEnumOperation(MemberContext ctx, ITypeSymbol type, SyntaxToken readTarget, SyntaxToken outMessage, ImmutableList<StatementSyntax>.Builder builder)
+        {
+            if(type.TypeKind != TypeKind.Enum)
+            {
+                return false;
+            }
+            var localReadEnumVar = Identifier($"{readTarget}EnumTemp");
+            int repr = GetEnumRepresentation(ctx.NameSym);
+            if (repr == -1) { repr = 2; }
+            if (repr != 1)
+            {
+                builder.Statements(
+                          repr == 2 ?
+                            LocalDeclarationStatement(IntPredefinedType(), localReadEnumVar, DefaultLiteralExpr()) :
+                            LocalDeclarationStatement(LongPredefinedType(), localReadEnumVar, DefaultLiteralExpr()),
+                          repr == 2 ?     
+                            IfNotReturnFalseElse(TryGetInt32(localReadEnumVar), Block(InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(Cast(type, localReadEnumVar))))) :
+                            IfNotReturnFalseElse(TryGetInt64(localReadEnumVar), Block(InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(Cast(type, localReadEnumVar)))))
+                    );
+            }
+            else
+            {
+                //var readMethod = IdentifierName(ReadStringReprEnumMethodName(member.Root, member.TypeMetadata, member.NameSym));
+                var readMethod = IdentifierName(ReadStringReprEnumMethodName(ctx.Root, type, ctx.NameSym));
+                builder.IfNotReturnFalseElse(condition: InvocationExpr(readMethod, RefArgument(ctx.Root.BsonReaderToken), OutArgument(VarVariableDeclarationExpr(localReadEnumVar))), 
+                                             @else: Block(InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(localReadEnumVar))));
+            }
+            return true;
+        }
         private static MethodDeclarationSyntax ReadArrayMethod(MemberContext ctx, ITypeSymbol type)
         {
             var docLenToken = Identifier("arrayDocLength");
@@ -117,13 +171,21 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var typeArg = ExtractTypeFromNullableIfNeed((type as INamedTypeSymbol).TypeArguments[0]);
 
             var trueType = ExtractTypeFromNullableIfNeed(type);
-
-            var (operation, tempVar) = ReadOperation(ctx.Root, ctx.NameSym, typeArg, ctx.Root.BsonReaderId, TypedVariableDeclarationExpr(TypeFullName(typeArg), tempArrayRead), bsonTypeToken);
-            if (operation == default)
+            var builder = ImmutableList.CreateBuilder<StatementSyntax>();
+            if(TryGenerateSimpleReadOpereation(ctx, typeArg, tempArrayRead, bsonTypeToken, outMessage, builder))
             {
-                //operation = InvocationExpr(IdentifierName(SelfFullName(typeArg)), IdentifierName("TryParseBson"), RefArgument(ctx.Root.BsonReaderId), OutArgument(TypedVariableDeclarationExpr(TypeFullName(typeArg), tempArrayRead)));
-                operation = InvocationExpr(IdentifierName(typeArg.ToString()), IdentifierName("TryParseBson"), RefArgument(ctx.Root.BsonReaderId), OutArgument(TypedVariableDeclarationExpr(TypeFullName(typeArg), tempArrayRead)));
+                goto RETURN;
             }
+            if(TryGenerateTryParseBsonArrayOperation(ctx, typeArg, tempArrayRead, outMessage, builder))
+            {
+                goto RETURN;
+            }
+            if(TryGenerateArrayReadEnumOperation(ctx, typeArg, tempArrayRead, outMessage, builder))
+            {
+                goto RETURN;
+            }
+            //TODO: Сгенерировать SerializersMap если ниодин не отработал
+        RETURN:
             return SF.MethodDeclaration(
                     attributeLists: default,
                     modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()),
@@ -157,19 +219,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                            InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(DefaultLiteralExpr())),
                                            ContinueStatement()
                                            )),
-                                   IfNotReturnFalseElse(
-                                       condition: operation,
-                                       @else:
-                                           Block(
-                                               InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(tempVar.HasValue ? tempVar.Value : tempArrayRead)),
-                                               ContinueStatement())))),
+                                   builder.ToArray()
+                                   )),
                        IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
                        IfStatement(
                            BinaryExprNotEquals(endMarkerToken, NumericLiteralExpr((byte)'\x00')),
                            Block(Statement(SerializerEndMarkerException(ctx.Root.Declaration, IdentifierName(endMarkerToken))))),
                        ReturnStatement(TrueLiteralExpr())
                        ));
-
         }
 
         private static MethodDeclarationSyntax WriteArrayMethod(MemberContext ctx, ITypeSymbol type)
@@ -192,9 +249,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                             statement: Block(WriteBsonNull(index)),
                             @else: Block(WriteOperation(ctx, index, ctx.NameSym, typeArg, classCtx.BsonWriterId, ElementAccessExpr(array, index))));
             }
-            else if (typeArg.NullableAnnotation == NullableAnnotation.Annotated && typeArg.TypeKind == TypeKind.Struct)
+            //else if (typeArg.NullableAnnotation == NullableAnnotation.Annotated && typeArg.TypeKind == TypeKind.Struct)
+            else if (typeArg.NullableAnnotation == NullableAnnotation.Annotated && typeArg.IsValueType)
             {
-                var operation = WriteOperation(ctx, index, ctx.NameSym, typeArg, classCtx.BsonWriterId, SimpleMemberAccess(ElementAccessExpr(IdentifierName(array), index), IdentifierName("Value")));
+                //var operation = WriteOperation(ctx, index, ctx.NameSym, typeArg, classCtx.BsonWriterId, SimpleMemberAccess(ElementAccessExpr(IdentifierName(array), index), IdentifierName("Value")));
+                var operation = WriteOperation(ctx, index, ctx.NameSym, ExtractTypeFromNullableIfNeed(typeArg), classCtx.BsonWriterId, SimpleMemberAccess(ElementAccessExpr(IdentifierName(array), index), IdentifierName("Value")));
                 writeOperation.IfStatement(
                             condition: BinaryExprEqualsEquals(SimpleMemberAccess(ElementAccessExpr(array, index), IdentifierName("HasValue")), FalseLiteralExpr()),
                             statement: Block(WriteBsonNull(index)),
