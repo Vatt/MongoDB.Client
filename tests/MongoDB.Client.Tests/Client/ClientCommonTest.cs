@@ -8,16 +8,16 @@ namespace MongoDB.Client.Tests.Client
     public class ClientCommonTest : ClientTestBase
     {
         [Fact]
-        async Task CommontTest()
+        public async Task CommonTest()
         {
             var model = CommonModel.Create();
-            var result = await InsertFindDeleteAsync(model);
+            var result = await CreateCollectionInsertFindDeleteDropCollectionAsync(model);
         }
         [Fact]
-        async Task CustomTest()
+        public async Task CustomTest()
         {
             var model = CustomModel.Create();
-            var result = await InsertFindDeleteAsync(model);
+            var result = await CreateCollectionInsertFindDeleteDropCollectionAsync(model);
         }
     }
 }

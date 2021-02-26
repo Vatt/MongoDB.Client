@@ -44,6 +44,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member);
         }
+        public static MemberAccessExpressionSyntax SimpleMemberAccess(ExpressionSyntax source, SyntaxToken member)
+        {
+            return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, IdentifierName(member));
+        }
         public static MemberAccessExpressionSyntax SimpleMemberAccess(SyntaxToken source, IdentifierNameSyntax member)
         {
             return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName(source), member);
@@ -72,6 +76,18 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static ExpressionSyntax InvocationExpr(ExpressionSyntax source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
         {
             return SF.InvocationExpression(SimpleMemberAccess(source, member), args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args));
+        }
+        public static ExpressionSyntax InvocationExpr(ExpressionSyntax source, SyntaxToken member, params ArgumentSyntax[] args)
+        {
+            return SF.InvocationExpression(SimpleMemberAccess(source, member), args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args));
+        }
+        public static ExpressionSyntax InvocationExpr(SyntaxToken source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
+        {
+            return SF.InvocationExpression(SimpleMemberAccess(source, member), args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args));
+        }
+        public static ExpressionSyntax InvocationExpr(ISymbol source, SyntaxToken member, params ArgumentSyntax[] args)
+        {
+            return SF.InvocationExpression(SimpleMemberAccess(IdentifierName(source), IdentifierName(member)), args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args));
         }
         public static InvocationExpressionSyntax InvocationExpr(ExpressionSyntax source, SimpleNameSyntax member, params ArgumentSyntax[] args)
         {

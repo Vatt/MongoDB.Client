@@ -113,7 +113,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
                     foreach (var member in ctx.Root.Members)
                     {
-                        var newid = SF.IdentifierName($"{ctx.Root.WriterInputVar.Identifier.Text}.{member.NameSym.Name}");
+                        var newid = SF.IdentifierName($"{WriterInputVarToken.Text}.{member.NameSym.Name}");
                         foreach (var node in expr.DescendantNodes())
                         {
                             if (node.ToString().Equals(member.NameSym.Name))

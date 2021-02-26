@@ -106,7 +106,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         private static bool TryGenerateSimpleReadOpereation(MemberContext ctx, ITypeSymbol type, SyntaxToken readTarget, SyntaxToken bsonType, SyntaxToken outMessage, ImmutableList<StatementSyntax>.Builder builder)
         {
-            var (operation, tempVar) = ReadOperation(ctx.Root, ctx.NameSym, type, ctx.Root.BsonReaderId, TypedVariableDeclarationExpr(TypeFullName(type), readTarget), bsonType);
+            var (operation, tempVar) = ReadOperation(ctx.Root, ctx.NameSym, type, BsonReaderToken, TypedVariableDeclarationExpr(TypeFullName(type), readTarget), bsonType);
             if(operation == default)
             {
                 return false;
@@ -124,7 +124,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return false;
             }
-            var operation = InvocationExpr(IdentifierName(type.ToString()), IdentifierName("TryParseBson"), RefArgument(ctx.Root.BsonReaderId), OutArgument(TypedVariableDeclarationExpr(TypeFullName(type), readTarget)));
+            var operation = InvocationExpr(IdentifierName(type.ToString()), IdentifierName("TryParseBson"), RefArgument(BsonReaderToken), OutArgument(TypedVariableDeclarationExpr(TypeFullName(type), readTarget)));
             builder.IfNotReturnFalseElse(condition: operation,
                                          @else: Block(InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(readTarget)), ContinueStatement));
             return true;
@@ -153,7 +153,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 //var readMethod = IdentifierName(ReadStringReprEnumMethodName(member.Root, member.TypeMetadata, member.NameSym));
                 var readMethod = IdentifierName(ReadStringReprEnumMethodName(ctx.Root, type, ctx.NameSym));
-                builder.IfNotReturnFalseElse(condition: InvocationExpr(readMethod, RefArgument(ctx.Root.BsonReaderToken), OutArgument(VarVariableDeclarationExpr(localReadEnumVar))), 
+                builder.IfNotReturnFalseElse(condition: InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(VarVariableDeclarationExpr(localReadEnumVar))), 
                                              @else: Block(InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(localReadEnumVar))));
             }
             return true;
@@ -192,7 +192,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     explicitInterfaceSpecifier: default,
                     returnType: BoolPredefinedType(),
                     identifier: ReadArrayMethodName(ctx.NameSym, type),
-                    parameterList: ParameterList(RefParameter(ctx.Root.BsonReaderType, ctx.Root.BsonReaderToken),
+                    parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken),
                                                  OutParameter(IdentifierName(type.ToString()), outMessage)),
                     body: default,
                     constraintClauses: default,
@@ -203,16 +203,16 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                    Block(
                        SimpleAssignExprStatement(IdentifierName(outMessage), ObjectCreation(TypeFullName(trueType))),
                        IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(docLenToken))),
-                       VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemaining(), SizeOfInt)),
+                       VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemainingExpr, SizeOfInt)),
                        SF.WhileStatement(
                            condition:
                                BinaryExprLessThan(
-                                   BinaryExprMinus(IdentifierName(unreadedToken), ReaderRemaining()),
+                                   BinaryExprMinus(IdentifierName(unreadedToken), ReaderRemainingExpr),
                                    BinaryExprMinus(IdentifierName(docLenToken), NumericLiteralExpr(1))),
                            statement:
                                Block(
                                    IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(bsonTypeToken))),
-                                   IfNotReturnFalse(TrySkipCString()),
+                                   IfNotReturnFalse(TrySkipCStringExpr),
                                    IfStatement(
                                        condition: BinaryExprEqualsEquals(bsonTypeToken, NumericLiteralExpr(10)),
                                        statement: Block(
@@ -247,13 +247,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 writeOperation.IfStatement(
                             condition: BinaryExprEqualsEquals(ElementAccessExpr(array, index), NullLiteralExpr()),
                             statement: Block(WriteBsonNull(index)),
-                            @else: Block(WriteOperation(ctx, index, ctx.NameSym, typeArg, classCtx.BsonWriterId, ElementAccessExpr(array, index))));
+                            @else: Block(WriteOperation(ctx, index, ctx.NameSym, typeArg, BsonWriterToken, ElementAccessExpr(array, index))));
             }
             //else if (typeArg.NullableAnnotation == NullableAnnotation.Annotated && typeArg.TypeKind == TypeKind.Struct)
             else if (typeArg.NullableAnnotation == NullableAnnotation.Annotated && typeArg.IsValueType)
             {
                 //var operation = WriteOperation(ctx, index, ctx.NameSym, typeArg, classCtx.BsonWriterId, SimpleMemberAccess(ElementAccessExpr(IdentifierName(array), index), IdentifierName("Value")));
-                var operation = WriteOperation(ctx, index, ctx.NameSym, ExtractTypeFromNullableIfNeed(typeArg), classCtx.BsonWriterId, SimpleMemberAccess(ElementAccessExpr(IdentifierName(array), index), IdentifierName("Value")));
+                var operation = WriteOperation(ctx, index, ctx.NameSym, ExtractTypeFromNullableIfNeed(typeArg), BsonWriterToken, SimpleMemberAccess(ElementAccessExpr(IdentifierName(array), index), IdentifierName("Value")));
                 writeOperation.IfStatement(
                             condition: BinaryExprEqualsEquals(SimpleMemberAccess(ElementAccessExpr(array, index), IdentifierName("HasValue")), FalseLiteralExpr()),
                             statement: Block(WriteBsonNull(index)),
@@ -261,7 +261,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             else
             {
-                writeOperation.AddRange(WriteOperation(ctx, index, ctx.NameSym, typeArg, classCtx.BsonWriterId, ElementAccessExpr(IdentifierName(array), index)));
+                writeOperation.AddRange(WriteOperation(ctx, index, ctx.NameSym, typeArg, BsonWriterToken, ElementAccessExpr(IdentifierName(array), index)));
             }
 
             return SF.MethodDeclaration(
@@ -271,7 +271,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     returnType: VoidPredefinedType(),
                     identifier: WriteArrayMethodName(ctx, trueType),
                     parameterList: ParameterList(
-                        RefParameter(classCtx.BsonWriterType, classCtx.BsonWriterToken),
+                        RefParameter(BsonWriterType, BsonWriterToken),
                         Parameter(TypeFullName(trueType), array)),
                     body: default,
                     constraintClauses: default,
@@ -280,7 +280,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     semicolonToken: default)
                 .WithBody(
                 Block(
-                    VarLocalDeclarationStatement(checkpoint, WriterWritten()),
+                    VarLocalDeclarationStatement(checkpoint, WriterWrittenExpr),
                     VarLocalDeclarationStatement(reserved, WriterReserve(4)),
                     ForStatement(
                         indexVar: index,
@@ -288,11 +288,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         incrementor: PostfixUnaryExpr(index),
                         body: Block(writeOperation!)),
                     WriteByteStatement((byte)'\x00'),
-                    VarLocalDeclarationStatement(docLength, BinaryExprMinus(WriterWritten(), IdentifierName(checkpoint))),
-                    LocalDeclarationStatement(SpanByte, sizeSpan, StackAllocByteArray(4)),
+                    VarLocalDeclarationStatement(docLength, BinaryExprMinus(WriterWrittenExpr, IdentifierName(checkpoint))),
+                    LocalDeclarationStatement(SpanByteName, sizeSpan, StackAllocByteArray(4)),
                     Statement(BinaryPrimitivesWriteInt32LittleEndian(sizeSpan, docLength)),
                     Statement(ReservedWrite(reserved, sizeSpan)),
-                    Statement(WriterCommit())
+                    Statement(WriterCommitExpr)
                 ));
         }
     }

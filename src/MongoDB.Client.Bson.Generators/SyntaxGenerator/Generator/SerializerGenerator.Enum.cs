@@ -85,7 +85,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     explicitInterfaceSpecifier: default,
                     returnType: BoolPredefinedType(),
                     identifier: ReadStringReprEnumMethodName(ctx.Root, trueType, ctx.NameSym),
-                    parameterList: ParameterList(RefParameter(ctx.Root.BsonReaderType, ctx.Root.BsonReaderToken),
+                    parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken),
                                                  OutParameter(IdentifierName(ctx.TypeSym.ToString()), outMessage)),
                     body: default,
                     constraintClauses: default,
@@ -109,7 +109,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var (_, alias) = GetMemberAlias(member);
                 statements.Add(
                     SF.IfStatement(
-                        condition: BinaryExprEqualsEquals(ctx.Root.WriterInputVar, IdentifierFullName(member)),
+                        condition: BinaryExprEqualsEquals(WriterInputVarToken, IdentifierFullName(member)),
                         statement: SF.Block(
                             //Statement(Write_Type_Name(2, IdentifierName(StaticFieldNameToken(ctx)))),
                             Statement(Write_Type_Name(2, spanNameArg)),
@@ -122,9 +122,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     explicitInterfaceSpecifier: default,
                     returnType: VoidPredefinedType(),
                     identifier: WriteStringReprEnumMethodName(ctx.Root, trueType, ctx.NameSym),
-                    parameterList: ParameterList(RefParameter(ctx.Root.BsonWriterType, ctx.Root.BsonWriterToken),
-                                                 Parameter(ReadOnlySpanByte, spanNameArg),
-                                                 Parameter(TypeFullName(trueType), ctx.Root.WriterInputVarToken)),
+                    parameterList: ParameterList(RefParameter(BsonWriterType, BsonWriterToken),
+                                                 Parameter(ReadOnlySpanByteName, spanNameArg),
+                                                 Parameter(TypeFullName(trueType), WriterInputVarToken)),
 
                     body: default,
                     constraintClauses: default,

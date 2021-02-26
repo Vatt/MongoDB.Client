@@ -9,6 +9,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        public static readonly GenericNameSyntax ReadOnlySpanByteName = GenericName(Identifier("ReadOnlySpan"), BytePredefinedType());
+        public static readonly GenericNameSyntax SpanByteName = GenericName(Identifier("Span"), BytePredefinedType());
+        public static readonly ContinueStatementSyntax ContinueStatement = SF.ContinueStatement();
         public static ITypeSymbol ExtractTypeFromNullableIfNeed(ITypeSymbol original)
         {
             if (original is INamedTypeSymbol namedType)
@@ -32,11 +35,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return original;
         }
-
-        public static readonly GenericNameSyntax ReadOnlySpanByte = GenericName(SF.Identifier("ReadOnlySpan"), BytePredefinedType());
-
-        public static readonly GenericNameSyntax SpanByte = GenericName(SF.Identifier("Span"), BytePredefinedType());
-
         public static ExpressionSyntax SpanSequenceEqual(ExpressionSyntax spanName, ExpressionSyntax otherSpanName)
         {
             return InvocationExpr(spanName, SF.IdentifierName("SequenceEqual"), SF.Argument(otherSpanName));
@@ -192,6 +190,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.BinaryExpression(SyntaxKind.EqualsExpression, left, right);
         }
+        public static BinaryExpressionSyntax BinaryExprEqualsEquals(SyntaxToken left, SyntaxToken right)
+        {
+            return BinaryExprEqualsEquals(IdentifierName(left), IdentifierName(right));
+        }
         public static BinaryExpressionSyntax BinaryExprEqualsEquals(ExpressionSyntax left, SyntaxToken right)
         {
             return SF.BinaryExpression(SyntaxKind.EqualsExpression, left, IdentifierName(right));
@@ -280,9 +282,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Block(expressions.Select(e => Statement(e)));
         }
-
-
-        public static readonly ContinueStatementSyntax ContinueStatement = SF.ContinueStatement();
 
         public static ReturnStatementSyntax ReturnStatement(ExpressionSyntax expr = null)
         {

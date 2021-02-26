@@ -17,7 +17,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var serializersMapCall = InvocationExpr(IdentifierName("MongoDB.Client.Bson.Serialization.SerializersMap"),
                                                     genericName,
                                                     OutArgument(VarVariableDeclarationExpr(SF.Identifier($"{member.NameSym.Name}Serializer"))));
-            var serializerTryParse = InvocationExpr(SF.IdentifierName($"{member.NameSym.Name}Serializer"), IdentifierName("TryParseBson"), RefArgument(member.Root.BsonReaderToken), OutArgument(IdentifierName(member.AssignedVariable)));
+            var serializerTryParse = InvocationExpr(SF.IdentifierName($"{member.NameSym.Name}Serializer"), IdentifierName("TryParseBson"), RefArgument(BsonReaderToken), OutArgument(IdentifierName(member.AssignedVariable)));
             return Statements(
                 IfNot(serializersMapCall, SerializerNotFoundException(member.TypeSym)),
                 IfNotReturnFalse(serializerTryParse));
@@ -28,8 +28,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var serializersMapCall = InvocationExpr(IdentifierName("MongoDB.Client.Bson.Serialization.SerializersMap"),
                                                     genericName,
                                                     OutArgument(VarVariableDeclarationExpr(SF.Identifier($"{member.NameSym.Name}Serializer"))));
-            var sma = SimpleMemberAccess(member.Root.WriterInputVar, IdentifierName(member.NameSym));
-            var serializerWrite = InvocationExprStatement(SF.IdentifierName($"{member.NameSym.Name}Serializer"), IdentifierName("WriteBson"), RefArgument(member.Root.BsonWriterToken), Argument(sma));
+            var sma = SimpleMemberAccess(WriterInputVarToken, IdentifierName(member.NameSym));
+            var serializerWrite = InvocationExprStatement(SF.IdentifierName($"{member.NameSym.Name}Serializer"), IdentifierName("WriteBson"), RefArgument(BsonWriterToken), Argument(sma));
             return Statements(
                 IfNot(serializersMapCall, SerializerNotFoundException(member.TypeSym)),
                 serializerWrite);
@@ -185,7 +185,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     SF.PropertyDeclaration(
                         attributeLists: default,
                         modifiers: new(PrivateKeyword(), StaticKeyword()),
-                        type: ReadOnlySpanByte,
+                        type: ReadOnlySpanByteName,
                         explicitInterfaceSpecifier: default,
                         identifier: StaticFieldNameToken(member),
                         accessorList: default,
@@ -228,7 +228,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                             SF.PropertyDeclaration(
                                 attributeLists: default,
                                 modifiers: new(PrivateKeyword(), StaticKeyword()),
-                                type: ReadOnlySpanByte,
+                                type: ReadOnlySpanByteName,
                                 explicitInterfaceSpecifier: default,
                                 identifier: StaticEnumFieldNameToken(typedMetadata, bsonAlias),
                                 accessorList: default,
