@@ -185,7 +185,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     SF.PropertyDeclaration(
                         attributeLists: default,
                         modifiers: new(PrivateKeyword(), StaticKeyword()),
-                        type: ReadOnlySpanByte(),
+                        type: ReadOnlySpanByte,
                         explicitInterfaceSpecifier: default,
                         identifier: StaticFieldNameToken(member),
                         accessorList: default,
@@ -228,7 +228,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                             SF.PropertyDeclaration(
                                 attributeLists: default,
                                 modifiers: new(PrivateKeyword(), StaticKeyword()),
-                                type: ReadOnlySpanByte(),
+                                type: ReadOnlySpanByte,
                                 explicitInterfaceSpecifier: default,
                                 identifier: StaticEnumFieldNameToken(typedMetadata, bsonAlias),
                                 accessorList: default,

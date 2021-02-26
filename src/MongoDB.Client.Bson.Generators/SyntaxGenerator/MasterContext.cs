@@ -7,11 +7,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
     internal class MasterContext
     {
         public readonly List<ContextCore> Contexts;
-        public MasterContext(List<(SyntaxNode, INamedTypeSymbol)> symbols)
+        public MasterContext(List<(SyntaxNode, INamedTypeSymbol)> symbols, System.Threading.CancellationToken cancellationToken)
         {
             Contexts = new List<ContextCore>();
             foreach (var pair in symbols)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var (node, symbol) = pair;
                 if (node is RecordDeclarationSyntax)
                 {

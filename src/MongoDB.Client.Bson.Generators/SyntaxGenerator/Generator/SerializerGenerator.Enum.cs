@@ -123,7 +123,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     returnType: VoidPredefinedType(),
                     identifier: WriteStringReprEnumMethodName(ctx.Root, trueType, ctx.NameSym),
                     parameterList: ParameterList(RefParameter(ctx.Root.BsonWriterType, ctx.Root.BsonWriterToken),
-                                                 Parameter(ReadOnlySpanByte(), spanNameArg),
+                                                 Parameter(ReadOnlySpanByte, spanNameArg),
                                                  Parameter(TypeFullName(trueType), ctx.Root.WriterInputVarToken)),
 
                     body: default,

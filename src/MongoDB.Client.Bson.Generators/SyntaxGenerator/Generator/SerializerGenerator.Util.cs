@@ -16,6 +16,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             builder.Add(SerializerGenerator.Statement(expr));
         }
+        public static void Statements(this ImmutableList<StatementSyntax>.Builder builder, params StatementSyntax[] statements)
+        {
+            builder.AddRange(statements);
+        }
         public static void IfStatement(this ImmutableList<StatementSyntax>.Builder builder, ExpressionSyntax condition, StatementSyntax statement, BlockSyntax @else)
         {
             builder.Add(SerializerGenerator.IfStatement(condition, statement, @else));
@@ -32,13 +36,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             builder.Add(SerializerGenerator.DefaultLocalDeclarationStatement(type, variable));
         }
-        public static void TryReadGeneric(this ImmutableList<StatementSyntax>.Builder builder, SyntaxToken bsonType, ExpressionSyntax assignOrDecl)
+        public static void IfNotReturnFalseElse(this ImmutableList<StatementSyntax>.Builder builder, ExpressionSyntax condition, BlockSyntax @else)
         {
-            builder.Add(SerializerGenerator.TryReadGeneric(bsonType, assignOrDecl));
+            builder.Add(SerializerGenerator.IfNotReturnFalseElse(condition, @else));
         }
-        public static void TryReadGenericNullable(this ImmutableList<StatementSyntax>.Builder builder, TypeSyntax typeParam, SyntaxToken bsonType, ExpressionSyntax assignOrDecl)
+        public static void IfNotReturnFalse(this ImmutableList<StatementSyntax>.Builder builder, ExpressionSyntax condition)
         {
-            builder.Add(SerializerGenerator.TryReadGenericNullable(typeParam, bsonType, assignOrDecl));
+            builder.Add(SerializerGenerator.IfNotReturnFalse(condition));
         }
     }
 }

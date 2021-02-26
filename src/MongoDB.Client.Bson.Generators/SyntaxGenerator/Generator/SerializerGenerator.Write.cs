@@ -46,7 +46,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     inner.IfStatement(
                             BinaryExprEqualsEquals(writeTarget, Default(TypeFullName(trueType))),
-                            Block(SimpleAssignExprStatement(writeTarget, NewBsonObjectId())));
+                            Block(SimpleAssignExprStatement(writeTarget, NewBsonObjectId)));
                 }
 
                 if (trueType.IsReferenceType)
@@ -87,7 +87,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 .AddStatements(
                     WriteByteStatement((byte)'\x00'),
                     VarLocalDeclarationStatement(docLength, BinaryExprMinus(WriterWritten(), checkpoint)),
-                    LocalDeclarationStatement(SpanByte(), sizeSpan, StackAllocByteArray(4)),
+                    LocalDeclarationStatement(SpanByte, sizeSpan, StackAllocByteArray(4)),
                     Statement(BinaryPrimitivesWriteInt32LittleEndian(sizeSpan, docLength)),
                     Statement(ReservedWrite(reserved, sizeSpan)),
                     Statement(WriterCommit())
@@ -101,7 +101,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
                 return Statements(expr);
             }
-            if (TryGenerateWriteEnum(ctx.Root, ctx, writeTarget, out var enumStatements))
+            if (TryGenerateWriteEnum(ctx.Root, ctx, typeSym, writeTarget, out var enumStatements))
             {
                 return enumStatements.ToStatements().ToArray();
             }
@@ -109,9 +109,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return Statements
                 (
-                    VarLocalDeclarationStatement(SF.Identifier($"{name}genericReserved"), WriterReserve(1)),
+                    VarLocalDeclarationStatement(Identifier($"{name}genericReserved"), WriterReserve(1)),
                     Statement(WriteCString(StaticFieldNameToken(ctx))),
-                    Statement(WriteGeneric(writeTarget, SF.IdentifierName($"{name}genericReserved")))
+                    Statement(WriteGeneric(writeTarget, IdentifierName($"{name}genericReserved")))
                 );
             }
             if (trueType is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)
@@ -135,10 +135,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     OtherWriteBson(ctx)
                 );
         }
-        public static bool TryGenerateWriteEnum(ContextCore ctx, MemberContext member, ExpressionSyntax writeTarget, out ImmutableList<ExpressionSyntax> statements)
+        public static bool TryGenerateWriteEnum(ContextCore ctx, MemberContext member, ITypeSymbol typeSym, ExpressionSyntax writeTarget, out ImmutableList<ExpressionSyntax> statements)
         {
             statements = default;
-            var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
+            var trueType = ExtractTypeFromNullableIfNeed(typeSym);
             if (trueType.TypeKind != TypeKind.Enum)
             {
                 return false;

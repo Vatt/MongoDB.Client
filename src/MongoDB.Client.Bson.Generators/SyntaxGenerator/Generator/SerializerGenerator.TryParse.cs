@@ -57,7 +57,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                      SimpleAssignExprStatement(ctx.TryParseOutVar, DefaultLiteralExpr()),
                      DeclareTempVariables(ctx),
                      IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(docLenToken))),
-                     VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemaining(), SizeOfInt())),
+                     VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemaining(), SizeOfInt)),
                        SF.WhileStatement(
                            condition:
                               BinaryExprLessThan(
@@ -161,7 +161,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                             condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
                             statement: Block(
                                         OtherTryParseBson(member),
-                                        ContinueStatement()));
+                                        ContinueStatement));
             }
             return builder.ToArray();
         }
@@ -187,7 +187,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                           repr == 2 ?
                             IfNotReturnFalseElse(TryGetInt32(localReadEnumVar), Block(SimpleAssignExprStatement(member.AssignedVariable, Cast(trueType, localReadEnumVar)))) :
                             IfNotReturnFalseElse(TryGetInt64(localReadEnumVar), Block(SimpleAssignExprStatement(member.AssignedVariable, Cast(trueType, localReadEnumVar)))),
-                            ContinueStatement()
+                            ContinueStatement
                     ));
             }
             else
@@ -198,7 +198,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
                         statement: Block(
                             IfNotReturnFalse(InvocationExpr(readMethod, RefArgument(member.Root.BsonReaderToken), OutArgument(member.AssignedVariable))),
-                            ContinueStatement()
+                            ContinueStatement
                         ));
             }
             return true;
@@ -211,8 +211,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 builder.IfStatement(condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
                                     statement: tempVar.HasValue
-                                        ? Block(IfNotReturnFalse(operation), SimpleAssignExprStatement(member.AssignedVariable, tempVar.Value), ContinueStatement())
-                                        : Block(IfNotReturnFalse(operation), ContinueStatement()));
+                                        ? Block(IfNotReturnFalse(operation), SimpleAssignExprStatement(member.AssignedVariable, tempVar.Value), ContinueStatement)
+                                        : Block(IfNotReturnFalse(operation), ContinueStatement));
                 return true;
             }
             return false;
@@ -228,7 +228,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                                    RefArgument(ctx.BsonReaderId),
                                                    OutArgument(member.AssignedVariable));
                     builder.IfStatement(condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
-                                        statement: Block(IfNotReturnFalse(condition), ContinueStatement()));
+                                        statement: Block(IfNotReturnFalse(condition), ContinueStatement));
                     return true;
                 }
                 else
@@ -242,7 +242,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                             Block(
                                                 IfNotReturnFalse(condition),
                                                 SimpleAssignExprStatement(member.AssignedVariable, localTryParseVar),
-                                                ContinueStatement()));
+                                                ContinueStatement));
                     return true;
                 }
             }
@@ -252,7 +252,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             if (ctx.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(typeSym.Name)) != default) // generic type arguments
             {
-                var temp = Identifier($"{nameSym.Name.ToString()}TempGenericNullable");
+                var temp = Identifier($"{nameSym.Name}TempGenericNullable");
                 if (typeSym.NullableAnnotation == NullableAnnotation.Annotated)
                 {
                     return new(TryReadGenericNullable(TypeName(typeSym.OriginalDefinition), bsonType, VarVariableDeclarationExpr(temp)), temp);
