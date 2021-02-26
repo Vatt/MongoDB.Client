@@ -32,23 +32,18 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return original;
         }
-        public static GenericNameSyntax ReadOnlySpanByte()
-        {
-            return GenericName(SF.Identifier("ReadOnlySpan"), BytePredefinedType());
-        }
-        public static GenericNameSyntax SpanByte()
-        {
-            return GenericName(SF.Identifier("Span"), BytePredefinedType());
-        }
+
+        public static readonly GenericNameSyntax ReadOnlySpanByte = GenericName(SF.Identifier("ReadOnlySpan"), BytePredefinedType());
+
+        public static readonly GenericNameSyntax SpanByte = GenericName(SF.Identifier("Span"), BytePredefinedType());
 
         public static ExpressionSyntax SpanSequenceEqual(ExpressionSyntax spanName, ExpressionSyntax otherSpanName)
         {
             return InvocationExpr(spanName, SF.IdentifierName("SequenceEqual"), SF.Argument(otherSpanName));
         }
-        public static ExpressionSyntax NewBsonObjectId()
-        {
-            return InvocationExpr(TypeFullName(TypeLib.BsonObjectId), SF.IdentifierName("NewObjectId"));
-        }
+
+        public static readonly ExpressionSyntax NewBsonObjectId = InvocationExpr(TypeFullName(TypeLib.BsonObjectId), SF.IdentifierName("NewObjectId"));
+
         public static ExpressionSyntax SpanSequenceEqual(SyntaxToken spanName, SyntaxToken otherSpanName)
         {
             return InvocationExpr(IdentifierName(spanName), SF.IdentifierName("SequenceEqual"), SF.Argument(IdentifierName(otherSpanName)));
@@ -162,10 +157,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.InvocationExpression(SF.IdentifierName("nameof"), SF.ArgumentList().AddArguments(SF.Argument(expr)));
         }
-        public static SizeOfExpressionSyntax SizeOfInt()
-        {
-            return SizeOf(IntPredefinedType());
-        }
+
+        public static readonly SizeOfExpressionSyntax SizeOfInt = SizeOf(IntPredefinedType());
+
         public static BinaryExpressionSyntax BinaryExprMinus(ExpressionSyntax left, ExpressionSyntax right)
         {
             return SF.BinaryExpression(SyntaxKind.SubtractExpression, left, right);
@@ -286,11 +280,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Block(expressions.Select(e => Statement(e)));
         }
-        public static ContinueStatementSyntax ContinueStatement()
-        {
-            return SF.ContinueStatement();
-        }
-        public static ReturnStatementSyntax ReturnStatement(ExpressionSyntax? expr = null)
+
+
+        public static readonly ContinueStatementSyntax ContinueStatement = SF.ContinueStatement();
+
+        public static ReturnStatementSyntax ReturnStatement(ExpressionSyntax expr = null)
         {
             return SF.ReturnStatement(expr);
         }
