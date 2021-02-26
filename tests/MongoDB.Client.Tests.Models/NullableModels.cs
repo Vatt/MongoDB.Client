@@ -45,13 +45,13 @@ namespace MongoDB.Client.Tests.Models
         [BsonEnum(EnumRepresentation.String)]
         public StringEnum? StringEnum3 { get; set; }
 
-        //public List<IntEnum?> IntEnumList { get; set; }
+        public List<IntEnum?> IntEnumList { get; set; }
 
-        //[BsonEnum(EnumRepresentation.Int64)]
-        //public List<LongEnum?> LongEnumList { get; set; }
+        [BsonEnum(EnumRepresentation.Int64)]
+        public List<LongEnum?> LongEnumList { get; set; }
 
-        //[BsonEnum(EnumRepresentation.String)]
-        //public List<StringEnum?> StringEnumList { get; set; }
+        [BsonEnum(EnumRepresentation.String)]
+        public List<StringEnum?> StringEnumList { get; set; }
         public static EnumNullable Create() => new EnumNullable
         {
             IntEnum1 = IntEnum.One,
@@ -63,6 +63,9 @@ namespace MongoDB.Client.Tests.Models
             StringEnum1 = StringEnum.StringField2,
             StringEnum2 = StringEnum.StringField1,
             StringEnum3 = null,
+            IntEnumList  = new() { IntEnum.One, null, IntEnum.Two },
+            LongEnumList  = new() { LongEnum.One, null, LongEnum.Two },
+            StringEnumList = new() { StringEnum.StringField1, null, StringEnum.StringField2 }
         };
 
         public bool Equals(EnumNullable? other)
@@ -72,7 +75,8 @@ namespace MongoDB.Client.Tests.Models
             return IntEnum1 == other.IntEnum1 && IntEnum2 == other.IntEnum2 && IntEnum3 == other.IntEnum3 && 
                    LongEnum1 == other.LongEnum1 && LongEnum2 == other.LongEnum2 && LongEnum3 == other.LongEnum3 &&
                    StringEnum1 == other.StringEnum1 && StringEnum2 == other.StringEnum2 && 
-                   StringEnum3 == other.StringEnum3;
+                   StringEnum3 == other.StringEnum3 && LongEnumList.SequenceEqual(other.LongEnumList) && 
+                   IntEnumList.SequenceEqual(other.IntEnumList) && StringEnumList.SequenceEqual(other.StringEnumList);
         }
 
         public override bool Equals(object? obj)
@@ -95,6 +99,9 @@ namespace MongoDB.Client.Tests.Models
             hashCode.Add(StringEnum1);
             hashCode.Add(StringEnum2);
             hashCode.Add(StringEnum3);
+            hashCode.Add(IntEnumList);
+            hashCode.Add(LongEnumList);
+            hashCode.Add(StringEnumList);
             return hashCode.ToHashCode();
         }
     }
