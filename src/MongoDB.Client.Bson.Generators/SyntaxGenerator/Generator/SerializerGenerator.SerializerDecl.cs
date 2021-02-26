@@ -13,23 +13,24 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
     {
         public static StatementSyntax[] OtherTryParseBson(MemberContext member)
         {
-            var genericName = GenericName(SF.Identifier("TryGetSerializer"), TypeFullName(member.TypeSym));
+            var genericName = GenericName(Identifier("TryGetSerializer"), TypeFullName(member.TypeSym));
             var serializersMapCall = InvocationExpr(IdentifierName("MongoDB.Client.Bson.Serialization.SerializersMap"),
                                                     genericName,
-                                                    OutArgument(VarVariableDeclarationExpr(SF.Identifier($"{member.NameSym.Name}Serializer"))));
-            var serializerTryParse = InvocationExpr(SF.IdentifierName($"{member.NameSym.Name}Serializer"), IdentifierName("TryParseBson"), RefArgument(BsonReaderToken), OutArgument(IdentifierName(member.AssignedVariable)));
+                                                    OutArgument(VarVariableDeclarationExpr(Identifier($"{member.NameSym.Name}Serializer"))));
+            var serializerTryParse = InvocationExpr(IdentifierName($"{member.NameSym.Name}Serializer"), TryParseBsonToken, RefArgument(BsonReaderToken), OutArgument(IdentifierName(member.AssignedVariable)));
             return Statements(
                 IfNot(serializersMapCall, SerializerNotFoundException(member.TypeSym)),
                 IfNotReturnFalse(serializerTryParse));
         }
         public static StatementSyntax[] OtherWriteBson(MemberContext member)
         {
-            var genericName = GenericName(SF.Identifier("TryGetSerializer"), TypeFullName(member.TypeSym));
+            var genericName = GenericName(Identifier("TryGetSerializer"), TypeFullName(member.TypeSym));
             var serializersMapCall = InvocationExpr(IdentifierName("MongoDB.Client.Bson.Serialization.SerializersMap"),
                                                     genericName,
-                                                    OutArgument(VarVariableDeclarationExpr(SF.Identifier($"{member.NameSym.Name}Serializer"))));
+                                                    OutArgument(VarVariableDeclarationExpr(Identifier($"{member.NameSym.Name}Serializer"))));
             var sma = SimpleMemberAccess(WriterInputVarToken, IdentifierName(member.NameSym));
-            var serializerWrite = InvocationExprStatement(SF.IdentifierName($"{member.NameSym.Name}Serializer"), IdentifierName("WriteBson"), RefArgument(BsonWriterToken), Argument(sma));
+            //var serializerWrite = InvocationExprStatement(IdentifierName($"{member.NameSym.Name}Serializer"), WriteBsonToken, RefArgument(BsonWriterToken), Argument(sma));
+            var serializerWrite = InvocationExprStatement(IdentifierName($"{member.NameSym.Name}Serializer"), IdentifierName(WriteBsonToken), RefArgument(BsonWriterToken), Argument(sma));
             return Statements(
                 IfNot(serializersMapCall, SerializerNotFoundException(member.TypeSym)),
                 serializerWrite);
@@ -38,14 +39,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             if (symbol is INamedTypeSymbol namedSym && namedSym.TypeArguments.Length > 0)
             {
-                return GenericName(SF.Identifier(namedSym.Name), namedSym.TypeArguments.Select(sym => TypeFullName(sym)).ToArray()).ToString();
+                return GenericName(Identifier(namedSym.Name), namedSym.TypeArguments.Select(sym => TypeFullName(sym)).ToArray()).ToString();
             }
             else
             {
                 return symbol.Name;
             }
         }
-        public static string SelfFullName(ISymbol symbol)
+        public static string SelfFullName(ISymbol symbol) //TODO: починить для генериков
         {
             if (symbol is INamedTypeSymbol namedSym && namedSym.TypeArguments.Length > 0)
             {
@@ -139,7 +140,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                          default,
                          new(PublicKeyword(), PartialKeyword()),
                          RecordKeyword(),
-                         SF.Identifier(SelfName(namedSym)),
+                         Identifier(SelfName(namedSym)),
                          default, default, default, default,
                          OpenBraceToken(), new SyntaxList<MemberDeclarationSyntax>().Add(member), CloseBraceToken(), default);
                     //((RecordDeclarationSyntax)decl).AddTypeParameterListParameters

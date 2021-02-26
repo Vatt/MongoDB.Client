@@ -10,7 +10,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static readonly TypeSyntax BsonWriterType = SF.ParseTypeName("MongoDB.Client.Bson.Writer.BsonWriter");
 
         public static SyntaxToken WriteBsonToken => Identifier("WriteBson");
-        public static SyntaxToken TryParseToken => Identifier("TryParseBson");
+        public static SyntaxToken TryParseBsonToken => Identifier("TryParseBson");
         public static SyntaxToken NullableHasValueToken => Identifier("HasValue");
         public static SyntaxToken NullableValueToken => Identifier("Value");
         public static SyntaxToken BsonReaderToken => Identifier("reader");

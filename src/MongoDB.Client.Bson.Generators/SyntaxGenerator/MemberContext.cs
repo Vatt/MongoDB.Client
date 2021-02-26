@@ -14,7 +14,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         internal readonly string BsonElementValue;
         internal readonly ImmutableArray<ITypeSymbol>? TypeGenericArgs;
         internal SyntaxToken AssignedVariable;
-        internal bool IsGenericType => Root.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(TypeSym.Name)) != default;
         public MemberContext(ContextCore root, ISymbol memberSym)
         {
             Root = root;

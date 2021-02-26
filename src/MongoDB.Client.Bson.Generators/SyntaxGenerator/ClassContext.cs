@@ -13,7 +13,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             DeclarationNode = node;
             Members = new List<MemberContext>();
             GenericArgs = Declaration.TypeArguments.IsEmpty ? null : Declaration.TypeArguments;
-            IsRecord = false;
             if (SerializerGenerator.TryFindPrimaryConstructor(Declaration, out var constructor))
             {
                 if (constructor!.Parameters.Length != 0)

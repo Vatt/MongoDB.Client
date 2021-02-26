@@ -61,6 +61,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.ExpressionStatement(InvocationExpr(source, member, args));
         }
+        public static ExpressionStatementSyntax InvocationExprStatement(ExpressionSyntax source, SyntaxToken member, params ArgumentSyntax[] args)
+        {
+            return SF.ExpressionStatement(InvocationExpr(source, member, args));
+        }
         public static ExpressionStatementSyntax InvocationExprStatement(SyntaxToken source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
         {
             return SF.ExpressionStatement(InvocationExpr(IdentifierName(source), member, args));
@@ -289,12 +293,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static IdentifierNameSyntax IdentifierFullName(ISymbol sym)
         {
-            return SF.IdentifierName(sym.ToString());
+            return IdentifierName(sym.ToString());
         }
 
         public static SyntaxToken TokenName(ISymbol sym)
         {
-            return SF.Identifier(sym.Name);
+            return Identifier(sym.Name);
         }
 
         public static SyntaxToken SemicolonToken()
@@ -311,7 +315,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static SyntaxToken TokenFullName(ISymbol sym)
         {
-            return SF.Identifier(sym.ToString());
+            return Identifier(sym.ToString());
         }
         public static TypeSyntax TypeFullName(ISymbol sym)
         {

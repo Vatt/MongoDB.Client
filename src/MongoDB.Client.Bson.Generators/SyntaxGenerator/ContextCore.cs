@@ -10,9 +10,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 
     internal class ContextCore
     {
-
-
-        internal bool IsRecord;
         internal MasterContext Root;
         internal INamedTypeSymbol Declaration;
         internal SyntaxNode DeclarationNode;
