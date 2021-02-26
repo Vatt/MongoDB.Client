@@ -42,11 +42,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
                 TryGetBsonWriteIgnoreIfAttr(member, out var condition);
 
-                if (member.BsonElementAlias.Equals("_id") && TypeLib.IsBsonObjectId(trueType))
+                if (member.BsonElementAlias.Equals("_id") && IsBsonObjectId(trueType))
                 {
                     inner.IfStatement(
                             BinaryExprEqualsEquals(writeTarget, Default(TypeFullName(trueType))),
-                            Block(SimpleAssignExprStatement(writeTarget, NewBsonObjectId)));
+                            Block(SimpleAssignExprStatement(writeTarget, NewBsonObjectIdExpr)));
                 }
 
                 if (trueType.IsReferenceType)
@@ -116,7 +116,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             if (trueType is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)
             {
-                if (TypeLib.IsListOrIList(namedType))
+                if (IsListOrIList(namedType))
                 {
                     return Statements
                     (
@@ -197,27 +197,27 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     //    expr = Write_Type_Name_Value(bsonName, writeTarget);
                     //    return true;
             }
-            if (TypeLib.IsBsonDocument(typeSymbol))
+            if (IsBsonDocument(typeSymbol))
             {
                 expr = Write_Type_Name_Value(bsonName, writeTarget);
                 return true;
             }
-            if (TypeLib.IsBsonArray(typeSymbol))
+            if (IsBsonArray(typeSymbol))
             {
                 expr = Write_Type_Name_Value(bsonName, writeTarget);
                 return true;
             }
-            if (TypeLib.IsBsonObjectId(typeSymbol))
+            if (IsBsonObjectId(typeSymbol))
             {
                 expr = Write_Type_Name_Value(bsonName, writeTarget);
                 return true;
             }
-            if (TypeLib.IsGuid(typeSymbol))
+            if (IsGuid(typeSymbol))
             {
                 expr = Write_Type_Name_Value(bsonName, writeTarget);
                 return true;
             }
-            if (TypeLib.IsDateTimeOffset(typeSymbol))
+            if (IsDateTimeOffset(typeSymbol))
             {
                 expr = Write_Type_Name_Value(bsonName, writeTarget);
                 return true;

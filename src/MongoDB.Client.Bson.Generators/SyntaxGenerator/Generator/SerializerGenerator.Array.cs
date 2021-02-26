@@ -46,7 +46,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             foreach (var member in ctx.Members)
             {
-                if (TypeLib.IsListOrIList(member.TypeSym))
+                if (IsListOrIList(member.TypeSym))
                 {
                     var type = member.TypeSym as INamedTypeSymbol;
                     if (type is null)
@@ -65,7 +65,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         methods.Add(ReadArrayMethod(member, type));
                         type = type.TypeArguments[0] as INamedTypeSymbol;
                         //if (type is null || type.TypeArguments.IsEmpty)
-                        if (type is null || (TypeLib.IsListOrIList(type) == false))
+                        if (type is null || (IsListOrIList(type) == false))
                         {
                             break;
                         }
@@ -80,7 +80,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             List<MethodDeclarationSyntax> methods = new();
             foreach (var member in ctx.Members)
             {
-                if (TypeLib.IsListOrIList(member.TypeSym))
+                if (IsListOrIList(member.TypeSym))
                 {
                     var type = member.TypeSym as INamedTypeSymbol;
                     if (type is null)
@@ -94,7 +94,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         methods.Add(WriteArrayMethod(member, type));
                         type = type.TypeArguments[0] as INamedTypeSymbol;
                         //if (type is null || type.TypeArguments.IsEmpty)
-                        if (type is null || (TypeLib.IsListOrIList(type) == false))
+                        if (type is null || (IsListOrIList(type) == false))
                         {
                             break;
                         }

@@ -14,7 +14,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         internal readonly string BsonElementValue;
         internal readonly ImmutableArray<ITypeSymbol>? TypeGenericArgs;
         internal SyntaxToken AssignedVariable;
-        internal readonly ISymbol TypeMetadata;
         internal bool IsGenericType => Root.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(TypeSym.Name)) != default;
         public MemberContext(ContextCore root, ISymbol memberSym)
         {
@@ -31,12 +30,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     break;
                 default: break;
             }
-            if (TypeSym != null)
-            {
-                _ = TypeLib.TryGetMetadata(TypeSym, out TypeMetadata);
-            }
 
-            //var some = TypeLib.GetTypesByMetadataName(TypeSym!.ToString()).ToArray();
             if (TypeSym is INamedTypeSymbol namedType)
             {
                 TypeGenericArgs = namedType.TypeArguments.IsEmpty ? null : namedType.TypeArguments;

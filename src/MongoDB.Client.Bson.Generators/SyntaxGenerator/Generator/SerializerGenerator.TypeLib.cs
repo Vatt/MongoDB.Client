@@ -1,12 +1,17 @@
-﻿using Microsoft.CodeAnalysis;
-using System.Text;
+﻿using System.Text;
+using Microsoft.CodeAnalysis;
 
-namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
+namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
-    public class TypeLib
+    internal static partial class SerializerGenerator
     {
-
-        /*public static bool TryGetMetadata(ITypeSymbol source, out ISymbol result)
+        //private static Compilation _compilation;
+        public static ISymbol System_DateTimeOffset => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.DateTimeOffset")!;
+        public static ISymbol System_Guid => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Guid")!;
+        public static ISymbol BsonObjectId => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonObjectId")!;
+        public static ISymbol BsonArray => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonArray")!;
+        public static ISymbol BsonDocument => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonDocument")!;
+        public static bool TryGetMetadata(ITypeSymbol source, out ISymbol result)
         {
             var str = source.ToString();
             result = BsonSerializerGenerator.Compilation.GetTypeByMetadataName(str);
@@ -57,22 +62,5 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         {
             return sym.Equals(System_Guid, SymbolEqualityComparer.Default);
         }
-
-        public static void Init(Compilation compilation)
-        {
-            _compilation = compilation;
-            System_DateTimeOffset = _compilation.GetTypeByMetadataName("System.DateTimeOffset")!;
-            System_Guid = _compilation.GetTypeByMetadataName("System.Guid")!;
-            BsonObjectId = _compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonObjectId")!;
-            BsonArray = _compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonArray")!;
-            BsonDocument = _compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonDocument")!;
-        }
-
-        private static Compilation _compilation;
-        public static ISymbol System_DateTimeOffset;
-        public static ISymbol System_Guid;
-        public static ISymbol BsonObjectId;
-        public static ISymbol BsonArray;
-        public static ISymbol BsonDocument;*/
     }
 }

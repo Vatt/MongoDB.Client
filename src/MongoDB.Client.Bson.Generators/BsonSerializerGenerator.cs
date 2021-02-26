@@ -23,7 +23,7 @@ namespace MongoDB.Client.Bson.Generators
            // var all = Stopwatch.StartNew();
             Context = context;
             Compilation = Context.Compilation;
-            TypeLib.Init(Compilation);
+            //TypeLib.Init(Compilation);
             GeneratorDiagnostics.Init(context);
 
             try

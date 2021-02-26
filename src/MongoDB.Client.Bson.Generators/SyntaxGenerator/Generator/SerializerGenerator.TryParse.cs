@@ -264,7 +264,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             if (typeSym is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)
             {
-                if (TypeLib.IsListOrIList(namedType))
+                if (IsListOrIList(namedType))
                 {
                     return InvocationExpr(IdentifierName(ReadArrayMethodName(nameSym, typeSym)), RefArgument(readerId), OutArgument(readTarget));
                 }
@@ -299,27 +299,27 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     //    expr = TryGetDateTimeWithBsonType(bsonType, variable);
                     //    return true;
             }
-            if (TypeLib.IsBsonDocument(typeSymbol))
+            if (IsBsonDocument(typeSymbol))
             {
                 expr = TryParseDocument(variable);
                 return true;
             }
-            if (TypeLib.IsBsonArray(typeSymbol))
+            if (IsBsonArray(typeSymbol))
             {
                 expr = TryParseDocument(variable);
                 return true;
             }
-            if (TypeLib.IsGuid(typeSymbol))
+            if (IsGuid(typeSymbol))
             {
                 expr = TryGetGuidWithBsonType(bsonType, variable);
                 return true;
             }
-            if (TypeLib.IsDateTimeOffset(typeSymbol))
+            if (IsDateTimeOffset(typeSymbol))
             {
                 expr = TryGetDateTimeWithBsonType(bsonType, variable);
                 return true;
             }
-            if (TypeLib.IsBsonObjectId(typeSymbol))
+            if (IsBsonObjectId(typeSymbol))
             {
                 expr = TryGetObjectId(variable);
                 return true;
