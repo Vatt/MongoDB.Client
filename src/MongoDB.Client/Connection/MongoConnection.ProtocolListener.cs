@@ -20,6 +20,7 @@ namespace MongoDB.Client.Connection
             }
             MongoResponseMessage message;
             MongoRequest? request;
+            MongoException? exception = null;
             while (!_shutdownCts.IsCancellationRequested)
             {
                 try
@@ -47,12 +48,9 @@ namespace MongoDB.Client.Connection
                         case Opcode.Compressed:
                         default:
                             _logger.UnknownOpcodeMessage(header);
-                            if (_completions.TryRemove(header.ResponseTo, out request))
-                            {
-                                request.CompletionSource.SetException(new NotSupportedException($"Opcode '{header.Opcode}' not supported"));
-                            }
+                            exception = new MongoException("Received broken data");
+                            _shutdownCts.Cancel();
                             continue;
-                            //TODO: need to read pipe to end
                     }
 
                     if (_completions.TryRemove(message.Header.ResponseTo, out request))
@@ -76,6 +74,17 @@ namespace MongoDB.Client.Connection
                 {
                     _logger.LogError(e.ToString());
                 }
+            }
+            if (exception is not null)
+            {
+                foreach (var key in _completions.Keys)
+                {
+                    if (_completions.TryRemove(key, out request))
+                    {
+                        request.CompletionSource.SetException(exception);
+                    }
+                }
+                _ = _requestScheduler.ConnectionLost(this);
             }
         }
 

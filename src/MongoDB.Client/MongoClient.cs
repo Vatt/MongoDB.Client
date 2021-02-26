@@ -11,10 +11,10 @@ namespace MongoDB.Client
         public MongoClientSettings Settings { get; }
         private readonly RequestScheduler _scheduler;
 
-        internal MongoClient(MongoClientSettings settings, IMongoConnectionFactory factory, ILoggerFactory loggerFactory)
+        internal MongoClient(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
         {
             Settings = settings;
-            _scheduler = new RequestScheduler(settings, factory);
+            _scheduler = new RequestScheduler(settings, connectionFactory, loggerFactory);
         }
 
         public MongoClient()
@@ -40,7 +40,7 @@ namespace MongoDB.Client
         public MongoClient(MongoClientSettings settings, ILoggerFactory loggerFactory)
         {
             Settings = settings;
-            _scheduler = new RequestScheduler(settings, new MongoConnectionFactory(settings.Endpoints[0], loggerFactory));
+            _scheduler = new RequestScheduler(settings, new MongoConnectionFactory(settings.Endpoints[0], loggerFactory), loggerFactory);
         }
 
         public MongoClient(string connectionString, ILoggerFactory loggerFactory)

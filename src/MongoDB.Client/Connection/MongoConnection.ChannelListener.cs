@@ -11,6 +11,7 @@ namespace MongoDB.Client.Connection
         {
             return Interlocked.Increment(ref _requestId);
         }
+
         private async Task StartChannelListerAsync()
         {
             if (_protocolWriter is null)

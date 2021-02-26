@@ -1,4 +1,5 @@
-﻿using MongoDB.Client.Exceptions;
+﻿using Microsoft.Extensions.Logging;
+using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Messages;
@@ -14,6 +15,7 @@ namespace MongoDB.Client.Connection
     internal partial class RequestScheduler : IAsyncDisposable
     {
         private readonly IMongoConnectionFactory _connectionFactory;
+        private readonly ILogger<RequestScheduler> _logger;
         private readonly List<MongoConnection> _connections;
         private readonly Channel<MongoRequest> _channel;
         private readonly Channel<MongoRequest> _findChannel;
@@ -21,10 +23,10 @@ namespace MongoDB.Client.Connection
         private readonly ChannelWriter<MongoRequest> _cursorChannel;
         private readonly MongoClientSettings _settings;
         private static int _counter;
-        public RequestScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory)
+        public RequestScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
         {
             _connectionFactory = connectionFactory;
-            //var options = new UnboundedChannelOptions(settings.ConnectionPoolMaxSize){ FullMode = BoundedChannelFullMode.Wait};
+            _logger = loggerFactory.CreateLogger<RequestScheduler>();
             var options = new UnboundedChannelOptions();
             options.SingleWriter = true;
             options.SingleReader = false;
@@ -37,10 +39,14 @@ namespace MongoDB.Client.Connection
             _settings = settings;
             _counter = 0;
         }
+
+
         public int GetNextRequestNumber()
         {
             return Interlocked.Increment(ref _counter);
         }
+
+
         internal async ValueTask InitAsync()
         {
             if (_connections.Count == 0)
@@ -51,10 +57,14 @@ namespace MongoDB.Client.Connection
                 }
             }
         }
+
+
         private ValueTask<MongoConnection> CreateNewConnection()
         {
-            return _connectionFactory.CreateAsync(_settings, _channel.Reader, _findChannel.Reader);
+            return _connectionFactory.CreateAsync(_settings, _channel.Reader, _findChannel.Reader, this);
         }
+
+
         internal async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token = default)
         {
             var request = MongoRequestPool.Get();
@@ -71,6 +81,7 @@ namespace MongoDB.Client.Connection
             MongoRequestPool.Return(request);
             return cursor;
         }
+
 
         internal async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token = default)
         {
@@ -101,6 +112,8 @@ namespace MongoDB.Client.Connection
             }
             */
         }
+
+
         public async ValueTask<DeleteResult> DeleteAsync(DeleteMessage message, CancellationToken cancellationToken)
         {
             var request = MongoRequestPool.Get();//new DeleteMongoRequest(message, taskSource);
@@ -116,6 +129,7 @@ namespace MongoDB.Client.Connection
             MongoRequestPool.Return(request);
             return deleteResult!;
         }
+
 
         public async ValueTask DropCollectionAsync(DropCollectionMessage message, CancellationToken cancellationToken)
         {
@@ -138,6 +152,7 @@ namespace MongoDB.Client.Connection
             }
         }
 
+
         public async ValueTask CreateCollectionAsync(CreateCollectionMessage message, CancellationToken cancellationToken)
         {
             var taskSource = new ManualResetValueTaskSource<IParserResult>();
@@ -156,6 +171,27 @@ namespace MongoDB.Client.Connection
                 {
                     ThrowHelper.CreateCollectionException(CreateCollectionResult.ErrorMessage!, CreateCollectionResult.Code, CreateCollectionResult.CodeName!);
                 }
+            }
+        }
+
+        public async Task ConnectionLost(MongoConnection connection)
+        {
+            try
+            {
+                await connection.DisposeAsync().ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error on disposing connection");
+            }
+            _connections.Remove(connection);
+            try
+            {
+                _connections.Add(await CreateNewConnection());
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error on creating connection");
             }
         }
 
