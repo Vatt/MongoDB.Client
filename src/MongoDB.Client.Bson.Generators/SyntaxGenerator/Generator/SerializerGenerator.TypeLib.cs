@@ -5,16 +5,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        private static INamedTypeSymbol _systemDateTimeOffset;
-        private static INamedTypeSymbol _systemGuid;
-        private static INamedTypeSymbol _bsonObjectId;
-        private static INamedTypeSymbol _bsonArray;
-        private static INamedTypeSymbol _bsonDocument;
-        public static INamedTypeSymbol System_DateTimeOffset => _systemDateTimeOffset ??= BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.DateTimeOffset")!;
-        public static INamedTypeSymbol System_Guid => _systemGuid ??= BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Guid")!;
-        public static INamedTypeSymbol BsonObjectId => _bsonObjectId ??= BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonObjectId")!;
-        public static INamedTypeSymbol BsonArray => _bsonArray ??= BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonArray")!;
-        public static INamedTypeSymbol BsonDocument => _bsonDocument ??= BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonDocument")!;
+        public static INamedTypeSymbol System_DateTimeOffset => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.DateTimeOffset")!;
+        public static INamedTypeSymbol System_Guid => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Guid")!;
+        public static INamedTypeSymbol BsonObjectId => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonObjectId")!;
+        public static INamedTypeSymbol BsonArray => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonArray")!;
+        public static INamedTypeSymbol BsonDocument => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonDocument")!;
         public static bool TryGetMetadata(ITypeSymbol source, out ISymbol result)
         {
             var str = source.ToString();
