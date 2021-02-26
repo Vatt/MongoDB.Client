@@ -7,6 +7,99 @@ using System.Linq;
 namespace MongoDB.Client.Tests.Models
 {
     [BsonSerializable]
+    public partial class EnumNullable : IEquatable<EnumNullable>
+    {
+        public enum IntEnum
+        {
+            One, Two
+        }
+        public enum LongEnum
+        {
+            One, Two
+        }
+        public enum StringEnum
+        {
+            [BsonElement("StringField1Alias")]
+            StringField1,
+            [BsonElement("StringField2Alias")]
+            StringField2
+        }
+        public IntEnum? IntEnum1 { get; set; }
+        public IntEnum? IntEnum2 { get; set; }
+        public IntEnum? IntEnum3 { get; set; }
+
+        [BsonEnum(EnumRepresentation.Int64)]
+        public LongEnum? LongEnum1 { get; set; }
+
+        [BsonEnum(EnumRepresentation.Int64)]
+        public LongEnum? LongEnum2 { get; set; }   
+        [BsonEnum(EnumRepresentation.Int64)]
+        public LongEnum? LongEnum3 { get; set; }
+
+        [BsonEnum(EnumRepresentation.String)]
+        public StringEnum? StringEnum1 { get; set; }
+
+        [BsonEnum(EnumRepresentation.String)]
+        public StringEnum? StringEnum2 { get; set; }
+
+        [BsonEnum(EnumRepresentation.String)]
+        public StringEnum? StringEnum3 { get; set; }
+
+        //public List<IntEnum?> IntEnumList { get; set; }
+
+        //[BsonEnum(EnumRepresentation.Int64)]
+        //public List<LongEnum?> LongEnumList { get; set; }
+
+        //[BsonEnum(EnumRepresentation.String)]
+        //public List<StringEnum?> StringEnumList { get; set; }
+        public static EnumNullable Create() => new EnumNullable
+        {
+            IntEnum1 = IntEnum.One,
+            IntEnum2 = IntEnum.Two,
+            IntEnum3 = null,
+            LongEnum1 = LongEnum.Two,
+            LongEnum2 = LongEnum.One,
+            LongEnum3 = null,
+            StringEnum1 = StringEnum.StringField2,
+            StringEnum2 = StringEnum.StringField1,
+            StringEnum3 = null,
+        };
+
+        public bool Equals(EnumNullable? other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return IntEnum1 == other.IntEnum1 && IntEnum2 == other.IntEnum2 && IntEnum3 == other.IntEnum3 && 
+                   LongEnum1 == other.LongEnum1 && LongEnum2 == other.LongEnum2 && LongEnum3 == other.LongEnum3 &&
+                   StringEnum1 == other.StringEnum1 && StringEnum2 == other.StringEnum2 && 
+                   StringEnum3 == other.StringEnum3;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((EnumNullable) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = new HashCode();
+            hashCode.Add(IntEnum1);
+            hashCode.Add(IntEnum2);
+            hashCode.Add(IntEnum3);
+            hashCode.Add(LongEnum1);
+            hashCode.Add(LongEnum2);
+            hashCode.Add(LongEnum3);
+            hashCode.Add(StringEnum1);
+            hashCode.Add(StringEnum2);
+            hashCode.Add(StringEnum3);
+            return hashCode.ToHashCode();
+        }
+    }
+
+    [BsonSerializable]
     public partial class GenericWithNulalbleListTest<T, TT> : IEquatable<GenericWithNulalbleListTest<T, TT>>
     {
         [BsonSerializable]

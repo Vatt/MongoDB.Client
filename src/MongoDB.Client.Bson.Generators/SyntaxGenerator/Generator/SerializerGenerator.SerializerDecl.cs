@@ -66,11 +66,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static SyntaxToken StaticFieldNameToken(MemberContext ctx)
         {
-            return SF.Identifier($"{ctx.Root.Declaration.Name}{ctx.BsonElementAlias}");
+            return Identifier($"{ctx.Root.Declaration.Name}{ctx.BsonElementAlias}");
         }
         public static SyntaxToken StaticEnumFieldNameToken(ISymbol enumTypeName, string alias)
         {
-            return SF.Identifier($"{enumTypeName.Name}{alias}");
+            return Identifier($"{enumTypeName.Name}{alias}");
         }
         public static MemberDeclarationSyntax GenerateSerializer(ContextCore ctx)
         {
@@ -117,7 +117,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         default,
                         new(PublicKeyword(), PartialKeyword()),
                         decl.Keyword,
-                        SF.Identifier(SelfName(ctx.Declaration)),
+                        Identifier(SelfName(ctx.Declaration)),
                         default, default, default, default,
                         OpenBraceToken(), members, CloseBraceToken(), default);
 
@@ -200,8 +200,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             Dictionary<ISymbol, List<MemberDeclarationSyntax>> declarations = new();
             foreach (var member in ctx.Members)
             {
-
-                if (member.TypeSym.TypeKind == TypeKind.Enum)
+                var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
+                if (trueType.TypeKind == TypeKind.Enum)
                 {
                     int repr = GetEnumRepresentation(member.NameSym);
                     if (repr != 1) // static name spans only for string representation
@@ -212,7 +212,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     {
                         continue;
                     }
-                    var typedMetadata = member.TypeMetadata as INamedTypeSymbol;
+                    //var typedMetadata = member.TypeMetadata as INamedTypeSymbol;
+                    var typedMetadata = trueType as INamedTypeSymbol;
                     if (typedMetadata == null)
                     {
                         GeneratorDiagnostics.ReportUnhandledException(nameof(GenerateEnumsStaticNamesSpansIfHave), member.NameSym);
