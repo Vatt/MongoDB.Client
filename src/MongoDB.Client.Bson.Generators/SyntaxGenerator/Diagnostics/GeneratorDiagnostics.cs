@@ -12,6 +12,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics
         private static readonly string UnsuportedGenericTypeError = "MONGO02";
         private static readonly string NullableFieldsError = "MONGO03";
         private static readonly string SerializationMapUsingWarning = "MONGO04";
+        private static readonly string GeneratingDurationInfo = "MONGO05";
         public static void Init(GeneratorExecutionContext ctx)
         {
             _ctx = ctx;
@@ -47,6 +48,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics
         {
             var message = "Undefined serializer type. Using SerializersMap";
             _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(SerializationMapUsingWarning, "Generation warn", message, "SourceGenerator", DiagnosticSeverity.Warning, true), decl.Locations[0]));
+        }
+
+        public static void ReportDuration(string stage, TimeSpan time)
+        {
+            _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(GeneratingDurationInfo, "Generation info",
+               stage + ": " + time.ToString(), "SourceGenerator", DiagnosticSeverity.Warning, true), Location.None));
         }
     }
 }

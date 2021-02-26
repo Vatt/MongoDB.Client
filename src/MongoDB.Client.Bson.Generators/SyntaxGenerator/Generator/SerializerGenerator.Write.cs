@@ -46,7 +46,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     inner.IfStatement(
                             BinaryExprEqualsEquals(writeTarget, Default(TypeFullName(trueType))),
-                            Block(SimpleAssignExprStatement(writeTarget, NewBsonObjectId())));
+                            Block(SimpleAssignExprStatement(writeTarget, NewBsonObjectId)));
                 }
 
                 if (trueType.IsReferenceType)
@@ -87,7 +87,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 .AddStatements(
                     WriteByteStatement((byte)'\x00'),
                     VarLocalDeclarationStatement(docLength, BinaryExprMinus(WriterWritten(), checkpoint)),
-                    LocalDeclarationStatement(SpanByte(), sizeSpan, StackAllocByteArray(4)),
+                    LocalDeclarationStatement(SpanByte, sizeSpan, StackAllocByteArray(4)),
                     Statement(BinaryPrimitivesWriteInt32LittleEndian(sizeSpan, docLength)),
                     Statement(ReservedWrite(reserved, sizeSpan)),
                     Statement(WriterCommit())

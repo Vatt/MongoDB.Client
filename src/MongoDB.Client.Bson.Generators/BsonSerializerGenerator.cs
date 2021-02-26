@@ -18,9 +18,9 @@ namespace MongoDB.Client.Bson.Generators
         public static Compilation Compilation;
         public void Execute(GeneratorExecutionContext context)
         {
-            //System.Diagnostics.Debugger.Launch();
+         //   System.Diagnostics.Debugger.Launch();
 
-
+           // var all = Stopwatch.StartNew();
             Context = context;
             Compilation = Context.Compilation;
             TypeLib.Init(Compilation);
@@ -28,8 +28,9 @@ namespace MongoDB.Client.Bson.Generators
 
             try
             {
-                var masterContext = new MasterContext(CollectSymbols(context));
-                var units = Create(masterContext);
+                var symbols = CollectSymbols(context);
+                var masterContext = new MasterContext(symbols, context.CancellationToken);
+                var units = Create(masterContext, context.CancellationToken);
                 for (int index = 0; index < units.Length; index++)
                 {
                     if (context.CancellationToken.IsCancellationRequested)
@@ -40,26 +41,40 @@ namespace MongoDB.Client.Bson.Generators
                     context.AddSource(SerializerGenerator.SerializerName(masterContext.Contexts[index]), SourceText.From(source, Encoding.UTF8));
                 }
             }
+            catch (OperationCanceledException)
+            {
+                // nothing
+            }
             catch (Exception ex)
             {
                 GeneratorDiagnostics.ReportUnhandledException(ex);
             }
 
+            //GeneratorDiagnostics.ReportDuration("All", all.Elapsed);
         }
-        public static CompilationUnitSyntax[] Create(MasterContext master)
+
+
+        public static CompilationUnitSyntax[] Create(MasterContext master, System.Threading.CancellationToken cancellationToken)
         {
             CompilationUnitSyntax[] units = new CompilationUnitSyntax[master.Contexts.Count];
+
+            var systemDirective = SF.UsingDirective(SF.ParseName("System"));
+            var systemCollectionsGenericDirective = SF.UsingDirective(SF.ParseName("System.Collections.Generic"));
+            var systemBuffersBinaryDirective = SF.UsingDirective(SF.ParseName("System.Buffers.Binary"));
+
             for (int index = 0; index < units.Length; index++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 units[index] = SF.CompilationUnit()
                     .AddUsings(
-                        SF.UsingDirective(SF.ParseName("System")),
-                        SF.UsingDirective(SF.ParseName("System.Collections.Generic")),
-                        SF.UsingDirective(SF.ParseName("System.Buffers.Binary")))
+                        systemDirective,
+                        systemCollectionsGenericDirective,
+                        systemBuffersBinaryDirective)
                     .AddMembers(SerializerGenerator.GenerateSerializer(master.Contexts[index]));
             }
             return units;
         }
+
         public void Initialize(GeneratorInitializationContext context)
         {
         }
@@ -67,23 +82,23 @@ namespace MongoDB.Client.Bson.Generators
         private List<(SyntaxNode, INamedTypeSymbol)> CollectSymbols(GeneratorExecutionContext context)
         {
             List<(SyntaxNode, INamedTypeSymbol)> symbols = new();
+
+            ISymbol bsonAttribute = context.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonSerializableAttribute");
             foreach (var tree in context.Compilation.SyntaxTrees)
             {
-                foreach (var node in tree.GetRoot().DescendantNodes())
-                {
-                    SemanticModel model = context.Compilation.GetSemanticModel(node.SyntaxTree);
-                    INamedTypeSymbol symbol = model.GetDeclaredSymbol(node) as INamedTypeSymbol;
-                    if (symbol is null)
-                    {
-                        continue;
-                    }
+                SemanticModel model = context.Compilation.GetSemanticModel(tree);
 
-                    foreach (var attr in symbol.GetAttributes())
+                foreach (var node in tree.GetRoot().DescendantNodesAndSelf())
+                {
+                    if (model.GetDeclaredSymbol(node) is INamedTypeSymbol symbol)
                     {
-                        if (attr.AttributeClass!.ToString().Equals("MongoDB.Client.Bson.Serialization.Attributes.BsonSerializableAttribute"))
+                        foreach (var attr in symbol.GetAttributes())
                         {
-                            symbols.Add((node, symbol));
-                            break;
+                            if (attr.AttributeClass.Equals(bsonAttribute, SymbolEqualityComparer.Default))
+                            {
+                                symbols.Add((node, symbol));
+                                break;
+                            }
                         }
                     }
                 }

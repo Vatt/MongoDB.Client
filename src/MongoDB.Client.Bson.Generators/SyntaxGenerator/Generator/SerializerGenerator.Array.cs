@@ -141,7 +141,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                    Block(
                        SimpleAssignExprStatement(IdentifierName(outMessage), ObjectCreation(TypeFullName(trueType))),
                        IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(docLenToken))),
-                       VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemaining(), SizeOfInt())),
+                       VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemaining(), SizeOfInt)),
                        SF.WhileStatement(
                            condition:
                                BinaryExprLessThan(
@@ -155,14 +155,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                        condition: BinaryExprEqualsEquals(bsonTypeToken, NumericLiteralExpr(10)),
                                        statement: Block(
                                            InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(DefaultLiteralExpr())),
-                                           ContinueStatement()
+                                           ContinueStatement
                                            )),
                                    IfNotReturnFalseElse(
                                        condition: operation,
                                        @else:
                                            Block(
                                                InvocationExprStatement(outMessage, IdentifierName("Add"), Argument(tempVar.HasValue ? tempVar.Value : tempArrayRead)),
-                                               ContinueStatement())))),
+                                               ContinueStatement)))),
                        IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
                        IfStatement(
                            BinaryExprNotEquals(endMarkerToken, NumericLiteralExpr((byte)'\x00')),
@@ -230,7 +230,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         body: Block(writeOperation!)),
                     WriteByteStatement((byte)'\x00'),
                     VarLocalDeclarationStatement(docLength, BinaryExprMinus(WriterWritten(), IdentifierName(checkpoint))),
-                    LocalDeclarationStatement(SpanByte(), sizeSpan, StackAllocByteArray(4)),
+                    LocalDeclarationStatement(SpanByte, sizeSpan, StackAllocByteArray(4)),
                     Statement(BinaryPrimitivesWriteInt32LittleEndian(sizeSpan, docLength)),
                     Statement(ReservedWrite(reserved, sizeSpan)),
                     Statement(WriterCommit())
