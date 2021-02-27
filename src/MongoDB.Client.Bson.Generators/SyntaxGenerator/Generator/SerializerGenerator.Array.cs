@@ -145,7 +145,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             else
             {
-                var readMethod = IdentifierName(ReadStringReprEnumMethodName(ctx.Root, type, ctx.NameSym));
+                var readMethod = IdentifierName(ReadStringReprEnumMethodName(type, ctx.NameSym));
                 builder.IfNotReturnFalseElse(condition: InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(VarVariableDeclarationExpr(localReadEnumVar))), 
                                              @else: Block(InvocationExprStatement(outMessage, ListAddToken, Argument(localReadEnumVar))));
             }

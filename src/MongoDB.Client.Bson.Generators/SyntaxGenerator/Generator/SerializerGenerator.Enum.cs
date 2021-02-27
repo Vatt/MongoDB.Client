@@ -7,12 +7,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        private static SyntaxToken ReadStringReprEnumMethodName(ContextCore ctx, ISymbol enumTypeName, ISymbol fieldOrPropertyName)
+        private static SyntaxToken ReadStringReprEnumMethodName(ISymbol enumTypeName, ISymbol fieldOrPropertyName)
         {
             var (_, alias) = GetMemberAlias(fieldOrPropertyName);
             return SF.Identifier($"TryParse{enumTypeName.Name}");
         }
-        private static SyntaxToken WriteStringReprEnumMethodName(ContextCore ctx, ISymbol enumTypeName, ISymbol fieldOrPropertyName)
+        private static SyntaxToken WriteStringReprEnumMethodName(ISymbol enumTypeName, ISymbol fieldOrPropertyName)
         {
             var (_, alias) = GetMemberAlias(fieldOrPropertyName);
             return SF.Identifier($"Write{enumTypeName.Name}");
@@ -52,7 +52,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         private static MethodDeclarationSyntax ReadStringReprEnumMethod(MemberContext ctx)
         {
-            var outMessage = SF.Identifier("enumMessage");
+            var outMessage = Identifier("enumMessage");
             var trueType = ExtractTypeFromNullableIfNeed(ctx.TypeSym);
             var repr = GetEnumRepresentation(ctx.NameSym);
             var alreadyCreated = new HashSet<ISymbol>();
@@ -60,7 +60,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return default;
             }
-            var stringData = SF.Identifier("stringData");
+            var stringData = Identifier("stringData");
             List<StatementSyntax> statements = new()
             {
                 SimpleAssignExprStatement(outMessage, DefaultLiteralExpr()),
@@ -84,7 +84,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()),
                     explicitInterfaceSpecifier: default,
                     returnType: BoolPredefinedType(),
-                    identifier: ReadStringReprEnumMethodName(ctx.Root, trueType, ctx.NameSym),
+                    identifier: ReadStringReprEnumMethodName(trueType, ctx.NameSym),
                     parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken),
                                                  OutParameter(IdentifierName(ctx.TypeSym.ToString()), outMessage)),
                     body: default,
@@ -96,7 +96,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         private static MethodDeclarationSyntax WriteStringReprEnumMethod(MemberContext ctx)
         {
-            var spanNameArg = SF.Identifier("name");
+            var spanNameArg = Identifier("name");
             var trueType = ExtractTypeFromNullableIfNeed(ctx.TypeSym);
             var repr = GetEnumRepresentation(ctx.NameSym);
             if (repr != 1)
@@ -108,12 +108,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 var (_, alias) = GetMemberAlias(member);
                 statements.Add(
-                    SF.IfStatement(
+                    IfStatement(
                         condition: BinaryExprEqualsEquals(WriterInputVarToken, IdentifierFullName(member)),
-                        statement: SF.Block(
-                            //Statement(Write_Type_Name(2, IdentifierName(StaticFieldNameToken(ctx)))),
-                            Statement(Write_Type_Name(2, spanNameArg)),
-                            Statement(WriteString(StaticEnumFieldNameToken(trueType, alias))))
+                        statement: Block(
+                            Write_Type_Name(2, spanNameArg),
+                            WriteString(StaticEnumFieldNameToken(trueType, alias)))
                     ));
             }
             return SF.MethodDeclaration(
@@ -121,17 +120,16 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()),
                     explicitInterfaceSpecifier: default,
                     returnType: VoidPredefinedType(),
-                    identifier: WriteStringReprEnumMethodName(ctx.Root, trueType, ctx.NameSym),
+                    identifier: WriteStringReprEnumMethodName(trueType, ctx.NameSym),
                     parameterList: ParameterList(RefParameter(BsonWriterType, BsonWriterToken),
                                                  Parameter(ReadOnlySpanByteName, spanNameArg),
                                                  Parameter(TypeFullName(trueType), WriterInputVarToken)),
 
-                    body: default,
+                    body: Block(statements.ToArray()),
                     constraintClauses: default,
                     expressionBody: default,
                     typeParameterList: default,
-                    semicolonToken: default)
-                .WithBody(SF.Block(statements.ToArray()));
+                    semicolonToken: default);
         }
     }
 }

@@ -151,7 +151,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             else
             {
-                var methodName = IdentifierName(WriteStringReprEnumMethodName(ctx, trueType, member.NameSym));
+                var methodName = IdentifierName(WriteStringReprEnumMethodName(trueType, member.NameSym));
                 statements = ImmutableList.Create(InvocationExpr(methodName, RefArgument(BsonWriterToken), Argument(member.StaticSpanNameToken), Argument(writeTarget)));
             }
             return true;
