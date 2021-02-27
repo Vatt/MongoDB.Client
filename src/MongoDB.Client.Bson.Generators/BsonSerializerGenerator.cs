@@ -83,6 +83,7 @@ namespace MongoDB.Client.Bson.Generators
         private List<(SyntaxNode, INamedTypeSymbol)> CollectSymbols(GeneratorExecutionContext context)
         {
             List<(SyntaxNode, INamedTypeSymbol)> symbols = new();
+            var bsonAttr = SerializerGenerator.BsonSerializableAttr;
             foreach (var tree in context.Compilation.SyntaxTrees)
             {
                 context.CancellationToken.ThrowIfCancellationRequested();
@@ -95,7 +96,7 @@ namespace MongoDB.Client.Bson.Generators
                     {
                         foreach (var attr in symbol.GetAttributes())
                         {
-                            if (attr.AttributeClass.Equals(SerializerGenerator.BsonSerializableAttr, SymbolEqualityComparer.Default))
+                            if (attr.AttributeClass.Equals(bsonAttr, SymbolEqualityComparer.Default))
                             {
                                 symbols.Add((node, symbol));
                                 break;
