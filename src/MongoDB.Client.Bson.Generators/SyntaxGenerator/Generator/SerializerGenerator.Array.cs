@@ -145,7 +145,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 goto RETURN;
             }
-            if (TryGetEnumReadOperation(tempArrayRead, ctx.NameSym, typeArg, out var enumOp, true))
+            if (TryGetEnumReadOperation(tempArrayRead, ctx.NameSym, typeArg, true, out var enumOp))
             {
                 builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(outMessage, ListAddToken, Argument(enumOp.TempExpr))));
                 goto RETURN;

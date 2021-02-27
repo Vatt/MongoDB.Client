@@ -166,7 +166,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
         private static bool TryGenerateParseEnum(SyntaxToken staticNameSpan, SyntaxToken readTarget, SyntaxToken bsonName, ISymbol nameSym, ITypeSymbol typeSym, ImmutableList<StatementSyntax>.Builder builder)
         {
-            if (TryGetEnumReadOperation(readTarget, nameSym, typeSym, out var enumOp) == false)
+            if (TryGetEnumReadOperation(readTarget, nameSym, typeSym, false, out var enumOp) == false)
             {
                 return false;
             }

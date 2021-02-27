@@ -7,7 +7,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        private static bool TryGetEnumReadOperation(SyntaxToken readTarget, ISymbol nameSym, ITypeSymbol typeSym, out ReadOperationContext result, bool forceUseTempVar = false)
+        private static bool TryGetEnumReadOperation(SyntaxToken readTarget, ISymbol nameSym, ITypeSymbol typeSym, bool forceUseTempVar, out ReadOperationContext result)
         {
             var trueType = ExtractTypeFromNullableIfNeed(typeSym);
             result = default;

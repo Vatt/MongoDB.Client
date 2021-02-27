@@ -10,10 +10,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        public static SyntaxToken TryGetSerializerToken = Identifier("TryGetSerializer");
+        public static ExpressionSyntax SerializerMapId = IdentifierName("MongoDB.Client.Bson.Serialization.SerializersMap");
         public static StatementSyntax[] OtherTryParseBson(MemberContext member)
         {
-            var genericName = GenericName(Identifier("TryGetSerializer"), TypeFullName(member.TypeSym));
-            var serializersMapCall = InvocationExpr(IdentifierName("MongoDB.Client.Bson.Serialization.SerializersMap"),
+            var genericName = GenericName(TryGetSerializerToken, TypeFullName(member.TypeSym));
+            var serializersMapCall = InvocationExpr(SerializerMapId,
                                                     genericName,
                                                     OutArgument(VarVariableDeclarationExpr(Identifier($"{member.NameSym.Name}Serializer"))));
             var serializerTryParse = InvocationExpr(IdentifierName($"{member.NameSym.Name}Serializer"), TryParseBsonToken, RefArgument(BsonReaderToken), OutArgument(IdentifierName(member.AssignedVariableToken)));
@@ -23,8 +25,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static StatementSyntax[] OtherWriteBson(MemberContext member)
         {
-            var genericName = GenericName(Identifier("TryGetSerializer"), TypeFullName(member.TypeSym));
-            var serializersMapCall = InvocationExpr(IdentifierName("MongoDB.Client.Bson.Serialization.SerializersMap"),
+            var genericName = GenericName(TryGetSerializerToken, TypeFullName(member.TypeSym));
+            var serializersMapCall = InvocationExpr(SerializerMapId,
                                                     genericName,
                                                     OutArgument(VarVariableDeclarationExpr(Identifier($"{member.NameSym.Name}Serializer"))));
             var sma = SimpleMemberAccess(WriterInputVarToken, IdentifierName(member.NameSym));
@@ -44,17 +46,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 return symbol.Name;
             }
         }
-        public static string SelfFullName(ISymbol symbol) //TODO: починить для генериков
-        {
-            if (symbol is INamedTypeSymbol namedSym && namedSym.TypeArguments.Length > 0)
-            {
-                return GenericName(SF.Identifier(namedSym.ToString()), namedSym.TypeArguments.Select(sym => TypeFullName(sym)).ToArray()).ToString();
-            }
-            else
-            {
-                return symbol.ToString();
-            }
-        }
+        //public static string SelfFullName(ISymbol symbol) //TODO: починить для генериков
+        //{
+        //    if (symbol is INamedTypeSymbol namedSym && namedSym.TypeArguments.Length > 0)
+        //    {
+        //        return GenericName(SF.Identifier(namedSym.ToString()), namedSym.TypeArguments.Select(sym => TypeFullName(sym)).ToArray()).ToString();
+        //    }
+        //    else
+        //    {
+        //        return symbol.ToString();
+        //    }
+        //}
         public static SyntaxToken StaticEnumFieldNameToken(ISymbol enumTypeName, string alias)
         {
             return Identifier($"{enumTypeName.Name}{alias}");
