@@ -7,11 +7,15 @@ namespace MongoDB.Client.Messages
     public partial class DeleteBody
     {
         [BsonElement("q")]
-        public BsonDocument? Filter { get; set; }
+        public BsonDocument Filter { get; }
 
         [BsonElement("limit")]
-        public int Limit { get; set; }
-
+        public int Limit { get; }
+        public DeleteBody(BsonDocument Filter, int Limit)
+        {
+            this.Filter = Filter;
+            this.Limit = Limit;
+        }
 
         //TODO: Collation object
         //[BsonElementField(ElementName = "collation")]

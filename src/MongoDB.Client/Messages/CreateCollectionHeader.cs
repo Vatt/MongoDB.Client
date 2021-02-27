@@ -6,12 +6,19 @@ namespace MongoDB.Client.Messages
     public partial class CreateCollectionHeader
     {
         [BsonElement("create")]
-        public string? CollectionName { get; set; }
+        public string CollectionName { get; }
 
         [BsonElement("$db")]
-        public string? Db { get; set; }
+        public string Db { get; }
 
         [BsonElement("lsid")]
-        public SessionId? Lsid { get; set; }
+        public SessionId Lsid { get; }
+
+        public CreateCollectionHeader(string CollectionName, string Db, SessionId Lsid)
+        {
+            this.CollectionName = CollectionName;
+            this.Db = Db;
+            this.Lsid = Lsid;
+        }
     }
 }

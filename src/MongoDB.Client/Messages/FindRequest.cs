@@ -8,32 +8,43 @@ namespace MongoDB.Client.Messages
     {
         [BsonElement("find")]
         [BsonWriteIgnoreIf("Find is null")]
-        public string? Find { get; set; }
+        public string? Find { get; }
 
         [BsonElement("filter")]
         [BsonWriteIgnoreIf("Filter is null")]
-        public BsonDocument? Filter { get; set; }
+        public BsonDocument? Filter { get; }
 
         [BsonElement("limit")]
         [BsonWriteIgnoreIf("Limit < 1")]
-        public int Limit { get; set; }
+        public int Limit { get; }
 
 
 
         [BsonElement("getMore")]
         [BsonWriteIgnoreIf("GetMore < 1")]
-        public long GetMore { get; set; }
+        public long GetMore { get; }
 
         [BsonElement("collection")]
         [BsonWriteIgnoreIf("Collection is null")]
-        public string? Collection { get; set; }
+        public string? Collection { get; }
 
 
 
         [BsonElement("$db")]
-        public string? Db { get; set; }
+        public string Db { get; }
 
         [BsonElement("lsid")]
-        public SessionId? Lsid { get; set; }
+        public SessionId Lsid { get; }
+
+        public FindRequest(string? Find, BsonDocument? Filter, int Limit, long GetMore, string? Collection, string Db, SessionId Lsid)
+        {
+            this.Find = Find;
+            this.Filter = Filter;
+            this.Limit = Limit;
+            this.GetMore = GetMore;
+            this.Collection = Collection;
+            this.Db = Db;
+            this.Lsid = Lsid;
+        }
     }
 }
