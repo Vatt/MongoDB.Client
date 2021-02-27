@@ -362,6 +362,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, left, right);
         }
+        public static AssignmentExpressionSyntax SimpleAssignExpr(SyntaxToken left, ExpressionSyntax right)
+        {
+            return SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, IdentifierName(left), right);
+        }
         public static AssignmentExpressionSyntax SimpleAssignExpr(ExpressionSyntax left, SyntaxToken right)
         {
             return SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, left, IdentifierName(right));

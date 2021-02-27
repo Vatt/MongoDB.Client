@@ -13,21 +13,21 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private readonly struct ReadOperationContext
         {
             public ExpressionSyntax Expr { get; }
-            public ExpressionSyntax? TempVariable { get; }
+            public ExpressionSyntax? TempExpr { get; }
             public ReadOperationContext(ExpressionSyntax expr)
             {
                 Expr = expr;
-                TempVariable = null;
+                TempExpr = null;
             }
-            public ReadOperationContext(ExpressionSyntax expr, ExpressionSyntax tempVar)
+            public ReadOperationContext(ExpressionSyntax expr, ExpressionSyntax tempExpr)
             {
                 Expr = expr;
-                TempVariable = tempVar;
+                TempExpr = tempExpr;
             }
-            public void Deconstruct(out ExpressionSyntax expr, out ExpressionSyntax? tempVar)
+            public void Deconstruct(out ExpressionSyntax expr, out ExpressionSyntax? tempExpr)
             {
                 expr = Expr;
-                tempVar = TempVariable;
+                tempExpr = TempExpr;
             }
             public static implicit operator ReadOperationContext(ExpressionSyntax expr) => new ReadOperationContext(expr);
         }
@@ -142,8 +142,30 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
             foreach (var member in ctx.Members)
             {
-                if (TryGenerateParseEnum(member.StaticSpanNameToken, member.AssignedVariableToken, member.NameSym, member.TypeSym, bsonName, builder))
+                //if (TryGenerateParseEnum(member.StaticSpanNameToken, member.AssignedVariableToken, member.NameSym, member.TypeSym, bsonName, builder))
+                //{
+                //    continue;
+                //}
+                if(TryGetEnumOperation(member.AssignedVariableToken, member.NameSym, member.TypeSym, out var enumOp))
                 {
+                    if (enumOp.TempExpr != null)
+                    {
+                        builder.IfStatement(
+                            condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),
+                            statement: Block(
+                                IfNotReturnFalseElse(enumOp.Expr, Block(SimpleAssignExpr(member.AssignedVariableToken, enumOp.TempExpr))),
+                                ContinueStatement
+                                ));
+                    }
+                    else
+                    {
+                        builder.IfStatement(
+                            condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),
+                            statement: Block(
+                                IfNotReturnFalse(enumOp.Expr),
+                                ContinueStatement
+                                ));
+                    }
                     continue;
                 }
                 if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
@@ -164,10 +186,44 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return builder.ToArray();
         }
 
-        private static bool TryGenerateParseEnum(SyntaxToken staticNameSpan, SyntaxToken readTarget, ISymbol nameSym, ITypeSymbol typeSym, SyntaxToken bsonName, ImmutableList<StatementSyntax>.Builder builder)
+        //private static bool TryGenerateParseEnum(SyntaxToken staticNameSpan, SyntaxToken readTarget, ISymbol nameSym, ITypeSymbol typeSym, SyntaxToken bsonName, ImmutableList<StatementSyntax>.Builder builder)
+        //{
+        //    var trueType = ExtractTypeFromNullableIfNeed(typeSym);
+        //    if (trueType.TypeKind != TypeKind.Enum)
+        //    {
+        //        return false;
+        //    }
+        //    var localReadEnumVar = Identifier($"{readTarget}EnumTemp");
+        //    int repr = GetEnumRepresentation(nameSym);
+        //    if (repr == -1) { repr = 2; }
+        //    if (repr != 1)
+        //    {
+        //        builder.IfStatement(
+        //              condition: SpanSequenceEqual(bsonName, staticNameSpan),
+        //              statement: Block(
+        //                  repr == 2 ?
+        //                    IfNotReturnFalseElse(TryGetInt32(IntVariableDeclarationExpr(localReadEnumVar)), Block(SimpleAssignExprStatement(readTarget, Cast(trueType, localReadEnumVar)))) :
+        //                    IfNotReturnFalseElse(TryGetInt64(LongVariableDeclarationExpr(localReadEnumVar)), Block(SimpleAssignExprStatement(readTarget, Cast(trueType, localReadEnumVar)))),
+        //                    ContinueStatement
+        //            ));
+        //    }
+        //    else
+        //    {
+        //        var readMethod = IdentifierName(ReadStringReprEnumMethodName(trueType, nameSym));
+        //        builder.IfStatement(
+        //                condition: SpanSequenceEqual(bsonName, staticNameSpan),
+        //                statement: Block(
+        //                    IfNotReturnFalse(InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(readTarget))),
+        //                    ContinueStatement
+        //                ));
+        //    }
+        //    return true;
+        //}
+        private static bool TryGetEnumOperation(SyntaxToken readTarget, ISymbol nameSym, ITypeSymbol typeSym, out ReadOperationContext result, bool forceUseTempVar = false)
         {
             var trueType = ExtractTypeFromNullableIfNeed(typeSym);
-            if (trueType.TypeKind != TypeKind.Enum)
+            result = default;
+            if (IsEnum(trueType) == false)
             {
                 return false;
             }
@@ -176,26 +232,29 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             if (repr == -1) { repr = 2; }
             if (repr != 1)
             {
-                builder.IfStatement(
-                      condition: SpanSequenceEqual(bsonName, staticNameSpan),
-                      statement: Block(
-                          repr == 2 ?
-                            IfNotReturnFalseElse(TryGetInt32(IntVariableDeclarationExpr(localReadEnumVar)), Block(SimpleAssignExprStatement(readTarget, Cast(trueType, localReadEnumVar)))) :
-                            IfNotReturnFalseElse(TryGetInt64(LongVariableDeclarationExpr(localReadEnumVar)), Block(SimpleAssignExprStatement(readTarget, Cast(trueType, localReadEnumVar)))),
-                            ContinueStatement
-                    ));
+                result = 
+                    repr == 2 ?
+                        new(TryGetInt32(IntVariableDeclarationExpr(localReadEnumVar)), Cast(trueType, localReadEnumVar)) :
+                        new(TryGetInt64(LongVariableDeclarationExpr(localReadEnumVar)), Cast(trueType, localReadEnumVar));      
+                        //new(TryGetInt32(IntVariableDeclarationExpr(localReadEnumVar)), SimpleAssignExpr(readTarget, Cast(trueType, localReadEnumVar))) :
+                        //new(TryGetInt64(LongVariableDeclarationExpr(localReadEnumVar)), SimpleAssignExpr(readTarget, Cast(trueType, localReadEnumVar)));
+                return true;
+
             }
             else
             {
                 var readMethod = IdentifierName(ReadStringReprEnumMethodName(trueType, nameSym));
-                builder.IfStatement(
-                        condition: SpanSequenceEqual(bsonName, staticNameSpan),
-                        statement: Block(
-                            IfNotReturnFalse(InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(readTarget))),
-                            ContinueStatement
-                        ));
+                if (forceUseTempVar)
+                {
+                    result = new(InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(VarVariableDeclarationExpr(readTarget))), IdentifierName(readTarget));
+                }
+                else
+                {
+                    result = InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(readTarget));
+                }
+                
+                return true;
             }
-            return true;
         }
         private static bool TryGenerateSimpleReadOperation(ContextCore ctx, MemberContext member, SyntaxToken bsonType, SyntaxToken bsonName, ImmutableList<StatementSyntax>.Builder builder)
         {
@@ -244,6 +303,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         private static ReadOperationContext ReadOperation(ContextCore ctx, ISymbol nameSym, ITypeSymbol trueTypeSym, SyntaxToken readerId, ExpressionSyntax readTarget, SyntaxToken bsonType)
         {
+            /*
+             * DO NOT REORDER CONDITIONS
+             * **/
             if (ctx.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(trueTypeSym.Name)) != default) // generic type arguments
             {
                 var temp = Identifier($"{nameSym.Name}TempGenericNullable");

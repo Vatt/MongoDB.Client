@@ -173,8 +173,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 goto RETURN;
             }
-            if(TryGenerateArrayReadEnumOperation(ctx, typeArg, tempArrayRead, outMessage, builder))
+            //if(TryGenerateArrayReadEnumOperation(ctx, typeArg, tempArrayRead, outMessage, builder))
+            if(TryGetEnumOperation(tempArrayRead, ctx.NameSym, typeArg, out var enumOp, true))
             {
+                if(enumOp.TempExpr != null)
+                {
+                    builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(outMessage, ListAddToken, Argument(enumOp.TempExpr))));
+                }
+                else
+                {
+                    builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(outMessage, ListAddToken, Argument(enumOp.TempExpr))));
+                }
                 goto RETURN;
             }
             //TODO: Сгенерировать SerializersMap если ни один не отработал
