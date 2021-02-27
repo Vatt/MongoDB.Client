@@ -159,6 +159,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return false;
             }
+            if (symbol.Constructors.Length == 1 && symbol.TypeKind == TypeKind.Class)
+            {
+                constructor = symbol.Constructors[0];
+                return true;
+            }
             foreach (var item in symbol.Constructors)
             {
                 foreach (var attr in item.GetAttributes())

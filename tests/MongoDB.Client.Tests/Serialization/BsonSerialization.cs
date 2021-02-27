@@ -64,16 +64,7 @@ namespace MongoDB.Client.Tests.Serialization
         [Fact]
         public async Task Test()
         {
-            var doc = new InsertHeader
-            {
-                Db = "Database",
-                Insert = "Collection",
-                Ordered = true,
-                Lsid = new SessionId
-                {
-                    Id = Guid.NewGuid()
-                }
-            };
+            var doc = new InsertHeader("Collection", true, "Database", new SessionId());
             var result = await RoundTripWithBsonAsync(doc);
 
 

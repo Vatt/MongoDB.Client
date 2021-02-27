@@ -46,13 +46,7 @@ namespace MongoDB.Client
         public async ValueTask InsertAsync(IEnumerable<T> items, CancellationToken cancellationToken = default)
         {
             var requestNumber = _scheduler.GetNextRequestNumber();
-            var insertHeader = new InsertHeader
-            {
-                Insert = Namespace.CollectionName,
-                Ordered = true,
-                Db = Namespace.DatabaseName,
-                Lsid = SharedSessionIdModel
-            };
+            var insertHeader = new InsertHeader(Namespace.CollectionName, true, Namespace.DatabaseName, SharedSessionIdModel);
             var request = new InsertMessage<T>(requestNumber, insertHeader, items);
             await _scheduler.InsertAsync(request, cancellationToken).ConfigureAwait(false);
         }
@@ -60,19 +54,9 @@ namespace MongoDB.Client
         public async ValueTask<DeleteResult> DeleteOneAsync(BsonDocument filter, CancellationToken cancellationToken = default)
         {
             var requestNumber = _scheduler.GetNextRequestNumber();
-            var deleteHeader = new DeleteHeader
-            {
-                Delete = Namespace.CollectionName,
-                Ordered = true,
-                Db = Namespace.DatabaseName,
-                Lsid = SharedSessionIdModel
-            };
+            var deleteHeader = new DeleteHeader(Namespace.CollectionName, true, Namespace.DatabaseName, SharedSessionIdModel);
 
-            var deleteBody = new DeleteBody
-            {
-                Filter = filter,
-                Limit = 1
-            };
+            var deleteBody = new DeleteBody(filter, 1);
 
             var request = new DeleteMessage(requestNumber, deleteHeader, deleteBody);
             return await _scheduler.DeleteAsync(request, cancellationToken).ConfigureAwait(false);
@@ -81,12 +65,7 @@ namespace MongoDB.Client
         internal async ValueTask DropAsync(CancellationToken cancellationToken = default)
         {
             var requestNumber = _scheduler.GetNextRequestNumber();
-            var dropCollectionHeader = new DropCollectionHeader
-            {
-                CollectionName = Namespace.CollectionName,
-                Db = Namespace.DatabaseName,
-                Lsid = SharedSessionIdModel
-            };
+            var dropCollectionHeader = new DropCollectionHeader(Namespace.CollectionName, Namespace.DatabaseName, SharedSessionIdModel);
             var request = new DropCollectionMessage(requestNumber, dropCollectionHeader);
             await _scheduler.DropCollectionAsync(request, cancellationToken).ConfigureAwait(false);
         }
@@ -94,12 +73,7 @@ namespace MongoDB.Client
         internal async ValueTask CreateAsync(CancellationToken cancellationToken = default)
         {
             var requestNumber = _scheduler.GetNextRequestNumber();
-            var createCollectionHeader = new CreateCollectionHeader
-            {
-                CollectionName = Namespace.CollectionName,
-                Db = Namespace.DatabaseName,
-                Lsid = SharedSessionIdModel
-            };
+            var createCollectionHeader = new CreateCollectionHeader(Namespace.CollectionName, Namespace.DatabaseName, SharedSessionIdModel);
             var request = new CreateCollectionMessage(requestNumber, createCollectionHeader);
             await _scheduler.CreateCollectionAsync(request, cancellationToken).ConfigureAwait(false);
         }
