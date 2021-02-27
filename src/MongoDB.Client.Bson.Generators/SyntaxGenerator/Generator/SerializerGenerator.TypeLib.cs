@@ -39,6 +39,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return false;
         }
+        public static bool IsEnum(ISymbol symbol)
+        {
+            return symbol is ITypeSymbol namedType && namedType.TypeKind == TypeKind.Enum;
+        }
         public static bool IsListOrIList(ISymbol symbol)
         {
             return symbol.OriginalDefinition.Equals(System_Collections_Generic_IList_T, SymbolEqualityComparer.Default) ||

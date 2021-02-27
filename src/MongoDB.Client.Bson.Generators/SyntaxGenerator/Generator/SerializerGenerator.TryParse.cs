@@ -33,7 +33,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         private static MethodDeclarationSyntax TryParseMethod(ContextCore ctx)
         {
-            var decl = ctx.Declaration;
+            var declaration = ctx.Declaration;
             var docLenToken = Identifier("docLength");
             var unreadedToken = Identifier("unreaded");
             var endMarkerToken = Identifier("endMarker");
@@ -44,9 +44,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     modifiers: new(PublicKeyword(), StaticKeyword()),
                     explicitInterfaceSpecifier: default,//SF.ExplicitInterfaceSpecifier(GenericName(SerializerInterfaceToken, TypeFullName(decl))),
                     returnType: BoolPredefinedType(),
-                    identifier: Identifier("TryParseBson"),
+                    identifier: TryParseBsonToken,
                     parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken),
-                                                 OutParameter(TypeFullName(ctx.Declaration), TryParseOutVarToken)),
+                                                 OutParameter(TypeFullName(declaration), TryParseOutVarToken)),
                     body: default,
                     constraintClauses: default,
                     expressionBody: default,
@@ -57,7 +57,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                      SimpleAssignExprStatement(TryParseOutVarToken, DefaultLiteralExpr()),
                      DeclareTempVariables(ctx),
                      IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(docLenToken))),
-                     VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemainingExpr, SizeOfInt)),
+                     VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemainingExpr, SizeOfInt32Expr)),
                        SF.WhileStatement(
                            condition:
                               BinaryExprLessThan(
@@ -74,7 +74,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                           SF.IfStatement(
                               condition:
                                   BinaryExprNotEquals(endMarkerToken, NumericLiteralExpr((byte)'\x00')),
-                              statement: Block(SerializerEndMarkerException(ctx.Declaration, IdentifierName(endMarkerToken)))))
+                              statement: Block(SerializerEndMarkerException(declaration, IdentifierName(endMarkerToken)))))
                         .AddStatements(CreateMessage(ctx))
                         .AddStatements(ReturnTrueStatement));
         }
@@ -86,13 +86,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
                 if (trueType.IsReferenceType)
                 {
-                    member.AssignedVariable = Identifier($"{trueType.Name}{member.NameSym.Name}");
-                    variables.DefaultLocalDeclarationStatement(SF.ParseTypeName(trueType.ToString()), member.AssignedVariable);
+                    variables.DefaultLocalDeclarationStatement(SF.ParseTypeName(trueType.ToString()), member.AssignedVariableToken);
                 }
                 else
                 {
-                    member.AssignedVariable = Identifier($"{member.TypeSym.Name}{member.NameSym.Name}");
-                    variables.DefaultLocalDeclarationStatement(SF.ParseTypeName(member.TypeSym.ToString()), member.AssignedVariable);
+                    variables.DefaultLocalDeclarationStatement(SF.ParseTypeName(member.TypeSym.ToString()), member.AssignedVariableToken);
                 }
 
             }
@@ -111,14 +109,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     var parameter = constructorParams!.Value.FirstOrDefault(param => param.Name.Equals(member.NameSym.Name));
                     if (parameter != default)
                     {
-                        args.Add(Argument(member.AssignedVariable, NameColon(parameter)));
+                        args.Add(Argument(member.AssignedVariableToken, NameColon(parameter)));
                     }
                     else
                     {
                         assignments.Add(
                             SimpleAssignExprStatement(
                                 SimpleMemberAccess(TryParseOutVarToken, IdentifierName(member.NameSym.Name)),
-                                IdentifierName(member.AssignedVariable)));
+                                IdentifierName(member.AssignedVariableToken)));
                     }
                 }
 
@@ -134,7 +132,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     result.Add(
                         SimpleAssignExprStatement(
                             SimpleMemberAccess(TryParseOutVarToken, IdentifierName(member.NameSym.Name)),
-                            IdentifierName(member.AssignedVariable)));
+                            IdentifierName(member.AssignedVariableToken)));
                 }
             }
             return result.ToArray();
@@ -144,7 +142,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
             foreach (var member in ctx.Members)
             {
-                if (TryGenerateParseEnum(member.StaticSpanNameToken, member.AssignedVariable, member.NameSym, member.TypeSym, bsonName, builder))
+                if (TryGenerateParseEnum(member.StaticSpanNameToken, member.AssignedVariableToken, member.NameSym, member.TypeSym, bsonName, builder))
                 {
                     continue;
                 }
@@ -202,12 +200,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static bool TryGenerateSimpleReadOperation(ContextCore ctx, MemberContext member, SyntaxToken bsonType, SyntaxToken bsonName, ImmutableList<StatementSyntax>.Builder builder)
         {
             var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
-            var (operation, tempVar) = ReadOperation(ctx, member.NameSym, trueType, BsonReaderToken, IdentifierName(member.AssignedVariable), bsonType);
+            var (operation, tempVar) = ReadOperation(ctx, member.NameSym, trueType, BsonReaderToken, IdentifierName(member.AssignedVariableToken), bsonType);
             if (operation != default)
             {
                 builder.IfStatement(condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),
                                     statement: tempVar.HasValue
-                                        ? Block(IfNotReturnFalse(operation), SimpleAssignExprStatement(member.AssignedVariable, tempVar.Value), ContinueStatement)
+                                        ? Block(IfNotReturnFalse(operation), SimpleAssignExprStatement(member.AssignedVariableToken, tempVar.Value), ContinueStatement)
                                         : Block(IfNotReturnFalse(operation), ContinueStatement));
                 return true;
             }
@@ -222,14 +220,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     var condition = InvocationExpr(IdentifierName(trueType.ToString()), IdentifierName("TryParseBson"),
                                                    RefArgument(BsonReaderToken),
-                                                   OutArgument(member.AssignedVariable));
+                                                   OutArgument(member.AssignedVariableToken));
                     builder.IfStatement(condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),
                                         statement: Block(IfNotReturnFalse(condition), ContinueStatement));
                     return true;
                 }
                 else
                 {
-                    var localTryParseVar = Identifier($"{member.AssignedVariable.ToString()}TryParseTemp");
+                    var localTryParseVar = Identifier($"{member.AssignedVariableToken.ToString()}TryParseTemp");
                     var condition = InvocationExpr(IdentifierName(trueType.ToString()), IdentifierName("TryParseBson"),
                                                    RefArgument(BsonReaderToken), OutArgument(VarVariableDeclarationExpr(localTryParseVar)));
 
@@ -237,35 +235,32 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                         statement:
                                             Block(
                                                 IfNotReturnFalse(condition),
-                                                SimpleAssignExprStatement(member.AssignedVariable, localTryParseVar),
+                                                SimpleAssignExprStatement(member.AssignedVariableToken, localTryParseVar),
                                                 ContinueStatement));
                     return true;
                 }
             }
             return false;
         }
-        private static ReadOperationContext ReadOperation(ContextCore ctx, ISymbol nameSym, ITypeSymbol typeSym, SyntaxToken readerId, ExpressionSyntax readTarget, SyntaxToken bsonType)
+        private static ReadOperationContext ReadOperation(ContextCore ctx, ISymbol nameSym, ITypeSymbol trueTypeSym, SyntaxToken readerId, ExpressionSyntax readTarget, SyntaxToken bsonType)
         {
-            if (ctx.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(typeSym.Name)) != default) // generic type arguments
+            if (ctx.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(trueTypeSym.Name)) != default) // generic type arguments
             {
                 var temp = Identifier($"{nameSym.Name}TempGenericNullable");
-                if (typeSym.NullableAnnotation == NullableAnnotation.Annotated)
+                if (trueTypeSym.NullableAnnotation == NullableAnnotation.Annotated)
                 {
-                    return new(TryReadGenericNullable(TypeName(typeSym.OriginalDefinition), bsonType, VarVariableDeclarationExpr(temp)), temp);
+                    return new(TryReadGenericNullable(TypeName(trueTypeSym.OriginalDefinition), bsonType, VarVariableDeclarationExpr(temp)), temp);
                 }
                 else
                 {
                     return TryReadGeneric(bsonType, readTarget);
                 }
             }
-            if (typeSym is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)
+            if (IsListOrIList(trueTypeSym))
             {
-                if (IsListOrIList(namedType))
-                {
-                    return InvocationExpr(IdentifierName(ReadArrayMethodName(nameSym, typeSym)), RefArgument(readerId), OutArgument(readTarget));
-                }
+                return InvocationExpr(IdentifierName(ReadArrayMethodName(nameSym, trueTypeSym)), RefArgument(readerId), OutArgument(readTarget));
             }
-            if (TryGetSimpleReadOperation(nameSym, typeSym, IdentifierName(bsonType), readTarget, out var simpleOperation))
+            if (TryGetSimpleReadOperation(nameSym, trueTypeSym, IdentifierName(bsonType), readTarget, out var simpleOperation))
             {
                 return simpleOperation;
             }

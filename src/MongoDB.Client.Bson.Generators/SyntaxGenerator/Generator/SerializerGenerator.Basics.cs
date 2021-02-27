@@ -17,6 +17,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static readonly StatementSyntax ReturnTrueStatement = ReturnStatement(SF.LiteralExpression(SyntaxKind.TrueLiteralExpression));
         public static readonly StatementSyntax ReturnFalseStatement = ReturnStatement(SF.LiteralExpression(SyntaxKind.FalseLiteralExpression));
         public static readonly StatementSyntax ReturnNothingStatement = ReturnStatement();
+        public static readonly SizeOfExpressionSyntax SizeOfInt32Expr = SizeOf(IntPredefinedType());
         public static SyntaxToken SequenceEqualToken => SF.Identifier("SequenceEqual");
         public static ITypeSymbol ExtractTypeFromNullableIfNeed(ITypeSymbol original)
         {
@@ -153,8 +154,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.InvocationExpression(SF.IdentifierName("nameof"), SF.ArgumentList().AddArguments(SF.Argument(expr)));
         }
-
-        public static readonly SizeOfExpressionSyntax SizeOfInt = SizeOf(IntPredefinedType());
 
         public static BinaryExpressionSyntax BinaryExprMinus(ExpressionSyntax left, ExpressionSyntax right)
         {

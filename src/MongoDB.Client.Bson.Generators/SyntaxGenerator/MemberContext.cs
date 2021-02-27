@@ -14,12 +14,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         internal readonly string BsonElementValue;
         internal readonly ImmutableArray<ITypeSymbol>? TypeGenericArgs;
         internal readonly SyntaxToken StaticSpanNameToken;
-        internal SyntaxToken AssignedVariable;
+        internal readonly SyntaxToken AssignedVariableToken;
         public MemberContext(ContextCore root, ISymbol memberSym)
         {
             Root = root;
             NameSym = memberSym;
-
             switch (NameSym)
             {
                 case IFieldSymbol field:
@@ -38,6 +37,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 
             (BsonElementValue, BsonElementAlias) = SerializerGenerator.GetMemberAlias(NameSym);
             StaticSpanNameToken = SerializerGenerator.Identifier($"{Root.Declaration.Name}{BsonElementAlias}");
+            var trueType = SerializerGenerator.ExtractTypeFromNullableIfNeed(TypeSym);
+            if (trueType.IsReferenceType)
+            {
+                AssignedVariableToken = SerializerGenerator.Identifier($"{trueType.Name}{NameSym.Name}");
+            }
+            else
+            {
+                AssignedVariableToken = SerializerGenerator.Identifier($"{TypeSym.Name}{NameSym.Name}");
+            }
         }
 
     }

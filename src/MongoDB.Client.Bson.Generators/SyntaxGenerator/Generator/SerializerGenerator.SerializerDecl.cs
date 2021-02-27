@@ -17,7 +17,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var serializersMapCall = InvocationExpr(IdentifierName("MongoDB.Client.Bson.Serialization.SerializersMap"),
                                                     genericName,
                                                     OutArgument(VarVariableDeclarationExpr(Identifier($"{member.NameSym.Name}Serializer"))));
-            var serializerTryParse = InvocationExpr(IdentifierName($"{member.NameSym.Name}Serializer"), TryParseBsonToken, RefArgument(BsonReaderToken), OutArgument(IdentifierName(member.AssignedVariable)));
+            var serializerTryParse = InvocationExpr(IdentifierName($"{member.NameSym.Name}Serializer"), TryParseBsonToken, RefArgument(BsonReaderToken), OutArgument(IdentifierName(member.AssignedVariableToken)));
             return Statements(
                 IfNot(serializersMapCall, SerializerNotFoundException(member.TypeSym)),
                 IfNotReturnFalse(serializerTryParse));
