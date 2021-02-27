@@ -15,11 +15,13 @@ namespace MongoDB.Client.Connection
         private readonly NetworkConnectionFactory _networkFactory;
         private readonly EndPoint _endPoint;
         private readonly ILoggerFactory _loggerFactory;
+        private readonly ILogger<MongoConnectionFactory> _logger;
         public MongoConnectionFactory(EndPoint endPoint, ILoggerFactory loggerFactory)
         {
             _networkFactory = new NetworkConnectionFactory(loggerFactory);
             _endPoint = endPoint;
             _loggerFactory = loggerFactory;
+            _logger = loggerFactory.CreateLogger<MongoConnectionFactory>();
         }
 
         public async ValueTask<MongoConnection> CreateAsync(MongoClientSettings settings, ChannelReader<MongoRequest> reader, ChannelReader<MongoRequest> findReader, RequestScheduler requestScheduler)
@@ -32,6 +34,7 @@ namespace MongoDB.Client.Connection
             var id = Interlocked.Increment(ref CONNECTION_ID);
             var connection = new MongoConnection(id, settings, _loggerFactory.CreateLogger<MongoConnection>(), reader, findReader, requestScheduler);
             await connection.StartAsync(context).ConfigureAwait(false);
+            _logger.LogInformation("Created new connection: {id}", id);
             return connection;
         }
     }

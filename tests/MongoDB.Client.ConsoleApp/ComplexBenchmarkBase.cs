@@ -92,7 +92,15 @@ namespace MongoDB.Client.ConsoleApp
                     while (true)
                     {
                         var item = await reader.ReadAsync();
-                        await Work(collection, item);
+                        try
+                        {
+                            await Work(collection, item);
+                        }
+                        catch (Exception)
+                        {
+                            // skip
+                        }
+                        
                     }
                 }
                 catch (ChannelClosedException)

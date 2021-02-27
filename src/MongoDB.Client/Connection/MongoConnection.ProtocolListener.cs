@@ -20,7 +20,7 @@ namespace MongoDB.Client.Connection
             }
             MongoResponseMessage message;
             MongoRequest? request;
-            MongoException? exception = null;
+            Exception? exception = null;
             while (!_shutdownCts.IsCancellationRequested)
             {
                 try
@@ -62,6 +62,7 @@ namespace MongoDB.Client.Connection
                         }
                         catch (Exception e)
                         {
+                            // read rest of the responce
                             request.CompletionSource.SetException(e);
                         }
                     }
@@ -72,7 +73,9 @@ namespace MongoDB.Client.Connection
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e.ToString());
+                    _logger.LogError(e, "");
+                    exception = e;
+                    _shutdownCts.Cancel();
                 }
             }
             if (exception is not null)
