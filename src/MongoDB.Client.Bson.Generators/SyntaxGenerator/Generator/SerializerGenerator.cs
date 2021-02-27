@@ -8,6 +8,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        public static readonly LiteralExpressionSyntax TrueLiteralExpr = SF.LiteralExpression(SyntaxKind.TrueLiteralExpression);
+        public static readonly LiteralExpressionSyntax FalseLiteralExpr = SF.LiteralExpression(SyntaxKind.FalseLiteralExpression);
         public static StatementSyntax[] Statements(params ExpressionSyntax[] expressions)
         {
             return expressions.Select(expr => Statement(expr)).ToArray();
@@ -279,14 +281,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.LiteralExpression(SyntaxKind.CharacterLiteralExpression, SF.Literal(value));
         }
-        public static LiteralExpressionSyntax TrueLiteralExpr()
-        {
-            return SF.LiteralExpression(SyntaxKind.TrueLiteralExpression);
-        }
-        public static LiteralExpressionSyntax FalseLiteralExpr()
-        {
-            return SF.LiteralExpression(SyntaxKind.FalseLiteralExpression);
-        }
+ 
         public static IdentifierNameSyntax IdentifierName(SyntaxToken token)
         {
             return SF.IdentifierName(token);

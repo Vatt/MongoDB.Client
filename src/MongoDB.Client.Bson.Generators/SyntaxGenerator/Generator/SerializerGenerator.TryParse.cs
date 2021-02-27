@@ -76,7 +76,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                   BinaryExprNotEquals(endMarkerToken, NumericLiteralExpr((byte)'\x00')),
                               statement: Block(SerializerEndMarkerException(ctx.Declaration, IdentifierName(endMarkerToken)))))
                         .AddStatements(CreateMessage(ctx))
-                        .AddStatements(ReturnStatement(TrueLiteralExpr())));
+                        .AddStatements(ReturnTrueStatement));
         }
         private static StatementSyntax[] DeclareTempVariables(ContextCore ctx)
         {

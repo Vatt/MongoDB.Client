@@ -177,7 +177,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 goto RETURN;
             }
-            //TODO: Сгенерировать SerializersMap если ниодин не отработал
+            //TODO: Сгенерировать SerializersMap если ни один не отработал
         RETURN:
             return SF.MethodDeclaration(
                     attributeLists: default,
@@ -218,7 +218,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                        IfStatement(
                            BinaryExprNotEquals(endMarkerToken, NumericLiteralExpr((byte)'\x00')),
                            Block(Statement(SerializerEndMarkerException(ctx.Root.Declaration, IdentifierName(endMarkerToken))))),
-                       ReturnStatement(TrueLiteralExpr())
+                       ReturnTrueStatement
                        ));
         }
 
@@ -248,7 +248,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 //var operation = WriteOperation(ctx, index, ctx.NameSym, typeArg, classCtx.BsonWriterId, SimpleMemberAccess(ElementAccessExpr(IdentifierName(array), index), IdentifierName("Value")));
                 var operation = WriteOperation(ctx, index, ctx.NameSym, ExtractTypeFromNullableIfNeed(typeArg), BsonWriterToken, SimpleMemberAccess(ElementAccessExpr(array, index), NullableValueToken));
                 writeOperation.IfStatement(
-                            condition: BinaryExprEqualsEquals(SimpleMemberAccess(ElementAccessExpr(array, index), NullableHasValueToken), FalseLiteralExpr()),
+                            condition: BinaryExprEqualsEquals(SimpleMemberAccess(ElementAccessExpr(array, index), NullableHasValueToken), FalseLiteralExpr),
                             statement: Block(WriteBsonNull(index)),
                             @else: Block(operation));
             }

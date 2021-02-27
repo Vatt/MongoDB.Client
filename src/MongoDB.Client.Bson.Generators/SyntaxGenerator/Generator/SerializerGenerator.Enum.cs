@@ -10,12 +10,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static SyntaxToken ReadStringReprEnumMethodName(ISymbol enumTypeName, ISymbol fieldOrPropertyName)
         {
             var (_, alias) = GetMemberAlias(fieldOrPropertyName);
-            return SF.Identifier($"TryParse{enumTypeName.Name}");
+            return Identifier($"TryParse{enumTypeName.Name}");
         }
         private static SyntaxToken WriteStringReprEnumMethodName(ISymbol enumTypeName, ISymbol fieldOrPropertyName)
         {
             var (_, alias) = GetMemberAlias(fieldOrPropertyName);
-            return SF.Identifier($"Write{enumTypeName.Name}");
+            return Identifier($"Write{enumTypeName.Name}");
         }
         private static MethodDeclarationSyntax[] GenerateWriteStringReprEnumMethods(ContextCore ctx)
         {
@@ -75,10 +75,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         statement:
                         SF.Block(
                             SimpleAssignExprStatement(outMessage, IdentifierFullName(member)),
-                            SF.ReturnStatement(TrueLiteralExpr())
+                            ReturnTrueStatement
                             )));
             }
-            statements.Add(SF.ReturnStatement(TrueLiteralExpr()));
+            statements.Add(ReturnTrueStatement);
             return SF.MethodDeclaration(
                     attributeLists: default,
                     modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()),

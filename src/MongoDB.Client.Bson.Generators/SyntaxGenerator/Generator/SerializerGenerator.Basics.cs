@@ -14,6 +14,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static readonly GenericNameSyntax ReadOnlySpanByteName = GenericName(Identifier("ReadOnlySpan"), BytePredefinedType());
         public static readonly GenericNameSyntax SpanByteName = GenericName(Identifier("Span"), BytePredefinedType());
         public static readonly ContinueStatementSyntax ContinueStatement = SF.ContinueStatement();
+        public static readonly StatementSyntax ReturnTrueStatement = ReturnStatement(SF.LiteralExpression(SyntaxKind.TrueLiteralExpression));
+        public static readonly StatementSyntax ReturnFalseStatement = ReturnStatement(SF.LiteralExpression(SyntaxKind.FalseLiteralExpression));
+        public static readonly StatementSyntax ReturnNothingStatement = ReturnStatement();
         public static SyntaxToken SequenceEqualToken => SF.Identifier("SequenceEqual");
         public static ITypeSymbol ExtractTypeFromNullableIfNeed(ITypeSymbol original)
         {
@@ -90,13 +93,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static IfStatementSyntax IfNotReturnFalse(ExpressionSyntax condition)
         {
-            return IfNotReturn(condition, SF.ReturnStatement(FalseLiteralExpr()));
+            return IfNotReturn(condition, ReturnFalseStatement);
         }
         public static IfStatementSyntax IfNotReturnFalseElse(ExpressionSyntax condition, ExpressionSyntax elseClause)
         {
             return SF.IfStatement(
                 SF.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, condition),
-                SF.Block(SF.ReturnStatement(FalseLiteralExpr())),
+                SF.Block(ReturnFalseStatement),
                 SF.ElseClause(SF.Block(SF.ExpressionStatement(elseClause))));
         }
         public static IfStatementSyntax IfNotReturnFalseElse(ExpressionSyntax condition, BlockSyntax @else)
@@ -104,7 +107,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             //return IfNotReturn(condition, SF.ReturnStatement(FalseLiteralExpr()));
             return SF.IfStatement(
                 SF.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, condition),
-                SF.Block(SF.ReturnStatement(FalseLiteralExpr())),
+                SF.Block(ReturnFalseStatement),
                 SF.ElseClause(@else));
         }
         public static IfStatementSyntax IfNot(ExpressionSyntax condition, ExpressionSyntax statement)

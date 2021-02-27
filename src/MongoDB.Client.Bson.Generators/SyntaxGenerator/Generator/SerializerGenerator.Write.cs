@@ -60,7 +60,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     var nullableStrcutTarget = SimpleMemberAccess(writeTarget,NullableValueToken);
                     inner.IfStatement(
-                            condition: BinaryExprEqualsEquals(SimpleMemberAccess(writeTarget, NullableHasValueToken), FalseLiteralExpr()),
+                            condition: BinaryExprEqualsEquals(SimpleMemberAccess(writeTarget, NullableHasValueToken), FalseLiteralExpr),
                             statement: Block(WriteBsonNull(member.StaticSpanNameToken)),
                             @else: Block(WriteOperation(member, member.StaticSpanNameToken, member.NameSym, member.TypeSym, BsonWriterToken, nullableStrcutTarget)));
                 }
@@ -109,7 +109,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 return Statements
                 (
                     VarLocalDeclarationStatement(Identifier($"{name}genericReserved"), WriterReserve(1)),
-                    //Statement(WriteCString(StaticFieldNameToken(ctx))),
                     Statement(WriteCString(ctx.StaticSpanNameToken)),
                     Statement(WriteGeneric(writeTarget, IdentifierName($"{name}genericReserved")))
                 );
