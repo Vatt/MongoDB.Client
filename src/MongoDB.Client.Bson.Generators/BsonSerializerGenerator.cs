@@ -18,13 +18,13 @@ namespace MongoDB.Client.Bson.Generators
         public static Compilation Compilation;
         public void Execute(GeneratorExecutionContext context)
         {
-         //   System.Diagnostics.Debugger.Launch();
+            //System.Diagnostics.Debugger.Launch();
 
            // var all = Stopwatch.StartNew();
             Context = context;
             Compilation = Context.Compilation;
             //TypeLib.Init(Compilation);
-            GeneratorDiagnostics.Init(context);
+            //GeneratorDiagnostics.Init(context);
 
             try
             {
@@ -38,7 +38,8 @@ namespace MongoDB.Client.Bson.Generators
                         return;
                     }
                     var source = units[index].NormalizeWhitespace().ToString();
-                    context.AddSource(SerializerGenerator.SerializerName(masterContext.Contexts[index]), SourceText.From(source, Encoding.UTF8));
+                    //context.AddSource(SerializerGenerator.SerializerName(masterContext.Contexts[index]), SourceText.From(source, Encoding.UTF8));
+                    context.AddSource(masterContext.Contexts[index].SerializerName.ToString(), SourceText.From(source, Encoding.UTF8));
                 }
             }
             catch (OperationCanceledException)

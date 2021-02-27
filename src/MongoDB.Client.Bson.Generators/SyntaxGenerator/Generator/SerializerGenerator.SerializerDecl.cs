@@ -29,7 +29,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                                     genericName,
                                                     OutArgument(VarVariableDeclarationExpr(Identifier($"{member.NameSym.Name}Serializer"))));
             var sma = SimpleMemberAccess(WriterInputVarToken, IdentifierName(member.NameSym));
-            //var serializerWrite = InvocationExprStatement(IdentifierName($"{member.NameSym.Name}Serializer"), WriteBsonToken, RefArgument(BsonWriterToken), Argument(sma));
             var serializerWrite = InvocationExprStatement(IdentifierName($"{member.NameSym.Name}Serializer"), IdentifierName(WriteBsonToken), RefArgument(BsonWriterToken), Argument(sma));
             return Statements(
                 IfNot(serializersMapCall, SerializerNotFoundException(member.TypeSym)),
@@ -56,18 +55,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return symbol.ToString();
             }
-        }
-
-        public static string SerializerName(ContextCore ctx)
-        {
-            string generics = ctx.GenericArgs.HasValue && ctx.GenericArgs.Value.Length > 0
-                ? string.Join(String.Empty, ctx.GenericArgs.Value)
-                : String.Empty;
-            return $"{ctx.Declaration.ContainingNamespace.ToString().Replace(".", String.Empty)}{ctx.Declaration.Name}{generics}SerializerGenerated";
-        }
-        public static SyntaxToken StaticFieldNameToken(MemberContext ctx)
-        {
-            return Identifier($"{ctx.Root.Declaration.Name}{ctx.BsonElementAlias}");
         }
         public static SyntaxToken StaticEnumFieldNameToken(ISymbol enumTypeName, string alias)
         {
@@ -188,7 +175,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         modifiers: new(PrivateKeyword(), StaticKeyword()),
                         type: ReadOnlySpanByteName,
                         explicitInterfaceSpecifier: default,
-                        identifier: StaticFieldNameToken(member),
+                        identifier: member.StaticSpanNameToken,
                         accessorList: default,
                         expressionBody: SF.ArrowExpressionClause(SingleDimensionByteArrayCreation(bytes.Length, SeparatedList(bytes.Select(NumericLiteralExpr)))),
                         initializer: default,
@@ -213,7 +200,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     {
                         continue;
                     }
-                    //var typedMetadata = member.TypeMetadata as INamedTypeSymbol;
                     var typedMetadata = trueType as INamedTypeSymbol;
                     if (typedMetadata == null)
                     {

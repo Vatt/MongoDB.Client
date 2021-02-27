@@ -13,6 +13,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         internal readonly string BsonElementAlias;
         internal readonly string BsonElementValue;
         internal readonly ImmutableArray<ITypeSymbol>? TypeGenericArgs;
+        internal readonly SyntaxToken StaticSpanNameToken;
         internal SyntaxToken AssignedVariable;
         public MemberContext(ContextCore root, ISymbol memberSym)
         {
@@ -36,6 +37,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             }
 
             (BsonElementValue, BsonElementAlias) = SerializerGenerator.GetMemberAlias(NameSym);
+            StaticSpanNameToken = SerializerGenerator.Identifier($"{Root.Declaration.Name}{BsonElementAlias}");
         }
 
     }

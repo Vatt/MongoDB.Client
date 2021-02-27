@@ -1,9 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
@@ -16,7 +15,16 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         internal List<MemberContext> Members;
         internal ImmutableArray<ITypeSymbol>? GenericArgs;
         internal ImmutableArray<IParameterSymbol>? ConstructorParams;
-
+        internal SyntaxToken SerializerName 
+        {
+            get
+            {
+                string generics = GenericArgs.HasValue && GenericArgs.Value.Length > 0
+                    ? string.Join(string.Empty, GenericArgs.Value)
+                    : string.Empty;
+                return SerializerGenerator.Identifier($"{Declaration.ContainingNamespace.ToString().Replace(".", string.Empty)}{Declaration.Name}{generics}SerializerGenerated");
+            }
+        }
         internal bool HavePrimaryConstructor => ConstructorParams.HasValue;
 
         public bool ConstructorContains(string name)

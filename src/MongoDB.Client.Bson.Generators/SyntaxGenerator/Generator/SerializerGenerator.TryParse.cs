@@ -158,7 +158,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 }
                 GeneratorDiagnostics.ReportSerializerMapUsingWarning(member.NameSym);
                 builder.IfStatement(
-                            condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
+                            condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),
                             statement: Block(
                                         OtherTryParseBson(member),
                                         ContinueStatement));
@@ -179,7 +179,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             if (repr != 1)
             {
                 builder.IfStatement(
-                      condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
+                      condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),
                       statement: Block(
                           repr == 2 ?
                             LocalDeclarationStatement(IntPredefinedType(), localReadEnumVar, DefaultLiteralExpr()) :
@@ -192,10 +192,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             else
             {
-                //var readMethod = IdentifierName(ReadStringReprEnumMethodName(member.Root, member.TypeMetadata, member.NameSym));
                 var readMethod = IdentifierName(ReadStringReprEnumMethodName(member.Root, trueType, member.NameSym));
                 builder.IfStatement(
-                        condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
+                        condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),
                         statement: Block(
                             IfNotReturnFalse(InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(member.AssignedVariable))),
                             ContinueStatement
@@ -209,7 +208,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var (operation, tempVar) = ReadOperation(ctx, member.NameSym, trueType, BsonReaderToken, IdentifierName(member.AssignedVariable), bsonType);
             if (operation != default)
             {
-                builder.IfStatement(condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
+                builder.IfStatement(condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),
                                     statement: tempVar.HasValue
                                         ? Block(IfNotReturnFalse(operation), SimpleAssignExprStatement(member.AssignedVariable, tempVar.Value), ContinueStatement)
                                         : Block(IfNotReturnFalse(operation), ContinueStatement));
@@ -227,7 +226,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     var condition = InvocationExpr(IdentifierName(trueType.ToString()), IdentifierName("TryParseBson"),
                                                    RefArgument(BsonReaderToken),
                                                    OutArgument(member.AssignedVariable));
-                    builder.IfStatement(condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
+                    builder.IfStatement(condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),
                                         statement: Block(IfNotReturnFalse(condition), ContinueStatement));
                     return true;
                 }
@@ -237,7 +236,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     var condition = InvocationExpr(IdentifierName(trueType.ToString()), IdentifierName("TryParseBson"),
                                                    RefArgument(BsonReaderToken), OutArgument(VarVariableDeclarationExpr(localTryParseVar)));
 
-                    builder.IfStatement(condition: SpanSequenceEqual(bsonName, StaticFieldNameToken(member)),
+                    builder.IfStatement(condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),
                                         statement:
                                             Block(
                                                 IfNotReturnFalse(condition),

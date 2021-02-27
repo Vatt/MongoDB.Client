@@ -53,21 +53,20 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     inner.IfStatement(
                                 condition: BinaryExprEqualsEquals(writeTarget, NullLiteralExpr()),
-                                statement: Block(Statement(WriteBsonNull(StaticFieldNameToken(member)))),
-                                @else: Block(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, BsonWriterToken, writeTarget)));
+                                statement: Block(Statement(WriteBsonNull(member.StaticSpanNameToken))),
+                                @else: Block(WriteOperation(member, member.StaticSpanNameToken, member.NameSym, member.TypeSym, BsonWriterToken, writeTarget)));
                 }
-                //else if (member.TypeSym.NullableAnnotation == NullableAnnotation.Annotated && trueType.TypeKind == TypeKind.Struct)
                 else if (member.TypeSym.NullableAnnotation == NullableAnnotation.Annotated && trueType.IsValueType == true)
                 {
-                    var nullableStrcutTarget = SimpleMemberAccess(writeTarget, IdentifierName("Value"));
+                    var nullableStrcutTarget = SimpleMemberAccess(writeTarget,NullableValueToken);
                     inner.IfStatement(
                             condition: BinaryExprEqualsEquals(SimpleMemberAccess(writeTarget, NullableHasValueToken), FalseLiteralExpr()),
-                            statement: Block(WriteBsonNull(StaticFieldNameToken(member))),
-                            @else: Block(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, BsonWriterToken, nullableStrcutTarget)));
+                            statement: Block(WriteBsonNull(member.StaticSpanNameToken)),
+                            @else: Block(WriteOperation(member, member.StaticSpanNameToken, member.NameSym, member.TypeSym, BsonWriterToken, nullableStrcutTarget)));
                 }
                 else
                 {
-                    inner.AddRange(WriteOperation(member, StaticFieldNameToken(member), member.NameSym, member.TypeSym, BsonWriterToken, writeTarget));
+                    inner.AddRange(WriteOperation(member, member.StaticSpanNameToken, member.NameSym, member.TypeSym, BsonWriterToken, writeTarget));
                 }
                 if (condition != null)
                 {
@@ -110,7 +109,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 return Statements
                 (
                     VarLocalDeclarationStatement(Identifier($"{name}genericReserved"), WriterReserve(1)),
-                    Statement(WriteCString(StaticFieldNameToken(ctx))),
+                    //Statement(WriteCString(StaticFieldNameToken(ctx))),
+                    Statement(WriteCString(ctx.StaticSpanNameToken)),
                     Statement(WriteGeneric(writeTarget, IdentifierName($"{name}genericReserved")))
                 );
             }
@@ -131,7 +131,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             GeneratorDiagnostics.ReportSerializerMapUsingWarning(ctx.NameSym);
             return Statements(
-                    Statement(Write_Type_Name(3, StaticFieldNameToken(ctx))),
+                    Statement(Write_Type_Name(3, ctx.StaticSpanNameToken)),
                     OtherWriteBson(ctx)
                 );
         }
@@ -147,13 +147,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             if (repr == -1) { repr = 2; }
             if (repr != 1)
             {
-                statements = ImmutableList.Create(Write_Type_Name_Value(StaticFieldNameToken(member), repr == 2 ? CastToInt(writeTarget) : CastToLong(writeTarget)));
+                statements = ImmutableList.Create(Write_Type_Name_Value(member.StaticSpanNameToken, repr == 2 ? CastToInt(writeTarget) : CastToLong(writeTarget)));
             }
             else
             {
-                //var methodName = IdentifierName(WriteStringReprEnumMethodName(ctx, member.TypeMetadata, member.NameSym));
                 var methodName = IdentifierName(WriteStringReprEnumMethodName(ctx, trueType, member.NameSym));
-                statements = ImmutableList.Create(InvocationExpr(methodName, RefArgument(BsonWriterToken), Argument(StaticFieldNameToken(member)), Argument(writeTarget)));
+                statements = ImmutableList.Create(InvocationExpr(methodName, RefArgument(BsonWriterToken), Argument(member.StaticSpanNameToken), Argument(writeTarget)));
             }
             return true;
         }
@@ -166,7 +165,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 return false;
             }
             expressions = ImmutableList.Create(
-                Write_Type_Name(3, StaticFieldNameToken(ctx)),
+                Write_Type_Name(3, ctx.StaticSpanNameToken),
                 InvocationExpr(IdentifierName(trueType.ToString()), WriteBsonToken, RefArgument(BsonWriterToken), Argument(writeTarget))); //TODO: IdentifierName(SelfFullName(typeSym)) с этим чтото не так на генериках
             return true;
 

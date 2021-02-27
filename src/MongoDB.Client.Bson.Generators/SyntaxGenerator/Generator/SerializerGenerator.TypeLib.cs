@@ -10,6 +10,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static INamedTypeSymbol BsonObjectId => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonObjectId")!;
         public static INamedTypeSymbol BsonArray => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonArray")!;
         public static INamedTypeSymbol BsonDocument => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonDocument")!;
+        public static INamedTypeSymbol System_Collections_Generic_IList_T => BsonSerializerGenerator.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IList_T);
+        public static INamedTypeSymbol System_Collections_Generic_List_T => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.List`1")!;
         public static bool TryGetMetadata(ITypeSymbol source, out ISymbol result)
         {
             var str = source.ToString();
@@ -39,7 +41,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static bool IsListOrIList(ISymbol symbol)
         {
-            return symbol.ToString().Contains("System.Collections.Generic.List") || symbol.ToString().Contains("System.Collections.Generic.IList");
+            //return symbol.ToString().Contains("System.Collections.Generic.List") || symbol.ToString().Contains("System.Collections.Generic.IList");
+            return symbol.OriginalDefinition.Equals(System_Collections_Generic_IList_T, SymbolEqualityComparer.Default) ||
+                   symbol.OriginalDefinition.Equals(System_Collections_Generic_List_T, SymbolEqualityComparer.Default);
         }
         public static bool IsBsonObjectId(ISymbol sym)
         {
