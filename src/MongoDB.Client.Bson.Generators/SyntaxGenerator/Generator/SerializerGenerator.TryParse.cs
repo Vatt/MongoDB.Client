@@ -144,7 +144,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
             foreach (var member in ctx.Members)
             {
-                if (TryGenerateParseEnum(member, bsonName, builder))
+                if (TryGenerateParseEnum(member.StaticSpanNameToken, member.AssignedVariable, member.NameSym, member.TypeSym, bsonName, builder))
                 {
                     continue;
                 }
@@ -166,34 +166,34 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return builder.ToArray();
         }
 
-        private static bool TryGenerateParseEnum(MemberContext member, SyntaxToken bsonName, ImmutableList<StatementSyntax>.Builder builder)
+        private static bool TryGenerateParseEnum(SyntaxToken staticNameSpan, SyntaxToken readTarget, ISymbol nameSym, ITypeSymbol typeSym, SyntaxToken bsonName, ImmutableList<StatementSyntax>.Builder builder)
         {
-            var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
+            var trueType = ExtractTypeFromNullableIfNeed(typeSym);
             if (trueType.TypeKind != TypeKind.Enum)
             {
                 return false;
             }
-            var localReadEnumVar = Identifier($"{member.AssignedVariable}EnumTemp");
-            int repr = GetEnumRepresentation(member.NameSym);
+            var localReadEnumVar = Identifier($"{readTarget}EnumTemp");
+            int repr = GetEnumRepresentation(nameSym);
             if (repr == -1) { repr = 2; }
             if (repr != 1)
             {
                 builder.IfStatement(
-                      condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),
+                      condition: SpanSequenceEqual(bsonName, staticNameSpan),
                       statement: Block(
                           repr == 2 ?
-                            IfNotReturnFalseElse(TryGetInt32(IntVariableDeclarationExpr(localReadEnumVar)), Block(SimpleAssignExprStatement(member.AssignedVariable, Cast(trueType, localReadEnumVar)))) :
-                            IfNotReturnFalseElse(TryGetInt64(LongVariableDeclarationExpr(localReadEnumVar)), Block(SimpleAssignExprStatement(member.AssignedVariable, Cast(trueType, localReadEnumVar)))),
+                            IfNotReturnFalseElse(TryGetInt32(IntVariableDeclarationExpr(localReadEnumVar)), Block(SimpleAssignExprStatement(readTarget, Cast(trueType, localReadEnumVar)))) :
+                            IfNotReturnFalseElse(TryGetInt64(LongVariableDeclarationExpr(localReadEnumVar)), Block(SimpleAssignExprStatement(readTarget, Cast(trueType, localReadEnumVar)))),
                             ContinueStatement
                     ));
             }
             else
             {
-                var readMethod = IdentifierName(ReadStringReprEnumMethodName(trueType, member.NameSym));
+                var readMethod = IdentifierName(ReadStringReprEnumMethodName(trueType, nameSym));
                 builder.IfStatement(
-                        condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),
+                        condition: SpanSequenceEqual(bsonName, staticNameSpan),
                         statement: Block(
-                            IfNotReturnFalse(InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(member.AssignedVariable))),
+                            IfNotReturnFalse(InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(readTarget))),
                             ContinueStatement
                         ));
             }
