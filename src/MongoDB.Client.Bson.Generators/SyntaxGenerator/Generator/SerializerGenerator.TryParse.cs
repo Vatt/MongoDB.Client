@@ -182,11 +182,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                       condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),
                       statement: Block(
                           repr == 2 ?
-                            LocalDeclarationStatement(IntPredefinedType(), localReadEnumVar, DefaultLiteralExpr()) :
-                            LocalDeclarationStatement(LongPredefinedType(), localReadEnumVar, DefaultLiteralExpr()),
-                          repr == 2 ?
-                            IfNotReturnFalseElse(TryGetInt32(localReadEnumVar), Block(SimpleAssignExprStatement(member.AssignedVariable, Cast(trueType, localReadEnumVar)))) :
-                            IfNotReturnFalseElse(TryGetInt64(localReadEnumVar), Block(SimpleAssignExprStatement(member.AssignedVariable, Cast(trueType, localReadEnumVar)))),
+                            IfNotReturnFalseElse(TryGetInt32(IntVariableDeclarationExpr(localReadEnumVar)), Block(SimpleAssignExprStatement(member.AssignedVariable, Cast(trueType, localReadEnumVar)))) :
+                            IfNotReturnFalseElse(TryGetInt64(LongVariableDeclarationExpr(localReadEnumVar)), Block(SimpleAssignExprStatement(member.AssignedVariable, Cast(trueType, localReadEnumVar)))),
                             ContinueStatement
                     ));
             }

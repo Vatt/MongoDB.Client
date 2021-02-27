@@ -208,6 +208,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.DeclarationExpression(IntPredefinedType(), SF.SingleVariableDesignation(varId));
         }
+        public static DeclarationExpressionSyntax LongVariableDeclarationExpr(SyntaxToken varId)
+        {
+            return SF.DeclarationExpression(LongPredefinedType(), SF.SingleVariableDesignation(varId));
+        }
         public static DeclarationExpressionSyntax TypedVariableDeclarationExpr(TypeSyntax type, SyntaxToken varId)
         {
             return SF.DeclarationExpression(type, SF.SingleVariableDesignation(varId));
