@@ -13,18 +13,18 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private readonly struct ReadOperationContext
         {
             public ExpressionSyntax Expr { get; }
-            public SyntaxToken? TempVariable { get; }
+            public ExpressionSyntax? TempVariable { get; }
             public ReadOperationContext(ExpressionSyntax expr)
             {
                 Expr = expr;
                 TempVariable = null;
             }
-            public ReadOperationContext(ExpressionSyntax expr, SyntaxToken tempVar)
+            public ReadOperationContext(ExpressionSyntax expr, ExpressionSyntax tempVar)
             {
                 Expr = expr;
                 TempVariable = tempVar;
             }
-            public void Deconstruct(out ExpressionSyntax expr, out SyntaxToken? tempVar)
+            public void Deconstruct(out ExpressionSyntax expr, out ExpressionSyntax? tempVar)
             {
                 expr = Expr;
                 tempVar = TempVariable;
@@ -150,7 +150,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     continue;
                 }
-                if (TryGenerateTryParseBson(ctx, member, bsonName, builder))
+                if (TryGenerateTryParseBson(member, bsonName, builder))
                 {
                     continue;
                 }
@@ -204,14 +204,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             if (operation != default)
             {
                 builder.IfStatement(condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),
-                                    statement: tempVar.HasValue
-                                        ? Block(IfNotReturnFalse(operation), SimpleAssignExprStatement(member.AssignedVariableToken, tempVar.Value), ContinueStatement)
+                                    statement: tempVar != null
+                                        ? Block(IfNotReturnFalse(operation), SimpleAssignExprStatement(member.AssignedVariableToken, tempVar), ContinueStatement)
                                         : Block(IfNotReturnFalse(operation), ContinueStatement));
                 return true;
             }
             return false;
         }
-        private static bool TryGenerateTryParseBson(ContextCore ctx, MemberContext member, SyntaxToken bsonName, ImmutableList<StatementSyntax>.Builder builder)
+        private static bool TryGenerateTryParseBson(MemberContext member, SyntaxToken bsonName, ImmutableList<StatementSyntax>.Builder builder)
         {
             var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
             if (IsBsonSerializable(trueType))
@@ -249,7 +249,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var temp = Identifier($"{nameSym.Name}TempGenericNullable");
                 if (trueTypeSym.NullableAnnotation == NullableAnnotation.Annotated)
                 {
-                    return new(TryReadGenericNullable(TypeName(trueTypeSym.OriginalDefinition), bsonType, VarVariableDeclarationExpr(temp)), temp);
+                    return new(TryReadGenericNullable(TypeName(trueTypeSym.OriginalDefinition), bsonType, VarVariableDeclarationExpr(temp)), IdentifierName(temp));
                 }
                 else
                 {

@@ -108,7 +108,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             builder.IfNotReturnFalseElse(condition: operation,
                                          @else:
                                             Block(
-                                                InvocationExprStatement(outMessage, ListAddToken, Argument(tempVar.HasValue ? tempVar.Value : readTarget)),
+                                                InvocationExprStatement(outMessage, ListAddToken, Argument(tempVar != null ? tempVar : IdentifierName(readTarget))),
                                                 ContinueStatement));
             return true;
         }
