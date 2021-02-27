@@ -15,15 +15,16 @@ namespace MongoDB.Client.Protocol.Readers
         protected readonly ResponseMsgMessage Message;
         public bool Complete { get; protected set; }
 
-
-        protected long _readed;
-        public long Readed => _readed;
-
         public MsgBodyReader(IGenericBsonSerializer<T> serializer, ResponseMsgMessage message)
         {
             Serializer = serializer;
             Message = message;
             _cursorResult = new CursorResult<T>(new MongoCursor<T>(ListsPool<T>.Pool.Get()));
+        }
+
+        protected void Advance(long count)
+        {
+            Message.Consumed += count;
         }
 
         public abstract bool TryParseMessage(in ReadOnlySequence<byte> input, ref SequencePosition consumed, ref SequencePosition examined, [MaybeNullWhen(false)] out CursorResult<T> message);

@@ -86,10 +86,12 @@ namespace MongoDB.Client.Bson.Generators
             ISymbol bsonAttribute = context.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonSerializableAttribute");
             foreach (var tree in context.Compilation.SyntaxTrees)
             {
+                context.CancellationToken.ThrowIfCancellationRequested();
                 SemanticModel model = context.Compilation.GetSemanticModel(tree);
 
                 foreach (var node in tree.GetRoot().DescendantNodesAndSelf())
                 {
+                    context.CancellationToken.ThrowIfCancellationRequested();
                     if (model.GetDeclaredSymbol(node) is INamedTypeSymbol symbol)
                     {
                         foreach (var attr in symbol.GetAttributes())

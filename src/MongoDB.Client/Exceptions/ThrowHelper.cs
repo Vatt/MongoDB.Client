@@ -208,6 +208,13 @@ namespace MongoDB.Client.Exceptions
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         [DoesNotReturn]
+        public static void InvalidBsonException()
+        {
+            throw new MongoException("Invalid bson");
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
         public static void ThrowNotInitialized()
         {
             throw new MongoException("Client must be initialized");

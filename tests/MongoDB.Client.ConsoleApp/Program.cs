@@ -14,7 +14,7 @@ namespace MongoDB.Client.ConsoleApp
     {
         static async Task Main(string[] args)
         {
-            await LoadTest<GeoIp>(1024 * 1024, new[] { 512 });
+            await LoadTest<GeoIp>(1024*1024, new[] { 512 });
 
             Console.WriteLine("Done");
         }
@@ -25,12 +25,12 @@ namespace MongoDB.Client.ConsoleApp
             var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder
-                    .SetMinimumLevel(LogLevel.Error)
+                    .SetMinimumLevel(LogLevel.Information)
                     .AddConsole();
             });
 
             var client = new MongoClient(new DnsEndPoint(host, 27017), loggerFactory);
-            //var client = MongoExperimental.CreateWithExperimentalConnection(new DnsEndPoint(host, 27017), loggerFactory);
+           // var client = MongoExperimental.CreateWithExperimentalConnection(new DnsEndPoint(host, 27017), loggerFactory);
             await client.InitAsync();
             var db = client.GetDatabase("TestDb");
             var stopwatch = new Stopwatch();
