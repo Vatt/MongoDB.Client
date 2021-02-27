@@ -9,10 +9,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static readonly TypeSyntax BsonReaderType = SF.ParseTypeName("MongoDB.Client.Bson.Reader.BsonReader");
         public static readonly TypeSyntax BsonWriterType = SF.ParseTypeName("MongoDB.Client.Bson.Writer.BsonWriter");
 
-        public static SyntaxToken WriteBsonToken => Identifier("WriteBson");
-        public static SyntaxToken TryParseBsonToken => Identifier("TryParseBson");
         public static SyntaxToken NullableHasValueToken => Identifier("HasValue");
         public static SyntaxToken NullableValueToken => Identifier("Value");
+        public static SyntaxToken ListAddToken => Identifier("Add");
+        public static SyntaxToken ListCountToken => Identifier("Count");
+
+        public static SyntaxToken WriteBsonToken => Identifier("WriteBson");
+        public static SyntaxToken TryParseBsonToken => Identifier("TryParseBson");
         public static SyntaxToken BsonReaderToken => Identifier("reader");
         public static SyntaxToken BsonWriterToken => Identifier("writer");         
         public static SyntaxToken TryParseOutVarToken => Identifier("message");

@@ -41,7 +41,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static bool IsListOrIList(ISymbol symbol)
         {
-            //return symbol.ToString().Contains("System.Collections.Generic.List") || symbol.ToString().Contains("System.Collections.Generic.IList");
             return symbol.OriginalDefinition.Equals(System_Collections_Generic_IList_T, SymbolEqualityComparer.Default) ||
                    symbol.OriginalDefinition.Equals(System_Collections_Generic_List_T, SymbolEqualityComparer.Default);
         }

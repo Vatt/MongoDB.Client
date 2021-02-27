@@ -9,9 +9,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        public static readonly TypeSyntax VarType = SF.ParseTypeName("var");
+        public static readonly ExpressionSyntax NewBsonObjectIdExpr = InvocationExpr(TypeFullName(BsonObjectId), SF.IdentifierName("NewObjectId"));
         public static readonly GenericNameSyntax ReadOnlySpanByteName = GenericName(Identifier("ReadOnlySpan"), BytePredefinedType());
         public static readonly GenericNameSyntax SpanByteName = GenericName(Identifier("Span"), BytePredefinedType());
         public static readonly ContinueStatementSyntax ContinueStatement = SF.ContinueStatement();
+        public static SyntaxToken SequenceEqualToken => SF.Identifier("SequenceEqual");
         public static ITypeSymbol ExtractTypeFromNullableIfNeed(ITypeSymbol original)
         {
             if (original is INamedTypeSymbol namedType)
@@ -35,22 +38,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return original;
         }
-        public static ExpressionSyntax SpanSequenceEqual(ExpressionSyntax spanName, ExpressionSyntax otherSpanName)
-        {
-            return InvocationExpr(spanName, SF.IdentifierName("SequenceEqual"), SF.Argument(otherSpanName));
-        }
-
-        public static readonly ExpressionSyntax NewBsonObjectIdExpr = InvocationExpr(TypeFullName(BsonObjectId), SF.IdentifierName("NewObjectId"));
-
         public static ExpressionSyntax SpanSequenceEqual(SyntaxToken spanName, SyntaxToken otherSpanName)
         {
-            return InvocationExpr(IdentifierName(spanName), SF.IdentifierName("SequenceEqual"), SF.Argument(IdentifierName(otherSpanName)));
+            return InvocationExpr(IdentifierName(spanName), SequenceEqualToken, SF.Argument(IdentifierName(otherSpanName)));
         }
         public static CastExpressionSyntax CastToInt(ExpressionSyntax expr)
         {
             return SF.CastExpression(IntPredefinedType(), expr);
         }
-
         public static CastExpressionSyntax Cast(TypeSyntax type, ExpressionSyntax expr)
         {
             return SF.CastExpression(type, expr);
@@ -204,7 +199,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static DeclarationExpressionSyntax VarVariableDeclarationExpr(SyntaxToken varId)
         {
-            return SF.DeclarationExpression(SF.IdentifierName("var"), SF.SingleVariableDesignation(varId));
+            return SF.DeclarationExpression(VarType, SF.SingleVariableDesignation(varId));
         }
         public static DeclarationExpressionSyntax IntVariableDeclarationExpr(SyntaxToken varId)
         {

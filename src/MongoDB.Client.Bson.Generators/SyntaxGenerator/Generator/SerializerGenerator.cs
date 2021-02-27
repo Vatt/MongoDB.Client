@@ -48,6 +48,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, IdentifierName(member));
         }
+        public static MemberAccessExpressionSyntax SimpleMemberAccess(SyntaxToken source, SyntaxToken member)
+        {
+            return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName(source), IdentifierName(member));
+        }
         public static MemberAccessExpressionSyntax SimpleMemberAccess(SyntaxToken source, IdentifierNameSyntax member)
         {
             return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName(source), member);
@@ -56,6 +60,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             var first = SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member1);
             return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, first, member2);
+        }
+        public static ExpressionStatementSyntax InvocationExprStatement(SyntaxToken source, SyntaxToken member, params ArgumentSyntax[] args)
+        {
+            return SF.ExpressionStatement(InvocationExpr(source, member, args));
         }
         public static ExpressionStatementSyntax InvocationExprStatement(ExpressionSyntax source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
         {
@@ -76,6 +84,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static ExpressionStatementSyntax InvocationExprStatement(SyntaxToken member, params ArgumentSyntax[] args)
         {
             return SF.ExpressionStatement(InvocationExpr(IdentifierName(member), args));
+        }
+        public static ExpressionSyntax InvocationExpr(SyntaxToken source, SyntaxToken member, params ArgumentSyntax[] args)
+        {
+            return InvocationExpr(IdentifierName(source), IdentifierName(member), args);
         }
         public static ExpressionSyntax InvocationExpr(ExpressionSyntax source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
         {
