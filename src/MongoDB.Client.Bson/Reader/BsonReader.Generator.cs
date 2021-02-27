@@ -27,7 +27,7 @@ namespace MongoDB.Client.Bson.Reader
 
         public unsafe bool TryReadGeneric<T>(int bsonType, [MaybeNullWhen(false)] out T genericValue)
         {
-            genericValue = default(T);
+            genericValue = default;
             if (SerializerFnPtrProvider<T>.IsSerializable)
             {
                 goto SERIALIZABLE;
@@ -83,7 +83,7 @@ namespace MongoDB.Client.Bson.Reader
             }
             if (typeof(T) == typeof(string))
             {
-                string? strvalue = default;
+                string? strvalue;
                 if (!TryGetString(out strvalue)) { return false; }
                 genericValue = (T)(object)strvalue;
                 return true;
@@ -113,11 +113,7 @@ namespace MongoDB.Client.Bson.Reader
                 {
                     ThrowSerializerNotFound(typeof(T).Name);
                 }
-
-                if (serializer is null)
-                {
-                    ThrowSerializerIsNull(typeof(T).Name);
-                }
+                
                 return serializer.TryParseBson(ref this, out genericValue);
             }
 

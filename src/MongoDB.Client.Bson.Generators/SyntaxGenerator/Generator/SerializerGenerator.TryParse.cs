@@ -13,7 +13,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private readonly struct ReadOperationContext
         {
             public ExpressionSyntax Expr { get; }
-            public ExpressionSyntax? TempExpr { get; }
+            public ExpressionSyntax TempExpr { get; }
             public ReadOperationContext(ExpressionSyntax expr)
             {
                 Expr = expr;
@@ -24,7 +24,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 Expr = expr;
                 TempExpr = tempExpr;
             }
-            public void Deconstruct(out ExpressionSyntax expr, out ExpressionSyntax? tempExpr)
+            public void Deconstruct(out ExpressionSyntax expr, out ExpressionSyntax tempExpr)
             {
                 expr = Expr;
                 tempExpr = TempExpr;

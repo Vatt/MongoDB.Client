@@ -32,13 +32,14 @@ namespace MongoDB.Client
         public static async ValueTask<T?> SingleOrDefaultAsync<T>(this Cursor<T> cursor, CancellationToken token = default)
         {
             cursor.AddLimit(2);
-            T firstItem = default;
+            T? firstItem = default;
             var first = false;
             await foreach (var item in cursor.WithCancellation(token))
             {
                 if (first == false)
                 {
                     firstItem = item;
+                    first = true;
                 }
                 else
                 {
