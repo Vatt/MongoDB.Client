@@ -18,13 +18,13 @@ namespace MongoDB.Client.Bson.Generators
         public static Compilation Compilation;
         public void Execute(GeneratorExecutionContext context)
         {
-         //   System.Diagnostics.Debugger.Launch();
+            //System.Diagnostics.Debugger.Launch();
 
-           // var all = Stopwatch.StartNew();
+            // var all = Stopwatch.StartNew();
             Context = context;
             Compilation = Context.Compilation;
-            TypeLib.Init(Compilation);
-            GeneratorDiagnostics.Init(context);
+            //TypeLib.Init(Compilation);
+            //GeneratorDiagnostics.Init(context);
 
             try
             {
@@ -38,7 +38,8 @@ namespace MongoDB.Client.Bson.Generators
                         return;
                     }
                     var source = units[index].NormalizeWhitespace().ToString();
-                    context.AddSource(SerializerGenerator.SerializerName(masterContext.Contexts[index]), SourceText.From(source, Encoding.UTF8));
+                    //context.AddSource(SerializerGenerator.SerializerName(masterContext.Contexts[index]), SourceText.From(source, Encoding.UTF8));
+                    context.AddSource(masterContext.Contexts[index].SerializerName.ToString(), SourceText.From(source, Encoding.UTF8));
                 }
             }
             catch (OperationCanceledException)
@@ -82,8 +83,6 @@ namespace MongoDB.Client.Bson.Generators
         private List<(SyntaxNode, INamedTypeSymbol)> CollectSymbols(GeneratorExecutionContext context)
         {
             List<(SyntaxNode, INamedTypeSymbol)> symbols = new();
-
-            ISymbol bsonAttribute = context.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonSerializableAttribute");
             foreach (var tree in context.Compilation.SyntaxTrees)
             {
                 context.CancellationToken.ThrowIfCancellationRequested();
@@ -96,7 +95,7 @@ namespace MongoDB.Client.Bson.Generators
                     {
                         foreach (var attr in symbol.GetAttributes())
                         {
-                            if (attr.AttributeClass.Equals(bsonAttribute, SymbolEqualityComparer.Default))
+                            if (attr.AttributeClass.Equals(SerializerGenerator.BsonSerializableAttr, SymbolEqualityComparer.Default))
                             {
                                 symbols.Add((node, symbol));
                                 break;

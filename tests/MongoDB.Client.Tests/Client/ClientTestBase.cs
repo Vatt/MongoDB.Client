@@ -15,7 +15,7 @@ namespace MongoDB.Client.Tests.Client
         {
             Client = new MongoClient(new DnsEndPoint(Host, 27017));
         }
-        protected async Task<T> InsertFindDeleteAsync<T>(T data)
+        protected async Task<T> CreateCollectionInsertFindDeleteDropCollectionAsync<T>(T data)
         {
             await Client.InitAsync();
             var collection = Client.GetDatabase(DB).GetCollection<T>(Collection + Guid.NewGuid());

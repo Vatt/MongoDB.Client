@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
@@ -13,14 +12,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         internal readonly string BsonElementAlias;
         internal readonly string BsonElementValue;
         internal readonly ImmutableArray<ITypeSymbol>? TypeGenericArgs;
-        internal SyntaxToken AssignedVariable;
-        internal readonly ISymbol TypeMetadata;
-        internal bool IsGenericType => Root.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(TypeSym.Name)) != default;
+        internal readonly SyntaxToken StaticSpanNameToken;
+        internal readonly SyntaxToken AssignedVariableToken;
         public MemberContext(ContextCore root, ISymbol memberSym)
         {
             Root = root;
             NameSym = memberSym;
-
             switch (NameSym)
             {
                 case IFieldSymbol field:
@@ -31,18 +28,23 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     break;
                 default: break;
             }
-            if (TypeSym != null)
-            {
-                _ = TypeLib.TryGetMetadata(TypeSym, out TypeMetadata);
-            }
 
-            //var some = TypeLib.GetTypesByMetadataName(TypeSym!.ToString()).ToArray();
             if (TypeSym is INamedTypeSymbol namedType)
             {
                 TypeGenericArgs = namedType.TypeArguments.IsEmpty ? null : namedType.TypeArguments;
             }
 
             (BsonElementValue, BsonElementAlias) = SerializerGenerator.GetMemberAlias(NameSym);
+            StaticSpanNameToken = SerializerGenerator.Identifier($"{Root.Declaration.Name}{BsonElementAlias}");
+            var trueType = SerializerGenerator.ExtractTypeFromNullableIfNeed(TypeSym);
+            if (trueType.IsReferenceType)
+            {
+                AssignedVariableToken = SerializerGenerator.Identifier($"{trueType.Name}{NameSym.Name}");
+            }
+            else
+            {
+                AssignedVariableToken = SerializerGenerator.Identifier($"{TypeSym.Name}{NameSym.Name}");
+            }
         }
 
     }

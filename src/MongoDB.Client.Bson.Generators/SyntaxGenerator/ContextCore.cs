@@ -1,34 +1,30 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
 
     internal class ContextCore
     {
-        internal SyntaxToken BsonReaderToken => SF.Identifier("reader");
-        internal IdentifierNameSyntax BsonReaderId => SF.IdentifierName(BsonReaderToken);
-        internal TypeSyntax BsonReaderType => SF.ParseTypeName("MongoDB.Client.Bson.Reader.BsonReader");
-        internal SyntaxToken BsonWriterToken => SF.Identifier("writer");
-        internal IdentifierNameSyntax BsonWriterId => SF.IdentifierName(BsonWriterToken);
-        internal TypeSyntax BsonWriterType => SF.ParseTypeName("MongoDB.Client.Bson.Writer.BsonWriter");
-        internal SyntaxToken TryParseOutVarToken => SF.Identifier("message");
-        internal IdentifierNameSyntax TryParseOutVar => SF.IdentifierName(TryParseOutVarToken);
-        internal IdentifierNameSyntax WriterInputVar => SF.IdentifierName("message");
-        internal SyntaxToken WriterInputVarToken => SF.Identifier("message");
-
-        internal bool IsRecord;
         internal MasterContext Root;
         internal INamedTypeSymbol Declaration;
         internal SyntaxNode DeclarationNode;
         internal List<MemberContext> Members;
         internal ImmutableArray<ITypeSymbol>? GenericArgs;
         internal ImmutableArray<IParameterSymbol>? ConstructorParams;
-
+        internal SyntaxToken SerializerName
+        {
+            get
+            {
+                string generics = GenericArgs.HasValue && GenericArgs.Value.Length > 0
+                    ? string.Join(string.Empty, GenericArgs.Value)
+                    : string.Empty;
+                return SerializerGenerator.Identifier($"{Declaration.ContainingNamespace.ToString().Replace(".", string.Empty)}{Declaration.Name}{generics}SerializerGenerated");
+            }
+        }
         internal bool HavePrimaryConstructor => ConstructorParams.HasValue;
 
         public bool ConstructorContains(string name)

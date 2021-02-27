@@ -7,22 +7,25 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        private const string BsonSerializableAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonSerializableAttribute";
-        private const string BsonEnumAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonEnumAttribute";
-        private const string BsonConstructorAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonConstructorAttribute";
-        private const string IgnoreAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonIgnoreAttribute";
-        private const string BsonElementAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonElementAttribute";
-        private const string BsonIdAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonIdAttribute";
-        private const string BsonWriteIgnoreIfAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonWriteIgnoreIfAttribute";
+        //private const string BsonSerializableAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonSerializableAttribute";
+        //private const string BsonEnumAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonEnumAttribute";
+        //private const string BsonConstructorAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonConstructorAttribute";
+        //private const string IgnoreAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonIgnoreAttribute";
+        //private const string BsonElementAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonElementAttribute";
+        //private const string BsonIdAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonIdAttribute";
+        //private const string BsonWriteIgnoreIfAttr = "MongoDB.Client.Bson.Serialization.Attributes.BsonWriteIgnoreIfAttribute";
+        public static INamedTypeSymbol BsonSerializableAttr => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonSerializableAttribute")!;
+        public static INamedTypeSymbol BsonEnumAttr => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonEnumAttribute")!;
+        public static INamedTypeSymbol BsonConstructorAttr => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonConstructorAttribute")!;
+        public static INamedTypeSymbol IgnoreAttr => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonIgnoreAttribute")!;
+        public static INamedTypeSymbol BsonElementAttr => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonElementAttribute")!;
+        public static INamedTypeSymbol BsonIdAttr => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonIdAttribute")!;
+        public static INamedTypeSymbol BsonWriteIgnoreIfAttr => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonWriteIgnoreIfAttribute")!;
         public static bool IsBsonSerializable(ISymbol symbol)
         {
-            //if (symbol.GetAttributes().Length == 0)
-            //{
-            //    return false;
-            //}
             foreach (var attr in symbol.GetAttributes())
             {
-                if (attr.AttributeClass != null && attr.AttributeClass.ToString().Equals(BsonSerializableAttr))
+                if (attr.AttributeClass is not null && attr.AttributeClass.Equals(BsonSerializableAttr, SymbolEqualityComparer.Default))
                 {
                     return true;
                 }
@@ -107,13 +110,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             foreach (var attr in ctx.NameSym.GetAttributes())
             {
-                if (attr.AttributeClass != null && attr.AttributeClass.ToString().Equals(BsonWriteIgnoreIfAttr))
+                if (attr.AttributeClass != null && attr.AttributeClass.Equals(BsonWriteIgnoreIfAttr, SymbolEqualityComparer.Default))
                 {
                     expr = SF.ParseExpression((string)attr.ConstructorArguments[0].Value);
 
                     foreach (var member in ctx.Root.Members)
                     {
-                        var newid = SF.IdentifierName($"{ctx.Root.WriterInputVar.Identifier.Text}.{member.NameSym.Name}");
+                        var newid = SF.IdentifierName($"{WriterInputVarToken.Text}.{member.NameSym.Name}");
                         foreach (var node in expr.DescendantNodes())
                         {
                             if (node.ToString().Equals(member.NameSym.Name))
@@ -140,7 +143,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             foreach (var attr in symbol.GetAttributes())
             {
-                if (attr.AttributeClass!.ToString().Equals(BsonEnumAttr))
+                if (attr.AttributeClass!.Equals(BsonEnumAttr, SymbolEqualityComparer.Default))
                 {
                     return (int)attr.ConstructorArguments[0].Value;
                 }
@@ -165,7 +168,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         continue;
                     }
                     //TODO: проверить на множественное вхождение атрибутов
-                    if (attr.AttributeClass.ToString().Equals(BsonConstructorAttr))
+                    if (attr.AttributeClass.Equals(BsonConstructorAttr, SymbolEqualityComparer.Default))
                     {
                         constructor = item;
                         return true;
@@ -180,14 +183,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             foreach (var attr in memberSym.GetAttributes())
             {
                 //TODO: проверить на множественное вхождение атрибутов
-                if (attr.AttributeClass!.ToString().Equals(BsonIdAttr))
+                if (attr.AttributeClass!.Equals(BsonIdAttr, SymbolEqualityComparer.Default))
                 {
                     return ("_id", "_id");
                 }
             }
             foreach (var attr in memberSym.GetAttributes())
             {
-                if (attr.AttributeClass!.ToString().Equals(BsonElementAttr))
+                if (attr.AttributeClass!.Equals(BsonElementAttr, SymbolEqualityComparer.Default))
                 {
                     if (attr.ConstructorArguments.IsEmpty)
                     {
@@ -204,7 +207,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             foreach (var attr in symbol.GetAttributes())
             {
-                if (attr.AttributeClass!.ToString().Equals(IgnoreAttr))
+                if (attr.AttributeClass!.Equals(IgnoreAttr, SymbolEqualityComparer.Default))
                 {
                     return true;
                 }

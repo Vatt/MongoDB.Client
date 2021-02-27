@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,25 +10,27 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        public static SyntaxToken TryGetSerializerToken = Identifier("TryGetSerializer");
+        public static ExpressionSyntax SerializerMapId = IdentifierName("MongoDB.Client.Bson.Serialization.SerializersMap");
         public static StatementSyntax[] OtherTryParseBson(MemberContext member)
         {
-            var genericName = GenericName(SF.Identifier("TryGetSerializer"), TypeFullName(member.TypeSym));
-            var serializersMapCall = InvocationExpr(IdentifierName("MongoDB.Client.Bson.Serialization.SerializersMap"),
+            var genericName = GenericName(TryGetSerializerToken, TypeFullName(member.TypeSym));
+            var serializersMapCall = InvocationExpr(SerializerMapId,
                                                     genericName,
-                                                    OutArgument(VarVariableDeclarationExpr(SF.Identifier($"{member.NameSym.Name}Serializer"))));
-            var serializerTryParse = InvocationExpr(SF.IdentifierName($"{member.NameSym.Name}Serializer"), IdentifierName("TryParseBson"), RefArgument(member.Root.BsonReaderToken), OutArgument(IdentifierName(member.AssignedVariable)));
+                                                    OutArgument(VarVariableDeclarationExpr(Identifier($"{member.NameSym.Name}Serializer"))));
+            var serializerTryParse = InvocationExpr(IdentifierName($"{member.NameSym.Name}Serializer"), TryParseBsonToken, RefArgument(BsonReaderToken), OutArgument(IdentifierName(member.AssignedVariableToken)));
             return Statements(
                 IfNot(serializersMapCall, SerializerNotFoundException(member.TypeSym)),
                 IfNotReturnFalse(serializerTryParse));
         }
         public static StatementSyntax[] OtherWriteBson(MemberContext member)
         {
-            var genericName = GenericName(SF.Identifier("TryGetSerializer"), TypeFullName(member.TypeSym));
-            var serializersMapCall = InvocationExpr(IdentifierName("MongoDB.Client.Bson.Serialization.SerializersMap"),
+            var genericName = GenericName(TryGetSerializerToken, TypeFullName(member.TypeSym));
+            var serializersMapCall = InvocationExpr(SerializerMapId,
                                                     genericName,
-                                                    OutArgument(VarVariableDeclarationExpr(SF.Identifier($"{member.NameSym.Name}Serializer"))));
-            var sma = SimpleMemberAccess(member.Root.WriterInputVar, IdentifierName(member.NameSym));
-            var serializerWrite = InvocationExprStatement(SF.IdentifierName($"{member.NameSym.Name}Serializer"), IdentifierName("WriteBson"), RefArgument(member.Root.BsonWriterToken), Argument(sma));
+                                                    OutArgument(VarVariableDeclarationExpr(Identifier($"{member.NameSym.Name}Serializer"))));
+            var sma = SimpleMemberAccess(WriterInputVarToken, IdentifierName(member.NameSym));
+            var serializerWrite = InvocationExprStatement(IdentifierName($"{member.NameSym.Name}Serializer"), IdentifierName(WriteBsonToken), RefArgument(BsonWriterToken), Argument(sma));
             return Statements(
                 IfNot(serializersMapCall, SerializerNotFoundException(member.TypeSym)),
                 serializerWrite);
@@ -38,36 +39,24 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             if (symbol is INamedTypeSymbol namedSym && namedSym.TypeArguments.Length > 0)
             {
-                return GenericName(SF.Identifier(namedSym.Name), namedSym.TypeArguments.Select(sym => TypeFullName(sym)).ToArray()).ToString();
+                return GenericName(Identifier(namedSym.Name), namedSym.TypeArguments.Select(sym => TypeFullName(sym)).ToArray()).ToString();
             }
             else
             {
                 return symbol.Name;
             }
         }
-        public static string SelfFullName(ISymbol symbol)
-        {
-            if (symbol is INamedTypeSymbol namedSym && namedSym.TypeArguments.Length > 0)
-            {
-                return GenericName(SF.Identifier(namedSym.ToString()), namedSym.TypeArguments.Select(sym => TypeFullName(sym)).ToArray()).ToString();
-            }
-            else
-            {
-                return symbol.ToString();
-            }
-        }
-
-        public static string SerializerName(ContextCore ctx)
-        {
-            string generics = ctx.GenericArgs.HasValue && ctx.GenericArgs.Value.Length > 0
-                ? string.Join(String.Empty, ctx.GenericArgs.Value)
-                : String.Empty;
-            return $"{ctx.Declaration.ContainingNamespace.ToString().Replace(".", String.Empty)}{ctx.Declaration.Name}{generics}SerializerGenerated";
-        }
-        public static SyntaxToken StaticFieldNameToken(MemberContext ctx)
-        {
-            return Identifier($"{ctx.Root.Declaration.Name}{ctx.BsonElementAlias}");
-        }
+        //public static string SelfFullName(ISymbol symbol) //TODO: починить для генериков
+        //{
+        //    if (symbol is INamedTypeSymbol namedSym && namedSym.TypeArguments.Length > 0)
+        //    {
+        //        return GenericName(SF.Identifier(namedSym.ToString()), namedSym.TypeArguments.Select(sym => TypeFullName(sym)).ToArray()).ToString();
+        //    }
+        //    else
+        //    {
+        //        return symbol.ToString();
+        //    }
+        //}
         public static SyntaxToken StaticEnumFieldNameToken(ISymbol enumTypeName, string alias)
         {
             return Identifier($"{enumTypeName.Name}{alias}");
@@ -139,7 +128,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                          default,
                          new(PublicKeyword(), PartialKeyword()),
                          RecordKeyword(),
-                         SF.Identifier(SelfName(namedSym)),
+                         Identifier(SelfName(namedSym)),
                          default, default, default, default,
                          OpenBraceToken(), new SyntaxList<MemberDeclarationSyntax>().Add(member), CloseBraceToken(), default);
                     //((RecordDeclarationSyntax)decl).AddTypeParameterListParameters
@@ -185,9 +174,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     SF.PropertyDeclaration(
                         attributeLists: default,
                         modifiers: new(PrivateKeyword(), StaticKeyword()),
-                        type: ReadOnlySpanByte,
+                        type: ReadOnlySpanByteName,
                         explicitInterfaceSpecifier: default,
-                        identifier: StaticFieldNameToken(member),
+                        identifier: member.StaticSpanNameToken,
                         accessorList: default,
                         expressionBody: SF.ArrowExpressionClause(SingleDimensionByteArrayCreation(bytes.Length, SeparatedList(bytes.Select(NumericLiteralExpr)))),
                         initializer: default,
@@ -212,7 +201,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     {
                         continue;
                     }
-                    //var typedMetadata = member.TypeMetadata as INamedTypeSymbol;
                     var typedMetadata = trueType as INamedTypeSymbol;
                     if (typedMetadata == null)
                     {
@@ -228,7 +216,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                             SF.PropertyDeclaration(
                                 attributeLists: default,
                                 modifiers: new(PrivateKeyword(), StaticKeyword()),
-                                type: ReadOnlySpanByte,
+                                type: ReadOnlySpanByteName,
                                 explicitInterfaceSpecifier: default,
                                 identifier: StaticEnumFieldNameToken(typedMetadata, bsonAlias),
                                 accessorList: default,

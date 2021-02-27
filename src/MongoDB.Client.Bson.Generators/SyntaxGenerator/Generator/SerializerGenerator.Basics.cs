@@ -9,6 +9,16 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        public static readonly TypeSyntax VarType = SF.ParseTypeName("var");
+        public static readonly ExpressionSyntax NewBsonObjectIdExpr = InvocationExpr(TypeFullName(BsonObjectId), SF.IdentifierName("NewObjectId"));
+        public static readonly GenericNameSyntax ReadOnlySpanByteName = GenericName(Identifier("ReadOnlySpan"), BytePredefinedType());
+        public static readonly GenericNameSyntax SpanByteName = GenericName(Identifier("Span"), BytePredefinedType());
+        public static readonly ContinueStatementSyntax ContinueStatement = SF.ContinueStatement();
+        public static readonly StatementSyntax ReturnTrueStatement = ReturnStatement(SF.LiteralExpression(SyntaxKind.TrueLiteralExpression));
+        public static readonly StatementSyntax ReturnFalseStatement = ReturnStatement(SF.LiteralExpression(SyntaxKind.FalseLiteralExpression));
+        public static readonly StatementSyntax ReturnNothingStatement = ReturnStatement();
+        public static readonly SizeOfExpressionSyntax SizeOfInt32Expr = SizeOf(IntPredefinedType());
+        public static SyntaxToken SequenceEqualToken => SF.Identifier("SequenceEqual");
         public static ITypeSymbol ExtractTypeFromNullableIfNeed(ITypeSymbol original)
         {
             if (original is INamedTypeSymbol namedType)
@@ -32,27 +42,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return original;
         }
-
-        public static readonly GenericNameSyntax ReadOnlySpanByte = GenericName(SF.Identifier("ReadOnlySpan"), BytePredefinedType());
-
-        public static readonly GenericNameSyntax SpanByte = GenericName(SF.Identifier("Span"), BytePredefinedType());
-
-        public static ExpressionSyntax SpanSequenceEqual(ExpressionSyntax spanName, ExpressionSyntax otherSpanName)
-        {
-            return InvocationExpr(spanName, SF.IdentifierName("SequenceEqual"), SF.Argument(otherSpanName));
-        }
-
-        public static readonly ExpressionSyntax NewBsonObjectId = InvocationExpr(TypeFullName(TypeLib.BsonObjectId), SF.IdentifierName("NewObjectId"));
-
         public static ExpressionSyntax SpanSequenceEqual(SyntaxToken spanName, SyntaxToken otherSpanName)
         {
-            return InvocationExpr(IdentifierName(spanName), SF.IdentifierName("SequenceEqual"), SF.Argument(IdentifierName(otherSpanName)));
+            return InvocationExpr(IdentifierName(spanName), SequenceEqualToken, SF.Argument(IdentifierName(otherSpanName)));
         }
         public static CastExpressionSyntax CastToInt(ExpressionSyntax expr)
         {
             return SF.CastExpression(IntPredefinedType(), expr);
         }
-
         public static CastExpressionSyntax Cast(TypeSyntax type, ExpressionSyntax expr)
         {
             return SF.CastExpression(type, expr);
@@ -97,13 +94,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static IfStatementSyntax IfNotReturnFalse(ExpressionSyntax condition)
         {
-            return IfNotReturn(condition, SF.ReturnStatement(FalseLiteralExpr()));
+            return IfNotReturn(condition, ReturnFalseStatement);
         }
         public static IfStatementSyntax IfNotReturnFalseElse(ExpressionSyntax condition, ExpressionSyntax elseClause)
         {
             return SF.IfStatement(
                 SF.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, condition),
-                SF.Block(SF.ReturnStatement(FalseLiteralExpr())),
+                SF.Block(ReturnFalseStatement),
                 SF.ElseClause(SF.Block(SF.ExpressionStatement(elseClause))));
         }
         public static IfStatementSyntax IfNotReturnFalseElse(ExpressionSyntax condition, BlockSyntax @else)
@@ -111,7 +108,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             //return IfNotReturn(condition, SF.ReturnStatement(FalseLiteralExpr()));
             return SF.IfStatement(
                 SF.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, condition),
-                SF.Block(SF.ReturnStatement(FalseLiteralExpr())),
+                SF.Block(ReturnFalseStatement),
                 SF.ElseClause(@else));
         }
         public static IfStatementSyntax IfNot(ExpressionSyntax condition, ExpressionSyntax statement)
@@ -158,8 +155,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return SF.InvocationExpression(SF.IdentifierName("nameof"), SF.ArgumentList().AddArguments(SF.Argument(expr)));
         }
 
-        public static readonly SizeOfExpressionSyntax SizeOfInt = SizeOf(IntPredefinedType());
-
         public static BinaryExpressionSyntax BinaryExprMinus(ExpressionSyntax left, ExpressionSyntax right)
         {
             return SF.BinaryExpression(SyntaxKind.SubtractExpression, left, right);
@@ -192,6 +187,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.BinaryExpression(SyntaxKind.EqualsExpression, left, right);
         }
+        public static BinaryExpressionSyntax BinaryExprEqualsEquals(SyntaxToken left, SyntaxToken right)
+        {
+            return BinaryExprEqualsEquals(IdentifierName(left), IdentifierName(right));
+        }
         public static BinaryExpressionSyntax BinaryExprEqualsEquals(ExpressionSyntax left, SyntaxToken right)
         {
             return SF.BinaryExpression(SyntaxKind.EqualsExpression, left, IdentifierName(right));
@@ -202,11 +201,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static DeclarationExpressionSyntax VarVariableDeclarationExpr(SyntaxToken varId)
         {
-            return SF.DeclarationExpression(SF.IdentifierName("var"), SF.SingleVariableDesignation(varId));
+            return SF.DeclarationExpression(VarType, SF.SingleVariableDesignation(varId));
         }
         public static DeclarationExpressionSyntax IntVariableDeclarationExpr(SyntaxToken varId)
         {
             return SF.DeclarationExpression(IntPredefinedType(), SF.SingleVariableDesignation(varId));
+        }
+        public static DeclarationExpressionSyntax LongVariableDeclarationExpr(SyntaxToken varId)
+        {
+            return SF.DeclarationExpression(LongPredefinedType(), SF.SingleVariableDesignation(varId));
         }
         public static DeclarationExpressionSyntax TypedVariableDeclarationExpr(TypeSyntax type, SyntaxToken varId)
         {
@@ -280,9 +283,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Block(expressions.Select(e => Statement(e)));
         }
-
-
-        public static readonly ContinueStatementSyntax ContinueStatement = SF.ContinueStatement();
 
         public static ReturnStatementSyntax ReturnStatement(ExpressionSyntax expr = null)
         {

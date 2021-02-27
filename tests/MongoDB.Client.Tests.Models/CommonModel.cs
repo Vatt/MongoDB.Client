@@ -39,8 +39,9 @@ namespace MongoDB.Client.Tests.Models
         //public List<IList<InnerStruct>> DoubleListInnerStructProp { get; set; }
         public List<string> StringListProp { get; set; }
 
-        [BsonConstructor]
+
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        [BsonConstructor]
         public CommonModel(InnerStruct InnerStructProp, InnerRecord InnerRecordField)
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {

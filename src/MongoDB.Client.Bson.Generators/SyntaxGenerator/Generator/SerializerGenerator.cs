@@ -8,6 +8,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        public static readonly LiteralExpressionSyntax TrueLiteralExpr = SF.LiteralExpression(SyntaxKind.TrueLiteralExpression);
+        public static readonly LiteralExpressionSyntax FalseLiteralExpr = SF.LiteralExpression(SyntaxKind.FalseLiteralExpression);
         public static StatementSyntax[] Statements(params ExpressionSyntax[] expressions)
         {
             return expressions.Select(expr => Statement(expr)).ToArray();
@@ -44,6 +46,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member);
         }
+        public static MemberAccessExpressionSyntax SimpleMemberAccess(ExpressionSyntax source, SyntaxToken member)
+        {
+            return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, IdentifierName(member));
+        }
+        public static MemberAccessExpressionSyntax SimpleMemberAccess(SyntaxToken source, SyntaxToken member)
+        {
+            return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName(source), IdentifierName(member));
+        }
         public static MemberAccessExpressionSyntax SimpleMemberAccess(SyntaxToken source, IdentifierNameSyntax member)
         {
             return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName(source), member);
@@ -53,7 +63,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var first = SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member1);
             return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, first, member2);
         }
+        public static ExpressionStatementSyntax InvocationExprStatement(SyntaxToken source, SyntaxToken member, params ArgumentSyntax[] args)
+        {
+            return SF.ExpressionStatement(InvocationExpr(source, member, args));
+        }
         public static ExpressionStatementSyntax InvocationExprStatement(ExpressionSyntax source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
+        {
+            return SF.ExpressionStatement(InvocationExpr(source, member, args));
+        }
+        public static ExpressionStatementSyntax InvocationExprStatement(ExpressionSyntax source, SyntaxToken member, params ArgumentSyntax[] args)
         {
             return SF.ExpressionStatement(InvocationExpr(source, member, args));
         }
@@ -69,9 +87,25 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.ExpressionStatement(InvocationExpr(IdentifierName(member), args));
         }
+        public static ExpressionSyntax InvocationExpr(SyntaxToken source, SyntaxToken member, params ArgumentSyntax[] args)
+        {
+            return InvocationExpr(IdentifierName(source), IdentifierName(member), args);
+        }
         public static ExpressionSyntax InvocationExpr(ExpressionSyntax source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
         {
             return SF.InvocationExpression(SimpleMemberAccess(source, member), args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args));
+        }
+        public static ExpressionSyntax InvocationExpr(ExpressionSyntax source, SyntaxToken member, params ArgumentSyntax[] args)
+        {
+            return SF.InvocationExpression(SimpleMemberAccess(source, member), args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args));
+        }
+        public static ExpressionSyntax InvocationExpr(SyntaxToken source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
+        {
+            return SF.InvocationExpression(SimpleMemberAccess(source, member), args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args));
+        }
+        public static ExpressionSyntax InvocationExpr(ISymbol source, SyntaxToken member, params ArgumentSyntax[] args)
+        {
+            return SF.InvocationExpression(SimpleMemberAccess(IdentifierName(source), IdentifierName(member)), args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args));
         }
         public static InvocationExpressionSyntax InvocationExpr(ExpressionSyntax source, SimpleNameSyntax member, params ArgumentSyntax[] args)
         {
@@ -247,14 +281,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.LiteralExpression(SyntaxKind.CharacterLiteralExpression, SF.Literal(value));
         }
-        public static LiteralExpressionSyntax TrueLiteralExpr()
-        {
-            return SF.LiteralExpression(SyntaxKind.TrueLiteralExpression);
-        }
-        public static LiteralExpressionSyntax FalseLiteralExpr()
-        {
-            return SF.LiteralExpression(SyntaxKind.FalseLiteralExpression);
-        }
+
         public static IdentifierNameSyntax IdentifierName(SyntaxToken token)
         {
             return SF.IdentifierName(token);
@@ -273,12 +300,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static IdentifierNameSyntax IdentifierFullName(ISymbol sym)
         {
-            return SF.IdentifierName(sym.ToString());
+            return IdentifierName(sym.ToString());
         }
 
         public static SyntaxToken TokenName(ISymbol sym)
         {
-            return SF.Identifier(sym.Name);
+            return Identifier(sym.Name);
         }
 
         public static SyntaxToken SemicolonToken()
@@ -295,7 +322,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static SyntaxToken TokenFullName(ISymbol sym)
         {
-            return SF.Identifier(sym.ToString());
+            return Identifier(sym.ToString());
         }
         public static TypeSyntax TypeFullName(ISymbol sym)
         {
@@ -334,6 +361,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static AssignmentExpressionSyntax SimpleAssignExpr(ExpressionSyntax left, ExpressionSyntax right)
         {
             return SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, left, right);
+        }
+        public static AssignmentExpressionSyntax SimpleAssignExpr(SyntaxToken left, ExpressionSyntax right)
+        {
+            return SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, IdentifierName(left), right);
         }
         public static AssignmentExpressionSyntax SimpleAssignExpr(ExpressionSyntax left, SyntaxToken right)
         {
