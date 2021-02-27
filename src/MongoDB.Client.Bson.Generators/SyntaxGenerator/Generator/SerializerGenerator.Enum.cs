@@ -7,6 +7,42 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        private static bool TryGetEnumReadOperation(SyntaxToken readTarget, ISymbol nameSym, ITypeSymbol typeSym, out ReadOperationContext result, bool forceUseTempVar = false)
+        {
+            var trueType = ExtractTypeFromNullableIfNeed(typeSym);
+            result = default;
+            if (IsEnum(trueType) == false)
+            {
+                return false;
+            }
+            var localReadEnumVar = Identifier($"{readTarget}EnumTemp");
+            int repr = GetEnumRepresentation(nameSym);
+            if (repr == -1) { repr = 2; }
+            if (repr != 1)
+            {
+                result =
+                    repr == 2 ?
+                        new(TryGetInt32(IntVariableDeclarationExpr(localReadEnumVar)), Cast(trueType, localReadEnumVar)) :
+                        new(TryGetInt64(LongVariableDeclarationExpr(localReadEnumVar)), Cast(trueType, localReadEnumVar));
+                return true;
+
+            }
+            else
+            {
+                var readMethod = IdentifierName(ReadStringReprEnumMethodName(trueType, nameSym));
+                if (forceUseTempVar)
+                {
+                    result = new(InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(VarVariableDeclarationExpr(readTarget))), IdentifierName(readTarget));
+                }
+                else
+                {
+                    result = InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(readTarget));
+                }
+
+                return true;
+            }
+        }
+
         private static SyntaxToken ReadStringReprEnumMethodName(ISymbol enumTypeName, ISymbol fieldOrPropertyName)
         {
             var (_, alias) = GetMemberAlias(fieldOrPropertyName);
@@ -21,7 +57,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             List<MethodDeclarationSyntax> methods = new();
             HashSet<ISymbol> alreadyCreated = new();
-            //foreach (var member in ctx.Members.Where(member => member.TypeSym.TypeKind == TypeKind.Enum))
             foreach (var member in ctx.Members.Where(member => ExtractTypeFromNullableIfNeed(member.TypeSym).TypeKind == TypeKind.Enum))
             {
                 var repr = GetEnumRepresentation(member.NameSym);

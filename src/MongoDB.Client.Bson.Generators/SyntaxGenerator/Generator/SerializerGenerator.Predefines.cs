@@ -17,7 +17,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static SyntaxToken WriteBsonToken => Identifier("WriteBson");
         public static SyntaxToken TryParseBsonToken => Identifier("TryParseBson");
         public static SyntaxToken BsonReaderToken => Identifier("reader");
-        public static SyntaxToken BsonWriterToken => Identifier("writer");         
+        public static SyntaxToken BsonWriterToken => Identifier("writer");
         public static SyntaxToken TryParseOutVarToken => Identifier("message");
         public static SyntaxToken WriterInputVarToken => Identifier("message");
     }

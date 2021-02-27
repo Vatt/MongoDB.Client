@@ -20,7 +20,7 @@ namespace MongoDB.Client.Bson.Generators
         {
             //System.Diagnostics.Debugger.Launch();
 
-           // var all = Stopwatch.StartNew();
+            // var all = Stopwatch.StartNew();
             Context = context;
             Compilation = Context.Compilation;
             //TypeLib.Init(Compilation);

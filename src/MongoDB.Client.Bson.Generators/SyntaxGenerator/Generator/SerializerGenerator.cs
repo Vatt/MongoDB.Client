@@ -281,7 +281,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.LiteralExpression(SyntaxKind.CharacterLiteralExpression, SF.Literal(value));
         }
- 
+
         public static IdentifierNameSyntax IdentifierName(SyntaxToken token)
         {
             return SF.IdentifierName(token);

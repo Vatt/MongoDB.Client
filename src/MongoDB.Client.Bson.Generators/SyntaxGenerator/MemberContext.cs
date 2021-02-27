@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {

@@ -58,7 +58,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 }
                 else if (member.TypeSym.NullableAnnotation == NullableAnnotation.Annotated && trueType.IsValueType == true)
                 {
-                    var nullableStrcutTarget = SimpleMemberAccess(writeTarget,NullableValueToken);
+                    var nullableStrcutTarget = SimpleMemberAccess(writeTarget, NullableValueToken);
                     inner.IfStatement(
                             condition: BinaryExprEqualsEquals(SimpleMemberAccess(writeTarget, NullableHasValueToken), FalseLiteralExpr),
                             statement: Block(WriteBsonNull(member.StaticSpanNameToken)),

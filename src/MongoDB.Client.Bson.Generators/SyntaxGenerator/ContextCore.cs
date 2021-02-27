@@ -15,7 +15,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         internal List<MemberContext> Members;
         internal ImmutableArray<ITypeSymbol>? GenericArgs;
         internal ImmutableArray<IParameterSymbol>? ConstructorParams;
-        internal SyntaxToken SerializerName 
+        internal SyntaxToken SerializerName
         {
             get
             {
