@@ -2,60 +2,59 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator;
-using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+
 namespace MongoDB.Client.Bson.Generators
 {
     //object - отдельная ветка генератора 
     [Generator]
     class BsonSerializerGenerator : ISourceGenerator
     {
+        public void Initialize(GeneratorInitializationContext context)
+        {
+            context.RegisterForSyntaxNotifications(() => new BsonAttributeReciver());
+        }
+
+
         public static GeneratorExecutionContext Context;
         public static Compilation Compilation;
         public void Execute(GeneratorExecutionContext context)
         {
             //System.Diagnostics.Debugger.Launch();
 
-            // var all = Stopwatch.StartNew();
+#if DEBUG
+            var all = System.Diagnostics.Stopwatch.StartNew();
+#endif
+
+
             Context = context;
             Compilation = Context.Compilation;
-            //TypeLib.Init(Compilation);
-            //GeneratorDiagnostics.Init(context);
 
-            try
+            var candidates = (context.SyntaxReceiver as BsonAttributeReciver)!.Candidates;
+
+
+            var symbols = CollectSymbols(Compilation, candidates, context.CancellationToken);
+            var masterContext = new MasterContext(symbols, context.CancellationToken);
+            var units = Create(masterContext, context.CancellationToken);
+            for (int index = 0; index < units.Length; index++)
             {
-                var symbols = CollectSymbols(context);
-                var masterContext = new MasterContext(symbols, context.CancellationToken);
-                var units = Create(masterContext, context.CancellationToken);
-                for (int index = 0; index < units.Length; index++)
-                {
-                    if (context.CancellationToken.IsCancellationRequested)
-                    {
-                        return;
-                    }
-                    var source = units[index].NormalizeWhitespace().ToString();
-                    //context.AddSource(SerializerGenerator.SerializerName(masterContext.Contexts[index]), SourceText.From(source, Encoding.UTF8));
-                    context.AddSource(masterContext.Contexts[index].SerializerName.ToString(), SourceText.From(source, Encoding.UTF8));
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                // nothing
-            }
-            catch (Exception ex)
-            {
-                GeneratorDiagnostics.ReportUnhandledException(ex);
+                var source = units[index].NormalizeWhitespace().ToString();
+                //context.AddSource(SerializerGenerator.SerializerName(masterContext.Contexts[index]), SourceText.From(source, Encoding.UTF8));
+                context.AddSource(masterContext.Contexts[index].SerializerName.ToString(), SourceText.From(source, Encoding.UTF8));
             }
 
-            //GeneratorDiagnostics.ReportDuration("All", all.Elapsed);
+#if DEBUG
+            SyntaxGenerator.Diagnostics.GeneratorDiagnostics.ReportDuration("All", all.Elapsed);
+#endif
         }
 
 
-        public static CompilationUnitSyntax[] Create(MasterContext master, System.Threading.CancellationToken cancellationToken)
+        public static CompilationUnitSyntax[] Create(MasterContext master, CancellationToken cancellationToken)
         {
             CompilationUnitSyntax[] units = new CompilationUnitSyntax[master.Contexts.Count];
 
@@ -76,37 +75,80 @@ namespace MongoDB.Client.Bson.Generators
             return units;
         }
 
-        public void Initialize(GeneratorInitializationContext context)
-        {
-        }
 
-        private List<(SyntaxNode, INamedTypeSymbol)> CollectSymbols(GeneratorExecutionContext context)
+        private HashSet<BsonSerializerNode> CollectSymbols(Compilation compilation, HashSet<SyntaxNode> candidates, CancellationToken token)
         {
-            List<(SyntaxNode, INamedTypeSymbol)> symbols = new();
+            HashSet<BsonSerializerNode> symbols = new();
             var bsonAttribute = SerializerGenerator.BsonSerializableAttr;
-            foreach (var tree in context.Compilation.SyntaxTrees)
-            {
-                context.CancellationToken.ThrowIfCancellationRequested();
-                SemanticModel model = context.Compilation.GetSemanticModel(tree);
 
-                foreach (var node in tree.GetRoot(context.CancellationToken).DescendantNodesAndSelf())
+            foreach (var node in candidates)
+            {
+                token.ThrowIfCancellationRequested();
+                SemanticModel model = compilation.GetSemanticModel(node.SyntaxTree);
+
+                if (model.GetDeclaredSymbol(node) is INamedTypeSymbol symbol)
                 {
-                    context.CancellationToken.ThrowIfCancellationRequested();
-                    if (model.GetDeclaredSymbol(node) is INamedTypeSymbol symbol)
+                    foreach (var attr in symbol.GetAttributes())
                     {
-                        foreach (var attr in symbol.GetAttributes())
+                        if (attr.AttributeClass.Equals(bsonAttribute, SymbolEqualityComparer.Default))
                         {
-                            if (attr.AttributeClass.Equals(bsonAttribute, SymbolEqualityComparer.Default))
-                            {
-                                symbols.Add((node, symbol));
-                                break;
-                            }
+                            symbols.Add(new BsonSerializerNode(node, symbol));
+                            break;
                         }
                     }
                 }
             }
             return symbols;
         }
-    }
 
+        public class BsonAttributeReciver : ISyntaxReceiver
+        {
+            public HashSet<SyntaxNode> Candidates { get; } = new HashSet<SyntaxNode>();
+
+            public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
+            {
+                if (syntaxNode is TypeDeclarationSyntax declaration && declaration.AttributeLists.Count > 0)
+                {
+                    Candidates.Add(syntaxNode);
+                }
+            }
+        }
+
+        internal readonly struct BsonSerializerNode : IEquatable<BsonSerializerNode>
+        {
+            public BsonSerializerNode(SyntaxNode syntaxNode, INamedTypeSymbol typeSymbol)
+            {
+                SyntaxNode = syntaxNode;
+                TypeSymbol = typeSymbol;
+            }
+
+            public SyntaxNode SyntaxNode { get; }
+            public INamedTypeSymbol TypeSymbol { get; }
+
+            public void Deconstruct(out SyntaxNode syntaxNode, out INamedTypeSymbol typeSymbol)
+            {
+                syntaxNode = SyntaxNode;
+                typeSymbol = TypeSymbol;
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is BsonSerializerNode candidate && Equals(candidate);
+            }
+
+            public bool Equals(BsonSerializerNode other)
+            {
+                return EqualityComparer<SyntaxNode>.Default.Equals(SyntaxNode, other.SyntaxNode) &&
+                       EqualityComparer<INamedTypeSymbol>.Default.Equals(TypeSymbol, other.TypeSymbol);
+            }
+
+            public override int GetHashCode()
+            {
+                int hashCode = 383889175;
+                hashCode = hashCode * -1521134295 + EqualityComparer<SyntaxNode>.Default.GetHashCode(SyntaxNode);
+                hashCode = hashCode * -1521134295 + EqualityComparer<INamedTypeSymbol>.Default.GetHashCode(TypeSymbol);
+                return hashCode;
+            }
+        }
+    }
 }
