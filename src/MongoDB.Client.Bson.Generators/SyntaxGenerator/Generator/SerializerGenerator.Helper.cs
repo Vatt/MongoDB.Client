@@ -2,7 +2,8 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
@@ -152,7 +153,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return -1;
         }
 
-        public static bool TryFindPrimaryConstructor(INamedTypeSymbol symbol, out IMethodSymbol constructor)
+        public static bool TryFindPrimaryConstructor(INamedTypeSymbol symbol, SyntaxNode node, out IMethodSymbol constructor)
         {
             constructor = default;
             if (symbol.Constructors.Length == 0)
@@ -178,6 +179,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         constructor = item;
                         return true;
                     }
+                }
+            }
+            if (node is RecordDeclarationSyntax)
+            {
+                if (symbol.Constructors.Length == 2)
+                {
+                    constructor = symbol.Constructors.First(x => !SymbolEqualityComparer.Default.Equals(x.Parameters[0].Type, symbol));
+                    return true;
                 }
             }
             return false;
