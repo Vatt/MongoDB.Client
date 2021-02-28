@@ -75,7 +75,7 @@ namespace MongoDB.Client.Protocol.Readers
                     if (bsonReader.TryPeekInt32(out int modelLength) && bsonReader.Remaining >= modelLength)
                     {
                         bool tryParseResult = default;
-                        T item = default;
+                        T? item = default;
                         unsafe
                         {
                             //TODO: FIX IT
