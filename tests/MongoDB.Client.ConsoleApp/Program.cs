@@ -14,9 +14,21 @@ namespace MongoDB.Client.ConsoleApp
     {
         static async Task Main(string[] args)
         {
-            await LoadTest<GeoIp>(1024*1024, new[] { 512 });
-
+            //await LoadTest<GeoIp>(1024*1024, new[] { 512 });
+            await ReplicaSetConenctionTest();
             Console.WriteLine("Done");
+        }
+        static async Task ReplicaSetConenctionTest()
+        {
+            var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder
+                    .SetMinimumLevel(LogLevel.Information)
+                    .AddConsole();
+            });
+            var settings = MongoClientSettings.FromConnectionString("mongodb://centos1.mshome.net,centos2.mshome.net,centos3.mshome.net/?replicaSet=rs0&maxPoolSize=32&appName=MongoDB.Client.ConsoleApp/");
+            var client = new MongoClient(settings, loggerFactory);
+            await client.InitAsync();
         }
         static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelism) where T : IIdentified
         {
