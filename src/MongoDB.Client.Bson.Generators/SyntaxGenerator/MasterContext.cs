@@ -1,5 +1,4 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using static MongoDB.Client.Bson.Generators.BsonSerializerGenerator;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator

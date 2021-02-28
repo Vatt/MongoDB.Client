@@ -15,7 +15,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return false;
             }
-            var localReadEnumVar = Identifier($"{readTarget}EnumTemp");
+            var localReadEnumVar = Identifier($"{readTarget.ToString()}EnumTemp");
             int repr = GetEnumRepresentation(nameSym);
             if (repr == -1) { repr = 2; }
             if (repr != 1)

@@ -6,16 +6,16 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        private static readonly TypeSyntax SerializerEndMarkerExceptionSyntax = SF.ParseTypeName("MongoDB.Client.Bson.Serialization.Exceptions.SerializerEndMarkerException");
         public static ThrowExpressionSyntax SerializerEndMarkerException(ISymbol symbol, ExpressionSyntax endMarker)
         {
-            var exception = SF.ParseTypeName("MongoDB.Client.Bson.Serialization.Exceptions.SerializerEndMarkerException");
-            return SF.ThrowExpression(ObjectCreation(exception, SF.Argument(NameOf(IdentifierName(symbol.ToString()))), SF.Argument(endMarker)));
+            return SF.ThrowExpression(ObjectCreation(SerializerEndMarkerExceptionSyntax, SF.Argument(NameOf(IdentifierName(symbol.ToString()))), SF.Argument(endMarker)));
         }
+
+        private static readonly TypeSyntax SerializerNotFoundExceptionSyntax = SF.ParseTypeName("MongoDB.Client.Bson.Serialization.Exceptions.SerializerNotFoundException");
         public static ThrowExpressionSyntax SerializerNotFoundException(ISymbol symbol)
         {
-
-            var exception = SF.ParseTypeName("MongoDB.Client.Bson.Serialization.Exceptions.SerializerNotFoundException");
-            return SF.ThrowExpression(ObjectCreation(exception, SF.Argument(NameOf(IdentifierName(symbol.ToString())))));
+            return SF.ThrowExpression(ObjectCreation(SerializerNotFoundExceptionSyntax, SF.Argument(NameOf(IdentifierName(symbol.ToString())))));
         }
     }
 }
