@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Collections.Generic;
 using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
@@ -20,10 +19,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static StatementSyntax[] Statements(StatementSyntax first, params StatementSyntax[] statements)
         {
-            var lst = new List<StatementSyntax>(statements.Length + 1);
-            lst.Add(first);
-            lst.AddRange(statements);
-            return lst.ToArray();
+            var array = new StatementSyntax[statements.Length + 1];
+            array[0] = first;
+            for (int i = 0; i < statements.Length; i++)
+            {
+                array[i + 1] = statements[i];
+            }
+            return array;
         }
         public static StatementSyntax Statement(ExpressionSyntax expr)
         {

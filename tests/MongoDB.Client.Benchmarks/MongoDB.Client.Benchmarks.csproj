@@ -4,6 +4,7 @@
     <OutputType>exe</OutputType>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)Generated</CompilerGeneratedFilesOutputPath>
+    <MSBuildWarningsAsErrors>CS8785</MSBuildWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup>
     <PlatformTarget>AnyCPU</PlatformTarget>
