@@ -15,12 +15,6 @@ namespace MongoDB.Client.Bson.Generators
     [Generator]
     class BsonSerializerGenerator : ISourceGenerator
     {
-        public void Initialize(GeneratorInitializationContext context)
-        {
-            context.RegisterForSyntaxNotifications(() => new BsonAttributeReciver());
-        }
-
-
         public static GeneratorExecutionContext Context;
         public static Compilation Compilation;
         public void Execute(GeneratorExecutionContext context)
@@ -107,9 +101,20 @@ namespace MongoDB.Client.Bson.Generators
 
             public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
             {
-                if (syntaxNode is TypeDeclarationSyntax declaration && declaration.AttributeLists.Count > 0)
+                if (syntaxNode is ClassDeclarationSyntax classDecl && classDecl.AttributeLists.Count > 0)
                 {
                     Candidates.Add(syntaxNode);
+                    return;
+                }
+                if (syntaxNode is StructDeclarationSyntax structDecl && structDecl.AttributeLists.Count > 0)
+                {
+                    Candidates.Add(syntaxNode);
+                    return;
+                }
+                if (syntaxNode is RecordDeclarationSyntax recordDecl && recordDecl.AttributeLists.Count > 0)
+                {
+                    Candidates.Add(syntaxNode);
+                    return;
                 }
             }
         }
@@ -149,6 +154,10 @@ namespace MongoDB.Client.Bson.Generators
                 hashCode = hashCode * -1521134295 + EqualityComparer<INamedTypeSymbol>.Default.GetHashCode(TypeSymbol);
                 return hashCode;
             }
+        }
+        public void Initialize(GeneratorInitializationContext context)
+        {
+            context.RegisterForSyntaxNotifications(() => new BsonAttributeReciver());
         }
     }
 }
