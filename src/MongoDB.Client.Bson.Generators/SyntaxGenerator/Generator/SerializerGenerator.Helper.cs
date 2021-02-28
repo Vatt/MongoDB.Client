@@ -2,7 +2,8 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
@@ -32,6 +33,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             if (symbol is INamedTypeSymbol namedSym)
             {
+                var readerSym = BsonReaderTypeSym;
+                var writerSym = BsonWriterTypeSym;
                 var parseMethod = namedSym.GetMembers()
                     .Where(member => member.Kind == SymbolKind.Method)
                     .Where(method => method.Name.Equals("TryParseBson") && method.Kind == SymbolKind.Method && method.IsStatic && method.DeclaredAccessibility == Accessibility.Public)
@@ -49,7 +52,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         }
                         bool haveReader = false;
                         bool haveResult = false;
-                        if (parseMethodSym.Parameters[0].RefKind == RefKind.Ref && parseMethodSym.Parameters[0].Type.ToString().Equals("MongoDB.Client.Bson.Reader.BsonReader"))
+                        if (parseMethodSym.Parameters[0].RefKind == RefKind.Ref && parseMethodSym.Parameters[0].Type.Equals(readerSym, SymbolEqualityComparer.Default))
                         {
                             haveReader = true;
                         }
@@ -80,7 +83,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         }
                         bool haveReader = false;
                         bool haveResult = false;
-                        if (writeMethodSym.Parameters[0].RefKind == RefKind.Ref && writeMethodSym.Parameters[0].Type.ToString().Equals("MongoDB.Client.Bson.Writer.BsonWriter"))
+                        if (writeMethodSym.Parameters[0].RefKind == RefKind.Ref && writeMethodSym.Parameters[0].Type.Equals(writerSym, SymbolEqualityComparer.Default))
                         {
                             haveReader = true;
                         }
@@ -152,18 +155,30 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return -1;
         }
 
-        public static bool TryFindPrimaryConstructor(INamedTypeSymbol symbol, out IMethodSymbol constructor)
+        public static bool TryFindPrimaryConstructor(INamedTypeSymbol symbol, SyntaxNode node, out IMethodSymbol constructor)
         {
             constructor = default;
             if (symbol.Constructors.Length == 0)
             {
                 return false;
             }
-            if (symbol.Constructors.Length == 1 && symbol.TypeKind == TypeKind.Class)
+
+
+            if (node is RecordDeclarationSyntax recordDecl)
+            {
+                if (recordDecl.ParameterList != null)
+                {
+                    constructor = symbol.Constructors[0];
+                    return true;
+                }
+            }
+
+            if (symbol.Constructors.Length == 1 && symbol.TypeKind == TypeKind.Class && node is not RecordDeclarationSyntax)
             {
                 constructor = symbol.Constructors[0];
                 return true;
             }
+            var constructorAttr = BsonConstructorAttr;
             foreach (var item in symbol.Constructors)
             {
                 foreach (var attr in item.GetAttributes())
@@ -173,13 +188,47 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         continue;
                     }
                     //TODO: проверить на множественное вхождение атрибутов
-                    if (attr.AttributeClass.Equals(BsonConstructorAttr, SymbolEqualityComparer.Default))
+                    if (attr.AttributeClass.Equals(constructorAttr, SymbolEqualityComparer.Default))
                     {
                         constructor = item;
                         return true;
                     }
                 }
             }
+            //if (node is RecordDeclarationSyntax recordDecl)
+            //{
+            //    if (symbol.Constructors.Length == 2)
+            //    {
+            //        constructor = symbol.Constructors.First(x => !SymbolEqualityComparer.Default.Equals(x.Parameters[0].Type, symbol));
+            //        return true;
+            //    }
+            //    if (recordDecl.ParameterList != null)
+            //    {
+            //        var parameters = recordDecl.ParameterList.Parameters;
+            //        foreach (var ctor in symbol.Constructors)
+            //        {
+            //            bool found = true;
+            //            if (ctor.Parameters.Length != parameters.Count)
+            //            {
+            //                continue;
+            //            }
+            //            foreach (var param in ctor.Parameters)
+            //            {
+            //                if (parameters.Where(p => p.Identifier.Text.Equals(param.Name) && p.Type.GetText().ToString().Trim().Equals(param.Type.ToString())) == default)
+            //                {
+            //                    found = false;
+            //                    break;
+            //                }
+
+            //            }
+            //            if (found)
+            //            {
+            //                constructor = ctor;
+            //                return true;
+            //            }
+            //        }
+            //    }
+            //}
             return false;
         }
 

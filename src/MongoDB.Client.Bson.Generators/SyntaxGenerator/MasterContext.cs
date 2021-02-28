@@ -14,14 +14,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var (node, symbol) = pair;
-                if (node is RecordDeclarationSyntax)
-                {
-                    Contexts.Add(new RecordContext(this, node, symbol));
-                }
-                else
-                {
-                    Contexts.Add(new ClassContext(this, node, symbol));
-                }
+                Contexts.Add(new ContextCore(this, node, symbol));
+
             }
         }
     }

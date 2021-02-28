@@ -3,6 +3,7 @@ using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
@@ -33,14 +34,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             DeclarationNode = node;
             Members = new List<MemberContext>();
             GenericArgs = Declaration.TypeArguments.IsEmpty ? null : Declaration.TypeArguments;
-            if (SerializerGenerator.TryFindPrimaryConstructor(Declaration, out var constructor))
+            if (SerializerGenerator.TryFindPrimaryConstructor(Declaration, node, out var constructor))
             {
                 if (constructor!.Parameters.Length != 0)
                 {
                     ConstructorParams = constructor.Parameters;
                 }
             }
-
             foreach (var member in Declaration.GetMembers())
             {
                 if ((member.IsStatic && Declaration.TypeKind != TypeKind.Enum) || member.IsAbstract ||
@@ -50,7 +50,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     continue;
                 }
        
-                //TODO: допустимо только без гетера, если нет сетера проверить есть ли он в конструкторе
                 if ((member is IPropertySymbol { SetMethod: { }, GetMethod: { }, IsReadOnly: false}) ||
                      (member is IFieldSymbol { IsReadOnly: false, IsConst: false}))
                 {
@@ -79,5 +78,56 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 
             return false;
         }
+        //private void ProcessRecordInherit(INamedTypeSymbol symbol)
+        //{
+        //    if (symbol == null)
+        //    {
+        //        return;
+        //    }
+        //    if (symbol.SpecialType != SpecialType.None)
+        //    {
+        //        return;
+        //    }
+        //    if (symbol.TypeKind == TypeKind.Interface)
+        //    {
+        //        return;
+        //    }
+        //    foreach (var member in symbol.GetMembers())
+        //    {
+        //        if (Members.Any(m=>m.NameSym.Name.Equals(member.Name)))
+        //        {
+        //            continue;
+        //        }
+        //        if ((member.IsStatic && Declaration.TypeKind != TypeKind.Enum) || member.IsAbstract || AttributeHelper.IsIgnore(member) ||
+        //            (member.Kind != SymbolKind.Property && member.Kind != SymbolKind.Field))
+        //        {
+        //            continue;
+        //        }
+        //        if (member.DeclaredAccessibility != Accessibility.Public)
+        //        {
+        //            if (ConstructorParams == null)
+        //            {
+        //                continue;
+        //            }
+
+        //            foreach (var param in ConstructorParams)
+        //            {
+        //                if (param.Name.Equals(member.Name))
+        //                {
+        //                    Members.Add(new MemberContext(this, member));
+        //                    break;
+        //                }
+        //            }
+        //            continue;
+        //        }
+        //        if ((member is IPropertySymbol { SetMethod: { } /*{ IsInitOnly: false }*/, GetMethod: { }, IsReadOnly: false }) ||
+        //            (member is IFieldSymbol { IsReadOnly: false }))
+        //        {
+        //            Members.Add(new MemberContext(this, member));
+        //        }
+
+        //    }
+        //    ProcessRecordInherit(symbol.BaseType);
+        //}
     }
 }
