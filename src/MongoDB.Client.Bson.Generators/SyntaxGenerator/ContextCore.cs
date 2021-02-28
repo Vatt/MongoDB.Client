@@ -3,7 +3,6 @@ using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {

@@ -42,7 +42,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
                 TryGetBsonWriteIgnoreIfAttr(member, out var condition);
 
-                if (member.BsonElementAlias.Equals("_id") && IsBsonObjectId(trueType))
+                if (member.BsonElementAlias.Equals("_id", System.StringComparison.InvariantCulture) && IsBsonObjectId(trueType))
                 {
                     inner.IfStatement(
                             BinaryExprEqualsEquals(writeTarget, Default(TypeFullName(trueType))),
@@ -106,11 +106,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             if (ctx.Root.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(trueType.Name)) != default)
             {
+                var identifierName = $"{name}genericReserved";
                 return Statements
                 (
-                    VarLocalDeclarationStatement(Identifier($"{name}genericReserved"), WriterReserve(1)),
+                    VarLocalDeclarationStatement(Identifier(identifierName), WriterReserve(1)),
                     Statement(WriteCString(ctx.StaticSpanNameToken)),
-                    Statement(WriteGeneric(writeTarget, IdentifierName($"{name}genericReserved")))
+                    Statement(WriteGeneric(writeTarget, IdentifierName(identifierName)))
                 );
             }
             if (trueType is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)

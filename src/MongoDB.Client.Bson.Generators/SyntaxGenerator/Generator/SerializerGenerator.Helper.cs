@@ -4,6 +4,8 @@ using System.Linq;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Text;
+
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
@@ -22,11 +24,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static INamedTypeSymbol BsonElementAttr => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonElementAttribute")!;
         public static INamedTypeSymbol BsonIdAttr => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonIdAttribute")!;
         public static INamedTypeSymbol BsonWriteIgnoreIfAttr => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonWriteIgnoreIfAttribute")!;
+       
+        
         public static bool IsBsonSerializable(ISymbol symbol)
         {
+            var bsonAttr = BsonSerializableAttr;
             foreach (var attr in symbol.GetAttributes())
             {
-                if (attr.AttributeClass is not null && attr.AttributeClass.Equals(BsonSerializableAttr, SymbolEqualityComparer.Default))
+                if (attr.AttributeClass is not null && attr.AttributeClass.Equals(bsonAttr, SymbolEqualityComparer.Default))
                 {
                     return true;
                 }
@@ -37,7 +42,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var writerSym = BsonWriterTypeSym;
                 var parseMethod = namedSym.GetMembers()
                     .Where(member => member.Kind == SymbolKind.Method)
-                    .Where(method => method.Name.Equals("TryParseBson") && method.Kind == SymbolKind.Method && method.IsStatic && method.DeclaredAccessibility == Accessibility.Public)
+                    .Where(method => method.Name.Equals("TryParseBson", System.StringComparison.InvariantCulture) && method.Kind == SymbolKind.Method && method.IsStatic && method.DeclaredAccessibility == Accessibility.Public)
                     .Where(method =>
                     {
 
@@ -69,7 +74,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     .FirstOrDefault();
                 var writeMethod = namedSym.GetMembers()
                     .Where(member => member.Kind == SymbolKind.Method)
-                    .Where(method => method.Name.Equals("WriteBson") && method.Kind == SymbolKind.Method && method.IsStatic && method.DeclaredAccessibility == Accessibility.Public)
+                    .Where(method => method.Name.Equals("WriteBson", System.StringComparison.InvariantCulture) && method.Kind == SymbolKind.Method && method.IsStatic && method.DeclaredAccessibility == Accessibility.Public)
                     .Where(method =>
                     {
                         var writeMethodSym = method as IMethodSymbol;
@@ -106,6 +111,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static bool TryGetBsonWriteIgnoreIfAttr(MemberContext ctx, out ExpressionSyntax expr)
         {
+            var bsonWriteIgnoreIfAttr = BsonWriteIgnoreIfAttr;
             expr = default;
             if (ctx.NameSym.GetAttributes().Length == 0)
             {
@@ -113,7 +119,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             foreach (var attr in ctx.NameSym.GetAttributes())
             {
-                if (attr.AttributeClass != null && attr.AttributeClass.Equals(BsonWriteIgnoreIfAttr, SymbolEqualityComparer.Default))
+                if (attr.AttributeClass != null && attr.AttributeClass.Equals(bsonWriteIgnoreIfAttr, SymbolEqualityComparer.Default))
                 {
                     expr = SF.ParseExpression((string)attr.ConstructorArguments[0].Value);
 
@@ -144,9 +150,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static int GetEnumRepresentation(ISymbol symbol)
         {
+            var bsonAttr = BsonEnumAttr;
             foreach (var attr in symbol.GetAttributes())
             {
-                if (attr.AttributeClass!.Equals(BsonEnumAttr, SymbolEqualityComparer.Default))
+                if (attr.AttributeClass!.Equals(bsonAttr, SymbolEqualityComparer.Default))
                 {
                     return (int)attr.ConstructorArguments[0].Value;
                 }
@@ -234,39 +241,61 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
         public static (string, string) GetMemberAlias(ISymbol memberSym)
         {
+            var bsonIdAttr = BsonIdAttr;
+            var bsonElementAttr = BsonElementAttr;
             foreach (var attr in memberSym.GetAttributes())
             {
                 //TODO: проверить на множественное вхождение атрибутов
-                if (attr.AttributeClass!.Equals(BsonIdAttr, SymbolEqualityComparer.Default))
+                if (attr.AttributeClass!.Equals(bsonIdAttr, SymbolEqualityComparer.Default))
                 {
                     return ("_id", "_id");
                 }
             }
             foreach (var attr in memberSym.GetAttributes())
             {
-                if (attr.AttributeClass!.Equals(BsonElementAttr, SymbolEqualityComparer.Default))
+                if (attr.AttributeClass!.Equals(bsonElementAttr, SymbolEqualityComparer.Default))
                 {
                     if (attr.ConstructorArguments.IsEmpty)
                     {
                         return (memberSym.Name, memberSym.Name);
                     }
                     var data = (string)attr.ConstructorArguments[0].Value!;
-                    data = data.Replace('(', '_').Replace(')', '_').Replace('$', '_').Replace(' ', '_');
+                    data = EscapeString(data);
                     return ((string)attr.ConstructorArguments[0].Value!, data!);
                 }
             }
             return (memberSym.Name, memberSym.Name);
         }
+
+
         public static bool IsIgnore(ISymbol symbol)
         {
+            var ignoreAttr = IgnoreAttr;
             foreach (var attr in symbol.GetAttributes())
             {
-                if (attr.AttributeClass!.Equals(IgnoreAttr, SymbolEqualityComparer.Default))
+                if (attr.AttributeClass!.Equals(ignoreAttr, SymbolEqualityComparer.Default))
                 {
                     return true;
                 }
             }
             return false;
+        }
+
+        private static string EscapeString(string value)
+        {
+            var sb = new StringBuilder(value.Length);
+            foreach (var item in value)
+            {
+                if (item == '(' || item == ')' || item == '$' || item == ' ')
+                {
+                    sb.Append('_');
+                }
+                else
+                {
+                    sb.Append(item);
+                }
+            }
+            return sb.ToString();
         }
     }
 }

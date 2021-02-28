@@ -14,23 +14,25 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static ExpressionSyntax SerializerMapId = IdentifierName("MongoDB.Client.Bson.Serialization.SerializersMap");
         public static StatementSyntax[] OtherTryParseBson(MemberContext member)
         {
+            var serializerIdentifier = $"{member.NameSym.Name}Serializer";
             var genericName = GenericName(TryGetSerializerToken, TypeFullName(member.TypeSym));
             var serializersMapCall = InvocationExpr(SerializerMapId,
                                                     genericName,
-                                                    OutArgument(VarVariableDeclarationExpr(Identifier($"{member.NameSym.Name}Serializer"))));
-            var serializerTryParse = InvocationExpr(IdentifierName($"{member.NameSym.Name}Serializer"), TryParseBsonToken, RefArgument(BsonReaderToken), OutArgument(IdentifierName(member.AssignedVariableToken)));
+                                                    OutArgument(VarVariableDeclarationExpr(Identifier(serializerIdentifier))));
+            var serializerTryParse = InvocationExpr(IdentifierName(serializerIdentifier), TryParseBsonToken, RefArgument(BsonReaderToken), OutArgument(IdentifierName(member.AssignedVariableToken)));
             return Statements(
                 IfNot(serializersMapCall, SerializerNotFoundException(member.TypeSym)),
                 IfNotReturnFalse(serializerTryParse));
         }
         public static StatementSyntax[] OtherWriteBson(MemberContext member)
         {
+            var serializerIdentifier = $"{member.NameSym.Name}Serializer";
             var genericName = GenericName(TryGetSerializerToken, TypeFullName(member.TypeSym));
             var serializersMapCall = InvocationExpr(SerializerMapId,
                                                     genericName,
-                                                    OutArgument(VarVariableDeclarationExpr(Identifier($"{member.NameSym.Name}Serializer"))));
+                                                    OutArgument(VarVariableDeclarationExpr(Identifier(serializerIdentifier))));
             var sma = SimpleMemberAccess(WriterInputVarToken, IdentifierName(member.NameSym));
-            var serializerWrite = InvocationExprStatement(IdentifierName($"{member.NameSym.Name}Serializer"), IdentifierName(WriteBsonToken), RefArgument(BsonWriterToken), Argument(sma));
+            var serializerWrite = InvocationExprStatement(IdentifierName(serializerIdentifier), IdentifierName(WriteBsonToken), RefArgument(BsonWriterToken), Argument(sma));
             return Statements(
                 IfNot(serializersMapCall, SerializerNotFoundException(member.TypeSym)),
                 serializerWrite);
@@ -121,7 +123,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     return member;
                 }
-                if (symbol is INamedTypeSymbol namedSym && namedSym.GetMembers().Any(x => x.Kind == SymbolKind.Property && x.Name == "EqualityContract" && x.IsImplicitlyDeclared)) // record shit check
+                if (symbol is INamedTypeSymbol namedSym && namedSym.GetMembers().Any(x => x.Kind == SymbolKind.Property && x.Name.Equals("EqualityContract", System.StringComparison.InvariantCulture) && x.IsImplicitlyDeclared)) // record shit check
                 {
                     TypeParameterSyntax[] typeParams = namedSym.TypeArguments.IsEmpty ? null : namedSym.TypeArguments.Select(x => TypeParameter(x)).ToArray();
                     decl = SF.RecordDeclaration(
