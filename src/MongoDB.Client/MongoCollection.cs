@@ -12,9 +12,9 @@ namespace MongoDB.Client
 {
     public class MongoCollection<T>
     {
-        private readonly StandaloneScheduler _scheduler;
+        private readonly IMongoScheduler _scheduler;
 
-        internal MongoCollection(MongoDatabase database, string name, StandaloneScheduler scheduler)
+        internal MongoCollection(MongoDatabase database, string name, IMongoScheduler scheduler)
         {
             _scheduler = scheduler;
             Database = database;

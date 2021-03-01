@@ -24,6 +24,7 @@ namespace MongoDB.Client.Scheduler
         private readonly ChannelWriter<MongoRequest> _channelWriter;
         private readonly ChannelWriter<MongoRequest> _cursorChannel;
         private readonly MongoClientSettings _settings;
+        private readonly int _maxConnections;
         private static int _counter;
         public StandaloneScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
         {
@@ -40,8 +41,13 @@ namespace MongoDB.Client.Scheduler
             _connections = new List<MongoConnection>();
             _settings = settings;
             _counter = 0;
+            _maxConnections = settings.ConnectionPoolMaxSize;
         }
-
+        public StandaloneScheduler(int maxConenctions, MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
+            :this(settings, connectionFactory, loggerFactory)
+        {
+            _maxConnections = maxConenctions;
+        }
 
         public int GetNextRequestNumber()
         {
@@ -53,7 +59,7 @@ namespace MongoDB.Client.Scheduler
         {
             if (_connections.Count == 0)
             {
-                for (int i = 0; i < _settings.ConnectionPoolMaxSize; i++)
+                for (int i = 0; i < _maxConnections; i++)
                 {
                     _connections.Add(await CreateNewConnection());
                 }
@@ -79,7 +85,7 @@ namespace MongoDB.Client.Scheduler
             };
             request.RequestNumber = message.Header.RequestNumber;
             await _cursorChannel.WriteAsync(request);
-            var cursor =(CursorResult<T>) await taskSrc.GetValueTask().ConfigureAwait(false);
+            var cursor = (CursorResult<T>)await taskSrc.GetValueTask().ConfigureAwait(false);
             MongoRequestPool.Return(request);
             return cursor;
         }

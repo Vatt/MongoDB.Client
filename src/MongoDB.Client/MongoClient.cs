@@ -10,7 +10,7 @@ namespace MongoDB.Client
     public class MongoClient
     {
         public MongoClientSettings Settings { get; }
-        private readonly StandaloneScheduler _scheduler;
+        private readonly IMongoScheduler _scheduler;
 
         internal MongoClient(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
         {
@@ -47,7 +47,10 @@ namespace MongoDB.Client
         public MongoClient(string connectionString, ILoggerFactory loggerFactory)
             : this(MongoClientSettings.FromConnectionString(connectionString), loggerFactory)
         {
-
+            if(Settings.Endpoints.Length > 1 && Settings.ReplicaSet != null)
+            {
+                _scheduler = new ReplicaSetScheduler(Settings, loggerFactory);
+            }
         }
         public MongoDatabase GetDatabase(string name)
         {

@@ -9,6 +9,7 @@ namespace MongoDB.Client.Scheduler
 {
     internal interface IMongoScheduler : IAsyncDisposable
     {
+        int GetNextRequestNumber();
         ValueTask InitAsync();
         ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token);
         ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token);
