@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MongoDB.Client.Connection;
+using MongoDB.Client.Scheduler;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -9,12 +10,12 @@ namespace MongoDB.Client
     public class MongoClient
     {
         public MongoClientSettings Settings { get; }
-        private readonly RequestScheduler _scheduler;
+        private readonly StandaloneScheduler _scheduler;
 
         internal MongoClient(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
         {
             Settings = settings;
-            _scheduler = new RequestScheduler(settings, connectionFactory, loggerFactory);
+            _scheduler = new StandaloneScheduler(settings, connectionFactory, loggerFactory);
         }
 
         public MongoClient()
@@ -40,7 +41,7 @@ namespace MongoDB.Client
         public MongoClient(MongoClientSettings settings, ILoggerFactory loggerFactory)
         {
             Settings = settings;
-            _scheduler = new RequestScheduler(settings, new MongoConnectionFactory(settings.Endpoints[0], loggerFactory), loggerFactory);
+            _scheduler = new StandaloneScheduler(settings, new MongoConnectionFactory(settings.Endpoints[0], loggerFactory), loggerFactory);
         }
 
         public MongoClient(string connectionString, ILoggerFactory loggerFactory)

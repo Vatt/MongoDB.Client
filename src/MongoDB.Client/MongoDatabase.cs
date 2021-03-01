@@ -1,4 +1,5 @@
 ﻿using MongoDB.Client.Connection;
+using MongoDB.Client.Scheduler;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -6,11 +7,11 @@ namespace MongoDB.Client
 {
     public class MongoDatabase
     {
-        private readonly RequestScheduler _scheduler;
+        private readonly StandaloneScheduler _scheduler;
         public MongoClient Client { get; }
         public string Name { get; } //TODO: byte[] mb?
 
-        internal MongoDatabase(MongoClient client, string name, RequestScheduler scheduler)
+        internal MongoDatabase(MongoClient client, string name, StandaloneScheduler scheduler)
         {
             _scheduler = scheduler;
             Client = client;

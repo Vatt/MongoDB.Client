@@ -2,6 +2,7 @@
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Network;
 using MongoDB.Client.Network.Transport.Sockets.Internal;
+using MongoDB.Client.Scheduler;
 using System.Net;
 using System.Threading;
 using System.Threading.Channels;
@@ -24,7 +25,7 @@ namespace MongoDB.Client.Connection
             _logger = loggerFactory.CreateLogger<MongoConnectionFactory>();
         }
 
-        public async ValueTask<MongoConnection> CreateAsync(MongoClientSettings settings, ChannelReader<MongoRequest> reader, ChannelReader<MongoRequest> findReader, RequestScheduler requestScheduler)
+        public async ValueTask<MongoConnection> CreateAsync(MongoClientSettings settings, ChannelReader<MongoRequest> reader, ChannelReader<MongoRequest> findReader, IMongoScheduler requestScheduler)
         {
             var context = await _networkFactory.ConnectAsync(_endPoint).ConfigureAwait(false);
             if (context is null)

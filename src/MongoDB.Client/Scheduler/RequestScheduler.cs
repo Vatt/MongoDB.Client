@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol;
@@ -9,13 +10,13 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
-namespace MongoDB.Client.Connection
+namespace MongoDB.Client.Scheduler
 {
 
-    internal partial class RequestScheduler : IAsyncDisposable
+    internal partial class StandaloneScheduler : IMongoScheduler, IAsyncDisposable
     {
         private readonly IMongoConnectionFactory _connectionFactory;
-        private readonly ILogger<RequestScheduler> _logger;
+        private readonly ILogger<StandaloneScheduler> _logger;
         private readonly List<MongoConnection> _connections;
         private readonly Channel<MongoRequest> _channel;
         private readonly Channel<MongoRequest> _findChannel;
@@ -23,10 +24,10 @@ namespace MongoDB.Client.Connection
         private readonly ChannelWriter<MongoRequest> _cursorChannel;
         private readonly MongoClientSettings _settings;
         private static int _counter;
-        public RequestScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
+        public StandaloneScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
         {
             _connectionFactory = connectionFactory;
-            _logger = loggerFactory.CreateLogger<RequestScheduler>();
+            _logger = loggerFactory.CreateLogger<StandaloneScheduler>();
             var options = new UnboundedChannelOptions();
             options.SingleWriter = true;
             options.SingleReader = false;
@@ -47,7 +48,7 @@ namespace MongoDB.Client.Connection
         }
 
 
-        internal async ValueTask InitAsync()
+        public async ValueTask InitAsync()
         {
             if (_connections.Count == 0)
             {
@@ -65,7 +66,7 @@ namespace MongoDB.Client.Connection
         }
 
 
-        internal async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token = default)
+        public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token = default)
         {
             var request = MongoRequestPool.Get();
             var taskSrc = request.CompletionSource;
@@ -83,7 +84,7 @@ namespace MongoDB.Client.Connection
         }
 
 
-        internal async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token = default)
+        public async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token = default)
         {
             var request = MongoRequestPool.Get();
             var taskSource = request.CompletionSource;

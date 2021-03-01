@@ -3,6 +3,7 @@ using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Messages;
+using MongoDB.Client.Scheduler;
 using MongoDB.Client.Utils;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace MongoDB.Client
 {
     public class Cursor<T> : IAsyncEnumerable<T>
     {
-        private readonly RequestScheduler _scheduler;
+        private readonly StandaloneScheduler _scheduler;
         private readonly BsonDocument _filter;
         private readonly CollectionNamespace _collectionNamespace;
         private readonly BsonDocument _sessionId;
@@ -22,16 +23,16 @@ namespace MongoDB.Client
 
         public static readonly SessionId SharedSession = new SessionId();
 
-        internal Cursor(RequestScheduler channelPool, BsonDocument filter, CollectionNamespace collectionNamespace)
+        internal Cursor(StandaloneScheduler channelPool, BsonDocument filter, CollectionNamespace collectionNamespace)
             : this(channelPool, filter, collectionNamespace, SharedSessionId)
         {
         }
 
-        internal Cursor(RequestScheduler channelPool, BsonDocument filter, CollectionNamespace collectionNamespace, Guid sessionId)
+        internal Cursor(StandaloneScheduler channelPool, BsonDocument filter, CollectionNamespace collectionNamespace, Guid sessionId)
             : this(channelPool, filter, collectionNamespace, new BsonDocument("id", BsonBinaryData.Create(sessionId)))
         {
         }
-        internal Cursor(RequestScheduler scheduler, BsonDocument filter, CollectionNamespace collectionNamespace, BsonDocument sessionId)
+        internal Cursor(StandaloneScheduler scheduler, BsonDocument filter, CollectionNamespace collectionNamespace, BsonDocument sessionId)
         {
             _scheduler = scheduler;
             _filter = filter;
