@@ -9,7 +9,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MongoDB.Client.Connection
+namespace MongoDB.Client.Scheduler.Holders
 {
     internal static class InsertCallbackHolder<T>
     {

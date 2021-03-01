@@ -4,7 +4,7 @@ using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Core;
 using System.Threading.Tasks;
 
-namespace MongoDB.Client.Connection
+namespace MongoDB.Client.Scheduler.Holders
 {
     internal static class CreateCollectionCallbackHolder
     {

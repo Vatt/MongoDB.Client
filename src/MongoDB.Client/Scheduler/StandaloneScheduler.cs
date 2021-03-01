@@ -4,6 +4,7 @@ using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Messages;
+using MongoDB.Client.Scheduler.Holders;
 using System;
 using System.Collections.Generic;
 using System.Threading;
