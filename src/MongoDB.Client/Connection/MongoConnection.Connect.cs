@@ -14,8 +14,8 @@ namespace MongoDB.Client.Connection
 {
     public sealed partial class MongoConnection
     {
-        private ConnectionInfo? _connectionInfo;
-
+        internal ConnectionInfo ConnectionInfo;
+        internal bool IsMaster { get; private set;}
 
         internal ValueTask StartAsync(ConnectionContext connection, CancellationToken cancellationToken = default)
         {
@@ -26,7 +26,8 @@ namespace MongoDB.Client.Connection
             _protocolReader = reader;
             _protocolWriter = writer;
             _protocolListenerTask = StartProtocolListenerAsync();
-            _connectionInfo = await DoConnectAsync(cancellationToken).ConfigureAwait(false);
+            ConnectionInfo = await DoConnectAsync(cancellationToken).ConfigureAwait(false);
+            IsMaster = (bool)ConnectionInfo.MongoConnectionInfo["ismaster"].Value!;
             _channelListenerTask = StartChannelListerAsync();
             _channelFindListenerTask = StartFindChannelListerAsync();
             async Task<ConnectionInfo> DoConnectAsync(CancellationToken token)

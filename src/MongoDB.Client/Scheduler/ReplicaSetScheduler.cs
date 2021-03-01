@@ -13,9 +13,11 @@ using System.Threading.Tasks;
 
 namespace MongoDB.Client.Scheduler
 {
-    internal class ReplicaSetScheduler : IMongoScheduler
+    internal sealed class ReplicaSetScheduler : IMongoScheduler
     {
-        private List<StandaloneScheduler> _shedulers;
+        private List<IReplicaSetScheduler> _shedulers;
+        private IReplicaSetScheduler _master;
+        private List<IReplicaSetScheduler> _slaves;
         private ILogger _logger;
         private int _schedulerCounter = 0;
         private int _requestCounter = 0;
@@ -25,18 +27,18 @@ namespace MongoDB.Client.Scheduler
             var endpoints = settings.Endpoints;
             var maxConnections = settings.ConnectionPoolMaxSize / endpoints.Length;
             _shedulers = new();
+            _slaves = new();
             for (var i = 0; i < endpoints.Length; i++)
             {
-                var scheduler = new StandaloneScheduler(maxConnections, settings, new MongoConnectionFactory(endpoints[i], loggerFactory), loggerFactory);
+                var scheduler = new ReplicaSetInnerScheduler(maxConnections, settings, new MongoConnectionFactory(endpoints[i], loggerFactory), loggerFactory);
                 _shedulers.Add(scheduler);
             }
         }
-        private StandaloneScheduler GetScheduler()
+        private IReplicaSetScheduler GetSlaveScheduler()
         {
             Interlocked.Increment(ref _schedulerCounter);
-            //var schedulerId = _schedulerCounter % _shedulers.Count;
-            var schedulerId = 0;
-            var result = _shedulers[schedulerId];
+            var schedulerId = _schedulerCounter % _slaves.Count;
+            var result = _slaves[schedulerId];
             return result;
         }
         public async ValueTask InitAsync()
@@ -44,6 +46,14 @@ namespace MongoDB.Client.Scheduler
             foreach (var scheduler in _shedulers)
             {
                 await scheduler.InitAsync();
+                if (scheduler.IsMaster)
+                {
+                    _master = scheduler;
+                }
+                else
+                {
+                    _slaves.Add(scheduler);
+                }
             }
         }
         public int GetNextRequestNumber()
@@ -58,12 +68,12 @@ namespace MongoDB.Client.Scheduler
 
         public ValueTask CreateCollectionAsync(CreateCollectionMessage message, CancellationToken cancellationToken)
         {
-            return GetScheduler().CreateCollectionAsync(message, cancellationToken);
+            return GetSlaveScheduler().CreateCollectionAsync(message, cancellationToken);
         }
 
         public ValueTask<DeleteResult> DeleteAsync(DeleteMessage message, CancellationToken cancellationToken)
         {
-            return GetScheduler().DeleteAsync(message, cancellationToken);
+            return GetSlaveScheduler().DeleteAsync(message, cancellationToken);
         }
 
         public ValueTask DisposeAsync()
@@ -73,17 +83,18 @@ namespace MongoDB.Client.Scheduler
 
         public ValueTask DropCollectionAsync(DropCollectionMessage message, CancellationToken cancellationToken)
         {
-            return GetScheduler().DropCollectionAsync(message, cancellationToken);
+            return _master.DropCollectionAsync(message, cancellationToken);
         }
 
-        public ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token)
+        public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token)
         {
-            return GetScheduler().GetCursorAsync<T>(message, token);
+            var result = await GetSlaveScheduler().GetCursorAsync<T>(message, token);
+            return result;
         }
 
         public ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token)
         {
-            return GetScheduler().InsertAsync(message, token);
+            return _master.InsertAsync(message, token);
         }
     }
 }

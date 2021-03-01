@@ -18,7 +18,9 @@ namespace MongoDB.Client.Scheduler
     {
         private readonly IMongoConnectionFactory _connectionFactory;
         private readonly ILogger<StandaloneScheduler> _logger;
-        private readonly List<MongoConnection> _connections;
+        //TODO: fix this
+        //private readonly List<MongoConnection> _connections; 
+        internal readonly List<MongoConnection> _connections;
         private readonly Channel<MongoRequest> _channel;
         private readonly Channel<MongoRequest> _findChannel;
         private readonly ChannelWriter<MongoRequest> _channelWriter;
