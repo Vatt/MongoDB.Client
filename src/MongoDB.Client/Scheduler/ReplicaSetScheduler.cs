@@ -98,7 +98,7 @@ namespace MongoDB.Client.Scheduler
 
         public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token)
         {
-            var result = await GetSlaveScheduler().GetCursorAsync<T>(message, token);
+            var result = await GetSlaveScheduler().GetCursorAsync<T>(message, token).ConfigureAwait(false);
             return result;
         }
 

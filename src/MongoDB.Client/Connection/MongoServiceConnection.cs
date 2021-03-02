@@ -19,7 +19,7 @@ namespace MongoDB.Client.Connection
 {
     internal class MongoServiceConnection
     {
-        private static MongoPingMesageReader MongoPingMesageReader = new MongoPingMesageReader();
+        private static MongoPingMesageReader MongoPingMessageReader = new MongoPingMesageReader();
         private static BsonDocument _pingDocument = new BsonDocument("isMaster", 1);
         internal ConnectionInfo ConnectionInfo;
         private ProtocolReader _protocolReader;
@@ -39,6 +39,7 @@ namespace MongoDB.Client.Connection
         public async ValueTask<MongoPingMessage?> MongoPing(CancellationToken token = default)
         {
             var message = new QueryMessage(GetNextRequestNumber(), "admin.$cmd", _pingDocument);
+            //var test = await SendQueryAsync<BsonDocument>(message, token).ConfigureAwait(false);
             if (_protocolWriter is null)
             {
                 ThrowHelper.ThrowNotInitialized();
@@ -50,9 +51,8 @@ namespace MongoDB.Client.Connection
                 //TODO: DO SOME
             }
             var replyResult = await ReadAsyncPrivate(_protocolReader, ProtocolReaders.ReplyMessageReader, _shutdownCts.Token).ConfigureAwait(false);
-            var bodyResult = await _protocolReader.ReadAsync(MongoPingMesageReader, default).ConfigureAwait(false);
-            _protocolReader.Advance();
-            return bodyResult.Message;
+            var bodyResult = await ReadAsyncPrivate(_protocolReader, MongoPingMessageReader, _shutdownCts.Token).ConfigureAwait(false);
+            return bodyResult;
         }
         public async ValueTask Connect(MongoClientSettings settings, CancellationToken token)
         {
