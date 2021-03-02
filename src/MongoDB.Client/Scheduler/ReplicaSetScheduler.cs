@@ -16,7 +16,8 @@ namespace MongoDB.Client.Scheduler
 {
     internal sealed class ReplicaSetScheduler : IMongoScheduler
     {
-        private readonly NetworkConnectionFactory _factory;
+        private readonly NetworkConnectionFactory _networkfactory;
+        private readonly ILoggerFactory _loggerFactory;
         private MongoServiceConnection _service;
         private MongoClientSettings _settings;
         private List<IReplicaSetNodeScheduler> _shedulers;
@@ -30,7 +31,8 @@ namespace MongoDB.Client.Scheduler
         {
             _settings = settings;
             _logger = loggerFactory.CreateLogger<ReplicaSetScheduler>();
-            _factory = new NetworkConnectionFactory(loggerFactory);
+            _networkfactory = new NetworkConnectionFactory(loggerFactory);
+            _loggerFactory = loggerFactory;
             _shedulers = new();
             _slaves = new();
         }
@@ -45,26 +47,25 @@ namespace MongoDB.Client.Scheduler
         {
             var endpoints = _settings.Endpoints;
             var maxConnections = _settings.ConnectionPoolMaxSize / endpoints.Length;
-            _service = new MongoServiceConnection(await _factory.ConnectAsync(_settings.Endpoints[0])); //TODO: fix it
+            _service = new MongoServiceConnection(await _networkfactory.ConnectAsync(_settings.Endpoints[0])); //TODO: fix it
             await _service.Connect(_settings, default).ConfigureAwait(false);
             var pingDoc = await _service.MongoPing().ConfigureAwait(false);
-            //for (var i = 0; i < endpoints.Length; i++)
-            //{
-            //    var scheduler = new ReplicaSetNodeScheduler(maxConnections, settings, new MongoConnectionFactory(endpoints[i], loggerFactory), loggerFactory);
-            //    _shedulers.Add(scheduler);
-            //}
-            //foreach (var scheduler in _shedulers)
-            //{
-            //    await scheduler.InitAsync();
-            //    if (await scheduler.IsMaster())
-            //    {
-            //        _master = scheduler;
-            //    }
-            //    else
-            //    {
-            //        _slaves.Add(scheduler);
-            //    }
-            //}
+            for (var i = 0; i < pingDoc.Hosts.Count; i++)
+            {
+                var temp = pingDoc.Hosts[i];
+                var hostPort = temp.Split(':');
+                var scheduler = new ReplicaSetNodeScheduler(maxConnections, _settings, new MongoConnectionFactory(new DnsEndPoint(hostPort[0], int.Parse(hostPort[1])), _loggerFactory), _loggerFactory);
+                _shedulers.Add(scheduler);
+                if(temp.Equals(pingDoc.Primary))
+                {
+                    _master = scheduler;
+                }
+                else
+                {
+                    _slaves.Add(scheduler);
+                }
+                await scheduler.StartAsync();
+            }
         }
         public int GetNextRequestNumber()
         {
