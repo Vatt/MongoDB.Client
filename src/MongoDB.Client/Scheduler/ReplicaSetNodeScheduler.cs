@@ -56,9 +56,9 @@ namespace MongoDB.Client.Scheduler
             return _inner.GetNextRequestNumber();
         }
 
-        public async ValueTask InitAsync()
+        public async ValueTask StartAsync()
         {
-            await _inner.InitAsync().ConfigureAwait(false);
+            await _inner.StartAsync().ConfigureAwait(false);
         }
 
         public ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token)

@@ -31,8 +31,6 @@ namespace MongoDB.Client.Scheduler
             _settings = settings;
             _logger = loggerFactory.CreateLogger<ReplicaSetScheduler>();
             _factory = new NetworkConnectionFactory(loggerFactory);
-            var endpoints = settings.Endpoints;
-            var maxConnections = settings.ConnectionPoolMaxSize / endpoints.Length;
             _shedulers = new();
             _slaves = new();
         }
@@ -43,9 +41,11 @@ namespace MongoDB.Client.Scheduler
             var result = _slaves[schedulerId];
             return result;
         }
-        public async ValueTask InitAsync()
+        public async ValueTask StartAsync()
         {
-            _service = new MongoServiceConnection(await _factory.ConnectAsync(_settings.Endpoints[0]));
+            var endpoints = _settings.Endpoints;
+            var maxConnections = _settings.ConnectionPoolMaxSize / endpoints.Length;
+            _service = new MongoServiceConnection(await _factory.ConnectAsync(_settings.Endpoints[0])); //TODO: fix it
             await _service.Connect(_settings, default).ConfigureAwait(false);
             var pingDoc = await _service.MongoPing().ConfigureAwait(false);
             //for (var i = 0; i < endpoints.Length; i++)

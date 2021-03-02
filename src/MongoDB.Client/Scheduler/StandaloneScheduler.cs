@@ -57,7 +57,7 @@ namespace MongoDB.Client.Scheduler
         }
 
 
-        public async ValueTask InitAsync()
+        public async ValueTask StartAsync()
         {
             if (_connections.Count == 0)
             {

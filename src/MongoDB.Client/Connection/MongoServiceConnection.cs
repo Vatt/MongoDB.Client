@@ -19,6 +19,7 @@ namespace MongoDB.Client.Connection
 {
     internal class MongoServiceConnection
     {
+        private static MongoPingMesageReader MongoPingMesageReader = new MongoPingMesageReader();
         private static BsonDocument _pingDocument = new BsonDocument("isMaster", 1);
         internal ConnectionInfo ConnectionInfo;
         private ProtocolReader _protocolReader;
@@ -35,11 +36,23 @@ namespace MongoDB.Client.Connection
         {
             return Interlocked.Increment(ref _requestId);
         }
-        public async ValueTask<BsonDocument> MongoPing()
+        public async ValueTask<MongoPingMessage?> MongoPing(CancellationToken token = default)
         {
-            var msg = new QueryMessage(GetNextRequestNumber(), "admin.$cmd", _pingDocument);
-            var result = await SendQueryAsync<BsonDocument>(msg, default);
-            return result[0]; //TODO: fixit
+            var message = new QueryMessage(GetNextRequestNumber(), "admin.$cmd", _pingDocument);
+            if (_protocolWriter is null)
+            {
+                ThrowHelper.ThrowNotInitialized();
+            }
+            await _protocolWriter.WriteUnsafeAsync(ProtocolWriters.QueryMessageWriter, message, token).ConfigureAwait(false);
+            var header = await ReadAsyncPrivate(_protocolReader, ProtocolReaders.MessageHeaderReader, _shutdownCts.Token).ConfigureAwait(false);
+            if (header.Opcode != Opcode.Reply)
+            {
+                //TODO: DO SOME
+            }
+            var replyResult = await ReadAsyncPrivate(_protocolReader, ProtocolReaders.ReplyMessageReader, _shutdownCts.Token).ConfigureAwait(false);
+            var bodyResult = await _protocolReader.ReadAsync(MongoPingMesageReader, default).ConfigureAwait(false);
+            _protocolReader.Advance();
+            return bodyResult.Message;
         }
         public async ValueTask Connect(MongoClientSettings settings, CancellationToken token)
         {
@@ -78,7 +91,7 @@ namespace MongoDB.Client.Connection
 
             return doc;
         }
-        public async ValueTask<QueryResult<TResp>> SendQueryAsync<TResp>(QueryMessage message, CancellationToken token)
+        public async ValueTask<QueryResult<TResp>?> SendQueryAsync<TResp>(QueryMessage message, CancellationToken token)
         {
             if (_protocolWriter is null)
             {

@@ -58,7 +58,7 @@ namespace MongoDB.Client
         }
         public ValueTask InitAsync()
         {
-            return _scheduler.InitAsync();
+            return _scheduler.StartAsync();
         }
     }
 }
