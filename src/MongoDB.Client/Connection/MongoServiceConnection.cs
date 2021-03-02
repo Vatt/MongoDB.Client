@@ -8,10 +8,6 @@ using MongoDB.Client.Protocol.Common;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Messages;
 using MongoDB.Client.Protocol.Readers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -36,7 +32,7 @@ namespace MongoDB.Client.Connection
         {
             return Interlocked.Increment(ref _requestId);
         }
-        public async ValueTask<MongoPingMessage?> MongoPing(CancellationToken token = default)
+        public async ValueTask<MongoPingMessage> MongoPing()
         {
             var message = new QueryMessage(GetNextRequestNumber(), "admin.$cmd", _pingDocument);
             //var test = await SendQueryAsync<BsonDocument>(message, token).ConfigureAwait(false);
@@ -44,7 +40,7 @@ namespace MongoDB.Client.Connection
             {
                 ThrowHelper.ThrowNotInitialized();
             }
-            await _protocolWriter.WriteUnsafeAsync(ProtocolWriters.QueryMessageWriter, message, token).ConfigureAwait(false);
+            await _protocolWriter.WriteAsync(ProtocolWriters.QueryMessageWriter, message, _shutdownCts.Token).ConfigureAwait(false);
             var header = await ReadAsyncPrivate(_protocolReader, ProtocolReaders.MessageHeaderReader, _shutdownCts.Token).ConfigureAwait(false);
             if (header.Opcode != Opcode.Reply)
             {

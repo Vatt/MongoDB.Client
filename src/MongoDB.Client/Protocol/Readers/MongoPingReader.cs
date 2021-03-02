@@ -21,12 +21,12 @@ namespace MongoDB.Client.Protocol.Readers
             {
                 consumed = bsonReader.Position;
                 examined = bsonReader.Position;
+                return true;
             }
             else
             {
                 return false;
             }
-            return true;
         }
     }
 }
