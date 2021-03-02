@@ -29,6 +29,7 @@ namespace MongoDB.Client.Connection
         private Task? _channelFindListenerTask;
         private readonly ConcurrentQueue<ManualResetValueTaskSource<IParserResult>> _queue = new();
         private readonly MongoClientSettings _settings;
+
         internal MongoConnection(int connectionId, MongoClientSettings settings, ILogger logger, ChannelReader<MongoRequest> channelReader, ChannelReader<MongoRequest> findReader, IMongoScheduler requestScheduler)
         {
             ConnectionId = connectionId;
@@ -39,7 +40,6 @@ namespace MongoDB.Client.Connection
             _requestScheduler = requestScheduler;
             _settings = settings;
         }
-
         public async ValueTask DisposeAsync()
         {
             _shutdownCts.Cancel();

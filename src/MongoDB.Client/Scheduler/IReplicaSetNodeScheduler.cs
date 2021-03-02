@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace MongoDB.Client.Scheduler
 {
-    internal interface IReplicaSetScheduler : IMongoScheduler
+    internal interface IReplicaSetNodeScheduler : IMongoScheduler
     {
-        bool IsMaster { get; }
+        //ValueTask<bool> IsMaster();
     }
 }

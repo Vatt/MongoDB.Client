@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Messages;
+using MongoDB.Client.Network;
 using MongoDB.Client.Protocol.Messages;
 using System;
 using System.Collections.Generic;
@@ -15,26 +16,27 @@ namespace MongoDB.Client.Scheduler
 {
     internal sealed class ReplicaSetScheduler : IMongoScheduler
     {
-        private List<IReplicaSetScheduler> _shedulers;
-        private IReplicaSetScheduler _master;
-        private List<IReplicaSetScheduler> _slaves;
+        private readonly NetworkConnectionFactory _factory;
+        private MongoServiceConnection _service;
+        private MongoClientSettings _settings;
+        private List<IReplicaSetNodeScheduler> _shedulers;
+        private IReplicaSetNodeScheduler _master;
+        private List<IReplicaSetNodeScheduler> _slaves;
         private ILogger _logger;
         private int _schedulerCounter = 0;
         private int _requestCounter = 0;
+
         public ReplicaSetScheduler(MongoClientSettings settings, ILoggerFactory loggerFactory)
         {
+            _settings = settings;
             _logger = loggerFactory.CreateLogger<ReplicaSetScheduler>();
+            _factory = new NetworkConnectionFactory(loggerFactory);
             var endpoints = settings.Endpoints;
             var maxConnections = settings.ConnectionPoolMaxSize / endpoints.Length;
             _shedulers = new();
             _slaves = new();
-            for (var i = 0; i < endpoints.Length; i++)
-            {
-                var scheduler = new ReplicaSetInnerScheduler(maxConnections, settings, new MongoConnectionFactory(endpoints[i], loggerFactory), loggerFactory);
-                _shedulers.Add(scheduler);
-            }
         }
-        private IReplicaSetScheduler GetSlaveScheduler()
+        private IReplicaSetNodeScheduler GetSlaveScheduler()
         {
             Interlocked.Increment(ref _schedulerCounter);
             var schedulerId = _schedulerCounter % _slaves.Count;
@@ -43,18 +45,26 @@ namespace MongoDB.Client.Scheduler
         }
         public async ValueTask InitAsync()
         {
-            foreach (var scheduler in _shedulers)
-            {
-                await scheduler.InitAsync();
-                if (scheduler.IsMaster)
-                {
-                    _master = scheduler;
-                }
-                else
-                {
-                    _slaves.Add(scheduler);
-                }
-            }
+            _service = new MongoServiceConnection(await _factory.ConnectAsync(_settings.Endpoints[0]));
+            await _service.Connect(_settings, default).ConfigureAwait(false);
+            var pingDoc = await _service.MongoPing().ConfigureAwait(false);
+            //for (var i = 0; i < endpoints.Length; i++)
+            //{
+            //    var scheduler = new ReplicaSetNodeScheduler(maxConnections, settings, new MongoConnectionFactory(endpoints[i], loggerFactory), loggerFactory);
+            //    _shedulers.Add(scheduler);
+            //}
+            //foreach (var scheduler in _shedulers)
+            //{
+            //    await scheduler.InitAsync();
+            //    if (await scheduler.IsMaster())
+            //    {
+            //        _master = scheduler;
+            //    }
+            //    else
+            //    {
+            //        _slaves.Add(scheduler);
+            //    }
+            //}
         }
         public int GetNextRequestNumber()
         {

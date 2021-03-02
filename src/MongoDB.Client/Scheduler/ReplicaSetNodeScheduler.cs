@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Messages;
+using MongoDB.Client.Network;
 using MongoDB.Client.Protocol.Messages;
 using System;
 using System.Collections.Generic;
@@ -11,18 +12,13 @@ using System.Threading.Tasks;
 
 namespace MongoDB.Client.Scheduler
 {
-    internal class ReplicaSetInnerScheduler : IReplicaSetScheduler
+    internal class ReplicaSetNodeScheduler : IReplicaSetNodeScheduler
     {
         private StandaloneScheduler _inner;
-        public bool IsMaster 
+        private MongoClientSettings _settings;
+        public ReplicaSetNodeScheduler(int maxConnections, MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
         {
-            get 
-            {
-                return _inner._connections[0].IsMaster;
-            }
-        }
-        public ReplicaSetInnerScheduler(int maxConnections, MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
-        {
+            _settings = settings;
             _inner = new StandaloneScheduler(maxConnections, settings, connectionFactory, loggerFactory);
         }
         public Task ConnectionLost(MongoConnection connection)
@@ -62,12 +58,18 @@ namespace MongoDB.Client.Scheduler
 
         public async ValueTask InitAsync()
         {
-            await _inner.InitAsync();
+            await _inner.InitAsync().ConfigureAwait(false);
         }
 
         public ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token)
         {
             return _inner.InsertAsync(message, token);
         }
+
+        //public async ValueTask<bool> IsMaster()
+        //{
+        //    var ismaster = await ((StandaloneScheduler)_inner)._connections[0].IsMaster();
+        //    return ismaster;
+        //}
     }
 }
