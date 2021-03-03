@@ -1,5 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Connections;
+using Microsoft.Extensions.Logging;
 using MongoDB.Client.Connection;
+using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Network;
 using MongoDB.Client.Protocol.Messages;
@@ -47,16 +49,35 @@ namespace MongoDB.Client.Scheduler
         {
             var endpoints = _settings.Endpoints;
             var maxConnections = _settings.ConnectionPoolMaxSize / endpoints.Length;
-            _service = new MongoServiceConnection(await _networkfactory.ConnectAsync(_settings.Endpoints[0])); //TODO: fix it
+            ConnectionContext ctx = default;
+            for (int i = 0; i < _settings.Endpoints.Length; i++)
+            {
+                try
+                {
+                    ctx = await _networkfactory.ConnectAsync(_settings.Endpoints[i]);
+                }catch(Exception ex)
+                {
+                    continue;
+                }
+                _service = new MongoServiceConnection(ctx);
+                break;
+            }
+            if (_service is null)
+            {
+                ThrowHelper.MongoInitExceptions();
+            }
             await _service.Connect(_settings, default).ConfigureAwait(false);
             var pingDoc = await _service.MongoPing().ConfigureAwait(false);
+            if (pingDoc.Primary is null)
+            {
+                ThrowHelper.PrimaryNullExceptions(); //TODO: fixit
+            }
             for (var i = 0; i < pingDoc.Hosts.Count; i++)
             {
-                var temp = pingDoc.Hosts[i];
-                var hostPort = temp.Split(':');
-                var scheduler = new ReplicaSetNodeScheduler(maxConnections, _settings, new MongoConnectionFactory(new DnsEndPoint(hostPort[0], int.Parse(hostPort[1])), _loggerFactory), _loggerFactory);
+                var host = pingDoc.Hosts[i];
+                var scheduler = new ReplicaSetNodeScheduler(maxConnections, _settings, new MongoConnectionFactory(host, _loggerFactory), _loggerFactory);
                 _shedulers.Add(scheduler);
-                if(temp.Equals(pingDoc.Primary))
+                if (host.Equals(pingDoc.Primary))
                 {
                     _master = scheduler;
                 }
