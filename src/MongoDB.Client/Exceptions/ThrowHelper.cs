@@ -226,5 +226,17 @@ namespace MongoDB.Client.Exceptions
         {
             throw new MongoException($"Expected '{expected}' bat was '{actual}'");
         }
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
+        public static void MongoInitExceptions()
+        {
+            throw new MongoException($"Connection failed");
+        }
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
+        public static void PrimaryNullExceptions()
+        {
+            throw new MongoException($"Connection failed: Prymary is null");
+        }
     }
 }

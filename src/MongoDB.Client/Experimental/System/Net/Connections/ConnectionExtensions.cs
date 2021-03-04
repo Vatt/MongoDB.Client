@@ -62,7 +62,7 @@ namespace System.Net.Connections
             public override async ValueTask<Connection> ConnectAsync(EndPoint endPoint, IConnectionProperties? options = null, CancellationToken cancellationToken = default)
             {
                 var con = await _baseFactory.ConnectAsync(endPoint, options, cancellationToken).ConfigureAwait(false);
-   
+
                 try
                 {
                     return await _filter(con, options, cancellationToken).ConfigureAwait(false);

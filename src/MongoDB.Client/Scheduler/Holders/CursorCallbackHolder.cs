@@ -5,7 +5,7 @@ using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
 using System.Threading.Tasks;
 
-namespace MongoDB.Client.Connection
+namespace MongoDB.Client.Scheduler.Holders
 {
     internal static partial class CursorCallbackHolder<T>
     {

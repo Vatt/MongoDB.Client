@@ -4,7 +4,6 @@ using System;
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace MongoDB.Client.Bson.Reader
 {
@@ -275,7 +274,7 @@ namespace MongoDB.Client.Bson.Reader
         public bool TryGetInt32(out int? value)
         {
             value = default;
-            if(_input.TryReadLittleEndian(out int temp))
+            if (_input.TryReadLittleEndian(out int temp))
             {
                 value = temp;
                 return true;
@@ -288,7 +287,7 @@ namespace MongoDB.Client.Bson.Reader
         public bool TryGetInt64(out long? value)
         {
             value = default;
-            if(_input.TryReadLittleEndian(out long temp))
+            if (_input.TryReadLittleEndian(out long temp))
             {
                 value = temp;
                 return true;

@@ -1,32 +1,37 @@
 ﻿using Microsoft.Extensions.Logging;
+using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Messages;
+using MongoDB.Client.Scheduler.Holders;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
-namespace MongoDB.Client.Connection
+namespace MongoDB.Client.Scheduler
 {
 
-    internal partial class RequestScheduler : IAsyncDisposable
+    internal partial class StandaloneScheduler : IMongoScheduler, IAsyncDisposable
     {
         private readonly IMongoConnectionFactory _connectionFactory;
-        private readonly ILogger<RequestScheduler> _logger;
-        private readonly List<MongoConnection> _connections;
+        private readonly ILogger<StandaloneScheduler> _logger;
+        //TODO: fix this
+        //private readonly List<MongoConnection> _connections; 
+        internal readonly List<MongoConnection> _connections;
         private readonly Channel<MongoRequest> _channel;
         private readonly Channel<MongoRequest> _findChannel;
         private readonly ChannelWriter<MongoRequest> _channelWriter;
         private readonly ChannelWriter<MongoRequest> _cursorChannel;
         private readonly MongoClientSettings _settings;
+        private readonly int _maxConnections;
         private static int _counter;
-        public RequestScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
+        public StandaloneScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
         {
             _connectionFactory = connectionFactory;
-            _logger = loggerFactory.CreateLogger<RequestScheduler>();
+            _logger = loggerFactory.CreateLogger<StandaloneScheduler>();
             var options = new UnboundedChannelOptions();
             options.SingleWriter = true;
             options.SingleReader = false;
@@ -38,8 +43,13 @@ namespace MongoDB.Client.Connection
             _connections = new List<MongoConnection>();
             _settings = settings;
             _counter = 0;
+            _maxConnections = settings.ConnectionPoolMaxSize;
         }
-
+        public StandaloneScheduler(int maxConenctions, MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
+            : this(settings, connectionFactory, loggerFactory)
+        {
+            _maxConnections = maxConenctions;
+        }
 
         public int GetNextRequestNumber()
         {
@@ -47,11 +57,11 @@ namespace MongoDB.Client.Connection
         }
 
 
-        internal async ValueTask InitAsync()
+        public async ValueTask StartAsync()
         {
             if (_connections.Count == 0)
             {
-                for (int i = 0; i < _settings.ConnectionPoolMaxSize; i++)
+                for (int i = 0; i < _maxConnections; i++)
                 {
                     _connections.Add(await CreateNewConnection());
                 }
@@ -65,7 +75,7 @@ namespace MongoDB.Client.Connection
         }
 
 
-        internal async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token = default)
+        public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token = default)
         {
             var request = MongoRequestPool.Get();
             var taskSrc = request.CompletionSource;
@@ -77,13 +87,13 @@ namespace MongoDB.Client.Connection
             };
             request.RequestNumber = message.Header.RequestNumber;
             await _cursorChannel.WriteAsync(request);
-            var cursor =(CursorResult<T>) await taskSrc.GetValueTask().ConfigureAwait(false);
+            var cursor = (CursorResult<T>)await taskSrc.GetValueTask().ConfigureAwait(false);
             MongoRequestPool.Return(request);
             return cursor;
         }
 
 
-        internal async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token = default)
+        public async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token = default)
         {
             var request = MongoRequestPool.Get();
             var taskSource = request.CompletionSource;

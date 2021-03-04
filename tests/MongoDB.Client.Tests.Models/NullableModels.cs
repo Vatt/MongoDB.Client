@@ -32,7 +32,7 @@ namespace MongoDB.Client.Tests.Models
         public LongEnum? LongEnum1 { get; set; }
 
         [BsonEnum(EnumRepresentation.Int64)]
-        public LongEnum? LongEnum2 { get; set; }   
+        public LongEnum? LongEnum2 { get; set; }
         [BsonEnum(EnumRepresentation.Int64)]
         public LongEnum? LongEnum3 { get; set; }
 
@@ -63,8 +63,8 @@ namespace MongoDB.Client.Tests.Models
             StringEnum1 = StringEnum.StringField2,
             StringEnum2 = StringEnum.StringField1,
             StringEnum3 = null,
-            IntEnumList  = new() { IntEnum.One, null, IntEnum.Two },
-            LongEnumList  = new() { LongEnum.One, null, LongEnum.Two },
+            IntEnumList = new() { IntEnum.One, null, IntEnum.Two },
+            LongEnumList = new() { LongEnum.One, null, LongEnum.Two },
             StringEnumList = new() { StringEnum.StringField1, null, StringEnum.StringField2 }
         };
 
@@ -72,10 +72,10 @@ namespace MongoDB.Client.Tests.Models
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return IntEnum1 == other.IntEnum1 && IntEnum2 == other.IntEnum2 && IntEnum3 == other.IntEnum3 && 
+            return IntEnum1 == other.IntEnum1 && IntEnum2 == other.IntEnum2 && IntEnum3 == other.IntEnum3 &&
                    LongEnum1 == other.LongEnum1 && LongEnum2 == other.LongEnum2 && LongEnum3 == other.LongEnum3 &&
-                   StringEnum1 == other.StringEnum1 && StringEnum2 == other.StringEnum2 && 
-                   StringEnum3 == other.StringEnum3 && LongEnumList.SequenceEqual(other.LongEnumList) && 
+                   StringEnum1 == other.StringEnum1 && StringEnum2 == other.StringEnum2 &&
+                   StringEnum3 == other.StringEnum3 && LongEnumList.SequenceEqual(other.LongEnumList) &&
                    IntEnumList.SequenceEqual(other.IntEnumList) && StringEnumList.SequenceEqual(other.StringEnumList);
         }
 
@@ -84,7 +84,7 @@ namespace MongoDB.Client.Tests.Models
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((EnumNullable) obj);
+            return Equals((EnumNullable)obj);
         }
 
         public override int GetHashCode()
@@ -271,7 +271,7 @@ namespace MongoDB.Client.Tests.Models
         }
         public static IntNullable Create() => new IntNullable() { Prop = 42, Field = null };
     }
-    
+
     [BsonSerializable]
     public partial class DoubleNullable : IEquatable<DoubleNullable>
     {
@@ -299,7 +299,7 @@ namespace MongoDB.Client.Tests.Models
         }
         public static DoubleNullable Create() => new DoubleNullable() { Prop = 42, Field = null };
     }
-    
+
     [BsonSerializable]
     public partial class LongNullable : IEquatable<LongNullable>
     {
@@ -356,7 +356,7 @@ namespace MongoDB.Client.Tests.Models
 
         public static StringNullable Create() => new StringNullable() { Prop = "42", Field = "42" };
     }
-    
+
     [BsonSerializable]
     public partial class DateTimeOffsetNullable : IEquatable<DateTimeOffsetNullable>
     {
@@ -382,13 +382,13 @@ namespace MongoDB.Client.Tests.Models
         {
             return HashCode.Combine(Field, Prop);
         }
-        public static DateTimeOffsetNullable Create() => new DateTimeOffsetNullable() 
-        { 
-            Prop = new DateTimeOffset(2021, 01, 01, 5, 30, 0, TimeSpan.Zero), 
-            Field = null 
+        public static DateTimeOffsetNullable Create() => new DateTimeOffsetNullable()
+        {
+            Prop = new DateTimeOffset(2021, 01, 01, 5, 30, 0, TimeSpan.Zero),
+            Field = null
         };
     }
-    
+
     [BsonSerializable]
     public partial class GuidNullable : IEquatable<GuidNullable>
     {
@@ -417,7 +417,7 @@ namespace MongoDB.Client.Tests.Models
 
         public static GuidNullable Create() => new() { Field = Guid.NewGuid(), Prop = null };
     }
-    
+
     [BsonSerializable]
     public partial class BsonObjectIdNullable : IEquatable<BsonObjectIdNullable>
     {
@@ -527,7 +527,7 @@ namespace MongoDB.Client.Tests.Models
             return HashCode.Combine(Field, Prop);
         }
     }
-    
+
     [BsonSerializable]
     public partial class ClassNullable : IEquatable<ClassNullable>
     {
@@ -731,8 +731,8 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(OtherModelsNullable other)
         {
-            return Equals(Prop4, other.Prop4) && Equals(Prop1, other.Prop1) && Equals(Prop2, other.Prop2) && Equals(Prop3, other.Prop3) && Equals(Prop5, other.Prop5) && 
-                   Equals(Prop6, other.Prop6) && Equals(Prop7, other.Prop7) && Equals(Prop8, other.Prop8) && Equals(Prop9, other.Prop9) && Equals(Prop10, other.Prop10) && 
+            return Equals(Prop4, other.Prop4) && Equals(Prop1, other.Prop1) && Equals(Prop2, other.Prop2) && Equals(Prop3, other.Prop3) && Equals(Prop5, other.Prop5) &&
+                   Equals(Prop6, other.Prop6) && Equals(Prop7, other.Prop7) && Equals(Prop8, other.Prop8) && Equals(Prop9, other.Prop9) && Equals(Prop10, other.Prop10) &&
                    Equals(Prop11, other.Prop11) && Equals(Prop12, other.Prop12) && Equals(Prop13, other.Prop13) && Equals(Prop14, other.Prop14);
         }
 

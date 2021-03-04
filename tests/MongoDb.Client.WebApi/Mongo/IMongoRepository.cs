@@ -1,6 +1,4 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Messages;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace MongoDb.Client.WebApi.Mongo

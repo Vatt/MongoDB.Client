@@ -113,7 +113,7 @@ namespace MongoDB.Client.Bson.Reader
                 {
                     ThrowSerializerNotFound(typeof(T).Name);
                 }
-                
+
                 return serializer.TryParseBson(ref this, out genericValue);
             }
 

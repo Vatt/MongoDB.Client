@@ -48,14 +48,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                 {
                     continue;
                 }
-       
-                if ((member is IPropertySymbol { SetMethod: { }, GetMethod: { }, IsReadOnly: false}) ||
-                     (member is IFieldSymbol { IsReadOnly: false, IsConst: false}))
+
+                if ((member is IPropertySymbol { SetMethod: { }, GetMethod: { }, IsReadOnly: false }) ||
+                     (member is IFieldSymbol { IsReadOnly: false, IsConst: false }))
                 {
                     Members.Add(new MemberContext(this, member));
                     continue;
                 }
-                if(member is IPropertySymbol prop && (prop.IsReadOnly || prop.GetMethod != null) && ConstructorContains(member.Name))
+                if (member is IPropertySymbol prop && (prop.IsReadOnly || prop.GetMethod != null) && ConstructorContains(member.Name))
                 {
                     Members.Add(new MemberContext(this, member));
                     continue;

@@ -1,6 +1,6 @@
 ﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Connection;
 using MongoDB.Client.Messages;
+using MongoDB.Client.Scheduler;
 using MongoDB.Client.Utils;
 using System;
 using System.Collections.Generic;
@@ -11,9 +11,9 @@ namespace MongoDB.Client
 {
     public class MongoCollection<T>
     {
-        private readonly RequestScheduler _scheduler;
+        private readonly IMongoScheduler _scheduler;
 
-        internal MongoCollection(MongoDatabase database, string name, RequestScheduler scheduler)
+        internal MongoCollection(MongoDatabase database, string name, IMongoScheduler scheduler)
         {
             _scheduler = scheduler;
             Database = database;

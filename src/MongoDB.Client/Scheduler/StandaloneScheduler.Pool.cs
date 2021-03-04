@@ -1,10 +1,11 @@
 ﻿using Microsoft.Extensions.ObjectPool;
+using MongoDB.Client.Connection;
 using MongoDB.Client.Messages;
 using System;
 
-namespace MongoDB.Client.Connection
+namespace MongoDB.Client.Scheduler
 {
-    internal partial class RequestScheduler
+    internal partial class StandaloneScheduler
     {
         private class MongoRequestPolicy : IPooledObjectPolicy<MongoRequest>
         {

@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
-using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
+using MongoDB.Client.Scheduler;
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
@@ -21,14 +21,15 @@ namespace MongoDB.Client.Connection
         private ProtocolWriter? _protocolWriter;
         private readonly ChannelReader<MongoRequest> _channelReader;
         private readonly ChannelReader<MongoRequest> _findReader;
-        private readonly RequestScheduler _requestScheduler;
+        private readonly IMongoScheduler _requestScheduler;
         private CancellationTokenSource _shutdownCts = new CancellationTokenSource();
         private Task? _protocolListenerTask;
         private Task? _channelListenerTask;
         private Task? _channelFindListenerTask;
         private readonly ConcurrentQueue<ManualResetValueTaskSource<IParserResult>> _queue = new();
         private readonly MongoClientSettings _settings;
-        internal MongoConnection(int connectionId, MongoClientSettings settings, ILogger logger, ChannelReader<MongoRequest> channelReader, ChannelReader<MongoRequest> findReader, RequestScheduler requestScheduler)
+
+        internal MongoConnection(int connectionId, MongoClientSettings settings, ILogger logger, ChannelReader<MongoRequest> channelReader, ChannelReader<MongoRequest> findReader, IMongoScheduler requestScheduler)
         {
             ConnectionId = connectionId;
             _completions = new ConcurrentDictionary<long, MongoRequest>();
@@ -38,7 +39,6 @@ namespace MongoDB.Client.Connection
             _requestScheduler = requestScheduler;
             _settings = settings;
         }
-
         public async ValueTask DisposeAsync()
         {
             _shutdownCts.Cancel();

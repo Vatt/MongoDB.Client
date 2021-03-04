@@ -5,7 +5,7 @@ using System.Net;
 namespace MongoDB.Client.Experimental
 {
     public static class MongoExperimental
-    {        
+    {
         public static MongoClient CreateWithExperimentalConnection(EndPoint endPoint, ILoggerFactory loggerFactory)
         {
             return CreateWithExperimentalConnection(new MongoClientSettings(endPoint), loggerFactory);
