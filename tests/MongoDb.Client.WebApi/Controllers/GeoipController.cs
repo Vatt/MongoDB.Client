@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using MongoDb.Client.WebApi.Mongo;
 using System.Collections.Generic;
 using System.Threading.Tasks;

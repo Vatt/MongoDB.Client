@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Scheduler;

@@ -1,5 +1,4 @@
 ﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Connection;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Scheduler;
 using MongoDB.Client.Utils;

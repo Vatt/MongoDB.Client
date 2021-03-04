@@ -46,7 +46,7 @@ namespace MongoDB.Client.Scheduler
             _maxConnections = settings.ConnectionPoolMaxSize;
         }
         public StandaloneScheduler(int maxConenctions, MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
-            :this(settings, connectionFactory, loggerFactory)
+            : this(settings, connectionFactory, loggerFactory)
         {
             _maxConnections = maxConenctions;
         }

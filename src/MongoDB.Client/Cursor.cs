@@ -1,5 +1,4 @@
 ﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Messages;
@@ -107,7 +106,7 @@ namespace MongoDB.Client
 
         private FindRequest CreateFindRequest(BsonDocument filter)
         {
-            return new FindRequest(_collectionNamespace.CollectionName, filter, _limit, default, null,  _collectionNamespace.DatabaseName, SharedSession);
+            return new FindRequest(_collectionNamespace.CollectionName, filter, _limit, default, null, _collectionNamespace.DatabaseName, SharedSession);
         }
 
         private FindRequest CreateGetMoreRequest(long cursorId)

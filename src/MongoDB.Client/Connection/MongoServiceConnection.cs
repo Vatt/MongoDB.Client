@@ -27,7 +27,7 @@ namespace MongoDB.Client.Connection
             _protocolReader = connection.CreateReader();
             _protocolWriter = connection.CreateWriter();
         }
-        
+
         private int GetNextRequestNumber()
         {
             return Interlocked.Increment(ref _requestId);

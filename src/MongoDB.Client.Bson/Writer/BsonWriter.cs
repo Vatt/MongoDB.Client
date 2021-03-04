@@ -388,7 +388,7 @@ namespace MongoDB.Client.Bson.Writer
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteBoolean(bool value)
         {
-            WriteByte((byte) (value ? 1 : 0));
+            WriteByte((byte)(value ? 1 : 0));
         }
     }
 }

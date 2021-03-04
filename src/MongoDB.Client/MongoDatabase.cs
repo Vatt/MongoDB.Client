@@ -1,5 +1,4 @@
-﻿using MongoDB.Client.Connection;
-using MongoDB.Client.Scheduler;
+﻿using MongoDB.Client.Scheduler;
 using System.Threading;
 using System.Threading.Tasks;
 

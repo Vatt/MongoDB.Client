@@ -47,7 +47,7 @@ namespace MongoDB.Client
         public MongoClient(string connectionString, ILoggerFactory loggerFactory)
             : this(MongoClientSettings.FromConnectionString(connectionString), loggerFactory)
         {
-            if(Settings.Endpoints.Length > 1 && Settings.ReplicaSet != null)
+            if (Settings.Endpoints.Length > 1 && Settings.ReplicaSet != null)
             {
                 _scheduler = new ReplicaSetScheduler(Settings, loggerFactory);
             }

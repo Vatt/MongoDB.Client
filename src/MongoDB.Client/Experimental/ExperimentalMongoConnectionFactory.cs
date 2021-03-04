@@ -2,7 +2,6 @@
 using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Scheduler;
-using System;
 using System.Net;
 using System.Net.Connections;
 using System.Threading;
@@ -19,7 +18,7 @@ namespace MongoDB.Client.Experimental
         private readonly ILoggerFactory _loggerFactory;
         public ExperimentalMongoConnectionFactory(EndPoint endPoint, ILoggerFactory loggerFactory)
         {
-            _networkFactory = new SocketsConnectionFactory(System.Net.Sockets.AddressFamily.InterNetwork,System.Net.Sockets.SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+            _networkFactory = new SocketsConnectionFactory(System.Net.Sockets.AddressFamily.InterNetwork, System.Net.Sockets.SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
             _endPoint = endPoint;
             _loggerFactory = loggerFactory;
         }

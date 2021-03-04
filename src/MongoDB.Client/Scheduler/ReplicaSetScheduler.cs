@@ -7,10 +7,6 @@ using MongoDB.Client.Network;
 using MongoDB.Client.Protocol.Messages;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -56,7 +52,8 @@ namespace MongoDB.Client.Scheduler
                 try
                 {
                     ctx = await _networkfactory.ConnectAsync(_settings.Endpoints[i]);
-                }catch(Exception ex)
+                }
+                catch (Exception ex)
                 {
                     continue;
                 }

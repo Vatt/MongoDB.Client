@@ -36,7 +36,7 @@ namespace MongoDB.Client.Utils
                 var optStr = optionsString[optionsString.Length - 1] == '/' ? optionsString.Remove(optionsString.Length - 1) : optionsString;
                 foreach (var opt in optStr.Split('&', StringSplitOptions.RemoveEmptyEntries))
                 {
-                    if(IfReadPreferenceTags(opt))
+                    if (IfReadPreferenceTags(opt))
                     {
                         continue;
                     }
@@ -62,7 +62,7 @@ namespace MongoDB.Client.Utils
                 {
                     return true;
                 }
-           
+
                 if (Options.TryGetValue("readPreferenceTags", out var tags))
                 {
                     tags = tags + "&" + splited[1];

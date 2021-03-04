@@ -100,7 +100,7 @@ namespace MongoDB.Client.ConsoleApp
                         {
                             // skip
                         }
-                        
+
                     }
                 }
                 catch (ChannelClosedException)

@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace MongoDB.Client.Messages
 {
@@ -45,7 +44,7 @@ namespace MongoDB.Client.Messages
         private static ReadOnlySpan<byte> MongoPingMessageprimary => new byte[7] { 112, 114, 105, 109, 97, 114, 121 };
         private static ReadOnlySpan<byte> MongoPingMessageismaster => new byte[8] { 105, 115, 109, 97, 115, 116, 101, 114 };
         private static ReadOnlySpan<byte> MongoPingMessagesecondary => new byte[9] { 115, 101, 99, 111, 110, 100, 97, 114, 121 };
-        public static bool TryParseBson(ref MongoDB.Client.Bson.Reader.BsonReader reader, [NotNullWhen(true)]out MongoDB.Client.Messages.MongoPingMessage message)
+        public static bool TryParseBson(ref MongoDB.Client.Bson.Reader.BsonReader reader, [NotNullWhen(true)] out MongoDB.Client.Messages.MongoPingMessage message)
         {
             message = default;
             System.Collections.Generic.List<EndPoint> ListHosts = default;
