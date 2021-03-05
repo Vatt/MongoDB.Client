@@ -214,11 +214,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     return true;
                 }
             }
-            if (IsBsonExtensionSerializable(member.NameSym, trueType, out var sym))
+            if (IsBsonExtensionSerializable(member.NameSym, trueType, out var extSym))
             {
                 if (trueType.IsReferenceType)
                 {
-                    var condition = InvocationExpr(IdentifierName(sym.ToString()), IdentifierName("TryParseBson"),
+                    var condition = InvocationExpr(IdentifierName(extSym.ToString()), IdentifierName("TryParseBson"),
                                                    RefArgument(BsonReaderToken),
                                                    OutArgument(member.AssignedVariableToken));
                     builder.IfStatement(condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),
@@ -228,7 +228,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 else
                 {
                     var localTryParseVar = Identifier($"{member.AssignedVariableToken.ToString()}TryParseTemp");
-                    var condition = InvocationExpr(IdentifierName(sym.ToString()), IdentifierName("TryParseBson"),
+                    var condition = InvocationExpr(IdentifierName(extSym.ToString()), IdentifierName("TryParseBson"),
                                                    RefArgument(BsonReaderToken), OutArgument(VarVariableDeclarationExpr(localTryParseVar)));
 
                     builder.IfStatement(condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),

@@ -32,7 +32,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 if (attr.AttributeClass is not null && attr.AttributeClass.Equals(bsonExtAttr, SymbolEqualityComparer.Default))
                 {
-                    extType = BsonSerializerGenerator.Compilation.GetTypeByMetadataName(attr.ConstructorArguments[0].Value.ToString());
+                    extType = BsonSerializerGenerator.Compilation.GetTypeByMetadataName(attr.ConstructorArguments[0].Value?.ToString());
                     if (extType == null)
                     {
                         return false;
