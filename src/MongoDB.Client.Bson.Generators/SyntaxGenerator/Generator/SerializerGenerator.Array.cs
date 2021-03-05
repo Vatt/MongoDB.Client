@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -112,13 +113,27 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                                 ContinueStatement));
             return true;
         }
-        private static bool TryGenerateTryParseBsonArrayOperation(ITypeSymbol type, SyntaxToken readTarget, SyntaxToken outMessage, ImmutableList<StatementSyntax>.Builder builder)
+        private static bool TryGenerateTryParseBsonArrayOperation(ITypeSymbol typeSym, ISymbol nameSym, SyntaxToken readTarget, SyntaxToken outMessage, ImmutableList<StatementSyntax>.Builder builder)
         {
-            if (IsBsonSerializable(type) == false)
+            ITypeSymbol callType = default;
+            ITypeSymbol outArgType = default;
+            if (IsBsonSerializable(typeSym))
+            {
+                callType = typeSym;
+                outArgType = typeSym;
+            }
+
+            if (IsBsonExtensionSerializable(nameSym, typeSym, out var extSym))
+            {
+                callType = extSym;
+                outArgType = typeSym;
+            }
+
+            if (callType is null || outArgType is null)
             {
                 return false;
             }
-            var operation = InvocationExpr(IdentifierName(type.ToString()), TryParseBsonToken, RefArgument(BsonReaderToken), OutArgument(TypedVariableDeclarationExpr(TypeFullName(type), readTarget)));
+            var operation = InvocationExpr(IdentifierName(callType.ToString()), TryParseBsonToken, RefArgument(BsonReaderToken), OutArgument(TypedVariableDeclarationExpr(TypeFullName(outArgType), readTarget)));
             builder.IfNotReturnFalseElse(condition: operation,
                                          @else: Block(InvocationExprStatement(outMessage, ListAddToken, Argument(readTarget)), ContinueStatement));
             return true;
@@ -141,7 +156,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 goto RETURN;
             }
-            if (TryGenerateTryParseBsonArrayOperation(typeArg, tempArrayRead, outMessage, builder))
+            if (TryGenerateTryParseBsonArrayOperation(typeArg, ctx.NameSym, tempArrayRead, outMessage, builder))
             {
                 goto RETURN;
             }
@@ -150,7 +165,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(outMessage, ListAddToken, Argument(enumOp.TempExpr))));
                 goto RETURN;
             }
-        //TODO: Сгенерировать SerializersMap если ни один не отработал
+            GeneratorDiagnostics.ReportUnsuporterTypeError(ctx.NameSym, typeArg);
         RETURN:
             return SF.MethodDeclaration(
                     attributeLists: default,

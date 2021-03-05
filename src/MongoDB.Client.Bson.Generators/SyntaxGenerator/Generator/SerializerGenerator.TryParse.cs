@@ -154,12 +154,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     continue;
                 }
-                GeneratorDiagnostics.ReportSerializerMapUsingWarning(member.NameSym);
-                builder.IfStatement(
-                            condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),
-                            statement: Block(
-                                        OtherTryParseBson(member),
-                                        ContinueStatement));
+                GeneratorDiagnostics.ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
             }
             return builder.ToArray();
         }
@@ -193,33 +188,45 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static bool TryGenerateTryParseBson(MemberContext member, SyntaxToken bsonName, ImmutableList<StatementSyntax>.Builder builder)
         {
             var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
+            ITypeSymbol type = default;
             if (IsBsonSerializable(trueType))
             {
-                if (trueType.IsReferenceType)
-                {
-                    var condition = InvocationExpr(IdentifierName(trueType.ToString()), IdentifierName("TryParseBson"),
-                                                   RefArgument(BsonReaderToken),
-                                                   OutArgument(member.AssignedVariableToken));
-                    builder.IfStatement(condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),
-                                        statement: Block(IfNotReturnFalse(condition), ContinueStatement));
-                    return true;
-                }
-                else
-                {
-                    var localTryParseVar = Identifier($"{member.AssignedVariableToken.ToString()}TryParseTemp");
-                    var condition = InvocationExpr(IdentifierName(trueType.ToString()), IdentifierName("TryParseBson"),
-                                                   RefArgument(BsonReaderToken), OutArgument(VarVariableDeclarationExpr(localTryParseVar)));
-
-                    builder.IfStatement(condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),
-                                        statement:
-                                            Block(
-                                                IfNotReturnFalse(condition),
-                                                SimpleAssignExprStatement(member.AssignedVariableToken, localTryParseVar),
-                                                ContinueStatement));
-                    return true;
-                }
+                type = trueType;
             }
-            return false;
+
+            if (IsBsonExtensionSerializable(member.NameSym, trueType, out var extSym))
+            {
+                type = extSym;
+            }
+
+            if (type is null)
+            {
+                return false;
+            }
+
+            if (trueType.IsReferenceType)
+            {
+                var condition = InvocationExpr(IdentifierName(type.ToString()), IdentifierName("TryParseBson"),
+                                               RefArgument(BsonReaderToken),
+                                               OutArgument(member.AssignedVariableToken));
+                builder.IfStatement(condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),
+                                    statement: Block(IfNotReturnFalse(condition), ContinueStatement));
+                return true;
+            }
+            else
+            {
+                var localTryParseVar = Identifier($"{member.AssignedVariableToken.ToString()}TryParseTemp");
+                var condition = InvocationExpr(IdentifierName(type.ToString()), IdentifierName("TryParseBson"),
+                                               RefArgument(BsonReaderToken), OutArgument(VarVariableDeclarationExpr(localTryParseVar)));
+
+                builder.IfStatement(condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),
+                                    statement:
+                                        Block(
+                                            IfNotReturnFalse(condition),
+                                            SimpleAssignExprStatement(member.AssignedVariableToken, localTryParseVar),
+                                            ContinueStatement));
+                return true;
+            }
         }
         private static ReadOperationContext ReadOperation(ContextCore ctx, ISymbol nameSym, ITypeSymbol trueTypeSym, SyntaxToken readerId, ExpressionSyntax readTarget, SyntaxToken bsonType)
         {

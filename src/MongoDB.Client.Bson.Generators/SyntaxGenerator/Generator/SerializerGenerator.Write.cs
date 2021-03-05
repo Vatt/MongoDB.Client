@@ -100,7 +100,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
                 return Statements(expr);
             }
-            if (TryGenerateWriteEnum(ctx.Root, ctx, typeSym, writeTarget, out var enumStatements))
+            if (TryGenerateWriteEnum(ctx, typeSym, writeTarget, out var enumStatements))
             {
                 return enumStatements.ToStatements().ToArray();
             }
@@ -114,28 +114,22 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     Statement(WriteGeneric(writeTarget, IdentifierName(identifierName)))
                 );
             }
-            if (trueType is INamedTypeSymbol namedType && namedType.TypeParameters.Length > 0)
+            if (trueType is INamedTypeSymbol namedType && IsListOrIList(namedType))
             {
-                if (IsListOrIList(namedType))
-                {
-                    return Statements
-                    (
-                            Statement(Write_Type_Name(4, name)),
-                            InvocationExprStatement(WriteArrayMethodName(ctx, trueType), RefArgument(writerId), Argument(writeTarget))
-                    );
-                }
+                return Statements
+                (
+                        Statement(Write_Type_Name(4, name)),
+                        InvocationExprStatement(WriteArrayMethodName(ctx, trueType), RefArgument(writerId), Argument(writeTarget))
+                );
             }
             if (TryGenerateBsonWrite(ctx, typeSym, writeTarget, out var bsonWriteExpr))
             {
                 return bsonWriteExpr.ToStatements().ToArray();
             }
-            GeneratorDiagnostics.ReportSerializerMapUsingWarning(ctx.NameSym);
-            return Statements(
-                    Statement(Write_Type_Name(3, ctx.StaticSpanNameToken)),
-                    OtherWriteBson(ctx)
-                );
+            GeneratorDiagnostics.ReportUnsuporterTypeError(ctx.NameSym, ctx.TypeSym);
+            return new StatementSyntax[0];
         }
-        public static bool TryGenerateWriteEnum(ContextCore ctx, MemberContext member, ITypeSymbol typeSym, ExpressionSyntax writeTarget, out ImmutableList<ExpressionSyntax> statements)
+        public static bool TryGenerateWriteEnum(MemberContext member, ITypeSymbol typeSym, ExpressionSyntax writeTarget, out ImmutableList<ExpressionSyntax> statements)
         {
             statements = default;
             var trueType = ExtractTypeFromNullableIfNeed(typeSym);
@@ -160,14 +154,22 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             expressions = default;
             ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(typeSym);
-            if (IsBsonSerializable(trueType) == false)
+            if (IsBsonSerializable(trueType))
             {
-                return false;
+                expressions = ImmutableList.Create(
+                    Write_Type_Name(3, ctx.StaticSpanNameToken),
+                    InvocationExpr(IdentifierName(trueType.ToString()), WriteBsonToken, RefArgument(BsonWriterToken), Argument(writeTarget))); //TODO: IdentifierName(SelfFullName(typeSym)) с этим чтото не так на генериках
+                return true;
             }
-            expressions = ImmutableList.Create(
-                Write_Type_Name(3, ctx.StaticSpanNameToken),
-                InvocationExpr(IdentifierName(trueType.ToString()), WriteBsonToken, RefArgument(BsonWriterToken), Argument(writeTarget))); //TODO: IdentifierName(SelfFullName(typeSym)) с этим чтото не так на генериках
-            return true;
+            if (IsBsonExtensionSerializable(ctx.NameSym, trueType, out var extSym))
+            {
+                expressions = ImmutableList.Create(
+                    Write_Type_Name(3, ctx.StaticSpanNameToken),
+                    InvocationExpr(IdentifierName(extSym.ToString()), WriteBsonToken, RefArgument(BsonWriterToken), Argument(writeTarget))); //TODO: IdentifierName(SelfFullName(typeSym)) с этим чтото не так на генериках
+                return true;
+            }
+
+            return false;
 
         }
         private static bool TryGenerateSimpleWriteOperation(ISymbol nameSym, ITypeSymbol typeSymbol, SyntaxToken bsonNameToken, ExpressionSyntax writeTarget, out ExpressionSyntax expr)
