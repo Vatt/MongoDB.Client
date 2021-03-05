@@ -113,23 +113,30 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                                 ContinueStatement));
             return true;
         }
-        private static bool TryGenerateTryParseBsonArrayOperation(ITypeSymbol type, ISymbol name, SyntaxToken readTarget, SyntaxToken outMessage, ImmutableList<StatementSyntax>.Builder builder)
+        private static bool TryGenerateTryParseBsonArrayOperation(ITypeSymbol typeSym, ISymbol nameSym, SyntaxToken readTarget, SyntaxToken outMessage, ImmutableList<StatementSyntax>.Builder builder)
         {
-            if (IsBsonSerializable(type))
+            ITypeSymbol callType = default;
+            ITypeSymbol outArgType = default;
+            if (IsBsonSerializable(typeSym))
             {
-                var operation = InvocationExpr(IdentifierName(type.ToString()), TryParseBsonToken, RefArgument(BsonReaderToken), OutArgument(TypedVariableDeclarationExpr(TypeFullName(type), readTarget)));
-                builder.IfNotReturnFalseElse(condition: operation,
-                                             @else: Block(InvocationExprStatement(outMessage, ListAddToken, Argument(readTarget)), ContinueStatement));
-                return true;
+                callType = typeSym;
+                outArgType = typeSym;
             }
-            if (IsBsonExtensionSerializable(name, type, out var extSym))
+
+            if (IsBsonExtensionSerializable(nameSym, typeSym, out var extSym))
             {
-                var operation = InvocationExpr(IdentifierName(extSym.ToString()), TryParseBsonToken, RefArgument(BsonReaderToken), OutArgument(TypedVariableDeclarationExpr(TypeFullName(type), readTarget)));
-                builder.IfNotReturnFalseElse(condition: operation,
-                                             @else: Block(InvocationExprStatement(outMessage, ListAddToken, Argument(readTarget)), ContinueStatement));
-                return true;
+                callType = extSym;
+                outArgType = typeSym;
             }
-            return false;
+
+            if (callType is null || outArgType is null)
+            {
+                return false;
+            }
+            var operation = InvocationExpr(IdentifierName(callType.ToString()), TryParseBsonToken, RefArgument(BsonReaderToken), OutArgument(TypedVariableDeclarationExpr(TypeFullName(outArgType), readTarget)));
+            builder.IfNotReturnFalseElse(condition: operation,
+                                         @else: Block(InvocationExprStatement(outMessage, ListAddToken, Argument(readTarget)), ContinueStatement));
+            return true;
         }
         private static MethodDeclarationSyntax ReadArrayMethod(MemberContext ctx, ITypeSymbol type)
         {
