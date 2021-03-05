@@ -63,7 +63,7 @@ namespace MongoDB.Client.Tests.Serialization
         [ModuleInitializer]
         public static void TestInit()
         {
-            SerializersMap.RegisterSerializers(new KeyValuePair<Type, IBsonSerializer>(typeof(TestModels.CustomModel), new TestModels.CustomModelSerializer()));
+            //SerializersMap.RegisterSerializers(new KeyValuePair<Type, IBsonSerializer>(typeof(TestModels.CustomModel), new TestModels.CustomModelSerializer()));
         }
         public static async Task<T> RoundTripAsync<T>(T message)
         {

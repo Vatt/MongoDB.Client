@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -126,6 +127,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var operation = InvocationExpr(IdentifierName(extSym.ToString()), TryParseBsonToken, RefArgument(BsonReaderToken), OutArgument(TypedVariableDeclarationExpr(TypeFullName(type), readTarget)));
                 builder.IfNotReturnFalseElse(condition: operation,
                                              @else: Block(InvocationExprStatement(outMessage, ListAddToken, Argument(readTarget)), ContinueStatement));
+                return true;
             }
             return false;
         }
@@ -156,7 +158,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(outMessage, ListAddToken, Argument(enumOp.TempExpr))));
                 goto RETURN;
             }
-        //TODO: Сгенерировать SerializersMap если ни один не отработал
+            GeneratorDiagnostics.ReportUnsuporterTypeError(ctx.NameSym, typeArg);
         RETURN:
             return SF.MethodDeclaration(
                     attributeLists: default,

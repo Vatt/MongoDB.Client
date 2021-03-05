@@ -110,12 +110,12 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
             writer.Commit();
         }
     }
-    public class CustomModelSerializer : IGenericBsonSerializer<CustomModel>
+    public static class CustomModelSerializer
     {
         private static ReadOnlySpan<byte> CustomModelA => new byte[1] { 65 };
         private static ReadOnlySpan<byte> CustomModelB => new byte[1] { 66 };
         private static ReadOnlySpan<byte> CustomModelC => new byte[1] { 67 };
-        public bool TryParseBson(ref BsonReader reader, [MaybeNullWhen(false)] out CustomModel message)
+        public static bool TryParseBson(ref BsonReader reader, [MaybeNullWhen(false)] out CustomModel message)
         {
             message = default;
             int Int32A = default;
@@ -194,7 +194,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
             return true;
         }
 
-        public void WriteBson(ref BsonWriter writer, in CustomModel message)
+        public static void WriteBson(ref BsonWriter writer, in CustomModel message)
         {
             var checkpoint = writer.Written;
             var reserved = writer.Reserve(4);
@@ -211,5 +211,5 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
     }
 
     [BsonSerializable]
-    public partial record ModelWithCustom(string Name, CustomModel Custom, CustomModel2 Custom2);
+    public partial record ModelWithCustom(string Name, [property : BsonSerializerExt(typeof(CustomModelSerializer))] CustomModel Custom, CustomModel2 Custom2);
 }

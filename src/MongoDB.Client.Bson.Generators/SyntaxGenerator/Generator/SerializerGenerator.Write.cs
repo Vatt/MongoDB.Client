@@ -126,11 +126,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return bsonWriteExpr.ToStatements().ToArray();
             }
-            GeneratorDiagnostics.ReportSerializerMapUsingWarning(ctx.NameSym);
-            return Statements(
-                    Statement(Write_Type_Name(3, ctx.StaticSpanNameToken)),
-                    OtherWriteBson(ctx)
-                );
+            GeneratorDiagnostics.ReportUnsuporterTypeError(ctx.NameSym, ctx.TypeSym);
+            return new StatementSyntax[0];
         }
         public static bool TryGenerateWriteEnum(MemberContext member, ITypeSymbol typeSym, ExpressionSyntax writeTarget, out ImmutableList<ExpressionSyntax> statements)
         {

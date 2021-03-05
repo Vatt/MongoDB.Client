@@ -154,12 +154,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     continue;
                 }
-                GeneratorDiagnostics.ReportSerializerMapUsingWarning(member.NameSym);
-                builder.IfStatement(
-                            condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),
-                            statement: Block(
-                                        OtherTryParseBson(member),
-                                        ContinueStatement));
+                GeneratorDiagnostics.ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
             }
             return builder.ToArray();
         }
