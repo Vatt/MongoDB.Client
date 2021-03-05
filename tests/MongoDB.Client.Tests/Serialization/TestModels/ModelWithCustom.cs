@@ -1,5 +1,4 @@
 ﻿using MongoDB.Client.Bson.Reader;
-using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Bson.Writer;
 using System;
@@ -211,5 +210,5 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
     }
 
     [BsonSerializable]
-    public partial record ModelWithCustom(string Name, [property : BsonSerializerExt(typeof(CustomModelSerializer))] CustomModel Custom, CustomModel2 Custom2);
+    public partial record ModelWithCustom(string Name, [property: BsonSerializerExt(typeof(CustomModelSerializer))] CustomModel Custom, CustomModel2 Custom2);
 }

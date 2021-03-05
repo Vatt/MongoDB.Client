@@ -214,7 +214,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     return true;
                 }
             }
-            if(IsBsonExtensionSerializable(member.NameSym, trueType, out var sym))
+            if (IsBsonExtensionSerializable(member.NameSym, trueType, out var sym))
             {
                 if (trueType.IsReferenceType)
                 {

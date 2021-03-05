@@ -1,8 +1,6 @@
 ﻿using MongoDB.Client.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Net;
 using System.Text;
 
@@ -22,7 +20,7 @@ namespace MongoDB.Client.Messages
             {
                 ReadOnlySpan<byte> host;
                 ReadOnlySpan<byte> port;
-                var index = temp.IndexOf(ColonChar);
+                var index = temp.LastIndexOf(ColonChar);
                 host = temp.Slice(0, index);
                 port = temp.Slice(index + 1);
                 var hostStr = Encoding.UTF8.GetString(host);
