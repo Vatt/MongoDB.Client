@@ -38,18 +38,18 @@ namespace MongoDB.Client.Messages
     public partial class MongoPingMessage
     {
         [BsonElement("hosts")]
-        [BsonSerializerExt(typeof(DnsEndPointSerializer))]
+        [BsonSerializer(typeof(DnsEndPointSerializer))]
         public List<EndPoint> Hosts { get; }
 
         [BsonElement("setName")]
         public string SetName { get; }
 
         [BsonElement("me")]
-        [BsonSerializerExt(typeof(DnsEndPointSerializer))]
+        [BsonSerializer(typeof(DnsEndPointSerializer))]
         public EndPoint Me { get; }
 
         [BsonElement("primary")]
-        [BsonSerializerExt(typeof(DnsEndPointSerializer))]
+        [BsonSerializer(typeof(DnsEndPointSerializer))]
         public EndPoint? Primary { get; }
 
         [BsonElement("ismaster")]

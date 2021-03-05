@@ -4,9 +4,9 @@
 namespace MongoDB.Client.Bson.Serialization.Attributes
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class BsonSerializerExtAttribute : Attribute
+    public class BsonSerializerAttribute : Attribute
     {
-        public BsonSerializerExtAttribute(Type type)
+        public BsonSerializerAttribute(Type type)
         {
 
         }

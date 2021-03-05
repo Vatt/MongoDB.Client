@@ -210,5 +210,5 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
     }
 
     [BsonSerializable]
-    public partial record ModelWithCustom(string Name, [property: BsonSerializerExt(typeof(CustomModelSerializer))] CustomModel Custom, CustomModel2 Custom2);
+    public partial record ModelWithCustom(string Name, [property: BsonSerializer(typeof(CustomModelSerializer))] CustomModel Custom, CustomModel2 Custom2);
 }
