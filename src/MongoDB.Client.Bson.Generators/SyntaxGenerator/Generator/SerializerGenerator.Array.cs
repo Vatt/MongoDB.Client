@@ -112,16 +112,22 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                                 ContinueStatement));
             return true;
         }
-        private static bool TryGenerateTryParseBsonArrayOperation(ITypeSymbol type, SyntaxToken readTarget, SyntaxToken outMessage, ImmutableList<StatementSyntax>.Builder builder)
+        private static bool TryGenerateTryParseBsonArrayOperation(ITypeSymbol type, ISymbol name, SyntaxToken readTarget, SyntaxToken outMessage, ImmutableList<StatementSyntax>.Builder builder)
         {
-            if (IsBsonSerializable(type) == false)
+            if (IsBsonSerializable(type))
             {
-                return false;
+                var operation = InvocationExpr(IdentifierName(type.ToString()), TryParseBsonToken, RefArgument(BsonReaderToken), OutArgument(TypedVariableDeclarationExpr(TypeFullName(type), readTarget)));
+                builder.IfNotReturnFalseElse(condition: operation,
+                                             @else: Block(InvocationExprStatement(outMessage, ListAddToken, Argument(readTarget)), ContinueStatement));
+                return true;
             }
-            var operation = InvocationExpr(IdentifierName(type.ToString()), TryParseBsonToken, RefArgument(BsonReaderToken), OutArgument(TypedVariableDeclarationExpr(TypeFullName(type), readTarget)));
-            builder.IfNotReturnFalseElse(condition: operation,
-                                         @else: Block(InvocationExprStatement(outMessage, ListAddToken, Argument(readTarget)), ContinueStatement));
-            return true;
+            if(IsBsonExtensionSerializable(name, type, out var extSym))
+            {
+                var operation = InvocationExpr(IdentifierName(extSym.ToString()), TryParseBsonToken, RefArgument(BsonReaderToken), OutArgument(TypedVariableDeclarationExpr(TypeFullName(type), readTarget)));
+                builder.IfNotReturnFalseElse(condition: operation,
+                                             @else: Block(InvocationExprStatement(outMessage, ListAddToken, Argument(readTarget)), ContinueStatement));
+            }
+            return false;
         }
         private static MethodDeclarationSyntax ReadArrayMethod(MemberContext ctx, ITypeSymbol type)
         {
@@ -141,7 +147,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 goto RETURN;
             }
-            if (TryGenerateTryParseBsonArrayOperation(typeArg, tempArrayRead, outMessage, builder))
+            if (TryGenerateTryParseBsonArrayOperation(typeArg, ctx.NameSym, tempArrayRead, outMessage, builder))
             {
                 goto RETURN;
             }

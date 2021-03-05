@@ -219,6 +219,32 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     return true;
                 }
             }
+            if(IsBsonExtensionSerializable(member.NameSym, trueType, out var sym))
+            {
+                if (trueType.IsReferenceType)
+                {
+                    var condition = InvocationExpr(IdentifierName(sym.ToString()), IdentifierName("TryParseBson"),
+                                                   RefArgument(BsonReaderToken),
+                                                   OutArgument(member.AssignedVariableToken));
+                    builder.IfStatement(condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),
+                                        statement: Block(IfNotReturnFalse(condition), ContinueStatement));
+                    return true;
+                }
+                else
+                {
+                    var localTryParseVar = Identifier($"{member.AssignedVariableToken.ToString()}TryParseTemp");
+                    var condition = InvocationExpr(IdentifierName(sym.ToString()), IdentifierName("TryParseBson"),
+                                                   RefArgument(BsonReaderToken), OutArgument(VarVariableDeclarationExpr(localTryParseVar)));
+
+                    builder.IfStatement(condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken),
+                                        statement:
+                                            Block(
+                                                IfNotReturnFalse(condition),
+                                                SimpleAssignExprStatement(member.AssignedVariableToken, localTryParseVar),
+                                                ContinueStatement));
+                    return true;
+                }
+            }
             return false;
         }
         private static ReadOperationContext ReadOperation(ContextCore ctx, ISymbol nameSym, ITypeSymbol trueTypeSym, SyntaxToken readerId, ExpressionSyntax readTarget, SyntaxToken bsonType)
