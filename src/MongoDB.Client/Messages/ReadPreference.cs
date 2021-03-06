@@ -6,10 +6,10 @@ namespace MongoDB.Client.Messages
     public partial struct ReadPreference
     {
         [BsonElement("mode")]
-        public string? Mode { get; }
+        public Settings.ReadPreference Mode { get; }
 
         [BsonConstructor]
-        public ReadPreference(string? Mode)
+        public ReadPreference(Settings.ReadPreference Mode)
         {
             this.Mode = Mode;
         }

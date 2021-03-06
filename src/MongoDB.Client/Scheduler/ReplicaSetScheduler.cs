@@ -8,6 +8,7 @@ using MongoDB.Client.Protocol.Messages;
 using MongoDB.Client.Settings;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using ReadPreference = MongoDB.Client.Settings.ReadPreference;
@@ -135,14 +136,73 @@ namespace MongoDB.Client.Scheduler
 
         public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token)
         {
-            var scheduler = GetReadScheduler();
+            var scheduler = GetScheduler(message);
+            message.Document.ClusterTime = _lastPing.ClusterTime;
             var result = await scheduler.GetCursorAsync<T>(message, token).ConfigureAwait(false);
             return result;
+        }
+
+        private IMongoScheduler GetScheduler(FindMessage message)
+        {
+            IMongoScheduler? scheduler = null;
+            switch (_settings.ReadPreference)
+            {
+                case ReadPreference.Primary:
+                    scheduler = _master;
+                    break;
+                case ReadPreference.PrimaryPreferred:
+                    scheduler = _master;
+                    if (scheduler is null)
+                    {
+                        scheduler = GetSlaveScheduler();
+                        message.Document.ReadPreference = new Messages.ReadPreference(_settings.ReadPreference);
+                    }
+                    break;
+                case ReadPreference.Secondary:
+                    scheduler = GetSlaveScheduler();
+                    message.Document.ReadPreference = new Messages.ReadPreference(_settings.ReadPreference);
+                    break;
+                case ReadPreference.SecondaryPreferred:
+                    scheduler = GetSlaveScheduler();
+                    if (scheduler is null)
+                    {
+                        scheduler = _master;
+                    }
+                    else
+                    {
+                        message.Document.ReadPreference = new Messages.ReadPreference(_settings.ReadPreference);
+                    }
+                    break;
+                case ReadPreference.Nearest:
+                default:
+                    ThrowSchedulerNotFound();
+                    break;
+            }
+            if (scheduler is null)
+            {
+                ThrowSchedulerNotFound();
+            }
+            return scheduler;
         }
 
         public ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token)
         {
             return _master.InsertAsync(message, token);
+        }
+
+
+        // TODO:
+        [DoesNotReturn]
+        private static void ThrowSchedulerNotFound()
+        {
+            throw new Exception("Scheduler Not Found");
+        }
+
+        // TODO:
+        [DoesNotReturn]
+        private static void ReadPreferenceNotSupported(ReadPreference readPreference)
+        {
+            throw new Exception(readPreference.ToString() + " is not supported");
         }
     }
 }
