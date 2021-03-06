@@ -283,7 +283,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Block(expressions.Select(e => Statement(e)));
         }
-
+        public static BlockSyntax Block(ExpressionSyntax expr1, ExpressionSyntax expr2, StatementSyntax statement)
+        {
+            return SF.Block(Statement(expr1), Statement(expr2), statement);
+        }
         public static ReturnStatementSyntax ReturnStatement(ExpressionSyntax expr = null)
         {
             return SF.ReturnStatement(expr);
