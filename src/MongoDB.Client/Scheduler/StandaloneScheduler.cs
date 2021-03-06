@@ -5,6 +5,7 @@ using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Messages;
 using MongoDB.Client.Scheduler.Holders;
+using MongoDB.Client.Settings;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -32,12 +33,9 @@ namespace MongoDB.Client.Scheduler
         {
             _connectionFactory = connectionFactory;
             _logger = loggerFactory.CreateLogger<StandaloneScheduler>();
-            var options = new UnboundedChannelOptions();
-            options.SingleWriter = true;
-            options.SingleReader = false;
-            options.AllowSynchronousContinuations = true;
-            _channel = Channel.CreateUnbounded<MongoRequest>(options);
-            _findChannel = Channel.CreateUnbounded<MongoRequest>(options);
+            var options = new BoundedChannelOptions(10);
+            _channel = Channel.CreateBounded<MongoRequest>(options);
+            _findChannel = Channel.CreateBounded<MongoRequest>(options);
             _channelWriter = _channel.Writer;
             _cursorChannel = _findChannel.Writer;
             _connections = new List<MongoConnection>();

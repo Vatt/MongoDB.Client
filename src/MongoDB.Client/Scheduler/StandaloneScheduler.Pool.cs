@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.ObjectPool;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Messages;
-using System;
 
 namespace MongoDB.Client.Scheduler
 {
@@ -23,8 +22,7 @@ namespace MongoDB.Client.Scheduler
                 return true;
             }
         }
-        private static ObjectPool<MongoRequest> MongoRequestPool => _mongoRequestPool ??= new DefaultObjectPool<MongoRequest>(new MongoRequestPolicy());
-        [ThreadStatic]
-        private static ObjectPool<MongoRequest>? _mongoRequestPool;
+
+        private static ObjectPool<MongoRequest> MongoRequestPool = new DefaultObjectPool<MongoRequest>(new MongoRequestPolicy());
     }
 }

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Net;
 
-namespace MongoDB.Client
+namespace MongoDB.Client.Settings
 {
     public class MongoClientSettings
     {
@@ -50,7 +50,7 @@ namespace MongoDB.Client
         public string? ReplicaSet { get; private set; }
         public int? ConnectTimeoutMs { get; private set; }
         public int? SocketTimeoutMs { get; private set; }
-        public string? ReadPreference { get; private set; }
+        public ReadPreference ReadPreference { get; private set; }
         public bool TlsOrSslEnable { get; private set; }
         public int ConnectionPoolMaxSize { get; private set; } = 16;
         //public int ConnectionPoolMinSize { get; private set; } = 0;
@@ -79,7 +79,7 @@ namespace MongoDB.Client
 
             if (result.Options.TryGetValue("readPreference", out var readPreference))
             {
-                settings.ReadPreference = readPreference;
+                settings.ReadPreference = Enum.Parse<ReadPreference>(readPreference);
             }
             if (result.Options.TryGetValue("tls", out var tls))
             {

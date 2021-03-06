@@ -106,12 +106,12 @@ namespace MongoDB.Client
 
         private FindRequest CreateFindRequest(BsonDocument filter)
         {
-            return new FindRequest(_collectionNamespace.CollectionName, filter, _limit, default, null, _collectionNamespace.DatabaseName, SharedSession);
+            return new FindRequest(_collectionNamespace.CollectionName, filter, _limit, default, null, _collectionNamespace.DatabaseName, SharedSession, default);
         }
 
         private FindRequest CreateGetMoreRequest(long cursorId)
         {
-            return new FindRequest(null, null, default, cursorId, _collectionNamespace.CollectionName, _collectionNamespace.DatabaseName, SharedSession);
+            return new FindRequest(null, null, default, cursorId, _collectionNamespace.CollectionName, _collectionNamespace.DatabaseName, SharedSession, default);
         }
     }
 }

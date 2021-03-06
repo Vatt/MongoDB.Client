@@ -33,10 +33,14 @@ namespace MongoDB.Client.Messages
         [BsonElement("$db")]
         public string Db { get; }
 
+        [BsonElement("$readPreference")]
+        [BsonWriteIgnoreIf("ReadPreference.Mode is null")]
+        public ReadPreference ReadPreference { get; }
+
         [BsonElement("lsid")]
         public SessionId Lsid { get; }
 
-        public FindRequest(string? Find, BsonDocument? Filter, int Limit, long GetMore, string? Collection, string Db, SessionId Lsid)
+        public FindRequest(string? Find, BsonDocument? Filter, int Limit, long GetMore, string? Collection, string Db, SessionId Lsid, ReadPreference ReadPreference)
         {
             this.Find = Find;
             this.Filter = Filter;
@@ -45,6 +49,12 @@ namespace MongoDB.Client.Messages
             this.Collection = Collection;
             this.Db = Db;
             this.Lsid = Lsid;
+            this.ReadPreference = ReadPreference;
         }
+
+        //public FindRequest(string? Find, BsonDocument? Filter, int Limit, long GetMore, string? Collection, string Db, SessionId Lsid)
+        //    :this(Find, Filter, Limit, GetMore, Collection, Db, Lsid, null)
+        //{
+        //}
     }
 }

@@ -2,6 +2,7 @@
 using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Scheduler;
+using MongoDB.Client.Settings;
 using System.Net;
 using System.Net.Connections;
 using System.Threading;
