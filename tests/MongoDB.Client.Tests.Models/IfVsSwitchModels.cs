@@ -6,7 +6,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 namespace MongoDB.Client.Tests.Models
 {
     [BsonSerializable]
-    public partial class IfShortNamesModel
+    public partial class IfShortNamesModel : IEquatable<IfShortNamesModel>
     {
         public int A;
         public double BB;
@@ -39,9 +39,46 @@ namespace MongoDB.Client.Tests.Models
                 LLLLLLLLLLLL = new BsonDocument("42", "42")
             };
         }
+
+        public bool Equals(IfShortNamesModel? other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return A == other.A && BB.Equals(other.BB) && CCC == other.CCC && DDDD.Equals(other.DDDD) && 
+                   EEEEE == other.EEEEE && FFFFFF.Equals(other.FFFFFF) && GGGGGGG == other.GGGGGGG && 
+                   HHHHHHHH.Equals(other.HHHHHHHH) && IIIIIIIII == other.IIIIIIIII && 
+                   JJJJJJJJJJ.Equals(other.JJJJJJJJJJ) && KKKKKKKKKKK == other.KKKKKKKKKKK && 
+                   LLLLLLLLLLLL.Equals(other.LLLLLLLLLLLL);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((IfShortNamesModel) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = new HashCode();
+            hashCode.Add(A);
+            hashCode.Add(BB);
+            hashCode.Add(CCC);
+            hashCode.Add(DDDD);
+            hashCode.Add(EEEEE);
+            hashCode.Add(FFFFFF);
+            hashCode.Add(GGGGGGG);
+            hashCode.Add(HHHHHHHH);
+            hashCode.Add(IIIIIIIII);
+            hashCode.Add(JJJJJJJJJJ);
+            hashCode.Add(KKKKKKKKKKK);
+            hashCode.Add(LLLLLLLLLLLL);
+            return hashCode.ToHashCode();
+        }
     }
 
-    public class SwitchShortNamesModel
+    public class SwitchShortNamesModel : IEquatable<SwitchShortNamesModel>
     {
         public int A;
         public double BB;
@@ -327,6 +364,43 @@ namespace MongoDB.Client.Tests.Models
             BinaryPrimitives.WriteInt32LittleEndian(sizeSpan, docLength);
             reserved.Write(sizeSpan);
             writer.Commit();
+        }
+
+        public bool Equals(SwitchShortNamesModel? other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return A == other.A && BB.Equals(other.BB) && CCC == other.CCC && DDDD.Equals(other.DDDD) && 
+                   EEEEE == other.EEEEE && FFFFFF.Equals(other.FFFFFF) && GGGGGGG == other.GGGGGGG && 
+                   HHHHHHHH.Equals(other.HHHHHHHH) && IIIIIIIII == other.IIIIIIIII && 
+                   JJJJJJJJJJ.Equals(other.JJJJJJJJJJ) && KKKKKKKKKKK == other.KKKKKKKKKKK && 
+                   LLLLLLLLLLLL.Equals(other.LLLLLLLLLLLL);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((SwitchShortNamesModel) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = new HashCode();
+            hashCode.Add(A);
+            hashCode.Add(BB);
+            hashCode.Add(CCC);
+            hashCode.Add(DDDD);
+            hashCode.Add(EEEEE);
+            hashCode.Add(FFFFFF);
+            hashCode.Add(GGGGGGG);
+            hashCode.Add(HHHHHHHH);
+            hashCode.Add(IIIIIIIII);
+            hashCode.Add(JJJJJJJJJJ);
+            hashCode.Add(KKKKKKKKKKK);
+            hashCode.Add(LLLLLLLLLLLL);
+            return hashCode.ToHashCode();
         }
     }
 }
