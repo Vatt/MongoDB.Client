@@ -66,6 +66,31 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     continue;
                 }
             }
+            var percentnUniques = GetPercentNonUniqueLength();
+        }
+
+        private float GetPercentNonUniqueLength()
+        {
+            float collisionsCount = 0;
+            HashSet<int> set = new HashSet<int>();
+            foreach (var member in Members)
+            {
+                if (set.Contains(member.ByteName.Length))
+                {
+                    collisionsCount += 1;
+                }
+                else
+                {
+                    set.Add(member.ByteName.Length);
+                }
+                
+            }
+
+            if (collisionsCount == 0)
+            {
+                return 0;
+            }
+            return collisionsCount / (float)Members.Count;
         }
         public bool ConstructorContains(string name)
         {
