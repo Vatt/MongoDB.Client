@@ -348,6 +348,24 @@ namespace MongoDB.Client.Bson.Writer
             WriteUtcDateTime(value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write_Type_Name_Value(ReadOnlySpan<byte> name, BsonTimestamp value)
+        {
+            WriteByte(17);
+            WriteCString(name);
+            WriteTimestamp(value);
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write_Type_Name_Value(int intName, BsonTimestamp value)
+        {
+            WriteByte(17);
+            WriteIntIndex(intName);
+            WriteTimestamp(value);
+        }
+        
+        
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, int value)

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
+using MongoDB.Client.Bson.Document;
 
 namespace MongoDB.Client.Messages
 {
@@ -34,6 +35,38 @@ namespace MongoDB.Client.Messages
             throw new NotSupportedException(nameof(DnsEndPointSerializer));
         }
     }
+
+    [BsonSerializable]
+    public partial class MongoClusterTime
+    {
+        [BsonElement("clusterTime")]
+        public BsonTimestamp ClusterTime { get; }
+        
+        //[BsonElement("signature")]
+        //public MongoSignature MongoSignature { get; }
+
+        public MongoClusterTime(BsonTimestamp ClusterTime/*, MongoSignature MongoSignature*/)
+        {
+            this.ClusterTime = ClusterTime;
+            //this.MongoSignature = MongoSignature;
+        }
+    }
+    /*
+    [BsonSerializable]
+    public partial class MongoSignature
+    {
+        [BsonElement("hash")]
+        public byte[] Hash { get; }
+        
+        [BsonElement("keyId")]
+        public long KeyId { get; }
+        public MongoSignature(byte[] Hash, long KeyId)
+        {
+            this.Hash = Hash;
+            this.KeyId = KeyId;
+        }
+    }
+    */
     [BsonSerializable]
     public partial class MongoPingMessage
     {
@@ -52,17 +85,21 @@ namespace MongoDB.Client.Messages
         [BsonSerializer(typeof(DnsEndPointSerializer))]
         public EndPoint? Primary { get; }
 
+        [BsonElement("$clusterTime")]
+        public MongoClusterTime ClusterTime { get; }
+        
         [BsonElement("ismaster")]
         public bool IsMaster { get; }
 
         [BsonElement("secondary")]
         public bool IsSecondary { get; }
-        public MongoPingMessage(List<EndPoint> Hosts, string SetName, EndPoint Me, EndPoint Primary, bool IsMaster, bool IsSecondary)
+        public MongoPingMessage(List<EndPoint> Hosts, string SetName, EndPoint Me, EndPoint Primary, MongoClusterTime ClusterTime, bool IsMaster, bool IsSecondary)
         {
             this.Hosts = Hosts;
             this.SetName = SetName;
             this.Me = Me;
             this.Primary = Primary;
+            this.ClusterTime = ClusterTime;
             this.IsMaster = IsMaster;
             this.IsSecondary = IsSecondary;
         }

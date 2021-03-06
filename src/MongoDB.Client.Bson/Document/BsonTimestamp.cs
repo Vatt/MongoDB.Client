@@ -1,4 +1,7 @@
-﻿namespace MongoDB.Client.Bson.Document
+﻿using System;
+using System.Buffers.Binary;
+
+namespace MongoDB.Client.Bson.Document
 {
     public readonly struct BsonTimestamp
     {
@@ -16,5 +19,16 @@
 
         public int Timestamp => (int)(_value >> 32);
         public int Increment => (int)_value;
+
+        public bool TryWriteBytes(Span<byte> destination)
+        {
+            if (destination.Length >= sizeof(long))
+            {
+                BinaryPrimitives.WriteInt64BigEndian(destination, _value);
+                return true;
+            }
+
+            return false;
+        }
     }
 }

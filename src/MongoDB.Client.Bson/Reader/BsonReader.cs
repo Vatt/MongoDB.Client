@@ -346,7 +346,18 @@ namespace MongoDB.Client.Bson.Reader
             value = default;
             return false;
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetTimestamp([MaybeNullWhen(false)] out BsonTimestamp value)
+        {
+            if (TryGetInt64(out long data))
+            {
+                value = new BsonTimestamp(data);
+                return true;
+            }
 
+            value = default;
+            return false;
+        }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetBoolean(out bool value)
         {
