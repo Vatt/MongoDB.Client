@@ -6,6 +6,7 @@ namespace MongoDB.Client.Messages
     public partial struct ReadPreference
     {
         [BsonElement("mode")]
+        [BsonEnum(EnumRepresentation.String)]
         public Settings.ReadPreference Mode { get; }
 
         [BsonConstructor]
