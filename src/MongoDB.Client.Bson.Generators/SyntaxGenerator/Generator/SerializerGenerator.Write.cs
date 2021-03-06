@@ -197,6 +197,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     //    expr = Write_Type_Name_Value(bsonName, writeTarget);
                     //    return true;
             }
+
+            if (IsBsonTimestamp(typeSymbol))
+            {
+                expr = Write_Type_Name_Value(bsonName, writeTarget);
+                return true;
+            }
             if (IsBsonDocument(typeSymbol))
             {
                 expr = Write_Type_Name_Value(bsonName, writeTarget);

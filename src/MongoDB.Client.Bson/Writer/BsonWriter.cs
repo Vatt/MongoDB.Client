@@ -332,7 +332,29 @@ namespace MongoDB.Client.Bson.Writer
             buffer.Slice(rem).CopyTo(_span);
             Advance(oidSize - rem);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void WriteTimestamp(in BsonTimestamp value)
+        {
+            if (value.TryWriteBytes(_span))
+            {
+                Advance(sizeof(long));
+                return;
+            }
+            SlowWriteTimestamp(value);
+        }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void SlowWriteTimestamp(in BsonTimestamp value)
+        {
+            Span<byte> buffer = stackalloc byte[sizeof(long)];
+            value.TryWriteBytes(buffer);
+
+            var rem = _span.Length;
+            buffer.Slice(0, rem).CopyTo(_span);
+            Advance(rem);
+            buffer.Slice(rem).CopyTo(_span);
+            Advance(sizeof(long) - rem);
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteUtcDateTime(in DateTimeOffset datetime)
