@@ -141,65 +141,7 @@ namespace MongoDB.Client.Bson.Reader
             value = default;
             return false;
         }
-
-        public bool TryGetBinaryData(out BsonBinaryData? value)
-        {
-            value = default;
-            if (!TryGetInt32(out int len))
-            {
-                return false;
-            }
-
-            if (!TryGetByte(out var subtype))
-            {
-                return false;
-            }
-
-            if (_input.Remaining < len)
-            {
-                return false;
-            }
-
-            switch (subtype)
-            {
-                case 0:
-                    {
-                        var data = new byte[len];
-                        if (_input.TryCopyTo(data))
-                        {
-                            value = BsonBinaryData.Create(data);
-                            _input.Advance(len);
-                            return true;
-                        }
-
-                        return false;
-                    }
-                case 4:
-                    {
-                        if (_input.UnreadSpan.Length < len)
-                        {
-                            value = BsonBinaryData.Create(new Guid(_input.UnreadSpan.Slice(0, len)));
-                            _input.Advance(len);
-                            return true;
-                        }
-
-                        Span<byte> buffer = stackalloc byte[len];
-                        if (_input.TryCopyTo(buffer))
-                        {
-                            value = BsonBinaryData.Create(new Guid(buffer));
-                            _input.Advance(len);
-                            return true;
-                        }
-
-                        return false;
-                    }
-                default:
-                    {
-                        return ThrowHelper.UnknownSubtypeException<bool>(subtype);
-                    }
-            }
-        }
-
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetGuidWithBsonType(int bsonType, out Guid? value)
         {

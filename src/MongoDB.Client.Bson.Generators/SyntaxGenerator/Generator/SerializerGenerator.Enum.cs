@@ -147,8 +147,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         condition: BinaryExprEqualsEquals(WriterInputVarToken, IdentifierFullName(member)),
                         statement: Block(
                             Write_Type_Name(2, spanNameArg),
-                            WriteString(StaticEnumFieldNameToken(trueType, alias)))
-                    ));
+                            WriteString(StaticEnumFieldNameToken(trueType, alias)),
+                            ReturnNothingStatement
+                    )));
             }
             return SF.MethodDeclaration(
                     attributeLists: default,

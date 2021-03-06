@@ -279,6 +279,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     //    expr = TryGetDateTimeWithBsonType(bsonType, variable);
                     //    return true;
             }
+
+            if (IsBsonTimestamp(typeSymbol))
+            {
+                expr = TryGetTimestamp(variable);
+                return true;
+            }
             if (IsBsonDocument(typeSymbol))
             {
                 expr = TryParseDocument(variable);

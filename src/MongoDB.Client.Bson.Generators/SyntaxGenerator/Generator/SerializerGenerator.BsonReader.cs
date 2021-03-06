@@ -75,5 +75,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return InvocationExpr(BsonReaderToken, SF.IdentifierName("TrySkip"), SF.Argument(bsonType));
         }
+        public static ExpressionSyntax TryGetTimestamp(ExpressionSyntax assignOrDecl)
+        {
+            return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetTimestamp"), OutArgument(assignOrDecl));
+        }
     }
 }
