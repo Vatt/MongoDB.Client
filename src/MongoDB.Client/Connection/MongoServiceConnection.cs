@@ -35,7 +35,7 @@ namespace MongoDB.Client.Connection
         public async ValueTask<MongoPingMessage> MongoPing()
         {
             var message = new QueryMessage(GetNextRequestNumber(), "admin.$cmd", _pingDocument);
-            //var test = await SendQueryAsync<BsonDocument>(message, _shutdownCts.Token).ConfigureAwait(false);
+            var test = await SendQueryAsync<BsonDocument>(message, _shutdownCts.Token).ConfigureAwait(false);
             if (_protocolWriter is null)
             {
                 ThrowHelper.ThrowNotInitialized();

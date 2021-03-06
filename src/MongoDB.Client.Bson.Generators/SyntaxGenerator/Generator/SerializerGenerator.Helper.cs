@@ -65,7 +65,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return false;
         }
 
-        public static bool HaveParseWriteMethods(ISymbol typeSym, ISymbol? retType = null)
+        public static bool HaveParseWriteMethods(ISymbol typeSym, ISymbol retType = null)
         {
             ISymbol returnType = retType ?? typeSym;
             if (typeSym is INamedTypeSymbol namedSym)

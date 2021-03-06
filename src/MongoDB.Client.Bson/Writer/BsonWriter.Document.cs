@@ -62,6 +62,11 @@ namespace MongoDB.Client.Bson.Writer
                         WriteInt32((int)element.Value!);
                         break;
                     }
+                case 17:
+                    {
+                        WriteTimestamp((BsonTimestamp)element.Value!);
+                        break;
+                    }
                 case 18:
                     {
                         WriteInt64((long)element.Value!);

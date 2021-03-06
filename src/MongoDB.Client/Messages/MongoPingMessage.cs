@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Exceptions;
 
 namespace MongoDB.Client.Messages
 {
@@ -35,6 +36,31 @@ namespace MongoDB.Client.Messages
             throw new NotSupportedException(nameof(DnsEndPointSerializer));
         }
     }
+    public static class MongoSignatureHashSerializer
+    {
+        private static readonly byte ColonChar = (byte)':';
+        public static bool TryParseBson(ref MongoDB.Client.Bson.Reader.BsonReader reader, out byte[] message)
+        {
+            message = default;
+            if (!reader.TryGetBinaryData(out var temp))
+            {
+                return false;
+            }
+            else
+            {
+                if (temp.Type != BsonBinaryDataType.Generic)
+                {
+                    ThrowHelper.UnsupportedTypeException(typeof(BsonBinaryData));
+                }
+                message = (byte[])temp.Value;
+                return true;
+            }
+        }
+        public static void WriteBson(ref MongoDB.Client.Bson.Writer.BsonWriter writer, in byte[] message)
+        {
+            throw new NotSupportedException(nameof(DnsEndPointSerializer));
+        }
+    }
 
     [BsonSerializable]
     public partial class MongoClusterTime
@@ -42,20 +68,21 @@ namespace MongoDB.Client.Messages
         [BsonElement("clusterTime")]
         public BsonTimestamp ClusterTime { get; }
         
-        //[BsonElement("signature")]
-        //public MongoSignature MongoSignature { get; }
+        [BsonElement("signature")]
+        public MongoSignature MongoSignature { get; }
 
-        public MongoClusterTime(BsonTimestamp ClusterTime/*, MongoSignature MongoSignature*/)
+        public MongoClusterTime(BsonTimestamp ClusterTime, MongoSignature MongoSignature)
         {
             this.ClusterTime = ClusterTime;
-            //this.MongoSignature = MongoSignature;
+            this.MongoSignature = MongoSignature;
         }
     }
-    /*
+    
     [BsonSerializable]
     public partial class MongoSignature
     {
         [BsonElement("hash")]
+        [BsonSerializer(typeof(MongoSignatureHashSerializer))]
         public byte[] Hash { get; }
         
         [BsonElement("keyId")]
@@ -66,7 +93,7 @@ namespace MongoDB.Client.Messages
             this.KeyId = KeyId;
         }
     }
-    */
+    
     [BsonSerializable]
     public partial class MongoPingMessage
     {
