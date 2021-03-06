@@ -38,7 +38,6 @@ namespace MongoDB.Client.Messages
     }
     public static class MongoSignatureHashSerializer
     {
-        private static readonly byte ColonChar = (byte)':';
         public static bool TryParseBson(ref MongoDB.Client.Bson.Reader.BsonReader reader, out byte[] message)
         {
             message = default;
@@ -58,7 +57,7 @@ namespace MongoDB.Client.Messages
         }
         public static void WriteBson(ref MongoDB.Client.Bson.Writer.BsonWriter writer, in byte[] message)
         {
-            throw new NotSupportedException(nameof(DnsEndPointSerializer));
+            writer.WriteBinaryData(BsonBinaryData.Create(message));
         }
     }
 

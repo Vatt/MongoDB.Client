@@ -24,7 +24,7 @@ namespace MongoDB.Client.Bson.Document
         {
             if (destination.Length >= sizeof(long))
             {
-                BinaryPrimitives.WriteInt64BigEndian(destination, _value);
+                BinaryPrimitives.WriteInt64LittleEndian(destination, _value);
                 return true;
             }
 

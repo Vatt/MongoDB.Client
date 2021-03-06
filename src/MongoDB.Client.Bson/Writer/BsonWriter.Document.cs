@@ -79,7 +79,7 @@ namespace MongoDB.Client.Bson.Writer
             }
         }
 
-        private void WriteBinaryData(BsonBinaryData value)
+        public void WriteBinaryData(BsonBinaryData value)
         {
             switch (value.Type)
             {
@@ -90,6 +90,11 @@ namespace MongoDB.Client.Bson.Writer
                     WriteGuidAsBytes((Guid)value.Value);
                     break;
                 case BsonBinaryDataType.Generic:
+                    var span = ((byte[]) value.Value).AsSpan();
+                    WriteInt32(span.Length);
+                    WriteByte((byte)value.Type);
+                    WriteBytes(span);
+                    break;
                 case BsonBinaryDataType.BinaryOld:
                 case BsonBinaryDataType.UUIDOld:
                 case BsonBinaryDataType.MD5:
