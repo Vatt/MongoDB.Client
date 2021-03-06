@@ -1,6 +1,8 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System;
+using Microsoft.CodeAnalysis;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
 using System.Collections.Immutable;
+using System.Text;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
@@ -14,6 +16,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         internal readonly ImmutableArray<ITypeSymbol>? TypeGenericArgs;
         internal readonly SyntaxToken StaticSpanNameToken;
         internal readonly SyntaxToken AssignedVariableToken;
+        internal readonly Memory<byte> ByteName;
         public MemberContext(ContextCore root, ISymbol memberSym)
         {
             Root = root;
@@ -45,6 +48,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             {
                 AssignedVariableToken = SerializerGenerator.Identifier($"{TypeSym.Name}{NameSym.Name}");
             }
+            ByteName = Encoding.UTF8.GetBytes(BsonElementValue);
         }
 
     }

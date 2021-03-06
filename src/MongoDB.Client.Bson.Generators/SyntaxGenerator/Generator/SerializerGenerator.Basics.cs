@@ -71,6 +71,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.SeparatedList(source);
         }
+        public static SeparatedSyntaxList<SyntaxNode> SeparatedList<T>() where T : SyntaxNode
+        {
+            return SF.SeparatedList<T>();
+        }
         public static SeparatedSyntaxList<SyntaxNode> SeparatedList<T>(T source) where T : SyntaxNode
         {
             return SF.SeparatedList(new[] { source });
