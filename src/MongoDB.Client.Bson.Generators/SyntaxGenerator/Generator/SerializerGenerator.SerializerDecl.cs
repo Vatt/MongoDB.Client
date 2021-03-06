@@ -66,11 +66,20 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static MemberDeclarationSyntax GenerateSerializer(ContextCore ctx)
         {
             MemberDeclarationSyntax declaration = default;
+            SyntaxTokenList modifiers;
+            if (ctx.Declaration.TypeKind == TypeKind.Struct && ctx.Declaration.IsReadOnly)
+            {
+                modifiers = new(PublicKeyword(), ReadOnlyKeyword(), PartialKeyword());
+            }
+            else
+            {
+                modifiers = new(PublicKeyword(), PartialKeyword());
+            }
             switch (ctx.DeclarationNode)
             {
                 case ClassDeclarationSyntax:
                     declaration = SF.ClassDeclaration(SelfName(ctx.Declaration))
-                        .WithModifiers(new(PublicKeyword(), PartialKeyword()))
+                        .WithModifiers(modifiers)
                         .AddMembers(GenerateStaticNamesSpans(ctx))
                         .AddMembers(GenerateEnumsStaticNamesSpansIfHave(ctx))
                         .AddMembers(TryParseMethod(ctx))
@@ -82,7 +91,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     break;
                 case StructDeclarationSyntax:
                     declaration = SF.StructDeclaration(SelfName(ctx.Declaration))
-                        .WithModifiers(new(PublicKeyword(), PartialKeyword()))
+                        .WithModifiers(modifiers)
                         .AddMembers(GenerateStaticNamesSpans(ctx))
                         .AddMembers(GenerateEnumsStaticNamesSpansIfHave(ctx))
                         .AddMembers(TryParseMethod(ctx))
@@ -106,7 +115,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         .AddRange(GenerateWriteStringReprEnumMethods(ctx));
                     declaration = SF.RecordDeclaration(
                         default,
-                        new(PublicKeyword(), PartialKeyword()),
+                        modifiers,
                         decl.Keyword,
                         Identifier(SelfName(ctx.Declaration)),
                         default, default, default, default,

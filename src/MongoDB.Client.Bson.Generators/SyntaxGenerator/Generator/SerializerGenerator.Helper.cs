@@ -216,6 +216,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 constructor = symbol.Constructors[0];
                 return true;
             }
+
+            if(symbol.Constructors.Length == 2 && symbol.TypeKind == TypeKind.Struct && symbol.IsReadOnly)
+            {
+                //constructor = symbol.Constructors.Where(sym => sym.Parameters.Length != 0).FirstOrDefault();
+                constructor = symbol.Constructors[0];
+                return true;
+            }
             var constructorAttr = BsonConstructorAttr;
             foreach (var item in symbol.Constructors)
             {
