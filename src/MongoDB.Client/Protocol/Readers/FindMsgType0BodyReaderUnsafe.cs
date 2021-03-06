@@ -15,6 +15,7 @@ namespace MongoDB.Client.Protocol.Readers
         private long _payloadLength;
         private long _modelsLength;
         private long _docLength;
+        private long _docReaded;
 
         private ParserState _state;
 
@@ -27,8 +28,11 @@ namespace MongoDB.Client.Protocol.Readers
         }
 
 
-        public override bool TryParseMessage(in ReadOnlySequence<byte> input, ref SequencePosition consumed,
-            ref SequencePosition examined, [MaybeNullWhen(false)] out CursorResult<T> message)
+        public override bool TryParseMessage(
+            in ReadOnlySequence<byte> input,
+            ref SequencePosition consumed,
+            ref SequencePosition examined,
+            [MaybeNullWhen(false)] out CursorResult<T> message)
         {
             message = _cursorResult;
             var bsonReader = new BsonReader(input);
@@ -42,11 +46,12 @@ namespace MongoDB.Client.Protocol.Readers
                     return false;
                 }
 
-                Advance(bsonReader.BytesConsumed - checkpoint);
                 _modelsLength = modelsLength - 4;
                 _docLength = docLength;
+                _docReaded = bsonReader.BytesConsumed - checkpoint;
                 consumed = bsonReader.Position;
                 examined = bsonReader.Position;
+                Advance(_docReaded);
                 _state = hasBatch ? ParserState.Models : ParserState.Complete;
             }
 
@@ -110,7 +115,7 @@ namespace MongoDB.Client.Protocol.Readers
                 {
                     return false;
                 }
-
+                _docReaded += _modelsLength + 1;
                 Advance(1);
                 consumed = bsonReader.Position;
                 examined = bsonReader.Position;
@@ -120,7 +125,7 @@ namespace MongoDB.Client.Protocol.Readers
             if (_state == ParserState.Cursor)
             {
                 var checkpoint = bsonReader.BytesConsumed;
-                if (TryReadCursorEnd(ref bsonReader) == false)
+                if (TryReadCursorEndPart(ref bsonReader, checkpoint) == false)
                 {
                     return false;
                 }
@@ -275,7 +280,7 @@ namespace MongoDB.Client.Protocol.Readers
             return ThrowHelper.MissedDocumentEndMarkerException<bool>();
         }
 
-        private bool TryReadCursorEnd(ref BsonReader reader)
+        private bool TryReadCursorEndPart(ref BsonReader reader, long checkpoint)
         {
             string? name;
             if (TryGetName(ref reader, out name) == false)
@@ -316,6 +321,28 @@ namespace MongoDB.Client.Protocol.Readers
                     return false;
                 }
 
+                var readed = reader.BytesConsumed - checkpoint;
+                var docReaded = _docReaded + readed;
+                if (_docLength > docReaded)
+                {
+                    if (TryGetName(ref reader, out name) == false)
+                    {
+                        return false;
+                    }
+                    if (MongoClusterTime.TryParseBson(ref reader, out var message) == false)
+                    {
+                        return false;
+                    }
+                    if (TryGetName(ref reader, out name) == false)
+                    {
+                        return false;
+                    }
+                    if (reader.TryGetTimestamp(out var value) == false)
+                    {
+                        return false;
+                    }
+                }
+
                 if (!reader.TryGetByte(out endMarker))
                 {
                     return false;
@@ -325,6 +352,7 @@ namespace MongoDB.Client.Protocol.Readers
                 {
                     return true;
                 }
+
             }
 
             return ThrowHelper.MissedDocumentEndMarkerException<bool>();

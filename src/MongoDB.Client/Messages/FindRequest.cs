@@ -34,11 +34,11 @@ namespace MongoDB.Client.Messages
         public string Db { get; }
 
         [BsonElement("$readPreference")]
-        [BsonWriteIgnoreIf("ReadPreference != null")]
+        [BsonWriteIgnoreIf("ReadPreference is null")]
         public ReadPreference? ReadPreference { get; set; }
 
         [BsonElement("$clusterTime")]
-        [BsonWriteIgnoreIf("ClusterTime != null")]
+        [BsonWriteIgnoreIf("ClusterTime is null")]
         public MongoClusterTime ClusterTime { get; set; }
 
         [BsonElement("lsid")]
