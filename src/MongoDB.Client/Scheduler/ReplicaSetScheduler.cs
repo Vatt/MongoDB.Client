@@ -5,10 +5,13 @@ using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Network;
 using MongoDB.Client.Protocol.Messages;
+using MongoDB.Client.Settings;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using ReadPreference = MongoDB.Client.Settings.ReadPreference;
 
 namespace MongoDB.Client.Scheduler
 {
@@ -25,6 +28,7 @@ namespace MongoDB.Client.Scheduler
         private MongoPingMessage _lastPing;
         private int _schedulerCounter = 0;
         private int _requestCounter = 0;
+        private readonly Func<IMongoScheduler> GetReadScheduler;
 
         public ReplicaSetScheduler(MongoClientSettings settings, ILoggerFactory loggerFactory)
         {
@@ -34,7 +38,17 @@ namespace MongoDB.Client.Scheduler
             _loggerFactory = loggerFactory;
             _shedulers = new();
             _slaves = new();
+            if (_settings.ReadPreference == ReadPreference.Secondary || _settings.ReadPreference == ReadPreference.SecondaryPreferred)
+            {
+                GetReadScheduler = GetSlaveScheduler;
+            }
+            else
+            {
+                GetReadScheduler = () => _master!;
+            }
         }
+
+
         private IMongoScheduler GetSlaveScheduler()
         {
             Interlocked.Increment(ref _schedulerCounter);
@@ -42,13 +56,15 @@ namespace MongoDB.Client.Scheduler
             var result = _slaves[schedulerId];
             return result;
         }
+
+
         public async ValueTask StartAsync()
         {
             var endpoints = _settings.Endpoints;
             var maxConnections = _settings.ConnectionPoolMaxSize / endpoints.Length;
-            ConnectionContext ctx = default;
             for (int i = 0; i < _settings.Endpoints.Length; i++)
             {
+                ConnectionContext? ctx;
                 try
                 {
                     ctx = await _networkfactory.ConnectAsync(_settings.Endpoints[i]);
@@ -86,6 +102,8 @@ namespace MongoDB.Client.Scheduler
                 await scheduler.StartAsync();
             }
         }
+
+
         public int GetNextRequestNumber()
         {
             return Interlocked.Increment(ref _requestCounter);
@@ -98,12 +116,12 @@ namespace MongoDB.Client.Scheduler
 
         public ValueTask CreateCollectionAsync(CreateCollectionMessage message, CancellationToken cancellationToken)
         {
-            return GetSlaveScheduler().CreateCollectionAsync(message, cancellationToken);
+            return _master.CreateCollectionAsync(message, cancellationToken);
         }
 
         public ValueTask<DeleteResult> DeleteAsync(DeleteMessage message, CancellationToken cancellationToken)
         {
-            return GetSlaveScheduler().DeleteAsync(message, cancellationToken);
+            return _master.DeleteAsync(message, cancellationToken);
         }
 
         public ValueTask DisposeAsync()
@@ -118,13 +136,68 @@ namespace MongoDB.Client.Scheduler
 
         public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token)
         {
-            var result = await GetSlaveScheduler().GetCursorAsync<T>(message, token).ConfigureAwait(false);
+            var scheduler = GetScheduler(message);
+            message.Document.ReadPreference = new Messages.ReadPreference(_settings.ReadPreference);
+            message.Document.ClusterTime = _lastPing.ClusterTime;
+            var result = await scheduler.GetCursorAsync<T>(message, token).ConfigureAwait(false);
             return result;
+        }
+
+        private IMongoScheduler GetScheduler(FindMessage message)
+        {
+            IMongoScheduler? scheduler = null;
+            switch (_settings.ReadPreference)
+            {
+                case ReadPreference.Primary:
+                    scheduler = _master;
+                    break;
+                case ReadPreference.PrimaryPreferred:
+                    scheduler = _master;
+                    if (scheduler is null)
+                    {
+                        scheduler = GetSlaveScheduler();
+                    }
+                    break;
+                case ReadPreference.Secondary:
+                    scheduler = GetSlaveScheduler();
+                    break;
+                case ReadPreference.SecondaryPreferred:
+                    scheduler = GetSlaveScheduler();
+                    if (scheduler is null)
+                    {
+                        scheduler = _master;
+                    }
+                    break;
+                case ReadPreference.Nearest:
+                default:
+                    ThrowSchedulerNotFound();
+                    break;
+            }
+            if (scheduler is null)
+            {
+                ThrowSchedulerNotFound();
+            }
+            return scheduler;
         }
 
         public ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token)
         {
             return _master.InsertAsync(message, token);
+        }
+
+
+        // TODO:
+        [DoesNotReturn]
+        private static void ThrowSchedulerNotFound()
+        {
+            throw new Exception("Scheduler Not Found");
+        }
+
+        // TODO:
+        [DoesNotReturn]
+        private static void ReadPreferenceNotSupported(ReadPreference readPreference)
+        {
+            throw new Exception(readPreference.ToString() + " is not supported");
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Settings;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 

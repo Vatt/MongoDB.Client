@@ -225,6 +225,23 @@ namespace MongoDB.Client.Bson.Writer
             WriteDouble(value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write_Type_Name_Value(ReadOnlySpan<byte> name, BsonBinaryData value)
+        {
+            WriteByte(5);
+            WriteCString(name);
+            WriteBinaryData(value);
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write_Type_Name_Value(int intName, BsonBinaryData value)
+        {
+            WriteByte(5);
+            WriteIntIndex(intName);
+            WriteBinaryData(value);
+        }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, string value)
