@@ -4,6 +4,8 @@ using System;
 using System.Linq;
 using System.Buffers.Binary;
 using System.Collections.Generic;
+using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using System.Collections.Immutable;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
@@ -100,13 +102,18 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             var offset = inputOffset;
             var groups = GroupMembers(offset, members);
-            if (groups.Values.Count == 1 && groups.Values.First().Count > 1)
+            //if (groups.Values.Count == 1 && groups.Values.First().Count > 1)
+            //{
+            //    offset += 1;
+            //    groups = GroupMembers(offset, members);
+            //}
+            while (groups.Values.Count == 1 && groups.Values.First().Count > 1)
             {
                 offset += 1;
                 groups = GroupMembers(offset, members);
             }
 
-            foreach(var pair in groups)
+            foreach (var pair in groups)
             {
                 var key = pair.Key;
                 var value = pair.Value;
@@ -123,7 +130,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return host;
 
         }
-        private static StatementSyntax[] NewTryParseOperations(ContextCore ctx, SyntaxToken bsonType, SyntaxToken bsonName)
+        private static StatementSyntax[] SwitchTryParseOperations(ContextCore ctx, SyntaxToken bsonType, SyntaxToken bsonName)
         {
             var offset = 0;
             var groups = GroupMembers(offset, ctx.Members);
@@ -134,23 +141,40 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             var root = new SwitchContext(offset);
             var genCtx = CreateSwitchContext(ctx.Members, 0, root);
-            return Operations(ctx, bsonType, bsonName);
+            return new[] { GenerateSwitch(ctx, root, bsonType, bsonName) };
         }
-        private static StatementSyntax[] NameLengthFirst(ContextCore ctx)
+        private static SwitchStatementSyntax GenerateSwitch(ContextCore ctx,SwitchContext switchCtx, SyntaxToken bsonType, SyntaxToken bsonName)
         {
-            var namesMap = new Dictionary<int, List<MemberContext>>();
-            foreach(var member in ctx.Members)
+            var head = SF.SwitchStatement(IdentifierName("test"));
+            var sections = new List<SwitchSectionSyntax>();
+            foreach(var node in switchCtx.Endnodes)
             {
-                if(namesMap.TryGetValue(member.ByteName.Length, out var list))
+                var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(NumericLiteralExpr(node.Key.Value)));
+                var builder = ImmutableList.CreateBuilder<StatementSyntax>();
+                if (node is SwitchContext nodectx)
                 {
-                    list.Add(member);
+                    sections.Add(SF.SwitchSection(label, new SyntaxList<StatementSyntax>(Block(GenerateSwitch(ctx, nodectx, bsonType, bsonName)))));
                 }
                 else
                 {
-                    namesMap.Add(member.ByteName.Length, new(){ member });
+                    var member = ((CaseContext)node).Member;
+                    if (TryGenerateParseEnum(member.StaticSpanNameToken, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))
+                    {
+       
+                    }
+                    else if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
+                    {
+
+                    }
+                    else if (TryGenerateTryParseBson(member, bsonName, builder))
+                    {
+                        continue;
+                    }
+                    sections.Add(SF.SwitchSection(label, new SyntaxList<StatementSyntax>(Block(builder.ToArray(), SF.BreakStatement()))));
                 }
+                
             }
-            return default;
+            return SF.SwitchStatement(IdentifierName("test"), new SyntaxList<SwitchSectionSyntax>(sections.ToArray()));
         }
     }
 }

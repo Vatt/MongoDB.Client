@@ -39,8 +39,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var endMarkerToken = Identifier("endMarker");
             var bsonTypeToken = Identifier("bsonType");
             var bsonNameToken = Identifier("bsonName");
-            //TODO: test
-            var operations = NewTryParseOperations(ctx, bsonTypeToken, bsonNameToken);
 
             return SF.MethodDeclaration(
                     attributeLists: default,
@@ -71,7 +69,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                   IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(bsonTypeToken))),
                                   IfNotReturnFalse(TryGetCStringAsSpan(VarVariableDeclarationExpr(bsonNameToken))),
                                   IfContinue(BinaryExprEqualsEquals(IdentifierName(bsonTypeToken), NumericLiteralExpr(10))),
-                                  Operations(ctx, bsonTypeToken, bsonNameToken),
+                                  //Operations(ctx, bsonTypeToken, bsonNameToken),
+                                  SwitchTryParseOperations(ctx, bsonTypeToken, bsonNameToken),
                                   IfNotReturnFalse(TrySkip(IdentifierName(bsonTypeToken))))),
                           IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
                           SF.IfStatement(
