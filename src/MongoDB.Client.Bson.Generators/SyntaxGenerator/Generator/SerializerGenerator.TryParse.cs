@@ -39,6 +39,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var endMarkerToken = Identifier("endMarker");
             var bsonTypeToken = Identifier("bsonType");
             var bsonNameToken = Identifier("bsonName");
+            //TODO: test
+            var operations = NewTryParseOperations(ctx, bsonTypeToken, bsonNameToken);
+
             return SF.MethodDeclaration(
                     attributeLists: default,
                     modifiers: new(PublicKeyword(), StaticKeyword()),

@@ -9,14 +9,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
     internal class MemberContext
     {
         internal ContextCore Root { get; }
-        internal readonly ISymbol NameSym;
-        internal readonly ITypeSymbol TypeSym;
-        internal readonly string BsonElementAlias;
-        internal readonly string BsonElementValue;
-        internal readonly ImmutableArray<ITypeSymbol>? TypeGenericArgs;
-        internal readonly SyntaxToken StaticSpanNameToken;
-        internal readonly SyntaxToken AssignedVariableToken;
-        internal readonly Memory<byte> ByteName;
+        internal ISymbol NameSym { get; }
+        internal ITypeSymbol TypeSym { get; }
+        internal string BsonElementAlias { get; }
+        internal string BsonElementValue { get; }
+        internal ImmutableArray<ITypeSymbol>? TypeGenericArgs { get; }
+        internal SyntaxToken StaticSpanNameToken { get; }
+        internal SyntaxToken AssignedVariableToken { get; }
+        internal Memory<byte> ByteName { get; }
         public MemberContext(ContextCore root, ISymbol memberSym)
         {
             Root = root;

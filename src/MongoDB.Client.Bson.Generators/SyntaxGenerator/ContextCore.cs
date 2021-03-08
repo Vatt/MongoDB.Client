@@ -1,12 +1,28 @@
 ﻿using Microsoft.CodeAnalysis;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
-
+    internal class NameStatistics
+    {
+        internal Dictionary<int, int> LengthMap { get; }
+        internal float UniqueNamesLengthRatio { get; }
+        internal int AvgLenght { get; }
+        internal int MinLength { get; }
+        internal int MaxLength { get; }
+        internal NameStatistics(Dictionary<int, int> lenMap)
+        {
+            LengthMap = lenMap;
+            UniqueNamesLengthRatio = LengthMap.Values.Where(l => l == 1).Count() / (float)lenMap.Values.Sum();
+            AvgLenght = LengthMap.Select(kv => kv.Key * kv.Value).Sum() / LengthMap.Values.Sum();
+            MinLength = LengthMap.Keys.Min();
+            MaxLength = LengthMap.Keys.Max();
+        }
+    }
     internal class ContextCore
     {
         internal MasterContext Root { get; }
@@ -14,7 +30,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         internal SyntaxNode DeclarationNode { get; }
         internal List<MemberContext> Members { get; }
         internal ImmutableArray<ITypeSymbol>? GenericArgs { get; }
-        internal ImmutableArray<IParameterSymbol>? ConstructorParams;
+        internal ImmutableArray<IParameterSymbol>? ConstructorParams { get; }
+        internal NameStatistics NameStatistics { get; }
         internal SyntaxToken SerializerName
         {
             get
@@ -66,31 +83,28 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     continue;
                 }
             }
-            var percentnUniques = GetPercentNonUniqueLength();
+            NameStatistics = GetNameStatistics();
         }
 
-        private float GetPercentNonUniqueLength()
-        {
-            float collisionsCount = 0;
-            HashSet<int> set = new HashSet<int>();
+        private NameStatistics GetNameStatistics()
+        { 
+            Dictionary<int, int> lenMap = new Dictionary<int, int>();
+            var sumLen = 0;
             foreach (var member in Members)
             {
-                if (set.Contains(member.ByteName.Length))
+                var nameLen = member.ByteName.Length;
+                sumLen += nameLen;
+                if (lenMap.ContainsKey(nameLen))
                 {
-                    collisionsCount += 1;
+                    lenMap[nameLen] = lenMap[nameLen] + 1; 
                 }
                 else
                 {
-                    set.Add(member.ByteName.Length);
+                    lenMap.Add(nameLen, 1);
                 }
-                
             }
-
-            if (collisionsCount == 0)
-            {
-                return 0;
-            }
-            return collisionsCount / (float)Members.Count;
+            var uniqueNames = lenMap.Values.Where(l => l == 1).Count();
+            return new NameStatistics(lenMap);
         }
         public bool ConstructorContains(string name)
         {

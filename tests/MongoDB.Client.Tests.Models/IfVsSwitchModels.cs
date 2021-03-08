@@ -165,117 +165,226 @@ namespace MongoDB.Client.Tests.Models
                 {
                     continue;
                 }
-
                 switch (bsonName.Length)
                 {
                     case 1:
-                    {
-                        if (!reader.TryGetInt32(out Int32A))
                         {
-                            return false;
+                            if (!reader.TryGetInt32(out Int32A))
+                            {
+                                return false;
+                            }
+                            continue;
                         }
-                        continue;
-                    }
                     case 2:
-                    {
-                        if (!reader.TryGetDouble(out DoubleBB))
                         {
-                            return false;
-                        }
+                            if (!reader.TryGetDouble(out DoubleBB))
+                            {
+                                return false;
+                            }
 
-                        continue;
-                    }
+                            continue;
+                        }
                     case 3:
-                    {
-                        if (!reader.TryGetString(out StringCCC))
                         {
-                            return false;
-                        }
+                            if (!reader.TryGetString(out StringCCC))
+                            {
+                                return false;
+                            }
 
-                        continue;
-                    }
+                            continue;
+                        }
                     case 4:
-                    {
-                        if (!reader.TryGetDateTimeWithBsonType(bsonType, out DateTimeOffsetDDDD))
                         {
-                            return false;
-                        }
+                            if (!reader.TryGetDateTimeWithBsonType(bsonType, out DateTimeOffsetDDDD))
+                            {
+                                return false;
+                            }
 
-                        continue;
-                    }
+                            continue;
+                        }
                     case 5:
-                    {
-                        if (!reader.TryGetInt64(out Int64EEEEE))
                         {
-                            return false;
-                        }
+                            if (!reader.TryGetInt64(out Int64EEEEE))
+                            {
+                                return false;
+                            }
 
-                        continue;
-                    }
+                            continue;
+                        }
                     case 6:
-                    {
-                        if (!reader.TryParseDocument(out BsonDocumentFFFFFF))
                         {
-                            return false;
-                        }
+                            if (!reader.TryParseDocument(out BsonDocumentFFFFFF))
+                            {
+                                return false;
+                            }
 
-                        continue;
-                    }
+                            continue;
+                        }
                     case 7:
-                    {
-                        if (!reader.TryGetInt32(out Int32GGGGGGG))
                         {
-                            return false;
-                        }
+                            if (!reader.TryGetInt32(out Int32GGGGGGG))
+                            {
+                                return false;
+                            }
 
-                        continue;
-                    }
+                            continue;
+                        }
                     case 8:
-                    {
-                        if (!reader.TryGetDouble(out DoubleHHHHHHHH))
                         {
-                            return false;
-                        }
+                            if (!reader.TryGetDouble(out DoubleHHHHHHHH))
+                            {
+                                return false;
+                            }
 
-                        continue;
-                    }
+                            continue;
+                        }
                     case 9:
-                    {
-                        if (!reader.TryGetString(out StringIIIIIIIII))
                         {
-                            return false;
-                        }
+                            if (!reader.TryGetString(out StringIIIIIIIII))
+                            {
+                                return false;
+                            }
 
-                        continue;
-                    }
+                            continue;
+                        }
                     case 10:
-                    {
-                        if (!reader.TryGetDateTimeWithBsonType(bsonType, out DateTimeOffsetJJJJJJJJJJ))
                         {
-                            return false;
-                        }
+                            if (!reader.TryGetDateTimeWithBsonType(bsonType, out DateTimeOffsetJJJJJJJJJJ))
+                            {
+                                return false;
+                            }
 
-                        continue;
-                    }
+                            continue;
+                        }
                     case 11:
-                    {
-                        if (!reader.TryGetInt64(out Int64KKKKKKKKKKK))
                         {
-                            return false;
-                        }
+                            if (!reader.TryGetInt64(out Int64KKKKKKKKKKK))
+                            {
+                                return false;
+                            }
 
-                        continue;
-                    }
+                            continue;
+                        }
                     case 12:
-                    {
-                        if (!reader.TryParseDocument(out BsonDocumentLLLLLLLLLLLL))
                         {
-                            return false;
-                        }
+                            if (!reader.TryParseDocument(out BsonDocumentLLLLLLLLLLLL))
+                            {
+                                return false;
+                            }
 
-                        continue;
-                    }
+                            continue;
+                        }
                 }
+                //switch (bsonName.Length)
+                //{
+                //    case 1:
+                //    {
+                //        if (!reader.TryGetInt32(out Int32A))
+                //        {
+                //            return false;
+                //        }
+                //        continue;
+                //    }
+                //    case 2:
+                //    {
+                //        if (!reader.TryGetDouble(out DoubleBB))
+                //        {
+                //            return false;
+                //        }
+
+                //        continue;
+                //    }
+                //    case 3:
+                //    {
+                //        if (!reader.TryGetString(out StringCCC))
+                //        {
+                //            return false;
+                //        }
+
+                //        continue;
+                //    }
+                //    case 4:
+                //    {
+                //        if (!reader.TryGetDateTimeWithBsonType(bsonType, out DateTimeOffsetDDDD))
+                //        {
+                //            return false;
+                //        }
+
+                //        continue;
+                //    }
+                //    case 5:
+                //    {
+                //        if (!reader.TryGetInt64(out Int64EEEEE))
+                //        {
+                //            return false;
+                //        }
+
+                //        continue;
+                //    }
+                //    case 6:
+                //    {
+                //        if (!reader.TryParseDocument(out BsonDocumentFFFFFF))
+                //        {
+                //            return false;
+                //        }
+
+                //        continue;
+                //    }
+                //    case 7:
+                //    {
+                //        if (!reader.TryGetInt32(out Int32GGGGGGG))
+                //        {
+                //            return false;
+                //        }
+
+                //        continue;
+                //    }
+                //    case 8:
+                //    {
+                //        if (!reader.TryGetDouble(out DoubleHHHHHHHH))
+                //        {
+                //            return false;
+                //        }
+
+                //        continue;
+                //    }
+                //    case 9:
+                //    {
+                //        if (!reader.TryGetString(out StringIIIIIIIII))
+                //        {
+                //            return false;
+                //        }
+
+                //        continue;
+                //    }
+                //    case 10:
+                //    {
+                //        if (!reader.TryGetDateTimeWithBsonType(bsonType, out DateTimeOffsetJJJJJJJJJJ))
+                //        {
+                //            return false;
+                //        }
+
+                //        continue;
+                //    }
+                //    case 11:
+                //    {
+                //        if (!reader.TryGetInt64(out Int64KKKKKKKKKKK))
+                //        {
+                //            return false;
+                //        }
+
+                //        continue;
+                //    }
+                //    case 12:
+                //    {
+                //        if (!reader.TryParseDocument(out BsonDocumentLLLLLLLLLLLL))
+                //        {
+                //            return false;
+                //        }
+
+                //        continue;
+                //    }
+                //}
 
                 if (!reader.TrySkip(bsonType))
                 {
