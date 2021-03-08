@@ -73,6 +73,17 @@ namespace MongoDB.Client.Bson.Reader
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryPeekByte(out byte value)
+        {
+            if (_input.TryRead(out value))
+            {
+                _input.Rewind(sizeof(byte));
+                return true;
+            }
+            return false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetInt64(out long value)
         {
             return _input.TryReadLittleEndian(out value);

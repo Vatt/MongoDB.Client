@@ -8,6 +8,7 @@ using MongoDB.Client.Protocol.Common;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Messages;
 using MongoDB.Client.Protocol.Readers;
+using MongoDB.Client.Settings;
 using System.Threading;
 using System.Threading.Tasks;
 

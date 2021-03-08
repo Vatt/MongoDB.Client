@@ -2,6 +2,7 @@
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Scheduler;
+using MongoDB.Client.Settings;
 using System;
 using System.Collections.Concurrent;
 using System.Threading;

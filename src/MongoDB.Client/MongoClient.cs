@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Scheduler;
+using MongoDB.Client.Settings;
 using System.Net;
 using System.Threading.Tasks;
 
