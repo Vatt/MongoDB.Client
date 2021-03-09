@@ -186,7 +186,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return new StatementSyntax[] 
             {
-                VarLocalDeclarationStatement(Identifier($"testVar{testVarCnt}"), BinaryPrimitivesReadInt32LittleEndian(bsonName)),
+                IfNotReturnFalse(TryGetIntFromNameSpan(bsonName, switchCtx.Offset, VarVariableDeclarationExpr(Identifier($"testVar{testVarCnt}")))),
+                //VarLocalDeclarationStatement(Identifier($"testVar{testVarCnt}"), BinaryPrimitivesReadInt32LittleEndian(bsonName)),
                 SF.SwitchStatement(IdentifierName($"testVar{testVarCnt}"), new SyntaxList<SwitchSectionSyntax>(sections.ToArray()))
             };
         }

@@ -3,6 +3,7 @@ using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Exceptions;
 using MongoDB.Client.Bson.Utils;
 using System;
+using System.Buffers.Binary;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
@@ -24,7 +25,33 @@ namespace MongoDB.Client.Bson.Reader
             throw new SerializerIsNullException(typeName);
         }
 
+        public bool TryGetIntFromNameSpan(ReadOnlySpan<byte> nameSpan, int offset,  out int value)
+        {
+            if ((nameSpan.Length - offset) >= 4)
+            {
+                value = BinaryPrimitives.ReadInt32LittleEndian(nameSpan);
+                return true;
+            }
+            else if ((nameSpan.Length - offset ) == 3)
+            {
+                Span<byte> buffer = stackalloc byte[4];
+                nameSpan.Slice(offset, 3).CopyTo(buffer.Slice(1, 3));
+                value = BinaryPrimitives.ReadInt32LittleEndian(buffer);
+                return true;
+            }else if ((nameSpan.Length - offset) == 2)
+            {
+                value = BinaryPrimitives.ReadInt16LittleEndian(nameSpan);
+            }
+            else if(nameSpan.Length == 1)
+            {
+                value = nameSpan[0];
+                return true;
+            }
 
+            value = default;
+            return false;
+
+        }
         public unsafe bool TryReadGeneric<T>(int bsonType, [MaybeNullWhen(false)] out T genericValue)
         {
             genericValue = default;
