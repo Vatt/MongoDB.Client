@@ -68,31 +68,43 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         groups.Add(intPart, new() { member });
                     }
                 }
-                else
+                else if ((nameSpan.Length - offset) >= 3)
                 {
-                    if ((nameSpan.Length - offset) >= 2)
+                    Span<byte> buffer = stackalloc byte[4];
+                    nameSpan.Slice(offset, 3).CopyTo(buffer.Slice(1, 3));
+                    var part = BinaryPrimitives.ReadInt32LittleEndian(buffer);
+                    if (groups.ContainsKey(part))
                     {
-                        var shortPart = BinaryPrimitives.ReadInt16LittleEndian(nameSpan.Slice(offset, 2));
-                        if (groups.ContainsKey(shortPart))
-                        {
-                            groups[shortPart].Add(member);
-                        }
-                        else
-                        {
-                            groups.Add(shortPart, new() { member });
-                        }
+                        groups[part].Add(member);
                     }
                     else
                     {
-                        var bytePart = nameSpan[0];
-                        if (groups.ContainsKey(bytePart))
-                        {
-                            groups[bytePart].Add(member);
-                        }
-                        else
-                        {
-                            groups.Add(bytePart, new() { member });
-                        }
+                        groups.Add(part, new() { member });
+                    }
+                }
+                else if ((nameSpan.Length - offset) >= 2)
+                {
+
+                    var shortPart = BinaryPrimitives.ReadInt16LittleEndian(nameSpan.Slice(offset, 2));
+                    if (groups.ContainsKey(shortPart))
+                    {
+                        groups[shortPart].Add(member);
+                    }
+                    else
+                    {
+                        groups.Add(shortPart, new() { member });
+                    }
+                }
+                else
+                {
+                    var bytePart = nameSpan[0];
+                    if (groups.ContainsKey(bytePart))
+                    {
+                        groups[bytePart].Add(member);
+                    }
+                    else
+                    {
+                        groups.Add(bytePart, new() { member });
                     }
                 }
             }
@@ -102,11 +114,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             var offset = inputOffset;
             var groups = GroupMembers(offset, members);
-            //if (groups.Values.Count == 1 && groups.Values.First().Count > 1)
-            //{
-            //    offset += 1;
-            //    groups = GroupMembers(offset, members);
-            //}
             while (groups.Values.Count == 1 && groups.Values.First().Count > 1)
             {
                 offset += 1;
@@ -141,9 +148,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             var root = new SwitchContext(offset);
             var genCtx = CreateSwitchContext(ctx.Members, 0, root);
-            return new[] { GenerateSwitch(ctx, root, bsonType, bsonName) };
+            return GenerateSwitch(ctx, root, 1, bsonType, bsonName);
         }
-        private static SwitchStatementSyntax GenerateSwitch(ContextCore ctx,SwitchContext switchCtx, SyntaxToken bsonType, SyntaxToken bsonName)
+        private static StatementSyntax[]  GenerateSwitch(ContextCore ctx, SwitchContext switchCtx, int testVarCnt, SyntaxToken bsonType, SyntaxToken bsonName)
         {
             var head = SF.SwitchStatement(IdentifierName("test"));
             var sections = new List<SwitchSectionSyntax>();
@@ -153,7 +160,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var builder = ImmutableList.CreateBuilder<StatementSyntax>();
                 if (node is SwitchContext nodectx)
                 {
-                    sections.Add(SF.SwitchSection(label, new SyntaxList<StatementSyntax>(Block(GenerateSwitch(ctx, nodectx, bsonType, bsonName)))));
+                    //testVarCnt += 1;
+                    //var testAssigment = VarLocalDeclarationStatement(Identifier($"testVar{testVarCnt}"), BinaryPrimitivesReadInt32LittleEndian(bsonName));
+                    sections.Add(SF.SwitchSection(label, new SyntaxList<StatementSyntax>(
+                        Block(GenerateSwitch(ctx, nodectx, testVarCnt + 1, bsonType, bsonName), SF.BreakStatement()))));
                 }
                 else
                 {
@@ -168,13 +178,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     }
                     else if (TryGenerateTryParseBson(member, bsonName, builder))
                     {
-                        continue;
+
                     }
                     sections.Add(SF.SwitchSection(label, new SyntaxList<StatementSyntax>(Block(builder.ToArray(), SF.BreakStatement()))));
                 }
                 
             }
-            return SF.SwitchStatement(IdentifierName("test"), new SyntaxList<SwitchSectionSyntax>(sections.ToArray()));
+            return new StatementSyntax[] 
+            {
+                VarLocalDeclarationStatement(Identifier($"testVar{testVarCnt}"), BinaryPrimitivesReadInt32LittleEndian(bsonName)),
+                SF.SwitchStatement(IdentifierName($"testVar{testVarCnt}"), new SyntaxList<SwitchSectionSyntax>(sections.ToArray()))
+            };
         }
     }
 }

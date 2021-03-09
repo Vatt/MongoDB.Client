@@ -83,7 +83,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     continue;
                 }
             }
-            NameStatistics = GetNameStatistics();
+            if (Members.Count > 0)
+            {
+                NameStatistics = GetNameStatistics();
+            }
+            
         }
 
         private NameStatistics GetNameStatistics()
