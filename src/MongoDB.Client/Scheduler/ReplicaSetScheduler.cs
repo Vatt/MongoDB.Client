@@ -131,7 +131,6 @@ namespace MongoDB.Client.Scheduler
         {
             var scheduler = GetScheduler();
             message.Document.ReadPreference = new Messages.ReadPreference(_settings.ReadPreference);
-            message.Document.ClusterTime = _lastPing.ClusterTime;
             var result = await scheduler.GetCursorAsync<T>(message, token).ConfigureAwait(false);
             return result;
         }

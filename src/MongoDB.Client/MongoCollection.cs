@@ -32,7 +32,7 @@ namespace MongoDB.Client
 
         public Cursor<T> Find(TransactionHandler transaction, BsonDocument filter)
         {
-            return new Cursor<T>(_scheduler, filter, Namespace);
+            return new Cursor<T>(transaction, _scheduler, filter, Namespace);
         }
 
         public ValueTask InsertAsync(T item, CancellationToken cancellationToken = default)
@@ -66,7 +66,7 @@ namespace MongoDB.Client
             var request = new InsertMessage<T>(requestNumber, insertHeader, items);
             await _scheduler.InsertAsync(request, cancellationToken).ConfigureAwait(false);
         }
-
+        
         private InsertHeader CreateInsertHeader(TransactionHandler transaction)
         {
             switch (transaction.State)
@@ -115,12 +115,32 @@ namespace MongoDB.Client
         private async ValueTask<DeleteResult> DeleteAsync(TransactionHandler transaction, BsonDocument filter, int limit, CancellationToken cancellationToken = default)
         {
             var requestNumber = _scheduler.GetNextRequestNumber();
-            var deleteHeader = new DeleteHeader(Namespace.CollectionName, true, Namespace.DatabaseName, SharedSessionIdModel);
+            var deleteHeader = CreateDeleteHeader(transaction);
 
             var deleteBody = new DeleteBody(filter, limit);
 
             var request = new DeleteMessage(requestNumber, deleteHeader, deleteBody);
             return await _scheduler.DeleteAsync(request, cancellationToken).ConfigureAwait(false);
+        }
+
+        private DeleteHeader CreateDeleteHeader(TransactionHandler transaction)
+        {
+            switch (transaction.State)
+            {
+                case TransactionState.Starting:
+                    transaction.State = TransactionState.InProgress;
+                    return new DeleteHeader(Namespace.CollectionName, true, Namespace.DatabaseName, SharedSessionIdModel, _scheduler.ClusterTime, transaction.TxNumber, true, false);
+                case TransactionState.InProgress:
+                    return new DeleteHeader(Namespace.CollectionName, true, Namespace.DatabaseName, SharedSessionIdModel, _scheduler.ClusterTime, transaction.TxNumber, false);
+                case TransactionState.Implicit:
+                    return new DeleteHeader(Namespace.CollectionName, true, Namespace.DatabaseName, SharedSessionIdModel, transaction.TxNumber);
+                case TransactionState.Committed:
+                    return ThrowEx<DeleteHeader>("Transaction already commited");
+                case TransactionState.Aborted:
+                    return ThrowEx<DeleteHeader>("Transaction already aborted");
+                default:
+                    return ThrowEx<DeleteHeader>("Invalid transaction state");
+            }
         }
 
         internal async ValueTask DropAsync(CancellationToken cancellationToken = default)
