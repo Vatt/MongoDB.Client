@@ -17,5 +17,7 @@ namespace MongoDB.Client.Scheduler
         ValueTask DropCollectionAsync(DropCollectionMessage message, CancellationToken cancellationToken);
         ValueTask CreateCollectionAsync(CreateCollectionMessage message, CancellationToken cancellationToken);
         Task ConnectionLost(MongoConnection connection);
+
+        MongoClusterTime ClusterTime { get; }
     }
 }

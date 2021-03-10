@@ -29,6 +29,9 @@ namespace MongoDB.Client.Scheduler
         private readonly MongoClientSettings _settings;
         private readonly int _maxConnections;
         private static int _counter;
+
+        public MongoClusterTime ClusterTime { get; }
+
         public StandaloneScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
         {
             _connectionFactory = connectionFactory;

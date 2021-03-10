@@ -28,7 +28,8 @@ namespace MongoDB.Client.Scheduler
         private MongoPingMessage _lastPing;
         private int _schedulerCounter = 0;
         private int _requestCounter = 0;
-        private readonly Func<IMongoScheduler> GetReadScheduler;
+
+        public MongoClusterTime ClusterTime => _lastPing?.ClusterTime!;
 
         public ReplicaSetScheduler(MongoClientSettings settings, ILoggerFactory loggerFactory)
         {
@@ -38,14 +39,6 @@ namespace MongoDB.Client.Scheduler
             _loggerFactory = loggerFactory;
             _shedulers = new();
             _slaves = new();
-            if (_settings.ReadPreference == ReadPreference.Secondary || _settings.ReadPreference == ReadPreference.SecondaryPreferred)
-            {
-                GetReadScheduler = GetSlaveScheduler;
-            }
-            else
-            {
-                GetReadScheduler = () => _master!;
-            }
         }
 
 
@@ -136,14 +129,14 @@ namespace MongoDB.Client.Scheduler
 
         public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token)
         {
-            var scheduler = GetScheduler(message);
+            var scheduler = GetScheduler();
             message.Document.ReadPreference = new Messages.ReadPreference(_settings.ReadPreference);
             message.Document.ClusterTime = _lastPing.ClusterTime;
             var result = await scheduler.GetCursorAsync<T>(message, token).ConfigureAwait(false);
             return result;
         }
 
-        private IMongoScheduler GetScheduler(FindMessage message)
+        private IMongoScheduler GetScheduler()
         {
             IMongoScheduler? scheduler = null;
             switch (_settings.ReadPreference)
@@ -170,7 +163,7 @@ namespace MongoDB.Client.Scheduler
                     break;
                 case ReadPreference.Nearest:
                 default:
-                    ThrowSchedulerNotFound();
+                    ReadPreferenceNotSupported(_settings.ReadPreference);
                     break;
             }
             if (scheduler is null)

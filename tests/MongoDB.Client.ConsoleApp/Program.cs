@@ -1,8 +1,10 @@
 using Microsoft.Extensions.Logging;
+using MongoDB.Bson;
 using MongoDB.Client.Tests.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -15,6 +17,31 @@ namespace MongoDB.Client.ConsoleApp
             //await LoadTest<GeoIp>(1024*1024, new[] { 512 });
             await ReplicaSetConenctionTest<GeoIp>(1024, new[] { 1 });
             Console.WriteLine("Done");
+        }
+
+
+        static async Task TestTransaction()
+        {
+            var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder
+                    .SetMinimumLevel(LogLevel.Information)
+                    .AddConsole();
+            });
+            var client = new MongoClient("mongodb://centos.mshome.net:27018,centos.mshome.net:27019,centos.mshome.net:27020/?replicaSet=rs0&maxPoolSize=9&appName=MongoDB.Client.ConsoleApp&readPreference=Secondary", loggerFactory);
+            await client.InitAsync();
+            var db = client.GetDatabase("TestDb");
+            var collection = db.GetCollection<GeoIp>("TransactionCollection");
+            var item = new GeoIpSeeder().GenerateSeed(1).First();
+
+            var transaction = client.StartTransaction();
+
+            await collection.InsertAsync(item);
+            var filter = new Bson.Document.BsonDocument("_id", item.Id);
+            await collection.Find(filter).FirstOrDefaultAsync();
+            await collection.DeleteOneAsync(filter);
+
+            await transaction.CommitAsync();
         }
 
         static async Task ReplicaSetConenctionTest<T>(int requestCount, IEnumerable<int> parallelism) where T : IIdentified
