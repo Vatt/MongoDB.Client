@@ -22,11 +22,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public class CaseContext : SwitchCaseContextBase
         {
-            public int Offset { get; }
             public MemberContext Member { get; }
-            public CaseContext(int key, int offset, MemberContext ctx) : base(key/*, offset*/)
+            public CaseContext(int key, MemberContext ctx) : base(key)
             {
-                Offset = offset;
                 Member = ctx;
             }
         }
@@ -126,12 +124,19 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var value = pair.Value;
                 if (value.Count  == 1)
                 {
-                    host.Add(new CaseContext(key, offset, value[0]));
+                    host.Add(new CaseContext(key, value[0]));
                 }
                 else
                 {
-                    var temp = new SwitchContext(key, offset);
-                    host.Add(CreateSwitchContext(value, offset, temp));
+                    var groups1 = GroupMembers(offset, value);
+                    var offset1 = 0;
+                    while (groups1.Values.Count == 1 && groups1.Values.First().Count > 1)
+                    {
+                        offset1 += 1;
+                        groups1 = GroupMembers(offset1, value);
+                    }
+                    var temp = new SwitchContext(key, offset1);
+                    host.Add(CreateSwitchContext(value, offset1, temp));
                 }
             }
             return host;
@@ -147,7 +152,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 groups = GroupMembers(offset, ctx.Members);
             }
             var root = new SwitchContext(offset);
-            var genCtx = CreateSwitchContext(ctx.Members, 0, root);
+            var genCtx = CreateSwitchContext(ctx.Members, offset, root);
             return GenerateSwitch(ctx, root, 1, bsonType, bsonName);
         }
         private static StatementSyntax[]  GenerateSwitch(ContextCore ctx, SwitchContext switchCtx, int testVarCnt, SyntaxToken bsonType, SyntaxToken bsonName)

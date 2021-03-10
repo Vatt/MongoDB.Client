@@ -29,7 +29,7 @@ namespace MongoDB.Client.Bson.Reader
         {
             if ((nameSpan.Length - offset) >= 4)
             {
-                value = BinaryPrimitives.ReadInt32LittleEndian(nameSpan);
+                value = BinaryPrimitives.ReadInt32LittleEndian(nameSpan.Slice(offset));
                 return true;
             }
             else if ((nameSpan.Length - offset ) == 3)
