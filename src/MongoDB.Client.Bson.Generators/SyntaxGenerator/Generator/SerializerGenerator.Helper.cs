@@ -65,6 +65,24 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return false;
         }
 
+        public static int GetGeneratorMode(INamedTypeSymbol symbol)
+        {
+            var bsonAttr = BsonSerializableAttr;
+            foreach (var attr in symbol.GetAttributes())
+            {
+                if (attr.AttributeClass!.Equals(bsonAttr, SymbolEqualityComparer.Default))
+                {
+                    if (attr.ConstructorArguments.IsEmpty)
+                    {
+                        return 1;
+                    }
+                    return (int)attr.ConstructorArguments[0].Value;
+                }
+            }
+
+            return -1;
+        }
+
         public static bool HaveParseWriteMethods(ISymbol typeSym, ISymbol retType = null)
         {
             ISymbol returnType = retType ?? typeSym;

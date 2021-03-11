@@ -32,6 +32,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         internal ImmutableArray<ITypeSymbol>? GenericArgs { get; }
         internal ImmutableArray<IParameterSymbol>? ConstructorParams { get; }
         internal NameStatistics NameStatistics { get; }
+        internal int GeneratorMode { get; }
         internal SyntaxToken SerializerName
         {
             get
@@ -50,6 +51,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             DeclarationNode = node;
             Members = new List<MemberContext>();
             GenericArgs = Declaration.TypeArguments.IsEmpty ? null : Declaration.TypeArguments;
+            GeneratorMode = SerializerGenerator.GetGeneratorMode(symbol);
             if (SerializerGenerator.TryFindPrimaryConstructor(Declaration, node, out var constructor))
             {
                 if (constructor!.Parameters.Length != 0)

@@ -69,8 +69,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                   IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(bsonTypeToken))),
                                   IfNotReturnFalse(TryGetCStringAsSpan(VarVariableDeclarationExpr(bsonNameToken))),
                                   IfContinue(BinaryExprEqualsEquals(IdentifierName(bsonTypeToken), NumericLiteralExpr(10))),
-                                  //Operations(ctx, bsonTypeToken, bsonNameToken),
-                                  SwitchTryParseOperations(ctx, bsonTypeToken, bsonNameToken),
+                                  ctx.GeneratorMode == 1 ? Operations(ctx, bsonTypeToken, bsonNameToken) : SwitchTryParseOperations(ctx, bsonTypeToken, bsonNameToken),
                                   IfNotReturnFalse(TrySkip(IdentifierName(bsonTypeToken))))),
                           IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
                           SF.IfStatement(
