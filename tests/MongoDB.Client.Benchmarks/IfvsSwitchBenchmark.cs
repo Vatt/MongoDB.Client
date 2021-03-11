@@ -31,9 +31,9 @@ namespace MongoDB.Client.Benchmarks
             var writerSwitch = new BsonWriter(_readSwitchBuffer);
             IfShortNamesModel.WriteBson(ref writerIf, _ifShort);
             SwitchShortNamesModel.WriteBson(ref writerSwitch, _switchShort);
-            var writerSwitchGroup = new BsonWriter(_readIfBuffer);
-            var writerSwitchNonGroup = new BsonWriter(_readSwitchBuffer);
-            SwitchGroupNamesModel.WriteBson(ref writerSwitchNonGroup, _switchGroup);
+            var writerSwitchGroup = new BsonWriter(_readSwitchGroupBuffer);
+            var writerSwitchNonGroup = new BsonWriter(_readSwitchNonGroupBuffer);
+            SwitchGroupNamesModel.WriteBson(ref writerSwitchGroup, _switchGroup);
             SwitchNonGroupNamesModel.WriteBson(ref writerSwitchNonGroup, _switchNonGroup);
         }
         [Benchmark]
@@ -54,7 +54,7 @@ namespace MongoDB.Client.Benchmarks
         [Benchmark]
         public SwitchGroupNamesModel ReadSwitchGroup()
         {
-            var reader = new BsonReader(_readIfBuffer.WrittenMemory);
+            var reader = new BsonReader(_readSwitchGroupBuffer.WrittenMemory);
             SwitchGroupNamesModel.TryParseBson(ref reader, out var parsedItem);
             return parsedItem;
         }
@@ -62,7 +62,7 @@ namespace MongoDB.Client.Benchmarks
         [Benchmark]
         public SwitchNonGroupNamesModel ReadSwitchNonGroup()
         {
-            var reader = new BsonReader(_readSwitchBuffer.WrittenMemory);
+            var reader = new BsonReader(_readSwitchNonGroupBuffer.WrittenMemory);
             SwitchNonGroupNamesModel.TryParseBson(ref reader, out var parsedItem);
             return parsedItem;
         }
