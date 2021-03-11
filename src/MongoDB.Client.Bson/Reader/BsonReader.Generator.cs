@@ -44,10 +44,7 @@ namespace MongoDB.Client.Bson.Reader
         [MethodImpl(MethodImplOptions.NoInlining)]
         private int GetIntFromNameSpanSlow(ReadOnlySpan<byte> nameSpan)
         {
-            var length = nameSpan.Length;
-            var offs = sizeof(int) - length;
             Span<byte> buffer = stackalloc byte[sizeof(int)];
-            //nameSpan.CopyTo(buffer.Slice(offs, length));
             nameSpan.CopyTo(buffer);
             var cast = MemoryMarshal.Cast<byte, int>(buffer);
             return cast[0];

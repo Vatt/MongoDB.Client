@@ -6,6 +6,7 @@ using System.Buffers.Binary;
 using System.Collections.Generic;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
@@ -54,56 +55,27 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             foreach (var member in members)
             {
                 var nameSpan = member.ByteName.Span;
-                if ((nameSpan.Length - offset) >= 4)
+                nameSpan = nameSpan.Slice(offset);
+                int key = default;
+                if (nameSpan.Length >= sizeof(int))
                 {
-                    var intPart = BinaryPrimitives.ReadInt32LittleEndian(nameSpan.Slice(offset, 4));
-                    if (groups.ContainsKey(intPart))
-                    {
-                        groups[intPart].Add(member);
-                    }
-                    else
-                    {
-                        groups.Add(intPart, new() { member });
-                    }
-                }
-                else if ((nameSpan.Length - offset) >= 3)
-                {
-                    Span<byte> buffer = stackalloc byte[4];
-                    nameSpan.Slice(offset, 3).CopyTo(buffer.Slice(1, 3));
-                    var part = BinaryPrimitives.ReadInt32LittleEndian(buffer);
-                    if (groups.ContainsKey(part))
-                    {
-                        groups[part].Add(member);
-                    }
-                    else
-                    {
-                        groups.Add(part, new() { member });
-                    }
-                }
-                else if ((nameSpan.Length - offset) >= 2)
-                {
-
-                    var shortPart = BinaryPrimitives.ReadInt16LittleEndian(nameSpan.Slice(offset, 2));
-                    if (groups.ContainsKey(shortPart))
-                    {
-                        groups[shortPart].Add(member);
-                    }
-                    else
-                    {
-                        groups.Add(shortPart, new() { member });
-                    }
+                    var cast = MemoryMarshal.Cast<byte, int>(nameSpan);
+                    key =  cast[0];
                 }
                 else
                 {
-                    var bytePart = nameSpan[0];
-                    if (groups.ContainsKey(bytePart))
-                    {
-                        groups[bytePart].Add(member);
-                    }
-                    else
-                    {
-                        groups.Add(bytePart, new() { member });
-                    }
+                    Span<byte> buffer = stackalloc byte[sizeof(int)];
+                    nameSpan.CopyTo(buffer);
+                    var cast = MemoryMarshal.Cast<byte, int>(buffer);
+                    key = cast[0];
+                }
+                if (groups.ContainsKey(key))
+                {
+                    groups[key].Add(member);
+                }
+                else
+                {
+                    groups.Add(key, new() { member });
                 }
             }
             return groups;
