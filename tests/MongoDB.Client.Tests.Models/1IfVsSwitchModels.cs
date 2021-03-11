@@ -6,148 +6,183 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 namespace MongoDB.Client.Tests.Models
 {
     [BsonSerializable]
-    public partial class IfShortNamesModel : IEquatable<IfShortNamesModel>
+    public partial class IfShortNamesModel
     {
-        public int A;
-        public double BB;
-        public string CCC;
-        public DateTimeOffset DDDD;
-        public long EEEEE;
-        public BsonDocument FFFFFF;
+        public int AAA11;
+        public int AAA12;
+        public int AAA13;
+        public int AAA14;
+        public int AAA15;
+        public int AAA16;
+        public int BBB11;
+        public int BBB12;
+        public int BBB13;
+        public int BBB14;
+        public int BBB15;
+        public int BBB16;
+        /*public int A;
+        public int BB;
+        public int CCC;
+        public int DDDD;
+        public int EEEEE;
+        public int FFFFFF;
         public int GGGGGGG;
-        public double HHHHHHHH;
-        public string IIIIIIIII;
-        public DateTimeOffset JJJJJJJJJJ;
-        public long KKKKKKKKKKK;
-        public BsonDocument LLLLLLLLLLLL;
+        public int HHHHHHHH;
+        public int IIIIIIIII;
+        public int JJJJJJJJJJ;
+        public int KKKKKKKKKKK;
+        public int LLLLLLLLLLLL;*/
 
         public static IfShortNamesModel Create()
         {
             return new IfShortNamesModel
             {
-                A = 42,
+                AAA11 = 42,
+                AAA12 = 42,
+                AAA13 = 42,
+                AAA14 = 42,
+                AAA15 = 42,
+                AAA16 = 42,
+                BBB11 = 42,
+                BBB12 = 42,
+                BBB13 = 42,
+                BBB14 = 42,
+                BBB15 = 42,
+                BBB16 = 42,
+                /*A = 42,
                 BB = 42,
-                CCC = "42",
-                DDDD = new DateTimeOffset(2021, 03, 06, 21, 48, 42, TimeSpan.Zero),
+                CCC = 42,
+                DDDD = 42,
                 EEEEE = 42,
-                FFFFFF = new BsonDocument("42", "42"),
+                FFFFFF = 42,
                 GGGGGGG = 42,
                 HHHHHHHH = 42,
-                IIIIIIIII = "42",
-                JJJJJJJJJJ = new DateTimeOffset(2021, 03, 06, 21, 48, 42, TimeSpan.Zero),
+                IIIIIIIII = 42,
+                JJJJJJJJJJ = 42,
                 KKKKKKKKKKK = 42,
-                LLLLLLLLLLLL = new BsonDocument("42", "42")
+                LLLLLLLLLLLL = 42,*/
             };
-        }
-
-        public bool Equals(IfShortNamesModel? other)
-        {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
-            return A == other.A && BB.Equals(other.BB) && CCC == other.CCC && DDDD.Equals(other.DDDD) && 
-                   EEEEE == other.EEEEE && FFFFFF.Equals(other.FFFFFF) && GGGGGGG == other.GGGGGGG && 
-                   HHHHHHHH.Equals(other.HHHHHHHH) && IIIIIIIII == other.IIIIIIIII && 
-                   JJJJJJJJJJ.Equals(other.JJJJJJJJJJ) && KKKKKKKKKKK == other.KKKKKKKKKKK && 
-                   LLLLLLLLLLLL.Equals(other.LLLLLLLLLLLL);
-        }
-
-        public override bool Equals(object? obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((IfShortNamesModel) obj);
-        }
-
-        public override int GetHashCode()
-        {
-            var hashCode = new HashCode();
-            hashCode.Add(A);
-            hashCode.Add(BB);
-            hashCode.Add(CCC);
-            hashCode.Add(DDDD);
-            hashCode.Add(EEEEE);
-            hashCode.Add(FFFFFF);
-            hashCode.Add(GGGGGGG);
-            hashCode.Add(HHHHHHHH);
-            hashCode.Add(IIIIIIIII);
-            hashCode.Add(JJJJJJJJJJ);
-            hashCode.Add(KKKKKKKKKKK);
-            hashCode.Add(LLLLLLLLLLLL);
-            return hashCode.ToHashCode();
         }
     }
 
-    [BsonSerializable(GeneratorMode.SwitchOperations)]
-    public partial class SwitchShortNamesModel : IEquatable<SwitchShortNamesModel>
-    {
-        public int A;
-        public double BB;
-        public string CCC;
-        public DateTimeOffset DDDD;
-        public long EEEEE;
-        public BsonDocument FFFFFF;
-        public int GGGGGGG;
-        public double HHHHHHHH;
-        public string IIIIIIIII;
-        public DateTimeOffset JJJJJJJJJJ;
-        public long KKKKKKKKKKK;
-        public BsonDocument LLLLLLLLLLLL;
-
-        public static SwitchShortNamesModel Create()
+        [BsonSerializable(GeneratorMode.SwitchOperations)]
+        public partial class SwitchShortNamesModel
         {
-            return new SwitchShortNamesModel
+            public int AAA11;
+            public int AAA12;
+            public int AAA13;
+            public int AAA14;
+            public int AAA15;
+            public int AAA16;
+            public int BBB11;
+            public int BBB12;
+            public int BBB13;
+            public int BBB14;
+            public int BBB15;
+
+            public int BBB16;
+            /*public int A;
+            public int BB;
+            public int CCC;
+            public int DDDD;
+            public int EEEEE;
+            public int FFFFFF;
+            public int GGGGGGG;
+            public int HHHHHHHH;
+            public int IIIIIIIII;
+            public int JJJJJJJJJJ;
+            public int KKKKKKKKKKK;
+            public int LLLLLLLLLLLL;*/
+
+            public static SwitchShortNamesModel Create()
             {
-                A = 42,
-                BB = 42,
-                CCC = "42",
-                DDDD = new DateTimeOffset(2021, 03, 06, 21, 48, 42, TimeSpan.Zero),
-                EEEEE = 42,
-                FFFFFF = new BsonDocument("42", "42"),
-                GGGGGGG = 42,
-                HHHHHHHH = 42,
-                IIIIIIIII = "42",
-                JJJJJJJJJJ = new DateTimeOffset(2021, 03, 06, 21, 48, 42, TimeSpan.Zero),
-                KKKKKKKKKKK = 42,
-                LLLLLLLLLLLL = new BsonDocument("42", "42")
-            };
+                return new SwitchShortNamesModel
+                {
+                    AAA11 = 42,
+                    AAA12 = 42,
+                    AAA13 = 42,
+                    AAA14 = 42,
+                    AAA15 = 42,
+                    AAA16 = 42,
+                    BBB11 = 42,
+                    BBB12 = 42,
+                    BBB13 = 42,
+                    BBB14 = 42,
+                    BBB15 = 42,
+                    BBB16 = 42,
+                    /*A = 42,
+                    BB = 42,
+                    CCC = 42,
+                    DDDD = 42,
+                    EEEEE = 42,
+                    FFFFFF = 42,
+                    GGGGGGG = 42,
+                    HHHHHHHH = 42,
+                    IIIIIIIII = 42,
+                    JJJJJJJJJJ = 42,
+                    KKKKKKKKKKK = 42,
+                    LLLLLLLLLLLL = 42,*/
+                };
+            }
         }
-
-        public bool Equals(SwitchShortNamesModel? other)
+        [BsonSerializable(GeneratorMode.SwitchOperations)]
+        public partial class SwitchGroupNamesModel
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
-            return A == other.A && BB.Equals(other.BB) && CCC == other.CCC && DDDD.Equals(other.DDDD) && 
-                   EEEEE == other.EEEEE && FFFFFF.Equals(other.FFFFFF) && GGGGGGG == other.GGGGGGG && 
-                   HHHHHHHH.Equals(other.HHHHHHHH) && IIIIIIIII == other.IIIIIIIII && 
-                   JJJJJJJJJJ.Equals(other.JJJJJJJJJJ) && KKKKKKKKKKK == other.KKKKKKKKKKK && 
-                   LLLLLLLLLLLL.Equals(other.LLLLLLLLLLLL);
+            public int AAA11;
+            public int AAA12;
+            public int AAA13;
+            public int AAA14;
+            public int AAA15;
+            public int BBB11;
+            public int BBB12;
+            public int BBB13;
+            public int BBB14;
+            public int BBB15;
+            public static SwitchGroupNamesModel Create()
+            {
+                return new SwitchGroupNamesModel
+                {
+                    AAA11 = 42,
+                    AAA12 = 42,
+                    AAA13 = 42,
+                    AAA14 = 42,
+                    AAA15 = 42,
+                    BBB11 = 42,
+                    BBB12 = 42,
+                    BBB13 = 42,
+                    BBB14 = 42,
+                    BBB15 = 42,
+ };
+            }
         }
-
-        public override bool Equals(object? obj)
+        [BsonSerializable(GeneratorMode.SwitchOperations)]
+        public partial class SwitchNonGroupNamesModel
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((SwitchShortNamesModel) obj);
-        }
-
-        public override int GetHashCode()
-        {
-            var hashCode = new HashCode();
-            hashCode.Add(A);
-            hashCode.Add(BB);
-            hashCode.Add(CCC);
-            hashCode.Add(DDDD);
-            hashCode.Add(EEEEE);
-            hashCode.Add(FFFFFF);
-            hashCode.Add(GGGGGGG);
-            hashCode.Add(HHHHHHHH);
-            hashCode.Add(IIIIIIIII);
-            hashCode.Add(JJJJJJJJJJ);
-            hashCode.Add(KKKKKKKKKKK);
-            hashCode.Add(LLLLLLLLLLLL);
-            return hashCode.ToHashCode();
+            public int AAA10;
+            public int AAA11;
+            public int AAA12;
+            public int AAA13;
+            public int AAA14;
+            public int AAA15;
+            public int AAA16;
+            public int AAA17;
+            public int AAA18;
+            public int AAA19;
+            public static SwitchNonGroupNamesModel Create()
+            {
+                return new SwitchNonGroupNamesModel
+                {
+                    AAA10 = 42,
+                    AAA11 = 42,
+                    AAA12 = 42,
+                    AAA13 = 42,
+                    AAA14 = 42,
+                    AAA15 = 42,
+                    AAA16 = 42,
+                    AAA17 = 42,
+                    AAA18 = 42,
+                    AAA19 = 42,
+                };
+            }
         }
     }
-}

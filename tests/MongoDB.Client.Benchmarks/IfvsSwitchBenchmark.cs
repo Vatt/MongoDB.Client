@@ -11,46 +11,61 @@ namespace MongoDB.Client.Benchmarks
     {
         private IfShortNamesModel _ifShort = IfShortNamesModel.Create();
         private SwitchShortNamesModel _switchShort = SwitchShortNamesModel.Create();
-        private ArrayBufferWriter _writeBuffer;
-        private ArrayBufferWriter _readBuffer;
+        private SwitchGroupNamesModel _switchGroup = SwitchGroupNamesModel.Create();
+        private SwitchNonGroupNamesModel _switchNonGroup = SwitchNonGroupNamesModel.Create();
+        private ArrayBufferWriter _readIfBuffer;
+        private ArrayBufferWriter _readSwitchBuffer;
+        private ArrayBufferWriter _readSwitchGroupBuffer;
+        private ArrayBufferWriter _readSwitchNonGroupBuffer;
         
         [GlobalSetup]
         public void Setup()
         {
             _ifShort = IfShortNamesModel.Create();
             _switchShort = SwitchShortNamesModel.Create();
-            _writeBuffer = new ArrayBufferWriter(1024 * 1024);
-            _readBuffer = new ArrayBufferWriter(1024 * 1024);
+            _readIfBuffer = new ArrayBufferWriter(1024 * 1024);
+            _readSwitchBuffer = new ArrayBufferWriter(1024 * 1024);
+            _readSwitchGroupBuffer = new ArrayBufferWriter(1024 * 1024);
+            _readSwitchNonGroupBuffer = new ArrayBufferWriter(1024 * 1024);
+            var writerIf = new BsonWriter(_readIfBuffer);
+            var writerSwitch = new BsonWriter(_readSwitchBuffer);
+            IfShortNamesModel.WriteBson(ref writerIf, _ifShort);
+            SwitchShortNamesModel.WriteBson(ref writerSwitch, _switchShort);
+            var writerSwitchGroup = new BsonWriter(_readIfBuffer);
+            var writerSwitchNonGroup = new BsonWriter(_readSwitchBuffer);
+            SwitchGroupNamesModel.WriteBson(ref writerSwitchNonGroup, _switchGroup);
+            SwitchNonGroupNamesModel.WriteBson(ref writerSwitchNonGroup, _switchNonGroup);
         }
         [Benchmark]
         public IfShortNamesModel ReadIf()
         {
-            var reader = new BsonReader(_readBuffer.WrittenMemory);
+            var reader = new BsonReader(_readIfBuffer.WrittenMemory);
             IfShortNamesModel.TryParseBson(ref reader, out var parsedItem);
             return parsedItem;
         }
 
         [Benchmark]
-        public void WriteIf()
-        {
-            _writeBuffer.Reset();
-            var writer = new BsonWriter(_writeBuffer);
-            IfShortNamesModel.WriteBson(ref writer, _ifShort);
-        }
-        [Benchmark]
         public SwitchShortNamesModel ReadSwitch()
         {
-            var reader = new BsonReader(_readBuffer.WrittenMemory);
+            var reader = new BsonReader(_readSwitchBuffer.WrittenMemory);
             SwitchShortNamesModel.TryParseBson(ref reader, out var parsedItem);
+            return parsedItem;
+        }
+        [Benchmark]
+        public SwitchGroupNamesModel ReadSwitchGroup()
+        {
+            var reader = new BsonReader(_readIfBuffer.WrittenMemory);
+            SwitchGroupNamesModel.TryParseBson(ref reader, out var parsedItem);
             return parsedItem;
         }
 
         [Benchmark]
-        public void WriteSwitch()
+        public SwitchNonGroupNamesModel ReadSwitchNonGroup()
         {
-            _writeBuffer.Reset();
-            var writer = new BsonWriter(_writeBuffer);
-            SwitchShortNamesModel.WriteBson(ref writer, _switchShort);
+            var reader = new BsonReader(_readSwitchBuffer.WrittenMemory);
+            SwitchNonGroupNamesModel.TryParseBson(ref reader, out var parsedItem);
+            return parsedItem;
         }
+
     }
 }
