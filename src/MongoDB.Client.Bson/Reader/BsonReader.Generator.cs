@@ -6,6 +6,7 @@ using System;
 using System.Buffers.Binary;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace MongoDB.Client.Bson.Reader
 {
@@ -25,33 +26,33 @@ namespace MongoDB.Client.Bson.Reader
             throw new SerializerIsNullException(typeName);
         }
 
-        public bool TryGetIntFromNameSpan(ReadOnlySpan<byte> nameSpan, int offset,  out int value)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetIntFromNameSpan(ReadOnlySpan<byte> nameSpan, int offset)
         {
-            if ((nameSpan.Length - offset) >= 4)
+            nameSpan = nameSpan.Slice(offset);
+            if (nameSpan.Length >= sizeof(int))
             {
-                value = BinaryPrimitives.ReadInt32LittleEndian(nameSpan.Slice(offset));
-                return true;
+                var cast = MemoryMarshal.Cast<byte, int>(nameSpan);
+                return cast[0];
             }
-            else if ((nameSpan.Length - offset ) == 3)
+            else
             {
-                Span<byte> buffer = stackalloc byte[4];
-                nameSpan.Slice(offset, 3).CopyTo(buffer.Slice(1, 3));
-                value = BinaryPrimitives.ReadInt32LittleEndian(buffer);
-                return true;
-            }else if ((nameSpan.Length - offset) == 2)
-            {
-                value = BinaryPrimitives.ReadInt16LittleEndian(nameSpan);
+                return GetIntFromNameSpanSlow(nameSpan);
             }
-            else if(nameSpan.Length == 1)
-            {
-                value = nameSpan[0];
-                return true;
-            }
-
-            value = default;
-            return false;
-
         }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private int GetIntFromNameSpanSlow(ReadOnlySpan<byte> nameSpan)
+        {
+            var length = nameSpan.Length;
+            var offs = sizeof(int) - length;
+            Span<byte> buffer = stackalloc byte[sizeof(int)];
+            nameSpan.CopyTo(buffer.Slice(offs, length));
+            var cast = MemoryMarshal.Cast<byte, int>(buffer);
+            return cast[0];
+        }
+
+
         public unsafe bool TryReadGeneric<T>(int bsonType, [MaybeNullWhen(false)] out T genericValue)
         {
             genericValue = default;
