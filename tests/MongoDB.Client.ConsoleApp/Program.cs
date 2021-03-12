@@ -15,7 +15,8 @@ namespace MongoDB.Client.ConsoleApp
         static async Task Main(string[] args)
         {
             //await LoadTest<GeoIp>(1024*1024, new[] { 512 });
-            await ReplicaSetConenctionTest<GeoIp>(1024, new[] { 1 });
+            //await ReplicaSetConenctionTest<GeoIp>(1024, new[] { 1 });
+            await TestTransaction();
             Console.WriteLine("Done");
         }
 
@@ -28,18 +29,18 @@ namespace MongoDB.Client.ConsoleApp
                     .SetMinimumLevel(LogLevel.Information)
                     .AddConsole();
             });
-            var client = new MongoClient("mongodb://centos.mshome.net:27018,centos.mshome.net:27019,centos.mshome.net:27020/?replicaSet=rs0&maxPoolSize=9&appName=MongoDB.Client.ConsoleApp&readPreference=Secondary", loggerFactory);
+            var client = new MongoClient("mongodb://centos.mshome.net:27018,centos.mshome.net:27019,centos.mshome.net:27020/?replicaSet=rs0&maxPoolSize=9&appName=MongoDB.Client.ConsoleApp&readPreference=Primary", loggerFactory);
             await client.InitAsync();
             var db = client.GetDatabase("TestDb");
             var collection = db.GetCollection<GeoIp>("TransactionCollection");
             var item = new GeoIpSeeder().GenerateSeed(1).First();
 
-            var transaction = client.StartTransaction();
+            await using var transaction = client.StartTransaction();
 
-            await collection.InsertAsync(item);
+            await collection.InsertAsync(transaction, item);
             var filter = new Bson.Document.BsonDocument("_id", item.Id);
-            await collection.Find(filter).FirstOrDefaultAsync();
-            await collection.DeleteOneAsync(filter);
+            await collection.Find(transaction, filter).FirstOrDefaultAsync();
+            await collection.DeleteOneAsync(transaction, filter);
 
             await transaction.CommitAsync();
         }

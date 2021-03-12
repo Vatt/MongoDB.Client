@@ -36,5 +36,31 @@ namespace MongoDB.Client.Bson.Document
         {
             return Type == other.Type && Value.Equals(other.Value);
         }
+
+        public override string ToString()
+        {
+            if (Value is null)
+            {
+                return "null";
+            }
+
+            switch (Type)
+            {
+                case BsonBinaryDataType.UUID:
+                    var guid = (Guid)Value;
+                    return $"CSUUID(\"{guid.ToString()}\")";
+                case BsonBinaryDataType.Generic:
+                case BsonBinaryDataType.BinaryOld:
+                case BsonBinaryDataType.UUIDOld:
+                case BsonBinaryDataType.MD5:
+                case BsonBinaryDataType.EncryptedBSONValue:
+                case BsonBinaryDataType.UserDefined:
+                default:
+                    var array = Value as byte[];
+                    var base64 = Convert.ToBase64String(array);
+                    var type = (int)Type;
+                    return $"new BinData({type}, \"{base64}\")";
+            }
+        }
     }
 }

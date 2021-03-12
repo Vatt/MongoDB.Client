@@ -134,13 +134,12 @@ namespace MongoDB.Client.Scheduler
 
         public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token)
         {
-            var scheduler = GetScheduler();
-            message.Document.ReadPreference = new Messages.ReadPreference(_settings.ReadPreference);
+            var scheduler = GetScheduler(message);
             var result = await scheduler.GetCursorAsync<T>(message, token).ConfigureAwait(false);
             return result;
         }
 
-        private IMongoScheduler GetScheduler()
+        private IMongoScheduler GetScheduler(FindMessage message)
         {
             IMongoScheduler? scheduler = null;
             switch (_settings.ReadPreference)
@@ -153,16 +152,22 @@ namespace MongoDB.Client.Scheduler
                     if (scheduler is null)
                     {
                         scheduler = GetSlaveScheduler();
+                        message.Document.ReadPreference = new Messages.ReadPreference(_settings.ReadPreference);
                     }
                     break;
                 case ReadPreference.Secondary:
                     scheduler = GetSlaveScheduler();
+                    message.Document.ReadPreference = new Messages.ReadPreference(_settings.ReadPreference);
                     break;
                 case ReadPreference.SecondaryPreferred:
                     scheduler = GetSlaveScheduler();
                     if (scheduler is null)
                     {
                         scheduler = _master;
+                    }
+                    else
+                    {
+                        message.Document.ReadPreference = new Messages.ReadPreference(_settings.ReadPreference);
                     }
                     break;
                 case ReadPreference.Nearest:
@@ -182,6 +187,10 @@ namespace MongoDB.Client.Scheduler
             return _master.InsertAsync(message, token);
         }
 
+        public ValueTask TransactionAsync(TransactionMessage message, CancellationToken token)
+        {
+            return _master.TransactionAsync(message, token);
+        }
 
         // TODO:
         [DoesNotReturn]

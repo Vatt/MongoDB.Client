@@ -30,5 +30,10 @@ namespace MongoDB.Client.Bson.Document
 
             return false;
         }
+
+        public override string ToString()
+        {
+            return $"Timestamp({Timestamp}, {Increment})";
+        }
     }
 }

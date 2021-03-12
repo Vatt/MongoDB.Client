@@ -114,7 +114,9 @@ namespace MongoDB.Client.Bson.Document
             c[22] = ToHexChar((Part3 >> 4) & 0x0f);
             c[23] = ToHexChar(Part3 & 0x0f);
 
-            return new string(c);
+            var data = new string(c);
+
+            return $"ObjectId(\"{data}\")";
         }
 
         public bool TryWriteBytes(Span<byte> destination)
