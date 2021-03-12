@@ -31,6 +31,11 @@ namespace MongoDB.Client.Scheduler
 
         public MongoClusterTime ClusterTime => _lastPing?.ClusterTime!;
 
+        public SessionId SessionId => SharedSessionIdModel;
+
+        private static readonly SessionId SharedSessionIdModel = new SessionId { Id = Guid.NewGuid() };
+
+
         public ReplicaSetScheduler(MongoClientSettings settings, ILoggerFactory loggerFactory)
         {
             _settings = settings;
@@ -82,7 +87,7 @@ namespace MongoDB.Client.Scheduler
             for (var i = 0; i < _lastPing.Hosts.Count; i++)
             {
                 var host = _lastPing.Hosts[i];
-                var scheduler = new StandaloneScheduler(maxConnections, _settings, new MongoConnectionFactory(host, _loggerFactory), _loggerFactory);
+                var scheduler = new StandaloneScheduler(maxConnections, _settings, new MongoConnectionFactory(host, _loggerFactory), _loggerFactory, SessionId);
                 _shedulers.Add(scheduler);
                 if (host.Equals(_lastPing.Primary))
                 {

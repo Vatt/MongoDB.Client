@@ -31,8 +31,9 @@ namespace MongoDB.Client.Scheduler
         private static int _counter;
 
         public MongoClusterTime ClusterTime { get; }
+        public SessionId SessionId { get; }
 
-        public StandaloneScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
+        public StandaloneScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory, SessionId sessionId)
         {
             _connectionFactory = connectionFactory;
             _logger = loggerFactory.CreateLogger<StandaloneScheduler>();
@@ -45,9 +46,17 @@ namespace MongoDB.Client.Scheduler
             _settings = settings;
             _counter = 0;
             _maxConnections = settings.ConnectionPoolMaxSize;
+            SessionId = sessionId;
         }
-        public StandaloneScheduler(int maxConenctions, MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
-            : this(settings, connectionFactory, loggerFactory)
+
+        public StandaloneScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
+            : this(settings, connectionFactory, loggerFactory, new SessionId { Id = Guid.NewGuid() })
+        {
+        }
+
+
+        public StandaloneScheduler(int maxConenctions, MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory, SessionId sessionId)
+            : this(settings, connectionFactory, loggerFactory, sessionId)
         {
             _maxConnections = maxConenctions;
         }
@@ -141,6 +150,24 @@ namespace MongoDB.Client.Scheduler
             return deleteResult!;
         }
 
+        public async ValueTask TransactionAsync(TransactionMessage message, CancellationToken token)
+        {
+            var request = MongoRequestPool.Get();
+            var taskSource = request.CompletionSource;
+            request.RequestNumber = message.Header.RequestNumber;
+            request.ParseAsync = TransactionCallbackHolder.TransactionParseAsync;
+            request.WriteAsync = (protocol, token) =>
+            {
+                return protocol.WriteAsync(ProtocolWriters.TransactionMessageWriter, message, token);
+            };
+            await _channelWriter.WriteAsync(request);
+            var transactionResult = await taskSource.GetValueTask().ConfigureAwait(false) as TransactionResult;
+            MongoRequestPool.Return(request);
+            if (transactionResult!.Ok != 1)
+            {
+                ThrowHelper.TransactionException(transactionResult!.ErrorMessage!, transactionResult!.Code!.Value, transactionResult!.CodeName!);
+            }
+        }
 
         public async ValueTask DropCollectionAsync(DropCollectionMessage message, CancellationToken cancellationToken)
         {

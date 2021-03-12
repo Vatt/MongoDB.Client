@@ -76,7 +76,7 @@ namespace MongoDB.Client
 
         public TransactionHandler StartTransaction()
         {
-            return TransactionHandler.Create();
+            return TransactionHandler.Create(_scheduler);
         }
     }
 }

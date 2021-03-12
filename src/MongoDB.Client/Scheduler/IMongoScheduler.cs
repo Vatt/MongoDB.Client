@@ -14,10 +14,13 @@ namespace MongoDB.Client.Scheduler
         ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token);
         ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token);
         ValueTask<DeleteResult> DeleteAsync(DeleteMessage message, CancellationToken cancellationToken);
+        ValueTask TransactionAsync(TransactionMessage message, CancellationToken token);
         ValueTask DropCollectionAsync(DropCollectionMessage message, CancellationToken cancellationToken);
         ValueTask CreateCollectionAsync(CreateCollectionMessage message, CancellationToken cancellationToken);
         Task ConnectionLost(MongoConnection connection);
 
         MongoClusterTime ClusterTime { get; }
+
+        SessionId SessionId { get; }
     }
 }

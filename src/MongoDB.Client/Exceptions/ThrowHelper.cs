@@ -208,6 +208,13 @@ namespace MongoDB.Client.Exceptions
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         [DoesNotReturn]
+        public static void TransactionException(string errorMessage, int code, string codename)
+        {
+            throw new MongoCommandException(errorMessage, code, codename);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
         public static void InvalidBsonException()
         {
             throw new MongoException("Invalid bson");
