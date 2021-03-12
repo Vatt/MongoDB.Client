@@ -1,4 +1,5 @@
-﻿using MongoDB.Client.Bson.Serialization.Attributes;
+﻿using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization.Attributes;
 using System.Collections.Generic;
 
 namespace MongoDB.Client.Messages
@@ -14,11 +15,28 @@ namespace MongoDB.Client.Messages
 
         [BsonElement("writeErrors")]
         public List<InsertError>? WriteErrors { get; }
-        public InsertResult(int N, double Ok, List<InsertError>? WriteErrors)
+
+        [BsonElement("opTime")]
+        public OpTime OpTime { get; }
+
+        [BsonElement("electionId")]
+        public BsonObjectId ElectionId { get; }
+
+        [BsonElement("$clusterTime")]
+        public MongoClusterTime ClusterTime { get; }
+
+        [BsonElement("operationTime")]
+        public BsonTimestamp OperationTime { get; }
+
+        public InsertResult(int N, double Ok, List<InsertError>? WriteErrors, OpTime OpTime, BsonObjectId ElectionId, MongoClusterTime ClusterTime, BsonTimestamp OperationTime)
         {
             this.N = N;
             this.Ok = Ok;
             this.WriteErrors = WriteErrors;
+            this.OpTime = OpTime;
+            this.ElectionId = ElectionId;
+            this.ClusterTime = ClusterTime;
+            this.OperationTime = OperationTime;
         }
     }
 
@@ -38,6 +56,22 @@ namespace MongoDB.Client.Messages
             this.Index = Index;
             this.Code = Code;
             this.ErrorMessage = ErrorMessage;
+        }
+    }
+
+    [BsonSerializable]
+    public partial class OpTime
+    {
+        [BsonElement("ts")]
+        public BsonTimestamp Timestamp { get; }
+
+        [BsonElement("t")]
+        public long T { get; }
+
+        public OpTime(BsonTimestamp Timestamp, long T)
+        {
+            this.Timestamp = Timestamp;
+            this.T = T;
         }
     }
 }
