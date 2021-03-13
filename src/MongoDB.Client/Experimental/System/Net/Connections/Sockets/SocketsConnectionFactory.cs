@@ -55,7 +55,11 @@ namespace System.Net.Connections
             IConnectionProperties? options = null,
             CancellationToken cancellationToken = default)
         {
-            if (endPoint == null) throw new ArgumentNullException(nameof(endPoint));
+            if (endPoint == null)
+            {
+                throw new ArgumentNullException(nameof(endPoint));
+            }
+
             cancellationToken.ThrowIfCancellationRequested();
 
             Socket socket = CreateSocket(_addressFamily, _socketType, _protocolType, endPoint, options);

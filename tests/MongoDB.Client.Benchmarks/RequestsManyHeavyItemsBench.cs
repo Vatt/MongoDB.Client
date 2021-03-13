@@ -80,7 +80,9 @@ namespace MongoDB.Client.Benchmarks
                         }
                     }
                     else
+                    {
                         break;
+                    }
                 }
             }
             return counter;

@@ -63,8 +63,14 @@ namespace System.Net.Connections
         {
             ValueTask t = CloseAsync(ConnectionCloseMethod.GracefulShutdown, CancellationToken.None);
 
-            if (t.IsCompleted) t.GetAwaiter().GetResult();
-            else t.AsTask().GetAwaiter().GetResult();
+            if (t.IsCompleted)
+            {
+                t.GetAwaiter().GetResult();
+            }
+            else
+            {
+                t.AsTask().GetAwaiter().GetResult();
+            }
         }
 
         /// <summary>
