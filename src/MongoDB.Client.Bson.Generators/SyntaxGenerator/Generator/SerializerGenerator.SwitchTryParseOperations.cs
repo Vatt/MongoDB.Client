@@ -21,6 +21,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 Key = key;
             }
         }
+        public class ConditionContext : SwitchCaseContextBase
+        {
+            public MemberContext Member { get; }
+            public ConditionContext(MemberContext member) : base(null)
+            {
+                Member = member;
+            }
+        }
         public class CaseContext : SwitchCaseContextBase
         {
             public MemberContext Member { get; }
@@ -29,17 +37,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 Member = ctx;
             }
         }
-        public class SwitchContext : SwitchCaseContextBase
+        public class HostContext : SwitchCaseContextBase
         {
             public int Offset { get; }
             public List<SwitchCaseContextBase> Endnodes { get; }
             public bool IsSingleEndNode => Endnodes.Count == 1 && Endnodes[0] is CaseContext;
-            public SwitchContext(int key, int offset) : base(key)
+            public HostContext(int key, int offset) : base(key)
             {
                 Offset = offset;
                 Endnodes = new();
             }
-            public SwitchContext(int offset) : base(null)
+            public HostContext(int offset) : base(null)
             {
                 Offset = offset;
                 Endnodes = new();
@@ -48,6 +56,56 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 Endnodes.Add(node);
             }
+            public void AddRange(IEnumerable<SwitchCaseContextBase> nodes)
+            {
+                Endnodes.AddRange(nodes);
+            }
+        }
+        public class SwitchContext : HostContext
+        {
+            public SwitchContext(int key, int offset) : base(key, offset)
+            {
+
+            }
+            public SwitchContext(int offset) : base(offset)
+            {
+  
+            }
+            //public int Offset { get; }
+            //public List<SwitchCaseContextBase> Endnodes { get; }
+            //public bool IsSingleEndNode => Endnodes.Count == 1 && Endnodes[0] is CaseContext;
+            //public SwitchContext(int key, int offset) : base(key)
+            //{
+            //    Offset = offset;
+            //    Endnodes = new();
+            //}
+            //public SwitchContext(int offset) : base(null)
+            //{
+            //    Offset = offset;
+            //    Endnodes = new();
+            //}
+            //public void Add(SwitchCaseContextBase node)
+            //{
+            //    Endnodes.Add(node);
+            //}
+        }
+        public class MultiContext : HostContext
+        {
+            public MultiContext(int key, int offset) : base(key, offset)
+            {
+          
+            }
+            //public List<SwitchCaseContextBase> Endnodes { get; }
+            //public int Offset { get; }
+            //public MultiContext(int key, int offset) : base(key)
+            //{
+            //    Offset = offset;
+            //    Endnodes = new();
+            //}
+            //public void Add(SwitchCaseContextBase node)
+            //{
+            //    Endnodes.Add(node);
+            //}
         }
         public static Dictionary<int, List<MemberContext>> GroupMembers(int offset, List<MemberContext> members)
         {

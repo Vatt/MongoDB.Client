@@ -6,7 +6,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 namespace MongoDB.Client.Tests.Models
 {
     [BsonSerializable]
-    public partial class IfShortNamesModel
+    public partial class IfShortNamesModel : IEquatable<IfShortNamesModel>
     {
         public int AAA11;
         public int AAA12;
@@ -63,9 +63,42 @@ namespace MongoDB.Client.Tests.Models
                 LLLLLLLLLLLL = 42,*/
             };
         }
+
+        public bool Equals(IfShortNamesModel? other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return AAA11 == other.AAA11 && AAA12 == other.AAA12 && AAA13 == other.AAA13 && AAA14 == other.AAA14 && AAA15 == other.AAA15 && AAA16 == other.AAA16 && BBB11 == other.BBB11 && BBB12 == other.BBB12 && BBB13 == other.BBB13 && BBB14 == other.BBB14 && BBB15 == other.BBB15 && BBB16 == other.BBB16;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((IfShortNamesModel) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = new HashCode();
+            hashCode.Add(AAA11);
+            hashCode.Add(AAA12);
+            hashCode.Add(AAA13);
+            hashCode.Add(AAA14);
+            hashCode.Add(AAA15);
+            hashCode.Add(AAA16);
+            hashCode.Add(BBB11);
+            hashCode.Add(BBB12);
+            hashCode.Add(BBB13);
+            hashCode.Add(BBB14);
+            hashCode.Add(BBB15);
+            hashCode.Add(BBB16);
+            return hashCode.ToHashCode();
+        }
     }
     [BsonSerializable(GeneratorMode.ContextTree)]
-    public partial class SwitchShortNamesModel
+    public partial class SwitchShortNamesModel : IEquatable<SwitchShortNamesModel>
     {
         public int AAA11;
         public int AAA12;
@@ -122,6 +155,39 @@ namespace MongoDB.Client.Tests.Models
                 KKKKKKKKKKK = 42,
                 LLLLLLLLLLLL = 42,*/
             };
+        }
+
+        public bool Equals(SwitchShortNamesModel? other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return AAA11 == other.AAA11 && AAA12 == other.AAA12 && AAA13 == other.AAA13 && AAA14 == other.AAA14 && AAA15 == other.AAA15 && AAA16 == other.AAA16 && BBB11 == other.BBB11 && BBB12 == other.BBB12 && BBB13 == other.BBB13 && BBB14 == other.BBB14 && BBB15 == other.BBB15 && BBB16 == other.BBB16;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((SwitchShortNamesModel) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = new HashCode();
+            hashCode.Add(AAA11);
+            hashCode.Add(AAA12);
+            hashCode.Add(AAA13);
+            hashCode.Add(AAA14);
+            hashCode.Add(AAA15);
+            hashCode.Add(AAA16);
+            hashCode.Add(BBB11);
+            hashCode.Add(BBB12);
+            hashCode.Add(BBB13);
+            hashCode.Add(BBB14);
+            hashCode.Add(BBB15);
+            hashCode.Add(BBB16);
+            return hashCode.ToHashCode();
         }
     }
     [BsonSerializable(GeneratorMode.ContextTree)]
