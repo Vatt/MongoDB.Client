@@ -122,7 +122,7 @@ namespace MongoDB.Client
                 case TransactionState.InProgress:
                     return new FindRequest(_collectionNamespace.CollectionName, filter, _limit, default, null, _collectionNamespace.DatabaseName, transaction.SessionId, _scheduler.ClusterTime, transaction.TxNumber, false);
                 case TransactionState.Implicit:
-                    return new FindRequest(_collectionNamespace.CollectionName, filter, _limit, default, null, _collectionNamespace.DatabaseName, transaction.SessionId, transaction.TxNumber);
+                    return new FindRequest(_collectionNamespace.CollectionName, filter, _limit, default, null, _collectionNamespace.DatabaseName, transaction.SessionId);
                 case TransactionState.Committed:
                     return ThrowEx<FindRequest>("Transaction already commited");
                 case TransactionState.Aborted:

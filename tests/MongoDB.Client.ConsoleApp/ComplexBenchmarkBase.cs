@@ -45,18 +45,18 @@ namespace MongoDB.Client.ConsoleApp
             await _collection.DropAsync();
         }
 
-        public async Task Run()
+        public async Task Run(bool useTransaction)
         {
-            await Start(_collection, _items);
+            await Start(_collection, _items, useTransaction);
         }
 
-        private async Task Start(MongoCollection<T> collection, T[] items)
+        private async Task Start(MongoCollection<T> collection, T[] items, bool useTransaction)
         {
             if (Parallelism == 1)
             {
                 foreach (var item in items)
                 {
-                    await Work(collection, item);
+                    await Work(collection, item, useTransaction);
                 }
             }
             else
@@ -65,7 +65,7 @@ namespace MongoDB.Client.ConsoleApp
                 var tasks = new Task[Parallelism];
                 for (int i = 0; i < Parallelism; i++)
                 {
-                    tasks[i] = Worker(collection, channel.Reader);
+                    tasks[i] = Worker(collection, channel.Reader, useTransaction);
                 }
 
                 foreach (var item in items)
@@ -77,15 +77,26 @@ namespace MongoDB.Client.ConsoleApp
                 await Task.WhenAll(tasks);
             }
 
-            static async Task Work(MongoCollection<T> collection, T item)
+            static async Task Work(MongoCollection<T> collection, T item, bool useTransaction)
             {
                 var filter = new BsonDocument("_id", item.Id);
-                await collection.InsertAsync(item);
-                await collection.Find(filter).FirstOrDefaultAsync();
-                await collection.DeleteOneAsync(filter);
+                if (useTransaction)
+                {
+                    await using var transaction = collection.Database.Client.StartTransaction();
+                    await collection.InsertAsync(transaction, item);
+                    await collection.Find(transaction, filter).FirstOrDefaultAsync();
+                    await collection.DeleteOneAsync(transaction, filter);
+                    await transaction.CommitAsync();
+                }
+                else
+                {
+                    await collection.InsertAsync(item);
+                    await collection.Find(filter).FirstOrDefaultAsync();
+                    await collection.DeleteOneAsync(filter);
+                }
             }
 
-            static async Task Worker(MongoCollection<T> collection, ChannelReader<T> reader)
+            static async Task Worker(MongoCollection<T> collection, ChannelReader<T> reader, bool useTransaction)
             {
                 try
                 {
@@ -94,7 +105,7 @@ namespace MongoDB.Client.ConsoleApp
                         var item = await reader.ReadAsync();
                         try
                         {
-                            await Work(collection, item);
+                            await Work(collection, item, useTransaction);
                         }
                         catch (Exception)
                         {
