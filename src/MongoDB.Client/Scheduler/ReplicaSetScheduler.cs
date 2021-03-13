@@ -140,8 +140,9 @@ namespace MongoDB.Client.Scheduler
 
         private IMongoScheduler GetScheduler(FindMessage message)
         {
-            IMongoScheduler? scheduler = null;
-            switch (_settings.ReadPreference)
+            var readPreference = message.Document.TxnNumber is null ? _settings.ReadPreference : ReadPreference.Primary;
+            IMongoScheduler ? scheduler = null;
+            switch (readPreference)
             {
                 case ReadPreference.Primary:
                     scheduler = _master;

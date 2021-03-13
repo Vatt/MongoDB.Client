@@ -68,13 +68,13 @@ namespace MongoDB.Client.Settings
             var readPreference = ReadPreference.Primary;
             if (result.Options.TryGetValue("readPreference", out var readPreferenceStr))
             {
-                readPreference = Enum.Parse<ReadPreference>(readPreferenceStr);
+                readPreference = Enum.Parse<ReadPreference>(readPreferenceStr, true);
             }
 
             var clientType = ClientType.Default;
             if (result.Options.TryGetValue("clientType", out var clientTypeStr))
             {
-                clientType = Enum.Parse<ClientType>(clientTypeStr);
+                clientType = Enum.Parse<ClientType>(clientTypeStr, true);
             }
 
             string appName = "MongoDB.Client";
