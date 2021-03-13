@@ -108,7 +108,7 @@ namespace MongoDB.Client.Bson.Document
 
         public override string ToString()
         {
-            return "\"" + Name + "\": " + ValueToString(Value) + "";
+            return "\"" + Name + "\" : " + ValueToString(Value) + "";
         }
 
         private static string? ValueToString(object? value)

@@ -30,10 +30,10 @@ namespace MongoDB.Client.Scheduler
         private readonly int _maxConnections;
         private static int _counter;
 
-        public MongoClusterTime ClusterTime { get; }
+        public MongoClusterTime? ClusterTime { get; }
         public SessionId SessionId { get; }
 
-        public StandaloneScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory, SessionId sessionId)
+        public StandaloneScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory, SessionId sessionId, MongoClusterTime? clusterTime)
         {
             _connectionFactory = connectionFactory;
             _logger = loggerFactory.CreateLogger<StandaloneScheduler>();
@@ -47,16 +47,17 @@ namespace MongoDB.Client.Scheduler
             _counter = 0;
             _maxConnections = settings.ConnectionPoolMaxSize;
             SessionId = sessionId;
+            ClusterTime = clusterTime;
         }
 
         public StandaloneScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
-            : this(settings, connectionFactory, loggerFactory, new SessionId { Id = Guid.NewGuid() })
+            : this(settings, connectionFactory, loggerFactory, new SessionId(), null)
         {
         }
 
 
-        public StandaloneScheduler(int maxConenctions, MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory, SessionId sessionId)
-            : this(settings, connectionFactory, loggerFactory, sessionId)
+        public StandaloneScheduler(int maxConenctions, MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory, SessionId sessionId, MongoClusterTime clusterTime)
+            : this(settings, connectionFactory, loggerFactory, sessionId, clusterTime)
         {
             _maxConnections = maxConenctions;
         }

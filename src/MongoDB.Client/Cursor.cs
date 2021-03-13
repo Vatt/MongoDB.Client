@@ -4,7 +4,6 @@ using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Messages;
 using MongoDB.Client.Scheduler;
 using MongoDB.Client.Utils;
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,22 +16,19 @@ namespace MongoDB.Client
         private readonly IMongoScheduler _scheduler;
         private readonly BsonDocument _filter;
         private readonly CollectionNamespace _collectionNamespace;
-        private readonly BsonDocument _sessionId;
+        private readonly SessionId _sessionId;
         private int _limit;
-        private static readonly BsonDocument SharedSessionId = new BsonDocument("id", BsonBinaryData.Create(Guid.NewGuid()));
 
-        public static readonly SessionId SharedSession = new SessionId();
+        //internal Cursor(TransactionHandler transaction, IMongoScheduler _scheduler, BsonDocument filter, CollectionNamespace collectionNamespace, SessionId sessionId)
+        //    : this(transaction, _scheduler, filter, collectionNamespace, sessionId)
+        //{
+        //}
 
-        internal Cursor(TransactionHandler transaction, IMongoScheduler _scheduler, BsonDocument filter, CollectionNamespace collectionNamespace)
-            : this(transaction, _scheduler, filter, collectionNamespace, SharedSessionId)
-        {
-        }
-
-        internal Cursor(TransactionHandler transaction, IMongoScheduler channelPool, BsonDocument filter, CollectionNamespace collectionNamespace, Guid sessionId)
-            : this(transaction, channelPool, filter, collectionNamespace, new BsonDocument("id", BsonBinaryData.Create(sessionId)))
-        {
-        }
-        internal Cursor(TransactionHandler transaction, IMongoScheduler scheduler, BsonDocument filter, CollectionNamespace collectionNamespace, BsonDocument sessionId)
+        //internal Cursor(TransactionHandler transaction, IMongoScheduler channelPool, BsonDocument filter, CollectionNamespace collectionNamespace, SessionId sessionId)
+        //    : this(transaction, channelPool, filter, collectionNamespace, sessionId)
+        //{
+        //}
+        internal Cursor(TransactionHandler transaction, IMongoScheduler scheduler, BsonDocument filter, CollectionNamespace collectionNamespace, SessionId sessionId)
         {
             _transaction = transaction;
             _scheduler = scheduler;
@@ -113,11 +109,11 @@ namespace MongoDB.Client
             {
                 case TransactionState.Starting:
                     transaction.State = TransactionState.InProgress;
-                    return new FindRequest(null, null, default, cursorId, null, _collectionNamespace.DatabaseName, SharedSession, _scheduler.ClusterTime, transaction.TxNumber, true, false);
+                    return new FindRequest(null, null, default, cursorId, null, _collectionNamespace.DatabaseName, _sessionId, _scheduler.ClusterTime, transaction.TxNumber, true, false);
                 case TransactionState.InProgress:
-                    return new FindRequest(null, null, default, cursorId, null, _collectionNamespace.DatabaseName, SharedSession, _scheduler.ClusterTime, transaction.TxNumber, false);
+                    return new FindRequest(null, null, default, cursorId, null, _collectionNamespace.DatabaseName, _sessionId, _scheduler.ClusterTime, transaction.TxNumber, false);
                 case TransactionState.Implicit:
-                    return new FindRequest(null, null, default, cursorId, null, _collectionNamespace.DatabaseName, SharedSession, transaction.TxNumber);
+                    return new FindRequest(null, null, default, cursorId, null, _collectionNamespace.DatabaseName, _sessionId, transaction.TxNumber);
                 case TransactionState.Committed:
                     return ThrowEx<FindRequest>("Transaction already commited");
                 case TransactionState.Aborted:
@@ -133,11 +129,11 @@ namespace MongoDB.Client
             {
                 case TransactionState.Starting:
                     transaction.State = TransactionState.InProgress;
-                    return new FindRequest(_collectionNamespace.CollectionName, filter, _limit, default, null, _collectionNamespace.DatabaseName, SharedSession, _scheduler.ClusterTime, transaction.TxNumber, true, false);
+                    return new FindRequest(_collectionNamespace.CollectionName, filter, _limit, default, null, _collectionNamespace.DatabaseName, _sessionId, _scheduler.ClusterTime, transaction.TxNumber, true, false);
                 case TransactionState.InProgress:
-                    return new FindRequest(_collectionNamespace.CollectionName, filter, _limit, default, null, _collectionNamespace.DatabaseName, SharedSession, _scheduler.ClusterTime, transaction.TxNumber, false);
+                    return new FindRequest(_collectionNamespace.CollectionName, filter, _limit, default, null, _collectionNamespace.DatabaseName, _sessionId, _scheduler.ClusterTime, transaction.TxNumber, false);
                 case TransactionState.Implicit:
-                    return new FindRequest(_collectionNamespace.CollectionName, filter, _limit, default, null, _collectionNamespace.DatabaseName, SharedSession, transaction.TxNumber);
+                    return new FindRequest(_collectionNamespace.CollectionName, filter, _limit, default, null, _collectionNamespace.DatabaseName, _sessionId, transaction.TxNumber);
                 case TransactionState.Committed:
                     return ThrowEx<FindRequest>("Transaction already commited");
                 case TransactionState.Aborted:

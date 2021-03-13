@@ -31,7 +31,7 @@ namespace MongoDB.Client
 
         public Cursor<T> Find(TransactionHandler transaction, BsonDocument filter)
         {
-            return new Cursor<T>(transaction, _scheduler, filter, Namespace);
+            return new Cursor<T>(transaction, _scheduler, filter, Namespace, _scheduler.SessionId);
         }
 
         public ValueTask InsertAsync(T item, CancellationToken cancellationToken = default)
