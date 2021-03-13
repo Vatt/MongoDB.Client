@@ -64,7 +64,7 @@ namespace MongoDB.Client.Tests.Models
             };
         }
     }
-    [BsonSerializable(GeneratorMode.SwitchOperations)]
+    [BsonSerializable(GeneratorMode.ContextTree)]
     public partial class SwitchShortNamesModel
     {
         public int AAA11;
@@ -124,7 +124,7 @@ namespace MongoDB.Client.Tests.Models
             };
         }
     }
-    [BsonSerializable(GeneratorMode.SwitchOperations)]
+    [BsonSerializable(GeneratorMode.ContextTree)]
     public partial class SwitchGroupNamesModel
     {
         public int AAA11;
@@ -154,7 +154,7 @@ namespace MongoDB.Client.Tests.Models
             };
         }
     }
-    [BsonSerializable(GeneratorMode.SwitchOperations)]
+    [BsonSerializable(GeneratorMode.ContextTree)]
     public partial class SwitchNonGroupNamesModel
     {
         public int AAA10;
@@ -197,9 +197,9 @@ namespace MongoDB.Client.Tests.Models
         public int BBB13;
         public int BBB14;
         public int BBB15;
-        public static SwitchGroupNamesModel Create()
+        public static ContextTreeGroupNamesModel Create()
         {
-            return new SwitchGroupNamesModel
+            return new ContextTreeGroupNamesModel
             {
                 AAA11 = 42,
                 AAA12 = 42,
