@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
@@ -10,285 +11,220 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        public readonly struct GroupContext
+        public enum OpCtxType
         {
-            public readonly bool NeedCondition;
-            public readonly MemberContext Member;
-            public GroupContext(MemberContext member)
+            Root,
+            Condition,
+            Case,
+            Switch
+        }
+        public class OperationContext
+        {
+            public OpCtxType Type { get; }
+            public int? Key { get; }
+            public int? Offset { get; }
+            public MemberContext Member { get; }
+            public List<OperationContext> InnerOperations;
+            public OperationContext(OpCtxType type, int key, MemberContext member)
             {
-                NeedCondition = false;
+                Type = type;
+                Key = key;
+                Member = member;
+                InnerOperations = new();
+            }
+            public OperationContext(OpCtxType type, int key, int offset)
+            {
+                Key = key;
+                Type = type;
+                Offset = offset;
+                InnerOperations = new();
+            }
+            public OperationContext(OpCtxType type, int offset)
+            {
+                Type = type;
+                Offset = offset;
+                InnerOperations = new();
+            }
+            public OperationContext(OpCtxType type, MemberContext member)
+            {
+                Type = type;
                 Member = member;
             }
-            public GroupContext(bool needContext, MemberContext member)
+            public void AddCondition(MemberContext member)
             {
-                NeedCondition = needContext;
-                Member = member;
+                InnerOperations.Add(new OperationContext(OpCtxType.Condition, member));
+            }
+            public void AddCase(int key, MemberContext member)
+            {
+                InnerOperations.Add(new OperationContext(OpCtxType.Case, key, member));
+            }
+            public void Add(OperationContext operation)
+            {
+                InnerOperations.Add(operation);
             }
         }
-        public static Dictionary<byte, List<GroupContext>> ContextTreeGroupMembers(int offset, List<MemberContext> members, out bool canContinue)
+        public static bool ContextTreeGroupMembers(int offset, List<MemberContext> members, out List<MemberContext> conditions, out Dictionary<byte, List<MemberContext>> groups)
         {
-            canContinue = true;
-            var groups = new Dictionary<byte, List<GroupContext>>();
-            //foreach(var member in members)
-            //{
-            //    if ((member.ByteName.Length - 1) < offset)
-            //    {
-            //        canContinue = false;
-            //        break;
-            //    }
-            //}
+            var canContinue = true;
+            conditions = new List<MemberContext>();
+            groups = new Dictionary<byte, List<MemberContext>>();
             foreach (var member in members)
             {
                 var nameSpan = member.ByteName.Span;
                 if ((nameSpan.Length - 1) < offset)
                 {
                     canContinue = false;
-                    if (groups.ContainsKey((byte)(nameSpan.Length - 1)))
-                    {
-                        groups[(byte)(nameSpan.Length - 1)].Add(new GroupContext(true, member));
-                    }
-                    else
-                    {
-                        groups.Add((byte)(nameSpan.Length - 1), new() { new GroupContext(true, member) });
-                    }
+                    conditions.Add(member);
                     continue;
                 }
-                //if ((nameSpan.Length - 1) >= offset)
-                //{
-                //    if (groups.ContainsKey(key))
-                //    {
-                //        groups[key].Add(new GroupContext(true, member));
-                //    }
-                //    else
-                //    {
-                //        groups.Add(key, new() { new GroupContext(true, member) });
-                //    }
-                //    continue;
-                //}
-                
                 var key = nameSpan[offset];
                 if (groups.ContainsKey(key))
                 {
-                    groups[key].Add(new GroupContext(member));
+                    groups[key].Add(member);
                 }
                 else
                 {
-                    groups.Add(key, new() { new GroupContext(member) });
+                    groups.Add(key, new() { member });
                 }
             }
-            return groups;
+            return canContinue;
         }
-        public static SwitchCaseContextBase CreateContextTreeSwitchContext(List<MemberContext> members, int inputOffset, MultiContext host)
+        public static void CreateContextTreeSwitchContext(List<MemberContext> members, int inputOffset, OperationContext host)
         {
             var offset = inputOffset;
-            var groups = ContextTreeGroupMembers(offset, members, out var canContinue);
+            var canContinue = ContextTreeGroupMembers(offset, members, out var conditions, out var groups);
+            
             while (canContinue && groups.Values.Count == 1 && groups.Values.First().Count > 1)
             {
                 offset += 1;
-                groups = ContextTreeGroupMembers(offset, members, out canContinue);
+                canContinue = ContextTreeGroupMembers(offset, members, out conditions, out groups);
             }
-
+            var operation = new OperationContext(OpCtxType.Case, inputOffset);
+            foreach (var condition in conditions)
+            {
+                operation.AddCondition(condition);
+            }
+            var innerSwitch = new OperationContext(OpCtxType.Switch, offset);
             foreach (var pair in groups)
             {
                 var key = pair.Key;
                 var value = pair.Value;
                 if (value.Count == 1)
                 {
-                    var node = value[0];
-                    if (node.NeedCondition)
-                    {
-                        host.Add(new ConditionContext(node.Member));
-                    }
-                    else
-                    {
-                        //host.Add(new CaseContext(key, node.Member));
-                        host.Add(new ConditionContext(node.Member));
-                    }
-
+                    innerSwitch.AddCase(key, value[0]);
                 }
                 else
                 {
-                    var values = value.Select(g => g.Member).ToList();
-                    var groups1 = ContextTreeGroupMembers(offset, values, out canContinue);
-                    var offset1 = 0;// offset;
-                    while (canContinue && groups1.Values.Count == 1 && groups1.Values.First().Count > 1)
-                    {
-                        offset1 += 1;
-                        var values1 = value.Select(g => g.Member).ToList();
-                        groups1 = ContextTreeGroupMembers(offset1, values1, out canContinue);
-                    }
-                    if (groups1.Values.Count == 1 && groups1.Values.First().Count > 1)
-                    {
-                        var temp1 = new MultiContext(key, offset1);
-                        var conditions = value.Where(g => g.NeedCondition);
-                        foreach (var cond in conditions)
-                        {
-                            host.Add(new ConditionContext(cond.Member));
-                        }
-                        var other = value.Where(g => g.NeedCondition == false).Select(g => g.Member).ToList();
-                        //temp1.Add(CreateContextTreeSwitchContext(other, offset1, temp1));
-                        CreateContextTreeSwitchContext(other, offset1, temp1);
-                        host.Add(temp1);
-                        continue;
-                    }
-                    var temp = new SwitchContext(key, offset1);
-                    host.Add(CreateContextTreeSwitchContext(values, offset1, temp));
+                    var switchOp = new OperationContext(OpCtxType.Switch, key, offset);
+                    CreateContextTreeSwitchContext(value, offset, switchOp);
+                    innerSwitch.Add(switchOp);
                 }
             }
-            return host;
-        }
-        public static SwitchCaseContextBase CreateContextTreeSwitchContext(List<MemberContext> members, int inputOffset, SwitchContext host)
-        {
-            var offset = inputOffset;
-            var groups = ContextTreeGroupMembers(offset, members, out var canContinue);
-            while (canContinue && groups.Values.Count == 1 && groups.Values.First().Count > 1)
-            {
-                offset += 1;
-                groups = ContextTreeGroupMembers(offset, members, out canContinue);
-            }
-
-            foreach (var pair in groups)
-            {
-                var key = pair.Key;
-                var value = pair.Value;
-                if (value.Count == 1)
-                {
-                    var node = value[0];
-                    if (node.NeedCondition)
-                    {
-                        host.Add(new ConditionContext(node.Member));
-                    }
-                    else
-                    {
-                        host.Add(new CaseContext(key, node.Member));
-                    }
-                    //host.Add(new CaseContext(key, node.Member));
-                }
-                else
-                {
-                    var values = value.Select(g => g.Member).ToList();
-                    var groups1 = ContextTreeGroupMembers(offset, values, out canContinue);
-                    var offset1 = 0;// offset;
-                    while (canContinue && groups1.Values.Count == 1 && groups1.Values.First().Count > 1)
-                    {
-                        offset1 += 1;
-                        var values1 = value.Select(g => g.Member).ToList();
-                        groups1 = ContextTreeGroupMembers(offset1, values1, out canContinue);
-                    }
-                    if (groups1.Values.Count == 1 && groups1.Values.First().Count > 1)
-                    {
-                        var temp1 = new MultiContext(key, offset1);
-                        var values1 = value.Select(g => g.Member).ToList();
-                        host.Add(CreateContextTreeSwitchContext(values1, offset1, temp1));
-                        continue;
-                    }
-                    var temp = new SwitchContext(key, offset1);
-                    host.Add(CreateContextTreeSwitchContext(values, offset1, temp));
-                }
-            }
-            return host;
+            operation.Add(innerSwitch);
+            host.Add(operation);
         }
 
         private static StatementSyntax[] ContextTreeTryParseOperations(ContextCore ctx, SyntaxToken bsonType, SyntaxToken bsonName)
         {
             var offset = 0;
-            var groups = ContextTreeGroupMembers(offset, ctx.Members, out var canContinue);
+            var canContinue = ContextTreeGroupMembers(offset, ctx.Members, out var conditions, out var groups);
             while (canContinue && groups.Values.Count == 1 && groups.Values.First().Count > 1)
             {
                 offset += 1;
-                groups = ContextTreeGroupMembers(offset, ctx.Members, out canContinue);
+                canContinue = ContextTreeGroupMembers(offset, ctx.Members, out conditions, out groups);
             }
-            var root = new SwitchContext(offset);
-            var genCtx = CreateContextTreeSwitchContext(ctx.Members, offset, root);
-            return GenerateContextTreeSwitch(ctx, root, bsonType, bsonName);
+            var root = new OperationContext(OpCtxType.Root, offset);
+            foreach(var condition in conditions)
+            {
+                root.AddCondition(condition);
+            }
+            foreach(var group in groups.Where(g => g.Value.Count == 1))
+            {
+                root.AddCase(group.Key, group.Value[0]);
+            }
+            foreach (var group in groups.Where(g => g.Value.Count > 1))
+            {
+                CreateContextTreeSwitchContext(group.Value, offset, root);
+            }
+            
+            return GenerateRoot(ctx, root, bsonType, bsonName);
         }
-        private static StatementSyntax[] GenerateContextTreeSwitch(ContextCore ctx, HostContext switchCtx, SyntaxToken bsonType, SyntaxToken bsonName)
+        private static StatementSyntax[] GenerateContextTreeSwitch(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
         {
+            var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(NumericLiteralExpr(host.Key.Value)));
             var sections = new List<SwitchSectionSyntax>();
-            foreach (var node in switchCtx.Endnodes)
+            foreach (var operation in host.InnerOperations)
             {
-                
-                var builder = ImmutableList.CreateBuilder<StatementSyntax>();
-                if (node is SwitchContext nodectx)
-                {
-                    var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(NumericLiteralExpr(node.Key.Value)));
-                    sections.Add(SF.SwitchSection(label, new SyntaxList<StatementSyntax>(
-                        Block(GenerateContextTreeSwitch(ctx, nodectx, bsonType, bsonName), SF.BreakStatement()))));
-                }else if (node is MultiContext multiCtx)
-                {
-                    var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(NumericLiteralExpr(node.Key.Value)));
-                    List<StatementSyntax> statements = new();
-                    foreach (var endnode in multiCtx.Endnodes)
-                    {
-                        switch (endnode)
-                        {
-                            case MultiContext multiContext:
-                                statements.AddRange(GenerateContextTreeSwitch(ctx, multiContext, bsonType, bsonName));
-                                break;
-                            case SwitchContext switchContext:
-                                statements.AddRange(GenerateContextTreeSwitch(ctx, switchContext, bsonType, bsonName));
-                                break;
-                            case ConditionContext condCtx:
-                                var member = condCtx.Member;
-                                if (TryGenerateParseEnum(member.StaticSpanNameToken, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))
-                                {
-                                    statements.AddRange(builder.ToArray());
-                                }
-                                else if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
-                                {
-                                    statements.AddRange(builder.ToArray());
-                                }
-                                else if (TryGenerateTryParseBson(member, bsonName, builder))
-                                {
-                                    statements.AddRange(builder.ToArray());
-                                }
-                                break;
-                        }
-                    }
-                    sections.Add(SF.SwitchSection(label, new SyntaxList<StatementSyntax>(
-                        Block(statements.ToArray(), SF.BreakStatement()))));
-                }
-                else if (node is ConditionContext condCtx)
-                {
-                    MemberContext member = condCtx.Member;
-                    if (TryGenerateParseEnum(member.StaticSpanNameToken, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))
-                    {
-
-                    }
-                    else if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
-                    {
-
-                    }
-                    else if (TryGenerateTryParseBson(member, bsonName, builder))
-                    {
-
-                    }
-                    return builder.ToArray();
-                }
-                else if (node is CaseContext caseCtx)
-                {
-                    var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(NumericLiteralExpr(node.Key.Value)));
-                    MemberContext member = caseCtx.Member;
-                    if (TryGenerateParseEnum(member.StaticSpanNameToken, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))
-                    {
-
-                    }
-                    else if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
-                    {
-
-                    }
-                    else if (TryGenerateTryParseBson(member, bsonName, builder))
-                    {
-
-                    }
-                    sections.Add(SF.SwitchSection(label, new SyntaxList<StatementSyntax>(Block(builder.ToArray(), SF.BreakStatement()))));
+                switch (operation.Type)
+                {                       
+                    case OpCtxType.Condition:
+                        break;
+                    case OpCtxType.Case:
+                        sections.Add(GenerateCase(ctx, operation, bsonType, bsonName));
+                        break;
+                    case OpCtxType.Switch:
+                        break;
                 }
             }
-            return new StatementSyntax[]
-            {
-                SF.SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(switchCtx.Offset)), new SyntaxList<SwitchSectionSyntax>(sections.ToArray()))
-            };
+            return default;
         }
+        private static SwitchSectionSyntax GenerateCase(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
+        {
+            var builder = ImmutableList.CreateBuilder<StatementSyntax>();
+            var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(NumericLiteralExpr(host.Key.Value)));
+            MemberContext member = host.Member;
+            foreach(var operation in host.InnerOperations)
+            {
+                switch (operation.Type)
+                {
+                    case OpCtxType.Condition:
+                        break;
+                    case OpCtxType.Switch:
+                        break;
+                }
+            }
+            if (TryGenerateParseEnum(member.StaticSpanNameToken, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))
+            {
 
+            }
+            else if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
+            {
+
+            }
+            else if (TryGenerateTryParseBson(member, bsonName, builder))
+            {
+
+            }
+            return SF.SwitchSection(label, new SyntaxList<StatementSyntax>(Block(builder.ToArray(), SF.BreakStatement())));
+        }
+        private static StatementSyntax[] GenerateRoot(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
+        {
+            var builder = ImmutableList.CreateBuilder<StatementSyntax>();
+            foreach(var condition in host.InnerOperations.Where(op => op.Type == OpCtxType.Condition))
+            {
+                var member = condition.Member;
+                if (TryGenerateParseEnum(member.StaticSpanNameToken, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))
+                {
+
+                }
+                else if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
+                {
+
+                }
+                else if (TryGenerateTryParseBson(member, bsonName, builder))
+                {
+
+                }
+            }
+            //var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(NumericLiteralExpr(host.Key.Value)));
+            var sections = new List<SwitchSectionSyntax>();
+            foreach (var switchOp in host.InnerOperations.Where(op => op.Type == OpCtxType.Switch))
+            {
+                var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(NumericLiteralExpr(switchOp.Key.Value)));
+                sections.Add(SF.SwitchSection(label, new SyntaxList<StatementSyntax>(Block(GenerateContextTreeSwitch(ctx, switchOp, bsonType, bsonName), SF.BreakStatement()))));
+            }
+            builder.Add(SF.SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(host.Offset.Value)), new SyntaxList<SwitchSectionSyntax>(sections.ToArray())));
+            return builder.ToArray();
+        }
     }
 }
