@@ -240,6 +240,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.ElementAccessExpression(target, SF.BracketedArgumentList(SeparatedList(SF.Argument(IdentifierName(index)))));
         }
+        public static ElementAccessExpressionSyntax ElementAccessExpr(SyntaxToken target, ExpressionSyntax index)
+        {
+            return SF.ElementAccessExpression(IdentifierName(target), SF.BracketedArgumentList(SeparatedList(SF.Argument(index))));
+        }
         public static ElementAccessExpressionSyntax ElementAccessExpr(SyntaxToken target, SyntaxToken index)
         {
             return SF.ElementAccessExpression(IdentifierName(target), SF.BracketedArgumentList(SeparatedList(SF.Argument(IdentifierName(index)))));
