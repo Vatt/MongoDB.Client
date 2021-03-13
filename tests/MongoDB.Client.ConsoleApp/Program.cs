@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using MongoDB.Bson;
 using MongoDB.Client.Tests.Models;
 using System;
 using System.Collections.Generic;
@@ -16,8 +15,8 @@ namespace MongoDB.Client.ConsoleApp
         {
 
             //await LoadTest<GeoIp>(1024*1024, new[] { 512 });
-             await ReplicaSetConenctionTest<GeoIp>(1024, new[] { 1 }, false);
-           // await TestTransaction();
+            // await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, true);
+            await TestTransaction();
             Console.WriteLine("Done");
         }
 
@@ -30,8 +29,7 @@ namespace MongoDB.Client.ConsoleApp
                     .SetMinimumLevel(LogLevel.Information)
                     .AddConsole();
             });
-            var client = new MongoClient("mongodb://centos.mshome.net:27018,centos.mshome.net:27019,centos.mshome.net:27020/?replicaSet=rs0&maxPoolSize=9&appName=MongoDB.Client.ConsoleApp&readPreference=Primary", loggerFactory);
-            await client.InitAsync();
+            var client = await MongoClient.CreateClient("mongodb://centos.mshome.net:27018,centos.mshome.net:27019,centos.mshome.net:27020/?replicaSet=rs0&maxPoolSize=9&appName=MongoDB.Client.ConsoleApp&readPreference=Primary", loggerFactory);
             var db = client.GetDatabase("TestDb");
 
             await db.DropCollectionAsync("TransactionCollection");
@@ -90,9 +88,7 @@ namespace MongoDB.Client.ConsoleApp
                     .SetMinimumLevel(LogLevel.Information)
                     .AddConsole();
             });
-            var client = new MongoClient("mongodb://centos.mshome.net:27018,centos.mshome.net:27019,centos.mshome.net:27020/?replicaSet=rs0&maxPoolSize=9&appName=MongoDB.Client.ConsoleApp&readPreference=Primary", loggerFactory);
-            // var client = new MongoClient("mongodb://centos.mshome.net:27017/", loggerFactory);
-            await client.InitAsync();
+            var client = await MongoClient.CreateClient("mongodb://centos.mshome.net:27018,centos.mshome.net:27019,centos.mshome.net:27020/?replicaSet=rs0&maxPoolSize=9&appName=MongoDB.Client.ConsoleApp&readPreference=Primary", loggerFactory);
             var db = client.GetDatabase("TestDb");
             var stopwatch = new Stopwatch();
             Console.WriteLine(typeof(T).Name);
@@ -127,7 +123,7 @@ namespace MongoDB.Client.ConsoleApp
                     .AddConsole();
             });
 
-            var client = new MongoClient(new DnsEndPoint(host, 27017), loggerFactory);
+            var client = await MongoClient.CreateClient(new DnsEndPoint(host, 27017), loggerFactory);
             // var client = MongoExperimental.CreateWithExperimentalConnection(new DnsEndPoint(host, 27017), loggerFactory);
             await client.InitAsync();
             var db = client.GetDatabase("TestDb");

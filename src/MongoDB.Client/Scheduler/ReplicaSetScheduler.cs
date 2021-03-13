@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
+using MongoDB.Client.Experimental;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Network;
 using MongoDB.Client.Protocol.Messages;
@@ -84,7 +85,8 @@ namespace MongoDB.Client.Scheduler
             for (var i = 0; i < _lastPing.Hosts.Count; i++)
             {
                 var host = _lastPing.Hosts[i];
-                var scheduler = new StandaloneScheduler(maxConnections, _settings, new MongoConnectionFactory(host, _loggerFactory), _loggerFactory, _lastPing.ClusterTime);
+                IMongoConnectionFactory connectionFactory = _settings.ClientType == ClientType.Default ? new MongoConnectionFactory(host, _loggerFactory) : new ExperimentalMongoConnectionFactory(host, _loggerFactory);
+                var scheduler = new StandaloneScheduler(maxConnections, _settings, connectionFactory, _loggerFactory, _lastPing.ClusterTime);
                 _shedulers.Add(scheduler);
                 if (host.Equals(_lastPing.Primary))
                 {

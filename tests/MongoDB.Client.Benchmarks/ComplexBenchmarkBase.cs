@@ -1,14 +1,16 @@
 ﻿using BenchmarkDotNet.Attributes;
-using Microsoft.Extensions.Logging.Abstractions;
 using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Experimental;
 using MongoDB.Client.Tests.Models;
 using MongoDB.Driver;
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Net;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using OldClient = MongoDB.Driver.MongoClient;
+using NewClient = MongoDB.Client.MongoClient;
+using NewSettings = MongoDB.Client.Settings.MongoClientSettings;
 
 namespace MongoDB.Client.Benchmarks
 {
@@ -56,21 +58,28 @@ namespace MongoDB.Client.Benchmarks
 
         private async Task InitNewClient(string host, string dbName, string collectionName)
         {
-            var client = new MongoClient(new DnsEndPoint(host, 27017));
-            await client.InitAsync();
+            var settings = new NewSettings
+            {
+                Endpoints = new EndPoint[] { new DnsEndPoint(host, 27017) }.ToImmutableArray(),
+            };
+            var client = await NewClient.CreateClient(settings);
             var db = client.GetDatabase(dbName);
             _collection = db.GetCollection<T>(collectionName);
         }
         private async Task InitNewClientExperimental(string host, string dbName, string collectionName)
         {
-            var client = MongoExperimental.CreateWithExperimentalConnection(new DnsEndPoint(host, 27017), new NullLoggerFactory());
-            await client.InitAsync();
+            var settings = new NewSettings
+            {
+                Endpoints = new EndPoint[] { new DnsEndPoint(host, 27017) }.ToImmutableArray(),
+                ClientType = Settings.ClientType.Experimental
+            };
+            var client = await NewClient.CreateClient(settings);
             var db = client.GetDatabase(dbName);
             _collection = db.GetCollection<T>(collectionName);
         }
         private void InitOldClient(string host, string dbName, string collectionName)
         {
-            var oldClient = new MongoDB.Driver.MongoClient($"mongodb://{host}:27017");
+            var oldClient = new OldClient($"mongodb://{host}:27017");
             var oldDb = oldClient.GetDatabase(dbName);
             _oldCollection = oldDb.GetCollection<T>(collectionName);
         }

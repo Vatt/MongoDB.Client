@@ -9,7 +9,7 @@ namespace MongoDB.Client.Connection
     {
         public static BsonDocument CreateInitialCommand(MongoClientSettings settings)
         {
-            var command = CreateCommand(settings.ConnectTimeoutMs);
+            var command = CreateCommand();
             AddClientDocumentToCommand(command, settings.ApplicationName ?? string.Empty);
             AddCompressorsToCommand(command, Compressors);
             return command;
@@ -26,7 +26,7 @@ namespace MongoDB.Client.Connection
             command.Add("compression", compressors);
         }
 
-        private static BsonDocument CreateCommand(long? maxAwaitTimeMS)
+        private static BsonDocument CreateCommand()
         {
             BsonDocument? topologyVersion = null;
             //long? maxAwaitTimeMS = null;
@@ -34,7 +34,7 @@ namespace MongoDB.Client.Connection
             {
                 { "isMaster", 1 },
                 { "topologyVersion", topologyVersion, topologyVersion != null },
-                { "maxAwaitTimeMS", maxAwaitTimeMS, maxAwaitTimeMS.HasValue }
+               // { "maxAwaitTimeMS", maxAwaitTimeMS, maxAwaitTimeMS.HasValue }
             };
         }
 
