@@ -1,5 +1,5 @@
-﻿using MongoDB.Client.Bson.Serialization.Attributes;
-using System;
+﻿using System;
+using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
@@ -11,16 +11,36 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
 
         public bool Equals(ThirdLevelDocument other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return TextField == other.TextField && DoubleField.Equals(other.DoubleField);
         }
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
             return Equals((ThirdLevelDocument)obj);
         }
 

@@ -1,8 +1,8 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization.Attributes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Tests.Models
 {
@@ -70,8 +70,16 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(EnumNullable? other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return IntEnum1 == other.IntEnum1 && IntEnum2 == other.IntEnum2 && IntEnum3 == other.IntEnum3 &&
                    LongEnum1 == other.LongEnum1 && LongEnum2 == other.LongEnum2 && LongEnum3 == other.LongEnum3 &&
                    StringEnum1 == other.StringEnum1 && StringEnum2 == other.StringEnum2 &&
@@ -81,9 +89,21 @@ namespace MongoDB.Client.Tests.Models
 
         public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
             return Equals((EnumNullable)obj);
         }
 
@@ -135,16 +155,36 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(GenericWithNulalbleListTest<T, TT>? other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return List1.SequenceEqual(other.List1) && List2!.SequenceEqual(other!.List2!);
         }
 
         public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
             return Equals((GenericWithNulalbleListTest<T, TT>)obj);
         }
 
@@ -166,16 +206,36 @@ namespace MongoDB.Client.Tests.Models
 
             public bool Equals(GenericClass<T, TT>? other)
             {
-                if (ReferenceEquals(null, other)) return false;
-                if (ReferenceEquals(this, other)) return true;
+                if (ReferenceEquals(null, other))
+                {
+                    return false;
+                }
+
+                if (ReferenceEquals(this, other))
+                {
+                    return true;
+                }
+
                 return EqualityComparer<T?>.Default.Equals(TProp, other.TProp) && EqualityComparer<TT?>.Default.Equals(TTProp, other.TTProp);
             }
 
             public override bool Equals(object? obj)
             {
-                if (ReferenceEquals(null, obj)) return false;
-                if (ReferenceEquals(this, obj)) return true;
-                if (obj.GetType() != this.GetType()) return false;
+                if (ReferenceEquals(null, obj))
+                {
+                    return false;
+                }
+
+                if (ReferenceEquals(this, obj))
+                {
+                    return true;
+                }
+
+                if (obj.GetType() != this.GetType())
+                {
+                    return false;
+                }
+
                 return Equals((GenericClass<T, TT>)obj);
             }
 
@@ -214,16 +274,36 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(GenericNullable? other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return Equals(ClassProp, other.ClassProp) && StructProp.Equals(other.StructProp) && Equals(RecordProp, other.RecordProp);
         }
 
         public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
             return Equals((GenericNullable)obj);
         }
 
@@ -252,16 +332,36 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(IntNullable? other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return Field == other.Field && Prop == other.Prop;
         }
 
         public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
             return Equals((IntNullable)obj);
         }
 
@@ -280,16 +380,36 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(DoubleNullable? other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return Nullable.Equals(Field, other.Field) && Nullable.Equals(Prop, other.Prop);
         }
 
         public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
             return Equals((DoubleNullable)obj);
         }
 
@@ -308,16 +428,36 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(LongNullable? other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return Field == other.Field && Prop == other.Prop;
         }
 
         public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
             return Equals((LongNullable)obj);
         }
 
@@ -336,16 +476,36 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(StringNullable? other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return Field == other.Field && Prop == other.Prop;
         }
 
         public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
             return Equals((StringNullable)obj);
         }
 
@@ -365,16 +525,36 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(DateTimeOffsetNullable? other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return Nullable.Equals(Field, other.Field) && Nullable.Equals(Prop, other.Prop);
         }
 
         public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
             return Equals((DateTimeOffsetNullable)obj);
         }
 
@@ -397,16 +577,36 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(GuidNullable? other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return Nullable.Equals(Field, other.Field) && Nullable.Equals(Prop, other.Prop);
         }
 
         public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
             return Equals((GuidNullable)obj);
         }
 
@@ -426,16 +626,36 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(BsonObjectIdNullable? other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return Nullable.Equals(Field, other.Field) && Nullable.Equals(Prop, other.Prop);
         }
 
         public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
             return Equals((BsonObjectIdNullable)obj);
         }
 
@@ -458,16 +678,36 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(RecordNullable? other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return Equals(Field, other.Field) && Equals(Prop, other.Prop);
         }
 
         public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
             return Equals((RecordNullable)obj);
         }
 
@@ -509,16 +749,36 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(StructNullable? other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return Nullable.Equals(Field, other.Field) && Nullable.Equals(Prop, other.Prop);
         }
 
         public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
             return Equals((StructNullable)obj);
         }
 
@@ -540,16 +800,36 @@ namespace MongoDB.Client.Tests.Models
 
             public bool Equals(NullableClass? other)
             {
-                if (ReferenceEquals(null, other)) return false;
-                if (ReferenceEquals(this, other)) return true;
+                if (ReferenceEquals(null, other))
+                {
+                    return false;
+                }
+
+                if (ReferenceEquals(this, other))
+                {
+                    return true;
+                }
+
                 return A == other.A && B == other.B && Nullable.Equals(C, other.C);
             }
 
             public override bool Equals(object? obj)
             {
-                if (ReferenceEquals(null, obj)) return false;
-                if (ReferenceEquals(this, obj)) return true;
-                if (obj.GetType() != this.GetType()) return false;
+                if (ReferenceEquals(null, obj))
+                {
+                    return false;
+                }
+
+                if (ReferenceEquals(this, obj))
+                {
+                    return true;
+                }
+
+                if (obj.GetType() != this.GetType())
+                {
+                    return false;
+                }
+
                 return Equals((NullableClass)obj);
             }
 
@@ -564,16 +844,36 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(ClassNullable? other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return Equals(Field, other.Field) && Equals(Prop, other.Prop);
         }
 
         public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
             return Equals((ClassNullable)obj);
         }
 
@@ -591,16 +891,36 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(ListNullable? other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return Field!.SequenceEqual(other!.Field!) && Prop!.SequenceEqual(other!.Prop!);
         }
 
         public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
             return Equals((ListNullable)obj);
         }
 
@@ -629,8 +949,16 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(ListElementNullable? other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return NullableInts!.SequenceEqual(other.NullableInts!) && NullableStrings!.SequenceEqual(other.NullableStrings!) &&
                    NullableLongs!.SequenceEqual(other.NullableLongs!) && NullableGuids!.SequenceEqual(other.NullableGuids!) &&
                    NullableDates!.SequenceEqual(other.NullableDates!) && NullableBsonObjectId!.SequenceEqual(other.NullableBsonObjectId!) &&
@@ -640,9 +968,21 @@ namespace MongoDB.Client.Tests.Models
 
         public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
             return Equals((ListElementNullable)obj);
         }
 

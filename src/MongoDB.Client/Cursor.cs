@@ -71,11 +71,6 @@ namespace MongoDB.Client
 
         public bool HasNext => _cursorId != 0;
 
-        public IAsyncEnumerator<T> GetAsyncEnumerator2(CancellationToken cancellationToken)
-        {
-            return new AsyncEnumerator<T>(this, cancellationToken);
-        }
-
         public async ValueTask<List<T>> GetNextBatchAsync(CancellationToken cancellationToken)
         {
             //if (_channel is null)

@@ -1,8 +1,8 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization.Attributes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {
@@ -41,9 +41,21 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
 
             public override bool Equals(object obj)
             {
-                if (ReferenceEquals(null, obj)) return false;
-                if (ReferenceEquals(this, obj)) return true;
-                if (obj.GetType() != this.GetType()) return false;
+                if (ReferenceEquals(null, obj))
+                {
+                    return false;
+                }
+
+                if (ReferenceEquals(this, obj))
+                {
+                    return true;
+                }
+
+                if (obj.GetType() != this.GetType())
+                {
+                    return false;
+                }
+
                 return Equals((ModelForGenerated.ListModel)obj);
             }
 
@@ -86,16 +98,36 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
 
                 public bool Equals(ModelForGenerated.ListItem.InnerItem other)
                 {
-                    if (ReferenceEquals(null, other)) return false;
-                    if (ReferenceEquals(this, other)) return true;
+                    if (ReferenceEquals(null, other))
+                    {
+                        return false;
+                    }
+
+                    if (ReferenceEquals(this, other))
+                    {
+                        return true;
+                    }
+
                     return A == other.A && PlanetModel.Equals(other.PlanetModel);
                 }
 
                 public override bool Equals(object obj)
                 {
-                    if (ReferenceEquals(null, obj)) return false;
-                    if (ReferenceEquals(this, obj)) return true;
-                    if (obj.GetType() != this.GetType()) return false;
+                    if (ReferenceEquals(null, obj))
+                    {
+                        return false;
+                    }
+
+                    if (ReferenceEquals(this, obj))
+                    {
+                        return true;
+                    }
+
+                    if (obj.GetType() != this.GetType())
+                    {
+                        return false;
+                    }
+
                     return Equals((ModelForGenerated.ListItem.InnerItem)obj);
                 }
 
@@ -117,16 +149,36 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
 
             public bool Equals(ModelForGenerated.ListItem other)
             {
-                if (ReferenceEquals(null, other)) return false;
-                if (ReferenceEquals(this, other)) return true;
+                if (ReferenceEquals(null, other))
+                {
+                    return false;
+                }
+
+                if (ReferenceEquals(this, other))
+                {
+                    return true;
+                }
+
                 return Inner.Equals(other.Inner);
             }
 
             public override bool Equals(object obj)
             {
-                if (ReferenceEquals(null, obj)) return false;
-                if (ReferenceEquals(this, obj)) return true;
-                if (obj.GetType() != this.GetType()) return false;
+                if (ReferenceEquals(null, obj))
+                {
+                    return false;
+                }
+
+                if (ReferenceEquals(this, obj))
+                {
+                    return true;
+                }
+
+                if (obj.GetType() != this.GetType())
+                {
+                    return false;
+                }
+
                 return Equals((ModelForGenerated.ListItem)obj);
             }
 
@@ -146,8 +198,16 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
 
         public bool Equals(ModelForGenerated other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return BsonObjectIdValue.Equals(other.BsonObjectIdValue) &&
                    DoubleValue.Equals(other.DoubleValue) &&
                    StringValue == other.StringValue &&
@@ -158,9 +218,21 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
             return Equals((ModelForGenerated)obj);
         }
 

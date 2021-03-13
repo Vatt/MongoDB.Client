@@ -21,7 +21,10 @@ namespace System.Net.Connections
         /// <returns>If <paramref name="properties"/> contains a property of type <typeparamref name="T"/>, true. Otherwise, false.</returns>
         public static bool TryGet<T>(this IConnectionProperties properties, [MaybeNullWhen(false)] out T property)
         {
-            if (properties == null) throw new ArgumentNullException(nameof(properties));
+            if (properties == null)
+            {
+                throw new ArgumentNullException(nameof(properties));
+            }
 
             if (properties.TryGet(typeof(T), out object? obj) && obj is T propertyValue)
             {
@@ -43,8 +46,16 @@ namespace System.Net.Connections
         /// <returns>A new filtered <see cref="ConnectionFactory"/>.</returns>
         public static ConnectionFactory Filter(this ConnectionFactory factory, Func<Connection, IConnectionProperties?, CancellationToken, ValueTask<Connection>> filter)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
-            if (filter == null) throw new ArgumentNullException(nameof(filter));
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            if (filter == null)
+            {
+                throw new ArgumentNullException(nameof(filter));
+            }
+
             return new ConnectionFilteringFactory(factory, filter);
         }
 
@@ -76,7 +87,10 @@ namespace System.Net.Connections
 
             protected override void Dispose(bool disposing)
             {
-                if (disposing) _baseFactory.Dispose();
+                if (disposing)
+                {
+                    _baseFactory.Dispose();
+                }
             }
 
             protected override ValueTask DisposeAsyncCore()

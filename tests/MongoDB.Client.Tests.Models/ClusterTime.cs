@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
@@ -7,7 +8,7 @@ namespace MongoDB.Client.Tests.Models
 {
     public static class MongoSignatureHashSerializer
     {
-        public static bool TryParseBson(ref MongoDB.Client.Bson.Reader.BsonReader reader, out byte[] message)
+        public static bool TryParseBson(ref Bson.Reader.BsonReader reader, [MaybeNullWhen(false)] out byte[]? message)
         {
             message = default;
             if (!reader.TryGetBinaryData(out var temp))
@@ -47,16 +48,36 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(MongoClusterTime? other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return ClusterTime.Equals(other.ClusterTime) && MongoSignature.Equals(other.MongoSignature);
         }
 
         public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
             return Equals((MongoClusterTime) obj);
         }
 
@@ -83,16 +104,31 @@ namespace MongoDB.Client.Tests.Models
 
         public bool Equals(MongoSignature? other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
-            return Hash.SequenceEqual(other.Hash) && KeyId == other.KeyId;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            return ReferenceEquals(this, other) ? true : Hash.SequenceEqual(other.Hash) && KeyId == other.KeyId;
         }
 
         public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
             return Equals((MongoSignature) obj);
         }
 
