@@ -16,25 +16,14 @@ namespace MongoDB.Client
         private readonly IMongoScheduler _scheduler;
         private readonly BsonDocument _filter;
         private readonly CollectionNamespace _collectionNamespace;
-        private readonly SessionId _sessionId;
         private int _limit;
 
-        //internal Cursor(TransactionHandler transaction, IMongoScheduler _scheduler, BsonDocument filter, CollectionNamespace collectionNamespace, SessionId sessionId)
-        //    : this(transaction, _scheduler, filter, collectionNamespace, sessionId)
-        //{
-        //}
-
-        //internal Cursor(TransactionHandler transaction, IMongoScheduler channelPool, BsonDocument filter, CollectionNamespace collectionNamespace, SessionId sessionId)
-        //    : this(transaction, channelPool, filter, collectionNamespace, sessionId)
-        //{
-        //}
-        internal Cursor(TransactionHandler transaction, IMongoScheduler scheduler, BsonDocument filter, CollectionNamespace collectionNamespace, SessionId sessionId)
+        internal Cursor(TransactionHandler transaction, IMongoScheduler scheduler, BsonDocument filter, CollectionNamespace collectionNamespace)
         {
             _transaction = transaction;
             _scheduler = scheduler;
             _filter = filter;
             _collectionNamespace = collectionNamespace;
-            _sessionId = sessionId;
         }
 
         internal void AddLimit(int limit)
@@ -109,11 +98,11 @@ namespace MongoDB.Client
             {
                 case TransactionState.Starting:
                     transaction.State = TransactionState.InProgress;
-                    return new FindRequest(null, null, default, cursorId, null, _collectionNamespace.DatabaseName, _sessionId, _scheduler.ClusterTime, transaction.TxNumber, true, false);
+                    return new FindRequest(null, null, default, cursorId, null, _collectionNamespace.DatabaseName, transaction.SessionId, _scheduler.ClusterTime, transaction.TxNumber, true, false);
                 case TransactionState.InProgress:
-                    return new FindRequest(null, null, default, cursorId, null, _collectionNamespace.DatabaseName, _sessionId, _scheduler.ClusterTime, transaction.TxNumber, false);
+                    return new FindRequest(null, null, default, cursorId, null, _collectionNamespace.DatabaseName, transaction.SessionId, _scheduler.ClusterTime, transaction.TxNumber, false);
                 case TransactionState.Implicit:
-                    return new FindRequest(null, null, default, cursorId, null, _collectionNamespace.DatabaseName, _sessionId, transaction.TxNumber);
+                    return new FindRequest(null, null, default, cursorId, null, _collectionNamespace.DatabaseName, transaction.SessionId, transaction.TxNumber);
                 case TransactionState.Committed:
                     return ThrowEx<FindRequest>("Transaction already commited");
                 case TransactionState.Aborted:
@@ -129,11 +118,11 @@ namespace MongoDB.Client
             {
                 case TransactionState.Starting:
                     transaction.State = TransactionState.InProgress;
-                    return new FindRequest(_collectionNamespace.CollectionName, filter, _limit, default, null, _collectionNamespace.DatabaseName, _sessionId, _scheduler.ClusterTime, transaction.TxNumber, true, false);
+                    return new FindRequest(_collectionNamespace.CollectionName, filter, _limit, default, null, _collectionNamespace.DatabaseName, transaction.SessionId, _scheduler.ClusterTime, transaction.TxNumber, true, false);
                 case TransactionState.InProgress:
-                    return new FindRequest(_collectionNamespace.CollectionName, filter, _limit, default, null, _collectionNamespace.DatabaseName, _sessionId, _scheduler.ClusterTime, transaction.TxNumber, false);
+                    return new FindRequest(_collectionNamespace.CollectionName, filter, _limit, default, null, _collectionNamespace.DatabaseName, transaction.SessionId, _scheduler.ClusterTime, transaction.TxNumber, false);
                 case TransactionState.Implicit:
-                    return new FindRequest(_collectionNamespace.CollectionName, filter, _limit, default, null, _collectionNamespace.DatabaseName, _sessionId, transaction.TxNumber);
+                    return new FindRequest(_collectionNamespace.CollectionName, filter, _limit, default, null, _collectionNamespace.DatabaseName, transaction.SessionId, transaction.TxNumber);
                 case TransactionState.Committed:
                     return ThrowEx<FindRequest>("Transaction already commited");
                 case TransactionState.Aborted:

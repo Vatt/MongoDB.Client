@@ -20,7 +20,5 @@ namespace MongoDB.Client.Scheduler
         Task ConnectionLost(MongoConnection connection);
 
         MongoClusterTime ClusterTime { get; }
-
-        SessionId SessionId { get; }
     }
 }

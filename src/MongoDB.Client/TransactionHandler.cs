@@ -9,31 +9,34 @@ namespace MongoDB.Client
     public sealed class TransactionHandler : IAsyncDisposable
     {
         private static long _transactionCounter;
+        private static readonly SessionId ImplicitSession = new SessionId();
 
-        internal TransactionHandler(long transactionNumber, TransactionState state, IMongoScheduler scheduler)
+
+        private readonly IMongoScheduler _scheduler;
+        public long TxNumber { get; }
+        public SessionId SessionId { get; }
+        public TransactionState State { get; internal set; }
+
+        internal TransactionHandler(long transactionNumber, TransactionState state, SessionId sessionId, IMongoScheduler scheduler)
         {
             State = state;
             TxNumber = transactionNumber;
             _scheduler = scheduler;
+            SessionId = sessionId;
         }
 
         internal static TransactionHandler CreateImplicit(IMongoScheduler scheduler)
         {
             var number = Interlocked.Increment(ref _transactionCounter);
-            return new TransactionHandler(number, TransactionState.Implicit, scheduler);
+            return new TransactionHandler(number, TransactionState.Implicit, ImplicitSession, scheduler);
         }
 
         internal static TransactionHandler Create(IMongoScheduler scheduler)
         {
             var number = Interlocked.Increment(ref _transactionCounter);
-            return new TransactionHandler(number, TransactionState.Starting, scheduler);
+            return new TransactionHandler(number, TransactionState.Starting, new SessionId(), scheduler);
         }
-
-        public long TxNumber { get; }
-
-        public TransactionState State { get; internal set; }
-
-        private readonly IMongoScheduler _scheduler;
+        
 
         public async ValueTask CommitAsync(CancellationToken cancellationToken = default)
         {
@@ -55,12 +58,12 @@ namespace MongoDB.Client
 
         private TransactionRequest CreateCommitRequest()
         {
-            return new TransactionRequest(1, null, "admin", _scheduler.SessionId, _scheduler.ClusterTime, TxNumber, false);
+            return new TransactionRequest(1, null, "admin", SessionId, _scheduler.ClusterTime, TxNumber, false);
         }
 
         private TransactionRequest CreateAbortRequest()
         {
-            return new TransactionRequest(null, 1, "admin", _scheduler.SessionId, _scheduler.ClusterTime, TxNumber, false);
+            return new TransactionRequest(null, 1, "admin", SessionId, _scheduler.ClusterTime, TxNumber, false);
         }
 
         public ValueTask DisposeAsync()

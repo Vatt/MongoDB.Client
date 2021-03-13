@@ -24,14 +24,24 @@ namespace MongoDB.Client
 
         public ValueTask DropCollectionAsync(string collectionName, CancellationToken cancellationToken = default)
         {
+            return DropCollectionAsync(TransactionHandler.CreateImplicit(_scheduler), collectionName, cancellationToken);
+        }
+
+        public ValueTask DropCollectionAsync(TransactionHandler transaction, string collectionName, CancellationToken cancellationToken = default)
+        {
             var collection = GetCollection<object>(collectionName);
-            return collection.DropAsync(cancellationToken);
+            return collection.DropAsync(transaction, cancellationToken);
         }
 
         public ValueTask CreateCollectionAsync(string collectionName, CancellationToken cancellationToken = default)
         {
+            return CreateCollectionAsync(TransactionHandler.CreateImplicit(_scheduler), collectionName, cancellationToken);
+        }
+
+        public ValueTask CreateCollectionAsync(TransactionHandler transaction, string collectionName, CancellationToken cancellationToken = default)
+        {
             var collection = GetCollection<object>(collectionName);
-            return collection.CreateAsync(cancellationToken);
+            return collection.CreateAsync(transaction, cancellationToken);
         }
     }
 }

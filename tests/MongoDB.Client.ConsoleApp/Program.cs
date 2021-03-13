@@ -29,7 +29,7 @@ namespace MongoDB.Client.ConsoleApp
                     .SetMinimumLevel(LogLevel.Information)
                     .AddConsole();
             });
-            var client = new MongoClient("mongodb://centos.mshome.net:27018,centos.mshome.net:27019,centos.mshome.net:27020/?replicaSet=rs0&maxPoolSize=1&appName=MongoDB.Client.ConsoleApp&readPreference=Primary", loggerFactory);
+            var client = new MongoClient("mongodb://centos.mshome.net:27018,centos.mshome.net:27019,centos.mshome.net:27020/?replicaSet=rs0&maxPoolSize=9&appName=MongoDB.Client.ConsoleApp&readPreference=Primary", loggerFactory);
             await client.InitAsync();
             var db = client.GetDatabase("TestDb");
             var collection = db.GetCollection<GeoIp>("TransactionCollection");

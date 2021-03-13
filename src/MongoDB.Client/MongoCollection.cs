@@ -31,7 +31,7 @@ namespace MongoDB.Client
 
         public Cursor<T> Find(TransactionHandler transaction, BsonDocument filter)
         {
-            return new Cursor<T>(transaction, _scheduler, filter, Namespace, _scheduler.SessionId);
+            return new Cursor<T>(transaction, _scheduler, filter, Namespace);
         }
 
         public ValueTask InsertAsync(T item, CancellationToken cancellationToken = default)
@@ -72,11 +72,11 @@ namespace MongoDB.Client
             {
                 case TransactionState.Starting:
                     transaction.State = TransactionState.InProgress;
-                    return new InsertHeader(Namespace.CollectionName, true, Namespace.DatabaseName, _scheduler.SessionId, _scheduler.ClusterTime, transaction.TxNumber, true, false);
+                    return new InsertHeader(Namespace.CollectionName, true, Namespace.DatabaseName, transaction.SessionId, _scheduler.ClusterTime, transaction.TxNumber, true, false);
                 case TransactionState.InProgress:
-                    return new InsertHeader(Namespace.CollectionName, true, Namespace.DatabaseName, _scheduler.SessionId, _scheduler.ClusterTime, transaction.TxNumber, false);
+                    return new InsertHeader(Namespace.CollectionName, true, Namespace.DatabaseName, transaction.SessionId, _scheduler.ClusterTime, transaction.TxNumber, false);
                 case TransactionState.Implicit:
-                    return new InsertHeader(Namespace.CollectionName, true, Namespace.DatabaseName, _scheduler.SessionId, transaction.TxNumber);
+                    return new InsertHeader(Namespace.CollectionName, true, Namespace.DatabaseName, transaction.SessionId, transaction.TxNumber);
                 case TransactionState.Committed:
                     return ThrowEx<InsertHeader>("Transaction already commited");
                 case TransactionState.Aborted:
@@ -128,11 +128,11 @@ namespace MongoDB.Client
             {
                 case TransactionState.Starting:
                     transaction.State = TransactionState.InProgress;
-                    return new DeleteHeader(Namespace.CollectionName, true, Namespace.DatabaseName, _scheduler.SessionId, _scheduler.ClusterTime, transaction.TxNumber, true, false);
+                    return new DeleteHeader(Namespace.CollectionName, true, Namespace.DatabaseName, transaction.SessionId, _scheduler.ClusterTime, transaction.TxNumber, true, false);
                 case TransactionState.InProgress:
-                    return new DeleteHeader(Namespace.CollectionName, true, Namespace.DatabaseName, _scheduler.SessionId, _scheduler.ClusterTime, transaction.TxNumber, false);
+                    return new DeleteHeader(Namespace.CollectionName, true, Namespace.DatabaseName, transaction.SessionId, _scheduler.ClusterTime, transaction.TxNumber, false);
                 case TransactionState.Implicit:
-                    return new DeleteHeader(Namespace.CollectionName, true, Namespace.DatabaseName, _scheduler.SessionId, transaction.TxNumber);
+                    return new DeleteHeader(Namespace.CollectionName, true, Namespace.DatabaseName, transaction.SessionId, transaction.TxNumber);
                 case TransactionState.Committed:
                     return ThrowEx<DeleteHeader>("Transaction already commited");
                 case TransactionState.Aborted:
@@ -142,18 +142,28 @@ namespace MongoDB.Client
             }
         }
 
-        internal async ValueTask DropAsync(CancellationToken cancellationToken = default)
+        internal ValueTask DropAsync(CancellationToken cancellationToken = default)
+        {
+            return DropAsync(TransactionHandler.CreateImplicit(_scheduler), cancellationToken);
+        }
+
+        internal async ValueTask DropAsync(TransactionHandler transaction, CancellationToken cancellationToken = default)
         {
             var requestNumber = _scheduler.GetNextRequestNumber();
-            var dropCollectionHeader = new DropCollectionHeader(Namespace.CollectionName, Namespace.DatabaseName, _scheduler.SessionId);
+            var dropCollectionHeader = new DropCollectionHeader(Namespace.CollectionName, Namespace.DatabaseName, transaction.SessionId);
             var request = new DropCollectionMessage(requestNumber, dropCollectionHeader);
             await _scheduler.DropCollectionAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
-        internal async ValueTask CreateAsync(CancellationToken cancellationToken = default)
+        internal ValueTask CreateAsync(CancellationToken cancellationToken = default)
+        {
+            return CreateAsync(TransactionHandler.CreateImplicit(_scheduler), cancellationToken);
+        }
+
+        internal async ValueTask CreateAsync(TransactionHandler transaction, CancellationToken cancellationToken = default)
         {
             var requestNumber = _scheduler.GetNextRequestNumber();
-            var createCollectionHeader = new CreateCollectionHeader(Namespace.CollectionName, Namespace.DatabaseName, _scheduler.SessionId);
+            var createCollectionHeader = new CreateCollectionHeader(Namespace.CollectionName, Namespace.DatabaseName, transaction.SessionId);
             var request = new CreateCollectionMessage(requestNumber, createCollectionHeader);
             await _scheduler.CreateCollectionAsync(request, cancellationToken).ConfigureAwait(false);
         }
