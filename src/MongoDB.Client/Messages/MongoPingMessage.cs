@@ -6,6 +6,7 @@ using System.Text;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Exceptions;
 using System.Buffers.Binary;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MongoDB.Client.Messages
 {
@@ -13,7 +14,7 @@ namespace MongoDB.Client.Messages
     {
         private static readonly byte ColonChar = (byte) ':';
 
-        public static bool TryParseBson(ref MongoDB.Client.Bson.Reader.BsonReader reader, out EndPoint message)
+        public static bool TryParseBson(ref Bson.Reader.BsonReader reader, out EndPoint message)
         {
             message = default;
             if (!reader.TryGetStringAsSpan(out var temp))
@@ -34,7 +35,7 @@ namespace MongoDB.Client.Messages
             }
         }
 
-        public static void WriteBson(ref MongoDB.Client.Bson.Writer.BsonWriter writer, in EndPoint message)
+        public static void WriteBson(ref Bson.Writer.BsonWriter writer, in EndPoint message)
         {
             throw new NotSupportedException(nameof(DnsEndPointSerializer));
         }
@@ -43,9 +44,11 @@ namespace MongoDB.Client.Messages
     [BsonSerializable]
     public partial class MongoClusterTime
     {
-        [BsonElement("clusterTime")] public BsonTimestamp ClusterTime { get; }
+        [BsonElement("clusterTime")]
+        public BsonTimestamp ClusterTime { get; }
 
-        [BsonElement("signature")] public MongoSignature MongoSignature { get; }
+        [BsonElement("signature")] 
+        public MongoSignature MongoSignature { get; }
 
         public MongoClusterTime(BsonTimestamp ClusterTime, MongoSignature MongoSignature)
         {
@@ -56,9 +59,11 @@ namespace MongoDB.Client.Messages
 
     public class MongoSignature
     {
-        [BsonElement("hash")] public byte[] Hash { get; }
+        [BsonElement("hash")] 
+        public byte[] Hash { get; }
 
-        [BsonElement("keyId")] public long KeyId { get; }
+        [BsonElement("keyId")] 
+        public long KeyId { get; }
 
         public MongoSignature(byte[] Hash, long KeyId)
         {
@@ -69,10 +74,10 @@ namespace MongoDB.Client.Messages
         private static ReadOnlySpan<byte> MongoSignaturehash => new byte[4] {104, 97, 115, 104};
         private static ReadOnlySpan<byte> MongoSignaturekeyId => new byte[5] {107, 101, 121, 73, 100};
 
-        public static bool TryParseBson(ref MongoDB.Client.Bson.Reader.BsonReader reader, out MongoDB.Client.Messages.MongoSignature message)
+        public static bool TryParseBson(ref Bson.Reader.BsonReader reader, out MongoSignature message)
         {
             message = default;
-            byte[] Hash = default;
+            byte[]? Hash = default;
             long Int64KeyId = default;
             if (!reader.TryGetInt32(out int docLength))
             {
@@ -138,15 +143,15 @@ namespace MongoDB.Client.Messages
 
             if (endMarker != 0)
             {
-                throw new MongoDB.Client.Bson.Serialization.Exceptions.SerializerEndMarkerException(
-                    nameof(MongoDB.Client.Messages.MongoSignature), endMarker);
+                throw new Bson.Serialization.Exceptions.SerializerEndMarkerException(
+                    nameof(MongoSignature), endMarker);
             }
 
-            message = new MongoDB.Client.Messages.MongoSignature(Hash: Hash, KeyId: Int64KeyId);
+            message = new MongoSignature(Hash: Hash!, KeyId: Int64KeyId);
             return true;
         }
 
-        public static void WriteBson(ref MongoDB.Client.Bson.Writer.BsonWriter writer, in MongoDB.Client.Messages.MongoSignature message)
+        public static void WriteBson(ref Bson.Writer.BsonWriter writer, in MongoSignature message)
         {
             var checkpoint = writer.Written;
             var reserved = writer.Reserve(4);

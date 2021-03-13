@@ -25,7 +25,7 @@ namespace MongoDB.Client.Tests.Models
                 return true;
             }
         }
-        public static void WriteBson(ref MongoDB.Client.Bson.Writer.BsonWriter writer, in byte[] message)
+        public static void WriteBson(ref Bson.Writer.BsonWriter writer, in byte[] message)
         {
             writer.WriteBinaryData(BsonBinaryData.Create(message));
         }
