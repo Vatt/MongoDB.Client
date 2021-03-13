@@ -67,7 +67,7 @@ namespace MongoDB.Client.Protocol.Core
                 }
 
                 writer.WriteMessage(protocolMessage, _writer);
-
+           
                 var result = await _writer.FlushAsync(cancellationToken).ConfigureAwait(false);
 
                 if (result.IsCanceled)

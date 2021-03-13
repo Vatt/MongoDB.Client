@@ -1,4 +1,6 @@
-﻿using MongoDB.Client.Bson.Writer;
+﻿using MongoDB.Client.Bson.Reader;
+using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Bson.Writer;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Messages;
@@ -22,6 +24,19 @@ namespace MongoDB.Client.Protocol.Writers
             writer.WriteInt32((int)CreateFlags(message));
 
             writer.WriteByte((byte)message.Type);
+
+#if DEBUG
+            var buffer = new Utils.ArrayBufferWriter();
+            var writer2 = new BsonWriter(buffer);
+            FindRequest.WriteBson(ref writer2, message.Document);
+            var bsonReader = new BsonDocumentSerializer();
+            var reader = new BsonReader(buffer.GetSequesnce());
+            bsonReader.TryParseBson(ref reader, out var bsonDoc);
+            var bson = bsonDoc.ToString();
+            System.Console.WriteLine("Find");
+            System.Console.WriteLine(bson);
+#endif
+
             FindRequest.WriteBson(ref writer, message.Document);
             writer.Commit();
             BinaryPrimitives.WriteInt32LittleEndian(span, writer.Written);
