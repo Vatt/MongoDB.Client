@@ -51,7 +51,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             DeclarationNode = node;
             Members = new List<MemberContext>();
             GenericArgs = Declaration.TypeArguments.IsEmpty ? null : Declaration.TypeArguments;
-            GeneratorMode = SerializerGenerator.GetGeneratorMode(symbol);
             if (SerializerGenerator.TryFindPrimaryConstructor(Declaration, node, out var constructor))
             {
                 if (constructor!.Parameters.Length != 0)
@@ -85,33 +84,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     continue;
                 }
             }
-            if (Members.Count > 0)
-            {
-                NameStatistics = GetNameStatistics();
-            }
-            
+            GeneratorMode = Members.Count == 1 ? 1 : SerializerGenerator.GetGeneratorMode(symbol);
         }
 
-        private NameStatistics GetNameStatistics()
-        { 
-            Dictionary<int, int> lenMap = new Dictionary<int, int>();
-            var sumLen = 0;
-            foreach (var member in Members)
-            {
-                var nameLen = member.ByteName.Length;
-                sumLen += nameLen;
-                if (lenMap.ContainsKey(nameLen))
-                {
-                    lenMap[nameLen] = lenMap[nameLen] + 1; 
-                }
-                else
-                {
-                    lenMap.Add(nameLen, 1);
-                }
-            }
-            var uniqueNames = lenMap.Values.Where(l => l == 1).Count();
-            return new NameStatistics(lenMap);
-        }
         public bool ConstructorContains(string name)
         {
             if (ConstructorParams.HasValue)
