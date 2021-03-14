@@ -43,13 +43,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             switch (ctx.GeneratorMode)
             {
                 case 1:
-                    operations = Operations(ctx, bsonTypeToken, bsonNameToken);
+                    operations = ContextTreeTryParseOperations(ctx, bsonTypeToken, bsonNameToken);
                     break;
                 case 2:
-                    operations = SwitchTryParseOperations(ctx, bsonTypeToken, bsonNameToken);
-                    break;
-                case 3:
-                    operations = ContextTreeTryParseOperations(ctx, bsonTypeToken, bsonNameToken);
+                    operations = Operations(ctx, bsonTypeToken, bsonNameToken);
                     break;
             }
             return SF.MethodDeclaration(

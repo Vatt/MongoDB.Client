@@ -26,32 +26,7 @@ namespace MongoDB.Client.Bson.Reader
             throw new SerializerIsNullException(typeName);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetIntFromNameSpan(ReadOnlySpan<byte> nameSpan, int offset)
-        {
-            nameSpan = nameSpan.Slice(offset);
-            if (nameSpan.Length >= sizeof(int))
-            {
-                var cast = MemoryMarshal.Cast<byte, int>(nameSpan);
-                return cast[0];
-            }
-            else
-            {
-                return GetIntFromNameSpanSlow(nameSpan);
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private int GetIntFromNameSpanSlow(ReadOnlySpan<byte> nameSpan)
-        {
-            Span<byte> buffer = stackalloc byte[sizeof(int)];
-            nameSpan.CopyTo(buffer);
-            var cast = MemoryMarshal.Cast<byte, int>(buffer);
-            return cast[0];
-        }
-
-
-        public unsafe bool TryReadGeneric<T>(int bsonType, [MaybeNullWhen(false)] out T genericValue)
+         public unsafe bool TryReadGeneric<T>(int bsonType, [MaybeNullWhen(false)] out T genericValue)
         {
             genericValue = default;
             if (SerializerFnPtrProvider<T>.IsSerializable)

@@ -68,9 +68,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static int GetGeneratorMode(INamedTypeSymbol symbol)
         {
             var bsonAttr = BsonSerializableAttr;
-#if DEBUG
-            return 3;
-#endif
             foreach (var attr in symbol.GetAttributes())
             {
                 if (attr.AttributeClass!.Equals(bsonAttr, SymbolEqualityComparer.Default))
