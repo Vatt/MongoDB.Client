@@ -84,7 +84,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     continue;
                 }
             }
-            GeneratorMode = Members.Count == 1 ? 1 : SerializerGenerator.GetGeneratorMode(symbol);
+            GeneratorMode = Members.Count <= 2 ? 1 : SerializerGenerator.GetGeneratorMode(symbol);
         }
 
         public bool ConstructorContains(string name)
