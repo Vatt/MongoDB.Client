@@ -132,17 +132,15 @@ namespace MongoDB.Client.Bson.Reader
             if (TryGetInt32(out int length))
             {
                 var stringLength = length - 1;
-                if (_input.UnreadSpan.Length >= length)
+                if (_input.UnreadSpan.Length >= stringLength)
                 {
                     var data = _input.UnreadSpan.Slice(0, stringLength);
                     value = Encoding.UTF8.GetString(data);
                     _input.Advance(length);
                     return true;
                 }
-                if (_input.Remaining >= length)
-                {
-                    return SlowTryGetString(stringLength, out value);
-                }
+
+                return SlowTryGetString(stringLength, out value);
             }
             value = default;
             return false;
@@ -152,10 +150,16 @@ namespace MongoDB.Client.Bson.Reader
         [MethodImpl(MethodImplOptions.NoInlining)]
         private bool SlowTryGetString(int stringLength, [MaybeNullWhen(false)] out string value)
         {
-            var data = _input.UnreadSequence.Slice(0, stringLength);
-            _input.Advance(stringLength + 1);
-            value = Encoding.UTF8.GetString(data);
-            return true;
+            if (_input.Remaining >= stringLength)
+            {
+                var data = _input.UnreadSequence.Slice(0, stringLength);
+                _input.Advance(stringLength + 1);
+                value = Encoding.UTF8.GetString(data);
+                return true;
+            }
+
+            value = default;
+            return false;
         }
 
 
@@ -164,16 +168,15 @@ namespace MongoDB.Client.Bson.Reader
         {
             if (TryGetInt32(out int length))
             {
-                if (_input.UnreadSpan.Length >= length)
+                var stringLength = length - 1;
+                if (_input.UnreadSpan.Length >= stringLength)
                 {
-                    value = _input.UnreadSpan.Slice(0, length - 1);
+                    value = _input.UnreadSpan.Slice(0, stringLength);
                     _input.Advance(length);
                     return true;
                 }
-                if (_input.Remaining >= length)
-                {
-                    return TryGetStringAsSpanSlow(length - 1, out value);
-                }
+
+                return TryGetStringAsSpanSlow(stringLength, out value);
             }
 
             value = default;
@@ -184,14 +187,18 @@ namespace MongoDB.Client.Bson.Reader
         [MethodImpl(MethodImplOptions.NoInlining)]
         private bool TryGetStringAsSpanSlow(int stringLength, out ReadOnlySpan<byte> value)
         {
-            var result = new byte[stringLength];
-            if (_input.TryCopyTo(result))
+            if (_input.Remaining >= stringLength)
             {
-                _input.Advance(stringLength);
-                value = result;
-                return true;
+                var result = new byte[stringLength];
+                if (_input.TryCopyTo(result))
+                {
+                    _input.Advance(stringLength);
+                    value = result;
+                    return true;
+                }
             }
-            value = result;
+
+            value = default;
             return false;
         }
 
@@ -207,26 +214,25 @@ namespace MongoDB.Client.Bson.Reader
                 _input.Advance(oidSize);
                 return true;
             }
-            if (_input.Remaining >= oidSize)
-            {
-                return SlowGetObjectId(out value);
-            }
 
-            value = default;
-            return false;
+            return SlowGetObjectId(out value);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private bool SlowGetObjectId(out BsonObjectId value)
         {
             const int oidSize = 12;
-            Span<byte> buffer = stackalloc byte[oidSize];
-            if (_input.TryCopyTo(buffer))
+            if (_input.Remaining >= oidSize)
             {
-                value = new BsonObjectId(buffer);
-                _input.Advance(oidSize);
-                return true;
+                Span<byte> buffer = stackalloc byte[oidSize];
+                if (_input.TryCopyTo(buffer))
+                {
+                    value = new BsonObjectId(buffer);
+                    _input.Advance(oidSize);
+                    return true;
+                }
             }
+
             value = default;
             return false;
         }
@@ -336,9 +342,11 @@ namespace MongoDB.Client.Bson.Reader
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetGuidFromString(out Guid value)
         {
-            if (TryGetString(out var data))
+            if (TryGetStringAsSpan(out var data))
             {
-                value = new Guid(data);
+                Span<char> buffer = stackalloc char[36];
+                Encoding.UTF8.GetChars(data, buffer);
+                value = Guid.Parse(buffer);
                 return true;
             }
             value = default;

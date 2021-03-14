@@ -236,21 +236,18 @@ namespace MongoDB.Client.Bson.Reader
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetDateTimeWithBsonType(int bsonType, out DateTimeOffset value)
         {
-            if (bsonType == 3)
+            switch (bsonType)
             {
-                return TryGetDatetimeFromDocument(out value);
+                case 3:
+                    return TryGetDatetimeFromDocument(out value);
+                case 9:
+                    return TryGetUtcDatetime(out value);
+                case 18:
+                    return TryGetUtcDatetime(out value);
+                default:
+                    value = default;
+                    return ThrowHelper.UnsupportedDateTimeTypeException<bool>(bsonType);
             }
-            if (bsonType == 9)
-            {
-                return TryGetUtcDatetime(out value);
-            }
-            if (bsonType == 18)
-            {
-                return TryGetUtcDatetime(out value);
-            }
-
-            value = default;
-            return ThrowHelper.UnsupportedDateTimeTypeException<bool>(bsonType);
         }
     }
 }
