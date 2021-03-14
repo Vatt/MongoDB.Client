@@ -108,8 +108,16 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 caseOp.AddCondition(condition);
             }
-            var innerSwitch = CreateSwitchContext(groups, offset);
-            caseOp.Add(innerSwitch);
+            if (groups.Count == 1 && groups.Values.ToArray()[0].Count == 1)
+            {
+                caseOp.AddCondition(groups.Values.ToArray()[0][0]);
+            }
+            else
+            {
+                var innerSwitch = CreateSwitchContext(groups, offset);
+                caseOp.Add(innerSwitch);
+            }
+
             return caseOp;
         }
         private static OperationContext CreateSwitchContext(Dictionary<byte, List<MemberContext>> groups, int inputOffset)
