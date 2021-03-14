@@ -37,14 +37,27 @@ namespace MongoDB.Client.Messages
         [BsonWriteIgnoreIf("ReadPreference is null")]
         public ReadPreference? ReadPreference { get; set; }
 
-        [BsonElement("$clusterTime")]
-        [BsonWriteIgnoreIf("ClusterTime is null")]
-        public MongoClusterTime ClusterTime { get; set; }
-
         [BsonElement("lsid")]
         public SessionId Lsid { get; }
 
-        public FindRequest(string? Find, BsonDocument? Filter, int Limit, long GetMore, string? Collection, string Db, SessionId Lsid)
+        [BsonElement("$clusterTime")]
+        [BsonWriteIgnoreIf("ClusterTime is null")]
+        public MongoClusterTime? ClusterTime { get; }
+
+        [BsonElement("txnNumber")]
+        [BsonWriteIgnoreIf("TxnNumber is null")]
+        public long? TxnNumber { get; }
+
+        [BsonElement("startTransaction")]
+        [BsonWriteIgnoreIf("StartTransaction is null")]
+        public bool? StartTransaction { get; }
+
+        [BsonElement("autocommit")]
+        [BsonWriteIgnoreIf("Autocommit is null")]
+        public bool? Autocommit { get; }
+
+        [BsonConstructor]
+        public FindRequest(string? Find, BsonDocument? Filter, int Limit, long GetMore, string? Collection, string Db, SessionId Lsid, MongoClusterTime? ClusterTime, long? TxnNumber, bool? StartTransaction, bool? Autocommit)
         {
             this.Find = Find;
             this.Filter = Filter;
@@ -53,6 +66,29 @@ namespace MongoDB.Client.Messages
             this.Collection = Collection;
             this.Db = Db;
             this.Lsid = Lsid;
+            this.ClusterTime = ClusterTime;
+            this.TxnNumber = TxnNumber;
+            this.StartTransaction = StartTransaction;
+            this.Autocommit = Autocommit;
+        }
+
+
+        public FindRequest(string? Find, BsonDocument? Filter, int Limit, long GetMore, string? Collection, string Db, SessionId Lsid, MongoClusterTime ClusterTime, long TxnNumber, bool Autocommit)
+            : this(Find, Filter, Limit, GetMore, Collection, Db, Lsid, ClusterTime, TxnNumber, null, Autocommit)
+        {
+        }
+
+
+        public FindRequest(string? Find, BsonDocument? Filter, int Limit, long GetMore, string? Collection, string Db, SessionId Lsid)
+            : this(Find, Filter, Limit, GetMore, Collection, Db, Lsid, null, null, null, null)
+        {
+
+        }
+
+        public FindRequest(string? Find, BsonDocument? Filter, int Limit, long GetMore, string? Collection, string Db, SessionId Lsid, long TxnNumber)
+            : this(Find, Filter, Limit, GetMore, Collection, Db, Lsid, null, TxnNumber, null, null)
+        {
+
         }
     }
 }

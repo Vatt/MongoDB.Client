@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
+using MongoDB.Client.Experimental;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Network;
 using MongoDB.Client.Protocol.Messages;
@@ -28,7 +29,9 @@ namespace MongoDB.Client.Scheduler
         private MongoPingMessage _lastPing;
         private int _schedulerCounter = 0;
         private int _requestCounter = 0;
-        private readonly Func<IMongoScheduler> GetReadScheduler;
+
+        public MongoClusterTime ClusterTime => _lastPing?.ClusterTime!;
+
 
         public ReplicaSetScheduler(MongoClientSettings settings, ILoggerFactory loggerFactory)
         {
@@ -38,14 +41,6 @@ namespace MongoDB.Client.Scheduler
             _loggerFactory = loggerFactory;
             _shedulers = new();
             _slaves = new();
-            if (_settings.ReadPreference == ReadPreference.Secondary || _settings.ReadPreference == ReadPreference.SecondaryPreferred)
-            {
-                GetReadScheduler = GetSlaveScheduler;
-            }
-            else
-            {
-                GetReadScheduler = () => _master!;
-            }
         }
 
 
@@ -62,6 +57,7 @@ namespace MongoDB.Client.Scheduler
         {
             var endpoints = _settings.Endpoints;
             var maxConnections = _settings.ConnectionPoolMaxSize / endpoints.Length;
+            maxConnections = maxConnections == 0 ? 1 : maxConnections;
             for (int i = 0; i < _settings.Endpoints.Length; i++)
             {
                 ConnectionContext? ctx;
@@ -89,7 +85,8 @@ namespace MongoDB.Client.Scheduler
             for (var i = 0; i < _lastPing.Hosts.Count; i++)
             {
                 var host = _lastPing.Hosts[i];
-                var scheduler = new StandaloneScheduler(maxConnections, _settings, new MongoConnectionFactory(host, _loggerFactory), _loggerFactory);
+                IMongoConnectionFactory connectionFactory = _settings.ClientType == ClientType.Default ? new MongoConnectionFactory(host, _loggerFactory) : new ExperimentalMongoConnectionFactory(host, _loggerFactory);
+                var scheduler = new StandaloneScheduler(maxConnections, _settings, connectionFactory, _loggerFactory, _lastPing.ClusterTime);
                 _shedulers.Add(scheduler);
                 if (host.Equals(_lastPing.Primary))
                 {
@@ -137,16 +134,15 @@ namespace MongoDB.Client.Scheduler
         public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token)
         {
             var scheduler = GetScheduler(message);
-            message.Document.ReadPreference = new Messages.ReadPreference(_settings.ReadPreference);
-            message.Document.ClusterTime = _lastPing.ClusterTime;
             var result = await scheduler.GetCursorAsync<T>(message, token).ConfigureAwait(false);
             return result;
         }
 
         private IMongoScheduler GetScheduler(FindMessage message)
         {
-            IMongoScheduler? scheduler = null;
-            switch (_settings.ReadPreference)
+            var readPreference = message.Document.TxnNumber is null ? _settings.ReadPreference : ReadPreference.Primary;
+            IMongoScheduler ? scheduler = null;
+            switch (readPreference)
             {
                 case ReadPreference.Primary:
                     scheduler = _master;
@@ -156,10 +152,12 @@ namespace MongoDB.Client.Scheduler
                     if (scheduler is null)
                     {
                         scheduler = GetSlaveScheduler();
+                        message.Document.ReadPreference = new Messages.ReadPreference(_settings.ReadPreference);
                     }
                     break;
                 case ReadPreference.Secondary:
                     scheduler = GetSlaveScheduler();
+                    message.Document.ReadPreference = new Messages.ReadPreference(_settings.ReadPreference);
                     break;
                 case ReadPreference.SecondaryPreferred:
                     scheduler = GetSlaveScheduler();
@@ -167,10 +165,14 @@ namespace MongoDB.Client.Scheduler
                     {
                         scheduler = _master;
                     }
+                    else
+                    {
+                        message.Document.ReadPreference = new Messages.ReadPreference(_settings.ReadPreference);
+                    }
                     break;
                 case ReadPreference.Nearest:
                 default:
-                    ThrowSchedulerNotFound();
+                    ReadPreferenceNotSupported(_settings.ReadPreference);
                     break;
             }
             if (scheduler is null)
@@ -185,6 +187,10 @@ namespace MongoDB.Client.Scheduler
             return _master.InsertAsync(message, token);
         }
 
+        public ValueTask TransactionAsync(TransactionMessage message, CancellationToken token)
+        {
+            return _master.TransactionAsync(message, token);
+        }
 
         // TODO:
         [DoesNotReturn]

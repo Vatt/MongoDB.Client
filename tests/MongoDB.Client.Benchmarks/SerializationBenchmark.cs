@@ -3,7 +3,6 @@ using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Client.Benchmarks.Serialization;
-using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Tests.Models;
 using System.IO;
 using System.Linq;
@@ -16,7 +15,6 @@ namespace MongoDB.Client.Benchmarks
     public class SerializationBenchmark
     {
         private RootDocument _document;
-        private IGenericBsonSerializer<RootDocument> _serializer;
         private ArrayBufferWriter _writeBuffer;
         private ArrayBufferWriter _readBuffer;
         private byte[] _documentBson;
@@ -27,7 +25,6 @@ namespace MongoDB.Client.Benchmarks
         {
             var seeder = new RootDocumentSeeder();
             _document = seeder.GenerateSeed(1).First();
-            SerializersMap.TryGetSerializer<RootDocument>(out _serializer);
             _writeBuffer = new ArrayBufferWriter(1024 * 1024);
             _readBuffer = new ArrayBufferWriter(1024 * 1024);
             var writer = new BsonWriter(_readBuffer);

@@ -52,12 +52,18 @@ namespace System.Net.Connections
         public override async Task FlushAsync(CancellationToken cancellationToken)
         {
             FlushResult r = await _writer.FlushAsync(cancellationToken).ConfigureAwait(false);
-            if (r.IsCanceled) throw new OperationCanceledException(cancellationToken);
+            if (r.IsCanceled)
+            {
+                throw new OperationCanceledException(cancellationToken);
+            }
         }
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            if (buffer == null) throw new ArgumentNullException(nameof(buffer));
+            if (buffer == null)
+            {
+                throw new ArgumentNullException(nameof(buffer));
+            }
 
             ValueTask<int> t = ReadAsync(buffer.AsMemory(offset, count));
             return
@@ -67,7 +73,11 @@ namespace System.Net.Connections
 
         public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            if (buffer == null) return Task.FromException<int>(ExceptionDispatchInfo.SetCurrentStackTrace(new ArgumentNullException(nameof(buffer))));
+            if (buffer == null)
+            {
+                return Task.FromException<int>(ExceptionDispatchInfo.SetCurrentStackTrace(new ArgumentNullException(nameof(buffer))));
+            }
+
             return ReadAsync(buffer.AsMemory(offset, count), cancellationToken).AsTask();
         }
 
@@ -145,7 +155,10 @@ namespace System.Net.Connections
         public override async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
         {
             FlushResult r = await _writer.WriteAsync(buffer, cancellationToken).ConfigureAwait(false);
-            if (r.IsCanceled) throw new OperationCanceledException(cancellationToken);
+            if (r.IsCanceled)
+            {
+                throw new OperationCanceledException(cancellationToken);
+            }
         }
 
         public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback? callback, object? state)

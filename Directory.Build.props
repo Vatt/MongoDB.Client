@@ -1,0 +1,8 @@
+<Project>
+
+  <PropertyGroup>
+    <LangVersion>9</LangVersion>
+    <MSBuildWarningsAsErrors>$(MSBuildWarningsAsErrors);CS8785</MSBuildWarningsAsErrors>
+  </PropertyGroup>
+
+</Project>

@@ -35,7 +35,9 @@ namespace MongoDB.Client.Protocol.Core
         public ConsumableArrayBufferWriter(int initialCapacity)
         {
             if (initialCapacity <= 0)
+            {
                 throw new ArgumentException(nameof(initialCapacity));
+            }
 
             _buffer = ArrayPool<byte>.Shared.Rent(initialCapacity);
             _index = 0;
@@ -96,10 +98,14 @@ namespace MongoDB.Client.Protocol.Core
         public void Advance(int count)
         {
             if (count < 0)
+            {
                 throw new ArgumentException(nameof(count));
+            }
 
             if (_index > _buffer.Length - count)
+            {
                 throw new InvalidOperationException($"BufferWriter advanced too far. Capacity: {_buffer.Length}");
+            }
 
             _index += count;
         }
@@ -119,10 +125,14 @@ namespace MongoDB.Client.Protocol.Core
         public void Consume(int count)
         {
             if (count < 0)
+            {
                 throw new ArgumentException(nameof(count));
+            }
 
             if (_consumedCount > _index - count)
+            {
                 throw new InvalidOperationException($"More data consumed from BufferWriter than was written.");
+            }
 
             var newConsumedCount = _consumedCount + count;
             if (newConsumedCount == _index)
@@ -191,7 +201,9 @@ namespace MongoDB.Client.Protocol.Core
         private void CheckAndResizeBuffer(int sizeHint)
         {
             if (sizeHint < 0)
+            {
                 throw new ArgumentException(nameof(sizeHint));
+            }
 
             if (sizeHint == 0)
             {

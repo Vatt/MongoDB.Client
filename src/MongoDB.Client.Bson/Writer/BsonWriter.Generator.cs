@@ -216,6 +216,14 @@ namespace MongoDB.Client.Bson.Writer
             WriteDouble(value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write_Type_Name_Value(string name, string value)
+        {
+            WriteByte(1);
+            WriteCString(name);
+            WriteString(value);
+        }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(int intName, double value)

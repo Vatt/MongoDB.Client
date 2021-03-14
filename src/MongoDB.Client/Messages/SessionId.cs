@@ -6,9 +6,10 @@ namespace MongoDB.Client.Messages
     [BsonSerializable]
     public partial class SessionId
     {
-        public SessionId(Guid id)
+        [BsonConstructor]
+        public SessionId(Guid Id)
         {
-            Id = id;
+            this.Id = Id;
         }
 
         public SessionId()
@@ -17,6 +18,6 @@ namespace MongoDB.Client.Messages
         }
 
         [BsonElement("id")]
-        public Guid Id { get; set; }
+        public Guid Id { get; }
     }
 }

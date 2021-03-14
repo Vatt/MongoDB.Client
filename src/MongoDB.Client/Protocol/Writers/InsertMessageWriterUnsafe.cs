@@ -1,4 +1,5 @@
-﻿using MongoDB.Client.Bson.Serialization;
+﻿using MongoDB.Client.Bson.Reader;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Writer;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
@@ -23,6 +24,18 @@ namespace MongoDB.Client.Protocol.Writers
             writer.WriteInt32((int)CreateFlags(message));
 
             writer.WriteByte((byte)PayloadType.Type0);
+
+#if DEBUG
+            var buffer = new Utils.ArrayBufferWriter();
+            var writer2 = new BsonWriter(buffer);
+            InsertHeader.WriteBson(ref writer2, message.InsertHeader);
+            var bsonReader = new BsonDocumentSerializer();
+            var reader = new BsonReader(buffer.GetSequesnce());
+            bsonReader.TryParseBson(ref reader, out var bsonDoc);
+            var bson = bsonDoc.ToString();
+            System.Console.WriteLine("Insert");
+            System.Console.WriteLine(bson);
+#endif
 
             InsertHeader.WriteBson(ref writer, message.InsertHeader);
 

@@ -108,7 +108,7 @@ namespace MongoDB.Client.Bson.Document
 
         public override string ToString()
         {
-            return "\"" + Name + "\": " + ValueToString(Value) + "";
+            return "\"" + Name + "\" : " + ValueToString(Value) + "";
         }
 
         private static string? ValueToString(object? value)
@@ -118,12 +118,17 @@ namespace MongoDB.Client.Bson.Document
                 return "null";
             }
 
-            if (value is string str)
+            switch (value)
             {
-                return "\"" + str + "\"";
+                case string val:
+                    return "\"" + val + "\"";
+                case bool val:
+                    return val.ToString().ToLowerInvariant();
+                case long val:
+                    return $"NumberLong({val})";
+                default:
+                    return value.ToString();
             }
-
-            return value.ToString();
         }
 
         public override bool Equals(object? obj)

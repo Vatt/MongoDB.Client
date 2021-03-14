@@ -207,7 +207,7 @@ namespace MongoDB.Client.Bson.Document
 
         public override string ToString()
         {
-            return "{" + string.Join(',', _elements.Select(e => e.ToString())) + "}";
+            return "{ " + string.Join(", ", _elements.Select(e => e.ToString())) + " }";
         }
 
         IEnumerator IEnumerable.GetEnumerator() => _elements.GetEnumerator();
