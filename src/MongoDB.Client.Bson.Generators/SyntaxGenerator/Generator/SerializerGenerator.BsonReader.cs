@@ -78,8 +78,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static ExpressionSyntax TryGetTimestamp(ExpressionSyntax assignOrDecl)
         {
             return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetTimestamp"), OutArgument(assignOrDecl));
-        }     
-        public static ExpressionSyntax TryGetIntFromNameSpan(SyntaxToken nameSpan,int offset, ExpressionSyntax assignOrDecl)
+        }
+        public static ExpressionSyntax TryGetIntFromNameSpan(SyntaxToken nameSpan, int offset, ExpressionSyntax assignOrDecl)
         {
             return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetIntFromNameSpan"), Argument(nameSpan), Argument(NumericLiteralExpr(offset)), OutArgument(assignOrDecl));
         }

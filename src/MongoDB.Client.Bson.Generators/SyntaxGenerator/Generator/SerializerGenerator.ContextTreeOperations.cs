@@ -1,11 +1,8 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
@@ -104,7 +101,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 offset += 1;
                 canContinue = ContextTreeGroupMembers(offset, members, out conditions, out groups);
             }
-            foreach(var condition in conditions)
+            foreach (var condition in conditions)
             {
                 caseOp.AddCondition(condition);
             }
@@ -142,11 +139,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 canContinue = ContextTreeGroupMembers(offset, ctx.Members, out conditions, out groups);
             }
             var root = new OperationContext(OpCtxType.Root, offset);
-            foreach(var condition in conditions)
+            foreach (var condition in conditions)
             {
                 root.AddCondition(condition);
             }
-            foreach(var group in groups.Where(g => g.Value.Count == 1))
+            foreach (var group in groups.Where(g => g.Value.Count == 1))
             {
                 root.AddCase(group.Key, group.Value[0]);
             }
@@ -155,7 +152,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var caseOp = CreateCaseContext(group.Value, group.Key, offset);
                 root.Add(caseOp);
             }
-            
+
             return GenerateRoot(ctx, root, bsonType, bsonName);
         }
         private static SwitchStatementSyntax GenerateSwitch(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
@@ -172,7 +169,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
             var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(NumericLiteralExpr(host.Key.Value)));
             MemberContext member = host.Member;
-            foreach(var operation in host.InnerOperations)
+            foreach (var operation in host.InnerOperations)
             {
                 switch (operation.Type)
                 {
@@ -223,7 +220,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static StatementSyntax[] GenerateRoot(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
         {
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
-            foreach(var condition in host.InnerOperations.Where(op => op.Type == OpCtxType.Condition))
+            foreach (var condition in host.InnerOperations.Where(op => op.Type == OpCtxType.Condition))
             {
                 var member = condition.Member;
                 if (TryGenerateParseEnum(member.StaticSpanNameToken, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))

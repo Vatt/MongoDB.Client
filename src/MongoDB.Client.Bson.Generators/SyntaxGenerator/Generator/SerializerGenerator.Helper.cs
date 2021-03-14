@@ -1,7 +1,7 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
@@ -235,7 +235,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 return true;
             }
 
-            if(symbol.Constructors.Length == 2 && symbol.TypeKind == TypeKind.Struct && symbol.IsReadOnly)
+            if (symbol.Constructors.Length == 2 && symbol.TypeKind == TypeKind.Struct && symbol.IsReadOnly)
             {
                 //constructor = symbol.Constructors.Where(sym => sym.Parameters.Length != 0).FirstOrDefault();
                 constructor = symbol.Constructors[0];

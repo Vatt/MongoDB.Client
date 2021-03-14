@@ -7,7 +7,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static ExpressionSyntax BinaryPrimitivesWriteInt32LittleEndian(ExpressionSyntax destination, IdentifierNameSyntax value)
         {
             return InvocationExpr(IdentifierName("BinaryPrimitives"), IdentifierName("WriteInt32LittleEndian"), Argument(destination), Argument(value));
-        }  
+        }
         public static ExpressionSyntax BinaryPrimitivesReadInt32LittleEndian(SyntaxToken spanToken)
         {
             return InvocationExpr(IdentifierName("BinaryPrimitives"), IdentifierName("ReadInt32LittleEndian"), Argument(spanToken));

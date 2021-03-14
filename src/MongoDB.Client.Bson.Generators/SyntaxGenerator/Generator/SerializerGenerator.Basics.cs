@@ -1,9 +1,9 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
@@ -271,7 +271,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Block(statements);
         }
-        public static BlockSyntax Block(LocalDeclarationStatementSyntax expr,  StatementSyntax[] statements)
+        public static BlockSyntax Block(LocalDeclarationStatementSyntax expr, StatementSyntax[] statements)
         {
             return SF.Block(expr).AddStatements(statements);
         }
