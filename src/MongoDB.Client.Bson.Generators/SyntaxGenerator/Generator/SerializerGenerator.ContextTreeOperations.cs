@@ -23,7 +23,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             public OpCtxType Type { get; }
             public int? Key { get; }
             public int? Offset { get; }
-            public MemberContext Member { get; }
+            public MemberContext Member { get; set; }
             public List<OperationContext> InnerOperations;
             public OperationContext(OpCtxType type, int key, MemberContext member)
             {
@@ -32,7 +32,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 Member = member;
                 InnerOperations = new();
             }
-            public OperationContext(OpCtxType type, int key, int offset)
+            public OperationContext(OpCtxType type, int? key, int offset)
             {
                 Key = key;
                 Type = type;
@@ -89,41 +89,53 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return canContinue;
         }
-        public static void CreateContextTreeSwitchContext(List<MemberContext> members, int inputOffset, OperationContext host)
+        private static OperationContext CreateCaseContext(List<MemberContext> members, int inputKey, int inputOffset)
         {
+            var caseOp = new OperationContext(OpCtxType.Case, inputKey, 0);
+            if (members.Count == 1)
+            {
+                caseOp.Member = members[0];
+                return caseOp;
+            }
             var offset = inputOffset;
             var canContinue = ContextTreeGroupMembers(offset, members, out var conditions, out var groups);
-            
             while (canContinue && groups.Values.Count == 1 && groups.Values.First().Count > 1)
             {
                 offset += 1;
                 canContinue = ContextTreeGroupMembers(offset, members, out conditions, out groups);
             }
-            var operation = new OperationContext(OpCtxType.Case, inputOffset);
-            foreach (var condition in conditions)
+            foreach(var condition in conditions)
             {
-                operation.AddCondition(condition);
+                caseOp.AddCondition(condition);
             }
-            var innerSwitch = new OperationContext(OpCtxType.Switch, offset);
+            foreach(var group in groups)
+            {
+                var key = group.Key;
+                var value = group.Value;
+                var innerSwitch = CreateSwitchContext(value, offset);
+                caseOp.Add(innerSwitch);
+            }
+            return caseOp;
+        }
+        private static OperationContext CreateSwitchContext(List<MemberContext> members, int inputOffset)
+        {
+            var offset = inputOffset;
+            var canContinue = ContextTreeGroupMembers(offset, members, out var conditions, out var groups);
+            while (canContinue && groups.Values.Count == 1 && groups.Values.First().Count > 1)
+            {
+                offset += 1;
+                canContinue = ContextTreeGroupMembers(offset, members, out conditions, out groups);
+            }
+            var switchOp = new OperationContext(OpCtxType.Switch, offset);
             foreach (var pair in groups)
             {
-                var key = pair.Key;
-                var value = pair.Value;
-                if (value.Count == 1)
-                {
-                    innerSwitch.AddCase(key, value[0]);
-                }
-                else
-                {
-                    var switchOp = new OperationContext(OpCtxType.Switch, key, offset);
-                    CreateContextTreeSwitchContext(value, offset, switchOp);
-                    innerSwitch.Add(switchOp);
-                }
+                var groupKey = pair.Key;
+                var groupValue = pair.Value;
+                var caseOp = CreateCaseContext(groupValue, groupKey, offset);
+                switchOp.Add(caseOp);
             }
-            operation.Add(innerSwitch);
-            host.Add(operation);
+            return switchOp;
         }
-
         private static StatementSyntax[] ContextTreeTryParseOperations(ContextCore ctx, SyntaxToken bsonType, SyntaxToken bsonName)
         {
             var offset = 0;
@@ -144,29 +156,21 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             foreach (var group in groups.Where(g => g.Value.Count > 1))
             {
-                CreateContextTreeSwitchContext(group.Value, offset, root);
+                //CreateContextTreeSwitchContext(group.Value, group.Key, offset, root);
+                var caseOp = CreateCaseContext(group.Value, group.Key, offset);
+                root.Add(caseOp);
             }
             
             return GenerateRoot(ctx, root, bsonType, bsonName);
         }
-        private static StatementSyntax[] GenerateContextTreeSwitch(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
+        private static SwitchStatementSyntax GenerateSwitch(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
         {
-            var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(NumericLiteralExpr(host.Key.Value)));
             var sections = new List<SwitchSectionSyntax>();
-            foreach (var operation in host.InnerOperations)
+            foreach (var operation in host.InnerOperations.Where(op => op.Type == OpCtxType.Case))
             {
-                switch (operation.Type)
-                {                       
-                    case OpCtxType.Condition:
-                        break;
-                    case OpCtxType.Case:
-                        sections.Add(GenerateCase(ctx, operation, bsonType, bsonName));
-                        break;
-                    case OpCtxType.Switch:
-                        break;
-                }
+                sections.Add(GenerateCase(ctx, operation, bsonType, bsonName));
             }
-            return default;
+            return SF.SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(host.Offset.Value)), new SyntaxList<SwitchSectionSyntax>(sections.ToArray()));
         }
         private static SwitchSectionSyntax GenerateCase(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
         {
@@ -178,11 +182,35 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 switch (operation.Type)
                 {
                     case OpCtxType.Condition:
+                        builder.AddRange(GenerateCondition(ctx, operation, bsonType, bsonName));
                         break;
                     case OpCtxType.Switch:
+                        builder.Add(GenerateSwitch(ctx, operation, bsonType, bsonName));
                         break;
                 }
             }
+            if (member is not null)
+            {
+                if (TryGenerateParseEnum(member.StaticSpanNameToken, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))
+                {
+
+                }
+                else if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
+                {
+
+                }
+                else if (TryGenerateTryParseBson(member, bsonName, builder))
+                {
+
+                }
+            }
+
+            return SF.SwitchSection(label, new SyntaxList<StatementSyntax>(Block(builder.ToArray(), SF.BreakStatement())));
+        }
+        private static StatementSyntax[] GenerateCondition(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
+        {
+            var builder = ImmutableList.CreateBuilder<StatementSyntax>();
+            MemberContext member = host.Member;
             if (TryGenerateParseEnum(member.StaticSpanNameToken, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))
             {
 
@@ -195,7 +223,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
 
             }
-            return SF.SwitchSection(label, new SyntaxList<StatementSyntax>(Block(builder.ToArray(), SF.BreakStatement())));
+            return builder.ToArray();
         }
         private static StatementSyntax[] GenerateRoot(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
         {
@@ -218,10 +246,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             //var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(NumericLiteralExpr(host.Key.Value)));
             var sections = new List<SwitchSectionSyntax>();
-            foreach (var switchOp in host.InnerOperations.Where(op => op.Type == OpCtxType.Switch))
+            foreach (var operation in host.InnerOperations.Where(op => op.Type == OpCtxType.Case))
             {
-                var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(NumericLiteralExpr(switchOp.Key.Value)));
-                sections.Add(SF.SwitchSection(label, new SyntaxList<StatementSyntax>(Block(GenerateContextTreeSwitch(ctx, switchOp, bsonType, bsonName), SF.BreakStatement()))));
+                var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(NumericLiteralExpr(operation.Key.Value)));
+                //sections.Add(SF.SwitchSection(label, new SyntaxList<StatementSyntax>(Block(GenerateContextTreeSwitch(ctx, operation, bsonType, bsonName), SF.BreakStatement()))));
+                sections.Add(GenerateCase(ctx, operation, bsonType, bsonName));
             }
             builder.Add(SF.SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(host.Offset.Value)), new SyntaxList<SwitchSectionSyntax>(sections.ToArray())));
             return builder.ToArray();

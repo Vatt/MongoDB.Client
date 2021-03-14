@@ -7,6 +7,80 @@ using System.Linq;
 namespace MongoDB.Client.Tests.Models
 {
     [BsonSerializable]
+    public partial class ListElementNullable : IEquatable<ListElementNullable>
+    {
+        public List<int?>? NullableInts { get; set; }
+        public List<string?>? NullableStrings { get; set; }
+        public List<long?>? NullableLongs { get; set; }
+        public List<Guid?>? NullableGuids { get; set; }
+        public List<DateTimeOffset?>? NullableDates { get; set; }
+        public List<BsonObjectId?>? NullableBsonObjectId { get; set; }
+        public List<double?>? NullableDoubles { get; set; }
+        public List<RecordNullable?>? NullableRecords { get; set; }
+        public List<ClassNullable?>? NullableClasses { get; set; }
+        public List<StructNullable?>? NullableStructures { get; set; }
+        public List<List<StructNullable?>?>? NullList { get; set; }
+
+        public bool Equals(ListElementNullable? other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return NullableInts!.SequenceEqual(other.NullableInts!) && NullableStrings!.SequenceEqual(other.NullableStrings!) &&
+                   NullableLongs!.SequenceEqual(other.NullableLongs!) && NullableGuids!.SequenceEqual(other.NullableGuids!) &&
+                   NullableDates!.SequenceEqual(other.NullableDates!) && NullableBsonObjectId!.SequenceEqual(other.NullableBsonObjectId!) &&
+                   NullableDoubles!.SequenceEqual(other.NullableDoubles!) && NullableRecords!.SequenceEqual(other.NullableRecords!) &&
+                   NullableClasses!.SequenceEqual(other.NullableClasses!) && NullableStructures!.SequenceEqual(other.NullableStructures!);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((ListElementNullable)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = new HashCode();
+            hashCode.Add(NullableInts);
+            hashCode.Add(NullableStrings);
+            hashCode.Add(NullableLongs);
+            hashCode.Add(NullableGuids);
+            hashCode.Add(NullableDates);
+            hashCode.Add(NullableBsonObjectId);
+            hashCode.Add(NullableDoubles);
+            hashCode.Add(NullableRecords);
+            hashCode.Add(NullableClasses);
+            hashCode.Add(NullableStructures);
+            return hashCode.ToHashCode();
+        }
+
+        public static ListElementNullable Create()
+        {
+            return new()
+            {
+                NullableRecords = new() { RecordNullable.Create(), null, RecordNullable.Create() },
+                NullableStructures = new() { StructNullable.Create(), null, StructNullable.Create() },
+                NullableClasses = new() { ClassNullable.Create(), null, null },
+                NullableDates = new()
+                {
+                    new DateTimeOffset(2021, 01, 01, 5, 30, 0, TimeSpan.Zero),
+                    null,
+                    new DateTimeOffset(2021, 01, 01, 5, 30, 0, TimeSpan.Zero)
+                },
+                NullableDoubles = new() { 42, null, 42 },
+                NullableGuids = new() { Guid.NewGuid(), null, Guid.NewGuid() },
+                NullableInts = new() { 42, null, 42 },
+                NullableLongs = new() { 42, null, 42 },
+                NullableStrings = new() { "42", null, "42" },
+                NullableBsonObjectId = new() { BsonObjectId.NewObjectId(), null, BsonObjectId.NewObjectId() },
+                NullList = null
+            };
+        }
+    }
+
+    [BsonSerializable]
     public partial struct OtherModelsNullable : IEquatable<OtherModelsNullable>
     {
         public ListElementNullable? Prop1 { get; set; }
@@ -687,79 +761,7 @@ namespace MongoDB.Client.Tests.Models
         public static ListNullable Create() => new() { Field = new() { "42", "42", "42" }, Prop = new() { 42, 42, 42 } };
     }
 
-    [BsonSerializable]
-    public partial class ListElementNullable : IEquatable<ListElementNullable>
-    {
-        public List<int?>? NullableInts { get; set; }
-        public List<string?>? NullableStrings { get; set; }
-        public List<long?>? NullableLongs { get; set; }
-        public List<Guid?>? NullableGuids { get; set; }
-        public List<DateTimeOffset?>? NullableDates { get; set; }
-        public List<BsonObjectId?>? NullableBsonObjectId { get; set; }
-        public List<double?>? NullableDoubles { get; set; }
-        public List<RecordNullable?>? NullableRecords { get; set; }
-        public List<ClassNullable?>? NullableClasses { get; set; }
-        public List<StructNullable?>? NullableStructures { get; set; }
-        public List<List<StructNullable?>?>? NullList { get; set; }
 
-        public bool Equals(ListElementNullable? other)
-        {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
-            return NullableInts!.SequenceEqual(other.NullableInts!) && NullableStrings!.SequenceEqual(other.NullableStrings!) &&
-                   NullableLongs!.SequenceEqual(other.NullableLongs!) && NullableGuids!.SequenceEqual(other.NullableGuids!) &&
-                   NullableDates!.SequenceEqual(other.NullableDates!) && NullableBsonObjectId!.SequenceEqual(other.NullableBsonObjectId!) &&
-                   NullableDoubles!.SequenceEqual(other.NullableDoubles!) && NullableRecords!.SequenceEqual(other.NullableRecords!) &&
-                   NullableClasses!.SequenceEqual(other.NullableClasses!) && NullableStructures!.SequenceEqual(other.NullableStructures!);
-        }
-
-        public override bool Equals(object? obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((ListElementNullable)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            var hashCode = new HashCode();
-            hashCode.Add(NullableInts);
-            hashCode.Add(NullableStrings);
-            hashCode.Add(NullableLongs);
-            hashCode.Add(NullableGuids);
-            hashCode.Add(NullableDates);
-            hashCode.Add(NullableBsonObjectId);
-            hashCode.Add(NullableDoubles);
-            hashCode.Add(NullableRecords);
-            hashCode.Add(NullableClasses);
-            hashCode.Add(NullableStructures);
-            return hashCode.ToHashCode();
-        }
-
-        public static ListElementNullable Create()
-        {
-            return new()
-            {
-                NullableRecords = new() { RecordNullable.Create(), null, RecordNullable.Create() },
-                NullableStructures = new() { StructNullable.Create(), null, StructNullable.Create() },
-                NullableClasses = new() { ClassNullable.Create(), null, null },
-                NullableDates = new()
-                {
-                    new DateTimeOffset(2021, 01, 01, 5, 30, 0, TimeSpan.Zero),
-                    null,
-                    new DateTimeOffset(2021, 01, 01, 5, 30, 0, TimeSpan.Zero)
-                },
-                NullableDoubles = new() { 42, null, 42 },
-                NullableGuids = new() { Guid.NewGuid(), null, Guid.NewGuid() },
-                NullableInts = new() { 42, null, 42 },
-                NullableLongs = new() { 42, null, 42 },
-                NullableStrings = new() { "42", null, "42" },
-                NullableBsonObjectId = new() { BsonObjectId.NewObjectId(), null, BsonObjectId.NewObjectId() },
-                NullList = null
-            };
-        }
-    }
 
     
 }
