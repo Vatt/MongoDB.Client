@@ -97,7 +97,7 @@ namespace MongoDB.Client.Tests.Models
             return hashCode.ToHashCode();
         }
     }
-    [BsonSerializable(GeneratorMode.ContextTree)]
+    [BsonSerializable(GeneratorMode.SwitchOperations)]
     public partial class SwitchShortNamesModel : IEquatable<SwitchShortNamesModel>
     {
         public int AAA11;
@@ -190,7 +190,7 @@ namespace MongoDB.Client.Tests.Models
             return hashCode.ToHashCode();
         }
     }
-    [BsonSerializable(GeneratorMode.ContextTree)]
+    [BsonSerializable(GeneratorMode.SwitchOperations)]
     public partial class SwitchGroupNamesModel
     {
         public int AAA11;
@@ -220,7 +220,7 @@ namespace MongoDB.Client.Tests.Models
             };
         }
     }
-    [BsonSerializable(GeneratorMode.ContextTree)]
+    [BsonSerializable(GeneratorMode.SwitchOperations)]
     public partial class SwitchNonGroupNamesModel
     {
         public int AAA10;
