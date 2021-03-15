@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -140,18 +141,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return default;
             }
-            List<StatementSyntax> statements = new();
+            var sections = ImmutableList.CreateBuilder<SwitchSectionSyntax>();
             foreach (var member in trueType.GetMembers().Where(sym => sym.Kind == SymbolKind.Field))
             {
                 var (_, alias) = GetMemberAlias(member);
-                statements.Add(
-                    IfStatement(
-                        condition: BinaryExprEqualsEquals(WriterInputVarToken, IdentifierFullName(member)),
-                        statement: Block(
+                var label = IdentifierName(member.ToString());
+                sections.SwitchSection(label, Block (
                             Write_Type_Name(2, spanNameArg),
                             WriteString(StaticEnumFieldNameToken(trueType, alias)),
                             ReturnNothingStatement
-                    )));
+                    ));
+    
             }
             return SF.MethodDeclaration(
                     attributeLists: default,
@@ -163,7 +163,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                                  Parameter(ReadOnlySpanByteName, spanNameArg),
                                                  Parameter(TypeFullName(trueType), WriterInputVarToken)),
 
-                    body: Block(statements.ToArray()),
+                    body: Block(SwitchStatement(IdentifierName(WriterInputVarToken), sections)),
                     constraintClauses: default,
                     expressionBody: default,
                     typeParameterList: default,

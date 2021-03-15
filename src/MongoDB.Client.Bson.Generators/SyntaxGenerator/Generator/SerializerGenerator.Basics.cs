@@ -331,5 +331,18 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.NameColon(IdentifierName(symbol.Name));
         }
+        public static SwitchSectionSyntax SwitchSection(ExpressionSyntax labelExpr, BlockSyntax body)
+        {
+            var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(labelExpr));
+            return SF.SwitchSection(label, new SyntaxList<StatementSyntax>(body));
+        }
+        public static SwitchStatementSyntax SwitchStatement(SyntaxToken token, ImmutableList<SwitchSectionSyntax>.Builder sections)
+        {
+            return SF.SwitchStatement(IdentifierName(token), new SyntaxList<SwitchSectionSyntax>(sections.ToArray()));
+        }
+        public static SwitchStatementSyntax SwitchStatement(ExpressionSyntax expr, ImmutableList<SwitchSectionSyntax>.Builder sections)
+        {
+            return SF.SwitchStatement(expr, new SyntaxList<SwitchSectionSyntax>(sections.ToArray()));
+        }
     }
 }

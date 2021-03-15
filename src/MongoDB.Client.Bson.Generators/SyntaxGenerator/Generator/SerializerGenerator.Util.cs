@@ -44,5 +44,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             builder.Add(SerializerGenerator.IfNotReturnFalse(condition));
         }
+        public static void SwitchSection(this ImmutableList<SwitchSectionSyntax>.Builder builder, ExpressionSyntax labelExpr, BlockSyntax body)
+        {
+            builder.Add(SerializerGenerator.SwitchSection(labelExpr, body));
+        }
     }
 }
