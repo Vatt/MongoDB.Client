@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
@@ -162,6 +163,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 sections.Add(GenerateCase(ctx, operation, bsonType, bsonName));
             }
+            if (sections.Count == 0)
+            {
+                GeneratorDiagnostics.ReportGenerationContextTreeError();
+            }
             return SF.SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(host.Offset.Value)), new SyntaxList<SwitchSectionSyntax>(sections.ToArray()));
         }
         private static SwitchSectionSyntax GenerateCase(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
@@ -169,34 +174,47 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
             var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(NumericLiteralExpr(host.Key.Value)));
             MemberContext member = host.Member;
-            foreach (var operation in host.InnerOperations)
+            var operations = host.InnerOperations;
+            if (operations.Count > 0 && member is not null)
             {
-                switch (operation.Type)
-                {
-                    case OpCtxType.Condition:
-                        builder.AddRange(GenerateCondition(ctx, operation, bsonType, bsonName));
-                        break;
-                    case OpCtxType.Switch:
-                        builder.Add(GenerateSwitch(ctx, operation, bsonType, bsonName));
-                        break;
-                }
+                GeneratorDiagnostics.ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
             }
-            if (member is not null)
+            if (operations.Count == 0)
             {
                 if (TryGenerateParseEnum(member.StaticSpanNameToken, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))
                 {
-
+                    goto RETURN;
                 }
                 else if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
                 {
-
+                    goto RETURN;
                 }
                 else if (TryGenerateTryParseBson(member, bsonName, builder))
                 {
-
+                    goto RETURN;
+                }
+                GeneratorDiagnostics.ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
+            }
+            else
+            {
+                foreach (var operation in operations)
+                {
+                    switch (operation.Type)
+                    {
+                        case OpCtxType.Condition:
+                            builder.AddRange(GenerateCondition(ctx, operation, bsonType, bsonName));
+                            break;
+                        case OpCtxType.Switch:
+                            builder.Add(GenerateSwitch(ctx, operation, bsonType, bsonName));
+                            break;
+                        default:
+                            GeneratorDiagnostics.ReportGenerationContextTreeError();
+                            break;
+                    }
                 }
             }
 
+            RETURN:
             return SF.SwitchSection(label, new SyntaxList<StatementSyntax>(Block(builder.ToArray(), SF.BreakStatement())));
         }
         private static StatementSyntax[] GenerateCondition(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
@@ -205,36 +223,39 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             MemberContext member = host.Member;
             if (TryGenerateParseEnum(member.StaticSpanNameToken, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))
             {
-
+                return builder.ToArray();
             }
             else if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
             {
-
+                return builder.ToArray();
             }
             else if (TryGenerateTryParseBson(member, bsonName, builder))
             {
-
+                return builder.ToArray();
             }
-            return builder.ToArray();
+            GeneratorDiagnostics.ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
+            return default;
         }
         private static StatementSyntax[] GenerateRoot(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
         {
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
             foreach (var condition in host.InnerOperations.Where(op => op.Type == OpCtxType.Condition))
             {
-                var member = condition.Member;
-                if (TryGenerateParseEnum(member.StaticSpanNameToken, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))
-                {
-
-                }
-                else if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
-                {
-
-                }
-                else if (TryGenerateTryParseBson(member, bsonName, builder))
-                {
-
-                }
+                //var member = condition.Member;
+                //if (TryGenerateParseEnum(member.StaticSpanNameToken, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))
+                //{
+                //    continue;
+                //}
+                //else if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
+                //{
+                //    continue;
+                //}
+                //else if (TryGenerateTryParseBson(member, bsonName, builder))
+                //{
+                //    continue;
+                //}
+                //GeneratorDiagnostics.ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
+                GeneratorDiagnostics.ReportGenerationContextTreeError();
             }
             //var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(NumericLiteralExpr(host.Key.Value)));
             var sections = new List<SwitchSectionSyntax>();
