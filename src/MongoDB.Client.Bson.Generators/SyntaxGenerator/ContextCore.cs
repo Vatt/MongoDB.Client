@@ -6,22 +6,6 @@ using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
-    internal class NameStatistics
-    {
-        internal Dictionary<int, int> LengthMap { get; }
-        internal float UniqueNamesLengthRatio { get; }
-        internal int AvgLenght { get; }
-        internal int MinLength { get; }
-        internal int MaxLength { get; }
-        internal NameStatistics(Dictionary<int, int> lenMap)
-        {
-            LengthMap = lenMap;
-            UniqueNamesLengthRatio = LengthMap.Values.Where(l => l == 1).Count() / (float)lenMap.Values.Sum();
-            AvgLenght = LengthMap.Select(kv => kv.Key * kv.Value).Sum() / LengthMap.Values.Sum();
-            MinLength = LengthMap.Keys.Min();
-            MaxLength = LengthMap.Keys.Max();
-        }
-    }
     internal class ContextCore
     {
         internal MasterContext Root { get; }
@@ -30,7 +14,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         internal List<MemberContext> Members { get; }
         internal ImmutableArray<ITypeSymbol>? GenericArgs { get; }
         internal ImmutableArray<IParameterSymbol>? ConstructorParams { get; }
-        internal NameStatistics NameStatistics { get; }
         internal int GeneratorMode { get; }
         internal SyntaxToken SerializerName
         {

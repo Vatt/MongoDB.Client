@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -106,7 +108,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var (_, alias) = GetMemberAlias(member);
                 statements.Add(
                     SF.IfStatement(
-                        condition: SpanSequenceEqual(stringData, StaticEnumFieldNameToken(trueType, alias)),
+                        condition: SpanSequenceEqual(stringData, StaticEnumFieldNameToken(trueType, alias), alias.Length),
                         statement:
                         SF.Block(
                             SimpleAssignExprStatement(outMessage, IdentifierFullName(member)),
