@@ -1,5 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
-using System.Text;
+﻿using System.Text;
+using Microsoft.CodeAnalysis;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {

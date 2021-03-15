@@ -1,9 +1,9 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
@@ -180,7 +180,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var list = new List<MemberDeclarationSyntax>();
             foreach (var member in ctx.Members)
             {
-                var bytes = Encoding.UTF8.GetBytes(member.BsonElementValue);
+                var bytes = member.ByteName;
                 list.Add(
                     SF.PropertyDeclaration(
                         attributeLists: default,
@@ -189,7 +189,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         explicitInterfaceSpecifier: default,
                         identifier: member.StaticSpanNameToken,
                         accessorList: default,
-                        expressionBody: SF.ArrowExpressionClause(SingleDimensionByteArrayCreation(bytes.Length, SeparatedList(bytes.Select(NumericLiteralExpr)))),
+                        expressionBody: SF.ArrowExpressionClause(SingleDimensionByteArrayCreation(bytes.Length, SeparatedList(bytes.ToArray().Select(NumericLiteralExpr)))),
                         initializer: default,
                         semicolonToken: SemicolonToken()));
             }

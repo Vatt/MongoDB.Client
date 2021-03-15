@@ -1,12 +1,12 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators

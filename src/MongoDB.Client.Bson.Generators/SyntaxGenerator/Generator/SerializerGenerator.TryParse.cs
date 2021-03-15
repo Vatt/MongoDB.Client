@@ -1,9 +1,9 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
@@ -39,6 +39,16 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var endMarkerToken = Identifier("endMarker");
             var bsonTypeToken = Identifier("bsonType");
             var bsonNameToken = Identifier("bsonName");
+            StatementSyntax[] operations = default;
+            switch (ctx.GeneratorMode)
+            {
+                case 1:
+                    operations = ContextTreeTryParseOperations(ctx, bsonTypeToken, bsonNameToken);
+                    break;
+                case 2:
+                    operations = Operations(ctx, bsonTypeToken, bsonNameToken);
+                    break;
+            }
             return SF.MethodDeclaration(
                     attributeLists: default,
                     modifiers: new(PublicKeyword(), StaticKeyword()),
@@ -68,7 +78,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                   IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(bsonTypeToken))),
                                   IfNotReturnFalse(TryGetCStringAsSpan(VarVariableDeclarationExpr(bsonNameToken))),
                                   IfContinue(BinaryExprEqualsEquals(IdentifierName(bsonTypeToken), NumericLiteralExpr(10))),
-                                  Operations(ctx, bsonTypeToken, bsonNameToken),
+                                  operations,
                                   IfNotReturnFalse(TrySkip(IdentifierName(bsonTypeToken))))),
                           IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
                           SF.IfStatement(

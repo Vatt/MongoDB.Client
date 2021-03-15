@@ -3,8 +3,10 @@ using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Exceptions;
 using MongoDB.Client.Bson.Utils;
 using System;
+using System.Buffers.Binary;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace MongoDB.Client.Bson.Reader
 {
@@ -24,8 +26,7 @@ namespace MongoDB.Client.Bson.Reader
             throw new SerializerIsNullException(typeName);
         }
 
-
-        public unsafe bool TryReadGeneric<T>(int bsonType, [MaybeNullWhen(false)] out T genericValue)
+         public unsafe bool TryReadGeneric<T>(int bsonType, [MaybeNullWhen(false)] out T genericValue)
         {
             genericValue = default;
             if (SerializerFnPtrProvider<T>.IsSerializable)

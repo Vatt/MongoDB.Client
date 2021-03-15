@@ -1,5 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
-using System;
+﻿using System;
+using Microsoft.CodeAnalysis;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics
 {
@@ -13,10 +13,16 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics
         private static readonly string NullableFieldsError = "MONGO03";
         private static readonly string SerializationMapUsingWarning = "MONGO04";
         private static readonly string GeneratingDurationInfo = "MONGO05";
+        private static readonly string UnsuportedOperationType = "MONGO06";
         //public static void Init(GeneratorExecutionContext ctx)
         //{
         //    _ctx = ctx;
         //}
+        public static void ReportGenerationContextTreeError()
+        {
+            _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(UnsuportedOperationType, "Generation failed",
+                "Generation context tree operations was failed", "SourceGenerator", DiagnosticSeverity.Error, true), null));
+        }
         public static void ReportUnhandledException(Exception ex)
         {
             var st = ex.StackTrace.Replace('\n', ' ').Replace('\r', ' ');

@@ -3,10 +3,10 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Messages
 {
-    [BsonSerializable]
-    public partial class ClusterTimeField
-    {
-        public BsonTimestamp ClusterTime { get; }
+    //[BsonSerializable]
+    //public partial class ClusterTimeField
+    //{
+    //    public BsonTimestamp ClusterTime { get; }
 
-    }
+    //}
 }

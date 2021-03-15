@@ -1,9 +1,9 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
@@ -70,6 +70,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static SeparatedSyntaxList<SyntaxNode> SeparatedList<T>(IEnumerable<T> source) where T : SyntaxNode
         {
             return SF.SeparatedList(source);
+        }
+        public static SeparatedSyntaxList<SyntaxNode> SeparatedList<T>() where T : SyntaxNode
+        {
+            return SF.SeparatedList<T>();
         }
         public static SeparatedSyntaxList<SyntaxNode> SeparatedList<T>(T source) where T : SyntaxNode
         {
@@ -236,6 +240,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.ElementAccessExpression(target, SF.BracketedArgumentList(SeparatedList(SF.Argument(IdentifierName(index)))));
         }
+        public static ElementAccessExpressionSyntax ElementAccessExpr(SyntaxToken target, ExpressionSyntax index)
+        {
+            return SF.ElementAccessExpression(IdentifierName(target), SF.BracketedArgumentList(SeparatedList(SF.Argument(index))));
+        }
         public static ElementAccessExpressionSyntax ElementAccessExpr(SyntaxToken target, SyntaxToken index)
         {
             return SF.ElementAccessExpression(IdentifierName(target), SF.BracketedArgumentList(SeparatedList(SF.Argument(IdentifierName(index)))));
@@ -262,6 +270,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static BlockSyntax Block(params StatementSyntax[] statements)
         {
             return SF.Block(statements);
+        }
+        public static BlockSyntax Block(LocalDeclarationStatementSyntax expr, StatementSyntax[] statements)
+        {
+            return SF.Block(expr).AddStatements(statements);
         }
         public static BlockSyntax Block(ImmutableList<StatementSyntax>.Builder buiider)
         {
