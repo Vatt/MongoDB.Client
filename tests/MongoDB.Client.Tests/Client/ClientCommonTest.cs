@@ -12,12 +12,14 @@ namespace MongoDB.Client.Tests.Client
         {
             var model = CommonModel.Create();
             var result = await CreateCollectionInsertFindDeleteDropCollectionAsync(model);
+            Assert.Equal(model, result);
         }
         [Fact]
         public async Task CustomTest()
         {
             var model = CustomModel.Create();
             var result = await CreateCollectionInsertFindDeleteDropCollectionAsync(model);
+            Assert.Equal(model, result);
         }
     }
 }

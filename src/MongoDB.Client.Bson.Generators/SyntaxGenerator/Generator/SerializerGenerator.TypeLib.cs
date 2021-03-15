@@ -50,10 +50,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return symbol is ITypeSymbol namedType && namedType.TypeKind == TypeKind.Enum;
         }
+        public static bool IsIList(ISymbol symbol)
+        {
+            return symbol.OriginalDefinition.Equals(System_Collections_Generic_IList_T, SymbolEqualityComparer.Default);
+        }   
+        public static bool IsList(ISymbol symbol)
+        {
+            return symbol.OriginalDefinition.Equals(System_Collections_Generic_List_T, SymbolEqualityComparer.Default);
+        }
         public static bool IsListOrIList(ISymbol symbol)
         {
-            return symbol.OriginalDefinition.Equals(System_Collections_Generic_IList_T, SymbolEqualityComparer.Default) ||
-                   symbol.OriginalDefinition.Equals(System_Collections_Generic_List_T, SymbolEqualityComparer.Default);
+            return IsIList(symbol) || IsList(symbol);
         }
         public static bool IsBsonObjectId(ISymbol sym)
         {

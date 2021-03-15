@@ -148,24 +148,26 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var outMessage = Identifier("array");
             var tempArrayRead = Identifier("temp");
 
-            var typeArg = ExtractTypeFromNullableIfNeed((type as INamedTypeSymbol).TypeArguments[0]);
+            var typeArg = (type as INamedTypeSymbol).TypeArguments[0];
+            var trueTypeArg = ExtractTypeFromNullableIfNeed(typeArg);
 
-            var trueType = ExtractTypeFromNullableIfNeed(type);
+            ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
+            var objectCreation = ObjectCreation(TypeFullName(System_Collections_Generic_List_T.Construct(typeArg)));
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
-            if (TryGenerateSimpleReadOpereation(ctx, typeArg, tempArrayRead, bsonTypeToken, outMessage, builder))
+            if (TryGenerateSimpleReadOpereation(ctx, trueTypeArg, tempArrayRead, bsonTypeToken, outMessage, builder))
             {
                 goto RETURN;
             }
-            if (TryGenerateTryParseBsonArrayOperation(typeArg, ctx.NameSym, tempArrayRead, outMessage, builder))
+            if (TryGenerateTryParseBsonArrayOperation(trueTypeArg, ctx.NameSym, tempArrayRead, outMessage, builder))
             {
                 goto RETURN;
             }
-            if (TryGetEnumReadOperation(tempArrayRead, ctx.NameSym, typeArg, true, out var enumOp))
+            if (TryGetEnumReadOperation(tempArrayRead, ctx.NameSym, trueTypeArg, true, out var enumOp))
             {
                 builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(outMessage, ListAddToken, Argument(enumOp.TempExpr))));
                 goto RETURN;
             }
-            GeneratorDiagnostics.ReportUnsuporterTypeError(ctx.NameSym, typeArg);
+            GeneratorDiagnostics.ReportUnsuporterTypeError(ctx.NameSym, trueTypeArg);
         RETURN:
             return SF.MethodDeclaration(
                     attributeLists: default,
@@ -182,7 +184,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     semicolonToken: default)
                 .WithBody(
                    Block(
-                       SimpleAssignExprStatement(IdentifierName(outMessage), ObjectCreation(TypeFullName(trueType))),
+                       SimpleAssignExprStatement(IdentifierName(outMessage), objectCreation),
                        IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(docLenToken))),
                        VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemainingExpr, SizeOfInt32Expr)),
                        SF.WhileStatement(

@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace MongoDB.Client.Tests.Models
 {
-    public class CustomModel
+    public class CustomModel : IEquatable<CustomModel>
     {
         public int A, B, C;
         public static CustomModel Create()
@@ -12,7 +12,10 @@ namespace MongoDB.Client.Tests.Models
             return new CustomModel { A = 42, B = 42, C = 42 };
         }
 
-
+        public bool Equals(CustomModel? other)
+        {
+            return other is not null && A == other.A && B == other.B && C == other.C;
+        }
 
 
         private static ReadOnlySpan<byte> CustomModelA => new byte[1] { 65 };
@@ -114,5 +117,7 @@ namespace MongoDB.Client.Tests.Models
             reserved.Write(sizeSpan);
             writer.Commit();
         }
+
+
     }
 }
