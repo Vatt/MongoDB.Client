@@ -44,11 +44,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return original;
         }
-        public static ExpressionSyntax SpanSequenceEqual(SyntaxToken spanName, SyntaxToken otherSpanName, Span<byte> byteName)
+        public static ExpressionSyntax SpanSequenceEqual(SyntaxToken spanName, SyntaxToken otherSpanName, int aliasNameLength)
         {
-            var equalNum = byteName.Length switch
+            var equalNum = aliasNameLength switch
             {
-                < 5 => byteName.Length,
+                < 5 => aliasNameLength,
                 < 8 => 5,
                 8 => 8,
                 < 16 => 9,
