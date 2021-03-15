@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -43,11 +44,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return original;
         }
-        public static ExpressionSyntax SpanSequenceEqual(SyntaxToken spanName, SyntaxToken otherSpanName, string bsonElementAlias)
+        public static ExpressionSyntax SpanSequenceEqual(SyntaxToken spanName, SyntaxToken otherSpanName, Span<byte> byteName)
         {
-            var equalNum = bsonElementAlias.Length switch
+            var equalNum = byteName.Length switch
             {
-                < 5 => bsonElementAlias.Length,
+                < 5 => byteName.Length,
                 < 8 => 5,
                 8 => 8,
                 < 16 => 9,
