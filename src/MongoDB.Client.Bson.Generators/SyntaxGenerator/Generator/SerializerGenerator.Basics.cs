@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -42,9 +43,23 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return original;
         }
-        public static ExpressionSyntax SpanSequenceEqual(SyntaxToken spanName, SyntaxToken otherSpanName)
+        public static ExpressionSyntax SpanSequenceEqual(SyntaxToken spanName, SyntaxToken otherSpanName, string bsonElementAlias)
         {
-            return InvocationExpr(IdentifierName(spanName), SequenceEqualToken, SF.Argument(IdentifierName(otherSpanName)));
+            var equalNum = bsonElementAlias.Length switch
+            {
+                < 5 => bsonElementAlias.Length,
+                < 8 => 5,
+                8 => 8,
+                < 16 => 9,
+                16 => 16,
+                < 32 => 17,
+                32 => 32,
+                < 64 => 33,
+                64 => 64,
+                _ => 65
+            };
+            return InvocationExpr(IdentifierName(spanName), SF.Identifier("SequenceEqual"+ equalNum), SF.Argument(IdentifierName(otherSpanName)));
+           // return InvocationExpr(IdentifierName(spanName), SequenceEqualToken, SF.Argument(IdentifierName(otherSpanName)));
         }
         public static CastExpressionSyntax CastToInt(ExpressionSyntax expr)
         {
