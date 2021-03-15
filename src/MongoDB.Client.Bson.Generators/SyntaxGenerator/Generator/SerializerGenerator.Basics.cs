@@ -344,5 +344,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.SwitchStatement(expr, new SyntaxList<SwitchSectionSyntax>(sections.ToArray()));
         }
+        public static SwitchStatementSyntax SwitchStatement(ExpressionSyntax expr, List<SwitchSectionSyntax> sections)
+        {
+            return SF.SwitchStatement(expr, new SyntaxList<SwitchSectionSyntax>(sections.ToArray()));
+        }
     }
 }

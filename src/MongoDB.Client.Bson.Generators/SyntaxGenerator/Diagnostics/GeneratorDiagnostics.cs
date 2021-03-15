@@ -18,10 +18,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics
         //{
         //    _ctx = ctx;
         //}
-        public static void ReportGenerationContextTreeError()
+        public static void ReportGenerationContextTreeError(string message = null)
         {
             _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(UnsuportedOperationType, "Generation failed",
-                "Generation context tree operations was failed", "SourceGenerator", DiagnosticSeverity.Error, true), null));
+                message ?? "Generation context tree operations was failed", "SourceGenerator", DiagnosticSeverity.Error, true), null));
         }
         public static void ReportUnhandledException(Exception ex)
         {
