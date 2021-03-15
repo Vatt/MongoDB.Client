@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -59,8 +57,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 64 => 64,
                 _ => 65
             };
-            return InvocationExpr(IdentifierName(spanName), SF.Identifier("SequenceEqual"+ equalNum), SF.Argument(IdentifierName(otherSpanName)));
-           // return InvocationExpr(IdentifierName(spanName), SequenceEqualToken, SF.Argument(IdentifierName(otherSpanName)));
+            return InvocationExpr(IdentifierName(spanName), SF.Identifier("SequenceEqual" + equalNum), SF.Argument(IdentifierName(otherSpanName)));
+            // return InvocationExpr(IdentifierName(spanName), SequenceEqualToken, SF.Argument(IdentifierName(otherSpanName)));
         }
         public static CastExpressionSyntax CastToInt(ExpressionSyntax expr)
         {
@@ -330,6 +328,23 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static NameColonSyntax NameColon(ISymbol symbol)
         {
             return SF.NameColon(IdentifierName(symbol.Name));
+        }
+        public static SwitchSectionSyntax SwitchSection(ExpressionSyntax labelExpr, BlockSyntax body)
+        {
+            var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(labelExpr));
+            return SF.SwitchSection(label, new SyntaxList<StatementSyntax>(body));
+        }
+        public static SwitchStatementSyntax SwitchStatement(SyntaxToken token, ImmutableList<SwitchSectionSyntax>.Builder sections)
+        {
+            return SF.SwitchStatement(IdentifierName(token), new SyntaxList<SwitchSectionSyntax>(sections.ToArray()));
+        }
+        public static SwitchStatementSyntax SwitchStatement(ExpressionSyntax expr, ImmutableList<SwitchSectionSyntax>.Builder sections)
+        {
+            return SF.SwitchStatement(expr, new SyntaxList<SwitchSectionSyntax>(sections.ToArray()));
+        }
+        public static SwitchStatementSyntax SwitchStatement(ExpressionSyntax expr, List<SwitchSectionSyntax> sections)
+        {
+            return SF.SwitchStatement(expr, new SyntaxList<SwitchSectionSyntax>(sections.ToArray()));
         }
     }
 }

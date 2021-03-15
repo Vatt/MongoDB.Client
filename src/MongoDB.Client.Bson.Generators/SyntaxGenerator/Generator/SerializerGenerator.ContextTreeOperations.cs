@@ -158,7 +158,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         private static SwitchStatementSyntax GenerateSwitch(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
         {
-            var sections = new List<SwitchSectionSyntax>();
+            var sections = ImmutableList.CreateBuilder<SwitchSectionSyntax>();
             foreach (var operation in host.InnerOperations.Where(op => op.Type == OpCtxType.Case))
             {
                 sections.Add(GenerateCase(ctx, operation, bsonType, bsonName));
@@ -167,12 +167,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 GeneratorDiagnostics.ReportGenerationContextTreeError();
             }
-            return SF.SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(host.Offset.Value)), new SyntaxList<SwitchSectionSyntax>(sections.ToArray()));
+            return SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(host.Offset.Value)), sections);
         }
         private static SwitchSectionSyntax GenerateCase(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
         {
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
-            var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(NumericLiteralExpr(host.Key.Value)));
             MemberContext member = host.Member;
             var operations = host.InnerOperations;
             if (operations.Count > 0 && member is not null)
@@ -214,8 +213,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 }
             }
 
-            RETURN:
-            return SF.SwitchSection(label, new SyntaxList<StatementSyntax>(Block(builder.ToArray(), SF.BreakStatement())));
+        RETURN:
+            return SwitchSection(NumericLiteralExpr(host.Key.Value), Block(builder.ToArray(), SF.BreakStatement()));
         }
         private static StatementSyntax[] GenerateCondition(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
         {
@@ -238,34 +237,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         private static StatementSyntax[] GenerateRoot(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
         {
-            var builder = ImmutableList.CreateBuilder<StatementSyntax>();
-            foreach (var condition in host.InnerOperations.Where(op => op.Type == OpCtxType.Condition))
+            if (host.InnerOperations.Where(op => op.Type == OpCtxType.Condition).FirstOrDefault() != default)
             {
-                //var member = condition.Member;
-                //if (TryGenerateParseEnum(member.StaticSpanNameToken, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))
-                //{
-                //    continue;
-                //}
-                //else if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
-                //{
-                //    continue;
-                //}
-                //else if (TryGenerateTryParseBson(member, bsonName, builder))
-                //{
-                //    continue;
-                //}
-                //GeneratorDiagnostics.ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
-                GeneratorDiagnostics.ReportGenerationContextTreeError();
+                GeneratorDiagnostics.ReportGenerationContextTreeError(nameof(GenerateRoot));
             }
-            //var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(NumericLiteralExpr(host.Key.Value)));
-            var sections = new List<SwitchSectionSyntax>();
+            var sections = ImmutableList.CreateBuilder<SwitchSectionSyntax>();
             foreach (var operation in host.InnerOperations.Where(op => op.Type == OpCtxType.Case))
             {
                 var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(NumericLiteralExpr(operation.Key.Value)));
                 sections.Add(GenerateCase(ctx, operation, bsonType, bsonName));
             }
-            builder.Add(SF.SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(host.Offset.Value)), new SyntaxList<SwitchSectionSyntax>(sections.ToArray())));
-            return builder.ToArray();
+            return new[] { SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(host.Offset.Value)), sections) };
         }
     }
 }
