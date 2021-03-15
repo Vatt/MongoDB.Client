@@ -46,12 +46,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
         private static SyntaxToken ReadStringReprEnumMethodName(ISymbol enumTypeName, ISymbol fieldOrPropertyName)
         {
-            var (_, alias) = GetMemberAlias(fieldOrPropertyName);
             return Identifier($"TryParse{enumTypeName.Name}");
         }
         private static SyntaxToken WriteStringReprEnumMethodName(ISymbol enumTypeName, ISymbol fieldOrPropertyName)
         {
-            var (_, alias) = GetMemberAlias(fieldOrPropertyName);
             return Identifier($"Write{enumTypeName.Name}");
         }
         private static MethodDeclarationSyntax[] GenerateWriteStringReprEnumMethods(ContextCore ctx)
