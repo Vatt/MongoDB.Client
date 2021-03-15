@@ -213,7 +213,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 }
             }
 
-            RETURN:
+        RETURN:
             return SwitchSection(NumericLiteralExpr(host.Key.Value), Block(builder.ToArray(), SF.BreakStatement()));
         }
         private static StatementSyntax[] GenerateCondition(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
