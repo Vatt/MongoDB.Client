@@ -55,6 +55,10 @@ namespace MongoDB.Client.Tests.Models
         public List<IList<InnerStruct>> DoubleListInnerStructProp { get; set; }
         public List<string> StringListProp { get; set; }
 
+        public ICollection<string> StringCollection { get; set; }
+        public IReadOnlyCollection<string> StringReadOnlyCollection { get; set; }
+        public IReadOnlyList<string> StringReadOnlyList { get; set; }
+
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         [BsonConstructor]
@@ -83,6 +87,9 @@ namespace MongoDB.Client.Tests.Models
                 InnerRecordListProp = new List<InnerRecord> { new InnerRecord(42, 42, 42) },
                 DoubleListInnerStructProp = new List<IList<InnerStruct>> {  new List<InnerStruct> { new InnerStruct { A = 42, B = 42, C = 42 } } } ,
                 DoubleListInnerRecordProp = new List<IList<InnerRecord>> {  new List<InnerRecord> { new InnerRecord(42, 42, 42) } } ,
+                StringCollection = new List<string> { "42", "42", "42" },
+                StringReadOnlyCollection = new List<string> { "42", "42", "42" },
+                StringReadOnlyList = new List<string> { "42", "42", "42" },
 
             };
         }

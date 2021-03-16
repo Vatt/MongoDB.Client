@@ -154,17 +154,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             //ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
-            if (TryGenerateSimpleReadOpereation(ctx, trueTypeArg, tempArrayRead, bsonTypeToken, outMessage, builder))
+            if (TryGenerateSimpleReadOpereation(ctx, trueTypeArg, tempArrayRead, bsonTypeToken, tempArray, builder))
             {
                 goto RETURN;
             }
-            if (TryGenerateTryParseBsonArrayOperation(trueTypeArg, ctx.NameSym, tempArrayRead, outMessage, builder))
+            if (TryGenerateTryParseBsonArrayOperation(trueTypeArg, ctx.NameSym, tempArrayRead, tempArray, builder))
             {
                 goto RETURN;
             }
             if (TryGetEnumReadOperation(tempArrayRead, ctx.NameSym, trueTypeArg, true, out var enumOp))
             {
-                builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(outMessage, ListAddToken, Argument(enumOp.TempExpr))));
+                builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(tempArray, ListAddToken, Argument(enumOp.TempExpr))));
                 goto RETURN;
             }
             GeneratorDiagnostics.ReportUnsuporterTypeError(ctx.NameSym, trueTypeArg);
@@ -200,7 +200,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                    IfStatement(
                                        condition: BinaryExprEqualsEquals(bsonTypeToken, NumericLiteralExpr(10)),
                                        statement: Block(
-                                           InvocationExprStatement(outMessage, ListAddToken, Argument(DefaultLiteralExpr())),
+                                           InvocationExprStatement(tempArray, ListAddToken, Argument(DefaultLiteralExpr())),
                                            ContinueStatement
                                            )),
                                    builder.ToArray()
