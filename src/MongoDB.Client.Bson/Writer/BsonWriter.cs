@@ -90,40 +90,35 @@ namespace MongoDB.Client.Bson.Writer
             }
         }
 
-
         public Reserved Reserve(int length)
+        {
+            if (_span.Length >= length)
+            {
+                var reserved = new Reserved(_span.Slice(0, length));
+                Advance(length);
+                return reserved;
+            }
+            else
+            {
+                return ReserveSlow(length);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public Reserved ReserveSlow(int length)
         {
             if (length > 4096)
             {
                 //TODO: do something
             }
-            if (_span.Length == 0)
-            {
-                GetNextSpan();
-            }
-            if (_span.Length >= length)
-            {
-                var reserved = new Reserved(_span.Slice(0, length));
-                Advance(length);
-                if (_span.Length == 0)
-                {
-                    GetNextSpan();
-                }
-                return reserved;
-            }
-            else
-            {
-                var secondLen = length - _span.Length;
-                var first = _span.Slice(0, _span.Length);
-                //_output.Advance(first.Length);               
-                //GetNextSpan();
-                Advance(first.Length);
-                var second = _span.Slice(0, secondLen);
-                Advance(secondLen);
-                return new Reserved(first, second);
-            }
-        }
 
+            var secondLen = length - _span.Length;
+            var first = _span.Slice(0, _span.Length);
+            Advance(first.Length);
+            var second = _span.Slice(0, secondLen);
+            Advance(secondLen);
+            return new Reserved(first, second);
+        }
 
         public BsonWriter(IBufferWriter<byte> output)
         {
@@ -195,11 +190,6 @@ namespace MongoDB.Client.Bson.Writer
             var slice = source;
             while (slice.Length > 0)
             {
-                if (_span.Length == 0)
-                {
-                    GetNextSpan();
-                }
-
                 var writable = Math.Min(slice.Length, _span.Length);
                 slice.Slice(0, writable).CopyTo(_span);
                 slice = slice.Slice(writable);
