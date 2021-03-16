@@ -3,19 +3,19 @@
 
 namespace MongoDB.Client.Bson.Serialization.Attributes
 {
-    public enum ByteArrayRepresentation
+    public enum BinaryDataRepresentation
     {
         Generic = 1,
         MD5 = 2,
     }
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
-    public class BsonByteArrayAttribute : Attribute
+    public class BsonBinaryDataAttribute : Attribute
     {
-        public BsonByteArrayAttribute()
+        public BsonBinaryDataAttribute()
         {
 
         }
-        public BsonByteArrayAttribute(ByteArrayRepresentation representation)
+        public BsonBinaryDataAttribute(BinaryDataRepresentation representation)
         {
 
         }

@@ -5,6 +5,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        public static INamedTypeSymbol System_Byte => BsonSerializerGenerator.Compilation.GetSpecialType(SpecialType.System_Byte);
         public static INamedTypeSymbol BsonReaderTypeSym => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Reader.BsonReader")!;
         public static INamedTypeSymbol BsonWriterTypeSym => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Writer.BsonWriter")!;
         public static INamedTypeSymbol System_DateTimeOffset => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.DateTimeOffset")!;
@@ -18,7 +19,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static INamedTypeSymbol System_Collections_Generic_IReadOnlyCollection_T => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyCollection`1")!;
         public static INamedTypeSymbol System_Collections_Generic_IReadOnlyList_T => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyList`1")!;
         public static INamedTypeSymbol System_Collections_Generic_ICollection_T => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.ICollection`1")!;
-        public static ITypeSymbol ByteArrayTypeSym => BsonSerializerGenerator.Compilation.CreateArrayTypeSymbol(BsonSerializerGenerator.Compilation.GetSpecialType(SpecialType.System_Byte));
+        public static ITypeSymbol ByteArrayTypeSym => BsonSerializerGenerator.Compilation.CreateArrayTypeSymbol(System_Byte);
         public static bool TryGetMetadata(ITypeSymbol source, out ISymbol result)
         {
             var str = source.ToString();

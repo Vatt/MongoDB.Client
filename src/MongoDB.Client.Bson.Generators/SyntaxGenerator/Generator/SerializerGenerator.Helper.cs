@@ -16,7 +16,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static INamedTypeSymbol BsonElementAttr => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonElementAttribute")!;
         public static INamedTypeSymbol BsonIdAttr => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonIdAttribute")!;
         public static INamedTypeSymbol BsonWriteIgnoreIfAttr => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonWriteIgnoreIfAttribute")!;
-        public static INamedTypeSymbol BsonBsonByteArrayAttr => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonByteArrayAttribute")!;
+        public static INamedTypeSymbol BsonBinaryDataAttr => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonBinaryDataAttribute")!;
 
         public static bool IsBsonExtensionSerializable(ISymbol nameSym, ISymbol typeSym, out ITypeSymbol extType)
         {
@@ -76,12 +76,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             return -1;
         }
-        public static int GetByteArrayRepresentation(INamedTypeSymbol symbol)
+        public static int GetBinaryDataRepresentation(INamedTypeSymbol symbol)
         {
-            var byteArrayattr = BsonBsonByteArrayAttr;
+            var binaryDataAttr = BsonBinaryDataAttr;
             foreach (var attr in symbol.GetAttributes())
             {
-                if (attr.AttributeClass!.Equals(byteArrayattr, SymbolEqualityComparer.Default))
+                if (attr.AttributeClass!.Equals(binaryDataAttr, SymbolEqualityComparer.Default))
                 {
                     if (attr.ConstructorArguments.IsEmpty)
                     {
