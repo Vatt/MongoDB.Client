@@ -18,6 +18,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static INamedTypeSymbol System_Collections_Generic_IReadOnlyCollection_T => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyCollection`1")!;
         public static INamedTypeSymbol System_Collections_Generic_IReadOnlyList_T => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyList`1")!;
         public static INamedTypeSymbol System_Collections_Generic_ICollection_T => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.ICollection`1")!;
+        public static ITypeSymbol ByteArrayTypeSym => BsonSerializerGenerator.Compilation.CreateArrayTypeSymbol(BsonSerializerGenerator.Compilation.GetSpecialType(SpecialType.System_Byte));
         public static bool TryGetMetadata(ITypeSymbol source, out ISymbol result)
         {
             var str = source.ToString();
@@ -44,6 +45,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             }
             return false;
+        }
+        public static bool IsByteArray(ISymbol sym)
+        {
+            return sym.Equals(ByteArrayTypeSym, SymbolEqualityComparer.Default);
         }
         public static bool IsBsonTimestamp(ISymbol sym)
         {
