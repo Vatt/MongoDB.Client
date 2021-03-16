@@ -47,7 +47,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             foreach (var member in ctx.Members)
             {
-                if (IsListOrIList(member.TypeSym))
+                if (IsListCollection(member.TypeSym))
                 {
                     var type = member.TypeSym as INamedTypeSymbol;
                     if (type is null)
@@ -61,7 +61,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         methods.Add(ReadArrayMethod(member, type));
                         type = type.TypeArguments[0] as INamedTypeSymbol;
                         //if (type is null || type.TypeArguments.IsEmpty)
-                        if (type is null || (IsListOrIList(type) == false))
+                        if (type is null || (IsListCollection(type) == false))
                         {
                             break;
                         }
@@ -76,7 +76,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             List<MethodDeclarationSyntax> methods = new();
             foreach (var member in ctx.Members)
             {
-                if (IsListOrIList(member.TypeSym))
+                if (IsListCollection(member.TypeSym))
                 {
                     var type = member.TypeSym as INamedTypeSymbol;
                     if (type is null)
@@ -89,7 +89,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     {
                         methods.Add(WriteArrayMethod(member, type));
                         type = type.TypeArguments[0] as INamedTypeSymbol;
-                        if (type is null || (IsListOrIList(type) == false))
+                        if (type is null || (IsListCollection(type) == false))
                         {
                             break;
                         }
@@ -147,12 +147,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var bsonNameToken = Identifier("arrayBsonName");
             var outMessage = Identifier("array");
             var tempArrayRead = Identifier("temp");
-
+            var tempArray = Identifier("internalArray");
+            
             var typeArg = (type as INamedTypeSymbol).TypeArguments[0];
             var trueTypeArg = ExtractTypeFromNullableIfNeed(typeArg);
 
-            ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
-            var objectCreation = ObjectCreation(TypeFullName(System_Collections_Generic_List_T.Construct(typeArg)));
+            //ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
             if (TryGenerateSimpleReadOpereation(ctx, trueTypeArg, tempArrayRead, bsonTypeToken, outMessage, builder))
             {
@@ -184,7 +184,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     semicolonToken: default)
                 .WithBody(
                    Block(
-                       SimpleAssignExprStatement(IdentifierName(outMessage), objectCreation),
+                       SimpleAssignExprStatement(outMessage, DefaultLiteralExpr()),
+                       VarLocalDeclarationStatement(tempArray, ObjectCreation(TypeFullName(System_Collections_Generic_List_T.Construct(typeArg)))),
                        IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(docLenToken))),
                        VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemainingExpr, SizeOfInt32Expr)),
                        SF.WhileStatement(
@@ -208,6 +209,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                        IfStatement(
                            BinaryExprNotEquals(endMarkerToken, NumericLiteralExpr((byte)'\x00')),
                            Block(Statement(SerializerEndMarkerException(ctx.Root.Declaration, IdentifierName(endMarkerToken))))),
+                       SimpleAssignExprStatement(IdentifierName(outMessage), tempArray),
                        ReturnTrueStatement
                        ));
         }
@@ -215,7 +217,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static MethodDeclarationSyntax WriteArrayMethod(MemberContext ctx, ITypeSymbol type)
         {
             ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
-            var classCtx = ctx.Root;
             var checkpoint = Identifier("checkpoint");
             var reserved = Identifier("reserved");
             var docLength = Identifier("docLength");

@@ -255,7 +255,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     return TryReadGeneric(bsonType, readTarget);
                 }
             }
-            if (IsListOrIList(trueTypeSym))
+            if (IsListCollection(trueTypeSym))
             {
                 return InvocationExpr(IdentifierName(ReadArrayMethodName(nameSym, trueTypeSym)), RefArgument(readerId), OutArgument(readTarget));
             }

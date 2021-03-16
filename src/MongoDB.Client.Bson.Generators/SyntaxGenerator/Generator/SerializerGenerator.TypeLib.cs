@@ -15,6 +15,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static INamedTypeSymbol BsonDocument => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonDocument")!;
         public static INamedTypeSymbol System_Collections_Generic_IList_T => BsonSerializerGenerator.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IList_T);
         public static INamedTypeSymbol System_Collections_Generic_List_T => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.List`1")!;
+        public static INamedTypeSymbol System_Collections_Generic_IReadOnlyCollection_T => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyCollection`1")!;
+        public static INamedTypeSymbol System_Collections_Generic_IReadOnlyList_T => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyList`1")!;
+        public static INamedTypeSymbol System_Collections_Generic_ICollection_T => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.ICollection`1")!;
         public static bool TryGetMetadata(ITypeSymbol source, out ISymbol result)
         {
             var str = source.ToString();
@@ -50,17 +53,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return symbol is ITypeSymbol namedType && namedType.TypeKind == TypeKind.Enum;
         }
-        public static bool IsIList(ISymbol symbol)
+        public static bool IsListCollection(ISymbol symbol)
         {
-            return symbol.OriginalDefinition.Equals(System_Collections_Generic_IList_T, SymbolEqualityComparer.Default);
-        }   
-        public static bool IsList(ISymbol symbol)
-        {
-            return symbol.OriginalDefinition.Equals(System_Collections_Generic_List_T, SymbolEqualityComparer.Default);
-        }
-        public static bool IsListOrIList(ISymbol symbol)
-        {
-            return IsIList(symbol) || IsList(symbol);
+            return symbol.OriginalDefinition.Equals(System_Collections_Generic_List_T, SymbolEqualityComparer.Default) ||
+                   symbol.OriginalDefinition.Equals(System_Collections_Generic_List_T, SymbolEqualityComparer.Default) ||
+                   symbol.OriginalDefinition.Equals(System_Collections_Generic_IList_T, SymbolEqualityComparer.Default) ||
+                   symbol.OriginalDefinition.Equals(System_Collections_Generic_IReadOnlyCollection_T, SymbolEqualityComparer.Default) ||
+                   symbol.OriginalDefinition.Equals(System_Collections_Generic_IReadOnlyList_T, SymbolEqualityComparer.Default) ||
+                   symbol.OriginalDefinition.Equals(System_Collections_Generic_ICollection_T, SymbolEqualityComparer.Default);
         }
         public static bool IsBsonObjectId(ISymbol sym)
         {
