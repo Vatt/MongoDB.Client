@@ -15,6 +15,7 @@ namespace MongoDB.Client.Bson.Generators
     [Generator]
     class BsonSerializerGenerator : ISourceGenerator
     {
+        private static int FileIndex = 0;
         public static GeneratorExecutionContext Context;
         public static Compilation Compilation;
         public void Execute(GeneratorExecutionContext context)
@@ -37,9 +38,12 @@ namespace MongoDB.Client.Bson.Generators
             var units = Create(masterContext, context.CancellationToken);
             for (int index = 0; index < units.Length; index++)
             {
+                FileIndex += 1;
                 var source = units[index].NormalizeWhitespace().ToString();
                 //context.AddSource(SerializerGenerator.SerializerName(masterContext.Contexts[index]), SourceText.From(source, Encoding.UTF8));
-                context.AddSource(masterContext.Contexts[index].SerializerName.ToString(), SourceText.From(source, Encoding.UTF8));
+                var fileName = masterContext.Contexts[index].Declaration.Name + FileIndex;
+                //context.AddSource(masterContext.Contexts[index].SerializerName.ToString(), SourceText.From(source, Encoding.UTF8));
+                context.AddSource(fileName, SourceText.From(source, Encoding.UTF8));
             }
 
 #if DEBUG
