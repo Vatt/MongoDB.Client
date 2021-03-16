@@ -38,7 +38,6 @@ namespace MongoDB.Client.Bson.Generators
             for (int index = 0; index < units.Length; index++)
             {
                 var source = units[index].NormalizeWhitespace().ToString();
-                //context.AddSource(SerializerGenerator.SerializerName(masterContext.Contexts[index]), SourceText.From(source, Encoding.UTF8));
                 context.AddSource(masterContext.Contexts[index].SerializerName.ToString(), SourceText.From(source, Encoding.UTF8));
             }
 

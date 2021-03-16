@@ -213,6 +213,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.BinaryExpression(SyntaxKind.EqualsExpression, left, IdentifierName(right));
         }
+
+        public static ExpressionSyntax AddAssignmentExpr(SyntaxToken left, ExpressionSyntax right)
+        {
+            return SF.AssignmentExpression(SyntaxKind.AddAssignmentExpression, IdentifierName(left), right);
+        }
         public static BinaryExpressionSyntax BinaryExprEqualsEquals(SyntaxToken left, ExpressionSyntax right)
         {
             return SF.BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(left), right);
@@ -239,17 +244,20 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return SF.VariableDeclaration(SF.IdentifierName("var"), SeparatedList(declarator));
         }
 
-        public static ForStatementSyntax ForStatement(SyntaxToken indexVar, ExpressionSyntax condition, ExpressionSyntax incrementor, BlockSyntax body)
+        public static StatementSyntax ForStatement(ExpressionSyntax condition, ExpressionSyntax incrementor, BlockSyntax body)
         {
             return SF.ForStatement(
-                declaration: VarVariableDeclaration(indexVar, NumericLiteralExpr(0)),
-                initializers: new SeparatedSyntaxList<ExpressionSyntax>(),
+                declaration: default,
+                initializers: SeparatedList<ExpressionSyntax>(),
                 condition: condition,
                 incrementors: SeparatedList(incrementor),
                 statement: body
             );
         }
-
+        public static ForEachStatementSyntax ForEachStatement(SyntaxToken identifier, ExpressionSyntax expression, BlockSyntax body)
+        {
+            return SF.ForEachStatement(VarType, identifier, expression, body);
+        }
         public static ElementAccessExpressionSyntax ElementAccessExpr(ExpressionSyntax target, SyntaxToken index)
         {
             return SF.ElementAccessExpression(target, SF.BracketedArgumentList(SeparatedList(SF.Argument(IdentifierName(index)))));
@@ -258,7 +266,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.ElementAccessExpression(IdentifierName(target), SF.BracketedArgumentList(SeparatedList(SF.Argument(index))));
         }
-        public static ElementAccessExpressionSyntax ElementAccessExpr(SyntaxToken target, SyntaxToken index)
+        public static ExpressionSyntax ElementAccessExpr(SyntaxToken target, SyntaxToken index)
         {
             return SF.ElementAccessExpression(IdentifierName(target), SF.BracketedArgumentList(SeparatedList(SF.Argument(IdentifierName(index)))));
         }
@@ -293,9 +301,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return Block(buiider.ToArray());
         }
+        public static BlockSyntax Block(ImmutableList<StatementSyntax>.Builder buiider, ExpressionSyntax expr)
+        {
+            return Block(buiider.ToArray(), expr);
+        }
         public static BlockSyntax Block(StatementSyntax[] statements, StatementSyntax statement)
         {
             return SF.Block(statements).AddStatements(statement);
+        }
+        public static BlockSyntax Block(StatementSyntax[] statements, ExpressionSyntax expr)
+        {
+            return SF.Block(statements).AddStatements(Statement(expr));
         }
         public static BlockSyntax Block(ExpressionStatementSyntax expr, StatementSyntax[] statements1, params StatementSyntax[] statements2)
         {

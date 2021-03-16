@@ -114,7 +114,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     Statement(WriteGeneric(writeTarget, IdentifierName(identifierName)))
                 );
             }
-            if (trueType is INamedTypeSymbol namedType && IsListOrIList(namedType))
+            if (trueType is INamedTypeSymbol namedType && IsListCollection(namedType))
             {
                 return Statements
                 (
