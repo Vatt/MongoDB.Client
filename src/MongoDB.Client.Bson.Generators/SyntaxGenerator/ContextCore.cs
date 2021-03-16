@@ -19,12 +19,25 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         {
             get
             {
-                string generics = GenericArgs.HasValue && GenericArgs.Value.Length > 0
-                    ? string.Join(string.Empty, GenericArgs.Value)
-                    : string.Empty;
-                return SerializerGenerator.Identifier($"{Declaration.ContainingNamespace.ToString().Replace(".", string.Empty)}{Declaration.Name}{generics}.g");
+                string name = GenericArgs.HasValue ? Declaration.Name + string.Join(string.Empty, GenericArgs.Value) : Declaration.Name;
+                ISymbol sym = Declaration;
+                while (sym.ContainingSymbol.Kind != SymbolKind.Namespace)
+                {
+                    string generics = string.Empty;
+                    if (sym.ContainingSymbol is INamedTypeSymbol namedType)
+                    {
+                        if (namedType.TypeArguments.IsEmpty == false)
+                        {
+                            generics = string.Join(string.Empty, namedType.TypeArguments);
+                        }
+                    }
+                    name += "." + sym.ContainingSymbol.Name + generics;
+                    sym = sym.ContainingSymbol;
+                }
+                 return SerializerGenerator.Identifier($"{name}.g");
             }
         }
+
         internal bool HavePrimaryConstructor => ConstructorParams.HasValue;
         public ContextCore(MasterContext root, SyntaxNode node, INamedTypeSymbol symbol)
         {
