@@ -53,10 +53,19 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return symbol is ITypeSymbol namedType && namedType.TypeKind == TypeKind.Enum;
         }
+        public static bool HaveCollectionIndexator(ISymbol symbol)
+        {
+            if (IsListCollection(symbol) == false)
+            {
+                return false;
+            }
+            return symbol.OriginalDefinition.Equals(System_Collections_Generic_List_T, SymbolEqualityComparer.Default) ||
+                   symbol.OriginalDefinition.Equals(System_Collections_Generic_IList_T, SymbolEqualityComparer.Default) ||
+                   symbol.OriginalDefinition.Equals(System_Collections_Generic_IReadOnlyList_T, SymbolEqualityComparer.Default);
+        }
         public static bool IsListCollection(ISymbol symbol)
         {
             return symbol.OriginalDefinition.Equals(System_Collections_Generic_List_T, SymbolEqualityComparer.Default) ||
-                   symbol.OriginalDefinition.Equals(System_Collections_Generic_List_T, SymbolEqualityComparer.Default) ||
                    symbol.OriginalDefinition.Equals(System_Collections_Generic_IList_T, SymbolEqualityComparer.Default) ||
                    symbol.OriginalDefinition.Equals(System_Collections_Generic_IReadOnlyCollection_T, SymbolEqualityComparer.Default) ||
                    symbol.OriginalDefinition.Equals(System_Collections_Generic_IReadOnlyList_T, SymbolEqualityComparer.Default) ||

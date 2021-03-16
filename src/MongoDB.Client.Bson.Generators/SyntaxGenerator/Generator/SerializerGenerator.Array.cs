@@ -223,27 +223,44 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var sizeSpan = Identifier("sizeSpan");
             var index = Identifier("index");
             var array = Identifier("array");
+            var forEachItem = Identifier("item");
             var typeArg = (trueType as INamedTypeSymbol).TypeArguments[0];
+            var haveCollectionIndexator = HaveCollectionIndexator(type);
             var writeOperation = ImmutableList.CreateBuilder<StatementSyntax>();
+            var elementExpr = haveCollectionIndexator
+                ? ElementAccessExpr(array, index)
+                : IdentifierName(forEachItem);
+
+
             if (typeArg.IsReferenceType)
             {
                 writeOperation.IfStatement(
-                            condition: BinaryExprEqualsEquals(ElementAccessExpr(array, index), NullLiteralExpr()),
+                            condition: BinaryExprEqualsEquals(elementExpr, NullLiteralExpr()),
                             statement: Block(WriteBsonNull(index)),
-                            @else: Block(WriteOperation(ctx, index, ctx.NameSym, typeArg, BsonWriterToken, ElementAccessExpr(array, index))));
+                            @else: Block(WriteOperation(ctx, index, ctx.NameSym, typeArg, BsonWriterToken, elementExpr)));
             }
             else if (typeArg.NullableAnnotation == NullableAnnotation.Annotated && typeArg.IsValueType)
             {
-                var operation = WriteOperation(ctx, index, ctx.NameSym, typeArg, BsonWriterToken, SimpleMemberAccess(ElementAccessExpr(array, index), NullableValueToken));
+                var operation = WriteOperation(ctx, index, ctx.NameSym, typeArg, BsonWriterToken, SimpleMemberAccess(elementExpr, NullableValueToken));
                 writeOperation.IfStatement(
-                            condition: BinaryExprEqualsEquals(SimpleMemberAccess(ElementAccessExpr(array, index), NullableHasValueToken), FalseLiteralExpr),
+                            condition: BinaryExprEqualsEquals(SimpleMemberAccess(elementExpr, NullableHasValueToken), FalseLiteralExpr),
                             statement: Block(WriteBsonNull(index)),
                             @else: Block(operation));
             }
             else
             {
-                writeOperation.AddRange(WriteOperation(ctx, index, ctx.NameSym, typeArg, BsonWriterToken, ElementAccessExpr(IdentifierName(array), index)));
+                writeOperation.AddRange(WriteOperation(ctx, index, ctx.NameSym, typeArg, BsonWriterToken, elementExpr));
             }
+
+            var loopStatement = haveCollectionIndexator
+                ? ForStatement(
+                    condition: BinaryExprLessThan(index, SimpleMemberAccess(array, ListCountToken)),
+                    incrementor: PostfixUnaryExpr(index),
+                    body: Block(writeOperation!))
+                : ForEachStatement(
+                    identifier: forEachItem,
+                    expression: IdentifierName(array),
+                    body: Block(writeOperation!, AddAssignmentExpr(index, NumericLiteralExpr(1))));
 
             return SF.MethodDeclaration(
                     attributeLists: default,
@@ -261,13 +278,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     semicolonToken: default)
                 .WithBody(
                 Block(
+                    LocalDeclarationStatement(IntPredefinedType(), index, NumericLiteralExpr(0)), 
                     VarLocalDeclarationStatement(checkpoint, WriterWrittenExpr),
                     VarLocalDeclarationStatement(reserved, WriterReserve(4)),
-                    ForStatement(
-                        indexVar: index,
-                        condition: BinaryExprLessThan(index, SimpleMemberAccess(array, ListCountToken)),
-                        incrementor: PostfixUnaryExpr(index),
-                        body: Block(writeOperation!)),
+                    loopStatement,
                     WriteByteStatement((byte)'\x00'),
                     VarLocalDeclarationStatement(docLength, BinaryExprMinus(WriterWrittenExpr, IdentifierName(checkpoint))),
                     LocalDeclarationStatement(SpanByteName, sizeSpan, StackAllocByteArray(4)),
