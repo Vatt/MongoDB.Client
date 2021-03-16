@@ -20,6 +20,11 @@ namespace MongoDB.Client.Tests.Models
         public List<ClassNullable?>? NullableClasses { get; set; }
         public List<StructNullable?>? NullableStructures { get; set; }
         public List<List<StructNullable?>?>? NullList { get; set; }
+        public IReadOnlyList<StructNullable?> List1 { get; set; }
+        public ICollection<StructNullable?>? List2 { get; set; }
+        public IReadOnlyCollection<StructNullable?>? List3{ get; set; }
+        public IList<StructNullable?>? List4{ get; set; }
+        
 
         public bool Equals(ListElementNullable? other)
         {
@@ -29,7 +34,9 @@ namespace MongoDB.Client.Tests.Models
                    NullableLongs!.SequenceEqual(other.NullableLongs!) && NullableGuids!.SequenceEqual(other.NullableGuids!) &&
                    NullableDates!.SequenceEqual(other.NullableDates!) && NullableBsonObjectId!.SequenceEqual(other.NullableBsonObjectId!) &&
                    NullableDoubles!.SequenceEqual(other.NullableDoubles!) && NullableRecords!.SequenceEqual(other.NullableRecords!) &&
-                   NullableClasses!.SequenceEqual(other.NullableClasses!) && NullableStructures!.SequenceEqual(other.NullableStructures!);
+                   NullableClasses!.SequenceEqual(other.NullableClasses!) && NullableStructures!.SequenceEqual(other.NullableStructures!) &&
+                   List1!.SequenceEqual(other.List1!) && List2!.SequenceEqual(other.List2!) && List3!.SequenceEqual(other.List3!) &&
+                   List4!.SequenceEqual(other.List4!);
         }
 
         public override bool Equals(object? obj)
@@ -53,6 +60,10 @@ namespace MongoDB.Client.Tests.Models
             hashCode.Add(NullableRecords);
             hashCode.Add(NullableClasses);
             hashCode.Add(NullableStructures);
+            hashCode.Add(List1);
+            hashCode.Add(List2);
+            hashCode.Add(List3);
+            hashCode.Add(List4);
             return hashCode.ToHashCode();
         }
 
@@ -75,7 +86,11 @@ namespace MongoDB.Client.Tests.Models
                 NullableLongs = new() { 42, null, 42 },
                 NullableStrings = new() { "42", null, "42" },
                 NullableBsonObjectId = new() { BsonObjectId.NewObjectId(), null, BsonObjectId.NewObjectId() },
-                NullList = null
+                NullList = null,
+                List1 = new List<StructNullable?> { StructNullable.Create(), null, StructNullable.Create() } ,
+                List2 = new List<StructNullable?> { StructNullable.Create(), null, StructNullable.Create() } ,
+                List3 = new List<StructNullable?> { StructNullable.Create(), null, StructNullable.Create() } ,
+                List4 = new List<StructNullable?> { StructNullable.Create(), null, StructNullable.Create() } ,
             };
         }
     }

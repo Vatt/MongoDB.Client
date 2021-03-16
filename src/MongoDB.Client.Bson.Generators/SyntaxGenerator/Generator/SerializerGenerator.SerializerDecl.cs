@@ -123,7 +123,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
                     break;
             }
-            return SF.NamespaceDeclaration(SF.ParseName(ctx.Declaration.ContainingNamespace.ToString())).AddMembers(ProcessNested(declaration, ctx.Declaration.ContainingSymbol)); ;
+            return SF.NamespaceDeclaration(SF.ParseName(ctx.Declaration.ContainingNamespace.ToString())).AddMembers(ProcessNested(declaration, ctx.Declaration.ContainingSymbol));
 
             static MemberDeclarationSyntax ProcessNested(MemberDeclarationSyntax member, ISymbol symbol)
             {
