@@ -103,9 +103,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
             writer.Write_Type_Name_Value(CustomModelC, message.C);
             writer.WriteByte(0);
             var docLength = writer.Written - checkpoint;
-            Span<byte> sizeSpan = stackalloc byte[4];
-            BinaryPrimitives.WriteInt32LittleEndian(sizeSpan, docLength);
-            reserved.Write(sizeSpan);
+            reserved.Write(docLength);
             writer.Commit();
         }
     }
@@ -202,9 +200,7 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
             writer.Write_Type_Name_Value(CustomModelC, message.C);
             writer.WriteByte(0);
             var docLength = writer.Written - checkpoint;
-            Span<byte> sizeSpan = stackalloc byte[4];
-            BinaryPrimitives.WriteInt32LittleEndian(sizeSpan, docLength);
-            reserved.Write(sizeSpan);
+            reserved.Write(docLength);
             writer.Commit();
         }
     }

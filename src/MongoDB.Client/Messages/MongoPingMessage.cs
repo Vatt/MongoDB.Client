@@ -167,9 +167,7 @@ namespace MongoDB.Client.Messages
             writer.Write_Type_Name_Value(MongoSignaturekeyId, message.KeyId);
             writer.WriteByte(0);
             var docLength = writer.Written - checkpoint;
-            Span<byte> sizeSpan = stackalloc byte[4];
-            BinaryPrimitives.WriteInt32LittleEndian(sizeSpan, docLength);
-            reserved.Write(sizeSpan);
+            reserved.Write(docLength);
             writer.Commit();
         }
     }

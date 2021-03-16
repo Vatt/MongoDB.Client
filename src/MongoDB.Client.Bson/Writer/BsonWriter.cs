@@ -25,6 +25,7 @@ namespace MongoDB.Client.Bson.Writer
         {
             private readonly Span<byte> _reserved1;
             private readonly Span<byte> _reserved2;
+
             public Reserved(Span<byte> r1, Span<byte> r2)
             {
                 _reserved1 = r1;
@@ -35,14 +36,36 @@ namespace MongoDB.Client.Bson.Writer
                 _reserved1 = r1;
                 _reserved2 = null;
             }
-            public void Write(byte source)
+
+            public void WriteByte(byte source)
             {
                 Debug.Assert(_reserved2 == null);
                 _reserved1[0] = source;
             }
+
+            public void Write(int source)
+            {
+                if (_reserved2.IsEmpty)
+                {
+                    BinaryPrimitives.WriteInt32LittleEndian(_reserved1, source);
+                }
+                else
+                {
+                    WriteSlow(source);
+                }
+            }
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            private void WriteSlow(int source)
+            {
+                Span<byte> span = stackalloc byte[4];
+                BinaryPrimitives.WriteInt32LittleEndian(span, source);
+                WriteMultiSpan(span);
+            }
+
             public void Write(Span<byte> source)
             {
-                if (_reserved2 == null)
+                if (_reserved2.IsEmpty)
                 {
                     WriteSingleSpan(source);
                 }
@@ -51,11 +74,14 @@ namespace MongoDB.Client.Bson.Writer
                     WriteMultiSpan(source);
                 }
             }
+
             private void WriteSingleSpan(Span<byte> source)
             {
                 Debug.Assert(_reserved1.Length == source.Length);
                 source.CopyTo(_reserved1);
             }
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
             private void WriteMultiSpan(Span<byte> source)
             {
                 Debug.Assert(source.Length == _reserved1.Length + _reserved2.Length);

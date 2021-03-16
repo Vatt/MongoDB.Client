@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers.Binary;
 using System.Linq;
 
 namespace MongoDB.Client.Tests.Models
@@ -112,9 +111,7 @@ namespace MongoDB.Client.Tests.Models
             writer.Write_Type_Name_Value(CustomModelC, message.C);
             writer.WriteByte(0);
             var docLength = writer.Written - checkpoint;
-            Span<byte> sizeSpan = stackalloc byte[4];
-            BinaryPrimitives.WriteInt32LittleEndian(sizeSpan, docLength);
-            reserved.Write(sizeSpan);
+            reserved.Write(docLength);
             writer.Commit();
         }
 
