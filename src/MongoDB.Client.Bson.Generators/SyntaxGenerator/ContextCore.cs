@@ -22,7 +22,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                 string generics = GenericArgs.HasValue && GenericArgs.Value.Length > 0
                     ? string.Join(string.Empty, GenericArgs.Value)
                     : string.Empty;
-                return SerializerGenerator.Identifier($"{Declaration.ContainingNamespace.ToString().Replace(".", string.Empty)}{Declaration.Name}{generics}SerializerGenerated");
+                return SerializerGenerator.Identifier($"{Declaration.ContainingNamespace.ToString().Replace(".", string.Empty)}{Declaration.Name}{generics}.g");
             }
         }
         internal bool HavePrimaryConstructor => ConstructorParams.HasValue;
