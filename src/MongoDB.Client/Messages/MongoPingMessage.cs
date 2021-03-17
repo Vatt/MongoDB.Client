@@ -57,7 +57,8 @@ namespace MongoDB.Client.Messages
         }
     }
 
-    public class MongoSignature
+    [BsonSerializable]
+    public partial class MongoSignature
     {
         [BsonElement("hash")] 
         public byte[] Hash { get; }
@@ -71,6 +72,7 @@ namespace MongoDB.Client.Messages
             this.KeyId = KeyId;
         }
 
+        /*
         private static ReadOnlySpan<byte> MongoSignaturehash => new byte[4] {104, 97, 115, 104};
         private static ReadOnlySpan<byte> MongoSignaturekeyId => new byte[5] {107, 101, 121, 73, 100};
 
@@ -171,7 +173,7 @@ namespace MongoDB.Client.Messages
             BinaryPrimitives.WriteInt32LittleEndian(sizeSpan, docLength);
             reserved.Write(sizeSpan);
             writer.Commit();
-        }
+        }*/
     }
 
     [BsonSerializable]

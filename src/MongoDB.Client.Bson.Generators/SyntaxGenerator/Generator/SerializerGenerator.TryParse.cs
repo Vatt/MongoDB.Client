@@ -290,6 +290,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     //    return true;
             }
 
+            if (IsArrayByteOrMemoryByte(typeSymbol))
+            {
+                expr = TryGetBinaryDataGeneric(variable);
+                return true;
+            }
             if (IsBsonTimestamp(typeSymbol))
             {
                 expr = TryGetTimestamp(variable);

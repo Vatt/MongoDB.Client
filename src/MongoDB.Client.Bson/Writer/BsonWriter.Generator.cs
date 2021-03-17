@@ -113,7 +113,12 @@ namespace MongoDB.Client.Bson.Writer
             WriteByte((byte)BsonBinaryDataType.UUID);
             WriteGuidAsBytes(value);
         }
-
+        private void WriteByteArrayAsGenericBinaryData(byte[] value)
+        {
+            WriteInt32(value.Length);
+            WriteByte((byte)BsonBinaryDataType.Generic);
+            WriteBytes(value);
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteString(ReadOnlySpan<byte> value)
@@ -355,7 +360,20 @@ namespace MongoDB.Client.Bson.Writer
             WriteIntIndex(intName);
             WriteGuidAsBinaryData(value);
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write_Type_Name_Value(ReadOnlySpan<byte> name, byte[] value)
+        {
+            WriteByte(5);
+            WriteCString(name);
+            WriteByteArrayAsGenericBinaryData(value);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write_Type_Name_Value(int intName, byte[] value)
+        {
+            WriteByte(5);
+            WriteIntIndex(intName);
+            WriteByteArrayAsGenericBinaryData(value);
+        }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, DateTimeOffset value)
         {
