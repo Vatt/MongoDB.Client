@@ -11,11 +11,13 @@ namespace MongoDB.Client.Network
     public class NetworkConnectionFactory
     {
         IConnectionFactory _factory;
+
         public NetworkConnectionFactory(ILoggerFactory loggerFactory)
         {
             _factory = new SocketConnectionFactory(Options.Create(new SocketTransportOptions()), loggerFactory);
         }
-        public ValueTask<ConnectionContext> ConnectAsync(EndPoint? endPoint, CancellationToken cancellationToken = default)
+
+        public ValueTask<ConnectionContext> ConnectAsync(EndPoint endPoint, CancellationToken cancellationToken = default)
         {
             Debug.Assert(endPoint != null, nameof(endPoint) + " != null");
             return _factory.ConnectAsync(endPoint, cancellationToken);

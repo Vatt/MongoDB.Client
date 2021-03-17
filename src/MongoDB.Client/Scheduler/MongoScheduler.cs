@@ -60,21 +60,21 @@ namespace MongoDB.Client.Scheduler
         }
 
 
-        public async ValueTask StartAsync()
+        public async ValueTask StartAsync(CancellationToken token)
         {
             if (_connections.Count == 0)
             {
                 for (int i = 0; i < _maxConnections; i++)
                 {
-                    _connections.Add(await CreateNewConnection());
+                    _connections.Add(await CreateNewConnection(token));
                 }
             }
         }
 
 
-        private ValueTask<MongoConnection> CreateNewConnection()
+        private ValueTask<MongoConnection> CreateNewConnection(CancellationToken token)
         {
-            return _connectionFactory.CreateAsync(_settings, _channel.Reader, _findChannel.Reader, this);
+            return _connectionFactory.CreateAsync(_settings, _channel.Reader, _findChannel.Reader, this, token);
         }
 
 
@@ -206,7 +206,7 @@ namespace MongoDB.Client.Scheduler
             _connections.Remove(connection);
             try
             {
-                _connections.Add(await CreateNewConnection());
+                _connections.Add(await CreateNewConnection(default));
             }
             catch (Exception e)
             {

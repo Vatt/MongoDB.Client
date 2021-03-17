@@ -5,6 +5,7 @@ using MongoDB.Client.Experimental;
 using MongoDB.Client.Scheduler;
 using MongoDB.Client.Settings;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MongoDB.Client
@@ -75,9 +76,9 @@ namespace MongoDB.Client
         }
 
 
-        public ValueTask InitAsync()
+        public ValueTask InitAsync(CancellationToken token)
         {
-            return _scheduler.StartAsync();
+            return _scheduler.StartAsync(token);
         }
 
 
@@ -86,27 +87,27 @@ namespace MongoDB.Client
             return TransactionHandler.Create(_scheduler);
         }
 
-        public static async Task<MongoClient> CreateClient(MongoClientSettings settings, ILoggerFactory? loggerFactory = null)
+        public static async Task<MongoClient> CreateClient(MongoClientSettings settings, ILoggerFactory? loggerFactory = null, CancellationToken token = default)
         {
             loggerFactory ??= new NullLoggerFactory();
             var client = new MongoClient(settings, loggerFactory);
-            await client.InitAsync();
+            await client.InitAsync(token);
             return client;
         }
 
-        public static async Task<MongoClient> CreateClient(string connectionString, ILoggerFactory? loggerFactory = null)
+        public static async Task<MongoClient> CreateClient(string connectionString, ILoggerFactory? loggerFactory = null, CancellationToken token = default)
         {
             loggerFactory ??= new NullLoggerFactory();
             var client = new MongoClient(connectionString, loggerFactory);
-            await client.InitAsync();
+            await client.InitAsync(token);
             return client;
         }
 
-        public static async Task<MongoClient> CreateClient(EndPoint endPoint, ILoggerFactory? loggerFactory = null)
+        public static async Task<MongoClient> CreateClient(EndPoint endPoint, ILoggerFactory? loggerFactory = null, CancellationToken token = default)
         {
             loggerFactory ??= new NullLoggerFactory();
             var client = new MongoClient(endPoint, loggerFactory);
-            await client.InitAsync();
+            await client.InitAsync(token);
             return client;
         }
     }

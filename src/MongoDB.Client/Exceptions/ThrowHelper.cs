@@ -235,7 +235,7 @@ namespace MongoDB.Client.Exceptions
         }
         [MethodImpl(MethodImplOptions.NoInlining)]
         [DoesNotReturn]
-        public static void MongoInitExceptions()
+        public static T MongoInitExceptions<T>()
         {
             throw new MongoException($"Connection failed");
         }

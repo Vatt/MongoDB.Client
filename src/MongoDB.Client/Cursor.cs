@@ -31,20 +31,20 @@ namespace MongoDB.Client
         public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken)
         {
             var result = await _scheduler.FindAsync<T>(_filter, _limit, _collectionNamespace, _transaction, cancellationToken).ConfigureAwait(false);
-            if (result.ErrorMessage is not null)
+            if (result.CursorResult.ErrorMessage is not null)
             {
-                ThrowHelper.CursorException(result.ErrorMessage);
+                ThrowHelper.CursorException(result.CursorResult.ErrorMessage);
             }
-            foreach (var item in result.MongoCursor.Items)
+            foreach (var item in result.CursorResult.MongoCursor.Items)
             {
                 yield return item;
             }
 
-            ListsPool<T>.Pool.Return(result.MongoCursor.Items);
-            long cursorId = result.MongoCursor.Id;
+            ListsPool<T>.Pool.Return(result.CursorResult.MongoCursor.Items);
+            long cursorId = result.CursorResult.MongoCursor.Id;
             while (cursorId != 0)
             {
-                var getMoreResult = await _scheduler.GetMoreAsync<T>(cursorId, _collectionNamespace, _transaction, cancellationToken).ConfigureAwait(false);
+                var getMoreResult = await _scheduler.GetMoreAsync<T>(result.Scheduler, cursorId, _collectionNamespace, _transaction, cancellationToken).ConfigureAwait(false);
                 if (getMoreResult.ErrorMessage is not null)
                 {
                     ThrowHelper.CursorException(getMoreResult.ErrorMessage);

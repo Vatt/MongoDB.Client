@@ -15,33 +15,16 @@ namespace MongoDB.Client.Scheduler
     {
         private readonly MongoScheduler _mongoScheduler;
 
-        public StandaloneScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory, MongoClusterTime? clusterTime)
-        {
-            _mongoScheduler = new MongoScheduler(settings, connectionFactory, loggerFactory, clusterTime);
-        }
-
         public StandaloneScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
-            : this(settings, connectionFactory, loggerFactory, null)
         {
-        }
-
-        public int GetNextRequestNumber()
-        {
-            return _mongoScheduler.GetNextRequestNumber();
+            _mongoScheduler = new MongoScheduler(settings, connectionFactory, loggerFactory);
         }
 
 
-        public ValueTask StartAsync()
+        public ValueTask StartAsync(CancellationToken token)
         {
-            return _mongoScheduler.StartAsync();
+            return _mongoScheduler.StartAsync(token);
         }
-
-
-        public ValueTask TransactionAsync(TransactionMessage message, CancellationToken token)
-        {
-            throw new MongoException("Transactions not support on standalone");
-        }
-
 
         public ValueTask DropCollectionAsync(DropCollectionMessage message, CancellationToken token)
         {
@@ -53,32 +36,22 @@ namespace MongoDB.Client.Scheduler
             return _mongoScheduler.CreateCollectionAsync(message, token);
         }
 
-        public Task ConnectionLost(MongoConnection connection)
-        {
-            return _mongoScheduler.ConnectionLost(connection);
-        }
-
-        public ValueTask DisposeAsync()
-        {
-            return _mongoScheduler.DisposeAsync();
-        }
-
-
-        public ValueTask<CursorResult<T>> FindAsync<T>(BsonDocument filter, int limit, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)
+        public async ValueTask<FindResult<T>> FindAsync<T>(BsonDocument filter, int limit, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)
         {
             var requestNum = _mongoScheduler.GetNextRequestNumber();
             var requestDocument = new FindRequest(collectionNamespace.CollectionName, filter, limit, default, null, collectionNamespace.DatabaseName, transaction.SessionId);
             var request = new FindMessage(requestNum, requestDocument);
-            return _mongoScheduler.GetCursorAsync<T>(request, token);
+            var result = await _mongoScheduler.GetCursorAsync<T>(request, token).ConfigureAwait(false);
+            return new FindResult<T>(result, _mongoScheduler);
         }
 
 
-        public ValueTask<CursorResult<T>> GetMoreAsync<T>(long cursorId, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)
+        public ValueTask<CursorResult<T>> GetMoreAsync<T>(MongoScheduler scheduler, long cursorId, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)
         {
-            var requestNum = _mongoScheduler.GetNextRequestNumber();
+            var requestNum = scheduler.GetNextRequestNumber();
             var requestDocument = new FindRequest(null, null, default, cursorId, null, collectionNamespace.DatabaseName, transaction.SessionId);
             var request = new FindMessage(requestNum, requestDocument);
-            return _mongoScheduler.GetCursorAsync<T>(request, token);
+            return scheduler.GetCursorAsync<T>(request, token);
         }
 
 
@@ -116,6 +89,16 @@ namespace MongoDB.Client.Scheduler
             var createCollectionHeader = new CreateCollectionHeader(collectionNamespace.CollectionName, collectionNamespace.DatabaseName, transaction.SessionId);
             var request = new CreateCollectionMessage(requestNumber, createCollectionHeader);
             return _mongoScheduler.CreateCollectionAsync(request, token);
+        }
+
+        public ValueTask TransactionAsync(TransactionMessage message, CancellationToken token)
+        {
+            throw new MongoException("Transactions not support on standalone");
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            return _mongoScheduler.DisposeAsync();
         }
     }
 }

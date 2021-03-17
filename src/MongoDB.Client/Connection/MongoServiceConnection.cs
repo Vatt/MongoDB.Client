@@ -33,7 +33,7 @@ namespace MongoDB.Client.Connection
         {
             return Interlocked.Increment(ref _requestId);
         }
-        public async ValueTask<MongoPingMessage> MongoPing()
+        public async ValueTask<MongoPingMessage> MongoPing(CancellationToken token)
         {
             var message = new QueryMessage(GetNextRequestNumber(), "admin.$cmd", _pingDocument);
             //var test = await SendQueryAsync<BsonDocument>(message, _shutdownCts.Token).ConfigureAwait(false);
@@ -41,14 +41,14 @@ namespace MongoDB.Client.Connection
             {
                 ThrowHelper.ThrowNotInitialized();
             }
-            await _protocolWriter.WriteAsync(ProtocolWriters.QueryMessageWriter, message, _shutdownCts.Token).ConfigureAwait(false);
-            var header = await ReadAsyncPrivate(_protocolReader, ProtocolReaders.MessageHeaderReader, _shutdownCts.Token).ConfigureAwait(false);
+            await _protocolWriter.WriteAsync(ProtocolWriters.QueryMessageWriter, message, token).ConfigureAwait(false);
+            var header = await ReadAsyncPrivate(_protocolReader, ProtocolReaders.MessageHeaderReader, token).ConfigureAwait(false);
             if (header.Opcode != Opcode.Reply)
             {
                 //TODO: DO SOME
             }
-            var replyResult = await ReadAsyncPrivate(_protocolReader, ProtocolReaders.ReplyMessageReader, _shutdownCts.Token).ConfigureAwait(false);
-            var bodyResult = await ReadAsyncPrivate(_protocolReader, MongoPingMessageReader, _shutdownCts.Token).ConfigureAwait(false);
+            var replyResult = await ReadAsyncPrivate(_protocolReader, ProtocolReaders.ReplyMessageReader, token).ConfigureAwait(false);
+            var bodyResult = await ReadAsyncPrivate(_protocolReader, MongoPingMessageReader, token).ConfigureAwait(false);
             return bodyResult;
         }
         public async ValueTask Connect(MongoClientSettings settings, CancellationToken token)
