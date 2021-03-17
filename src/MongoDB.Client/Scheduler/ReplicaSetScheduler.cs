@@ -86,7 +86,7 @@ namespace MongoDB.Client.Scheduler
             {
                 var host = _lastPing.Hosts[i];
                 IMongoConnectionFactory connectionFactory = _settings.ClientType == ClientType.Default ? new MongoConnectionFactory(host, _loggerFactory) : new ExperimentalMongoConnectionFactory(host, _loggerFactory);
-                var scheduler = new StandaloneScheduler(maxConnections, _settings, connectionFactory, _loggerFactory, _lastPing.ClusterTime);
+                var scheduler = new StandaloneScheduler(_settings with { ConnectionPoolMaxSize = maxConnections }, connectionFactory, _loggerFactory, _lastPing.ClusterTime);
                 _shedulers.Add(scheduler);
                 if (host.Equals(_lastPing.Primary))
                 {
@@ -119,6 +119,26 @@ namespace MongoDB.Client.Scheduler
         public ValueTask<DeleteResult> DeleteAsync(DeleteMessage message, CancellationToken cancellationToken)
         {
             return _master.DeleteAsync(message, cancellationToken);
+        }
+
+        private DeleteHeader CreateDeleteHeader(TransactionHandler transaction)
+        {
+            switch (transaction.State)
+            {
+                case TransactionState.Starting:
+                    transaction.State = TransactionState.InProgress;
+                    return new DeleteHeader(Namespace.CollectionName, true, Namespace.DatabaseName, transaction.SessionId, _scheduler.ClusterTime, transaction.TxNumber, true, false);
+                case TransactionState.InProgress:
+                    return new DeleteHeader(Namespace.CollectionName, true, Namespace.DatabaseName, transaction.SessionId, _scheduler.ClusterTime, transaction.TxNumber, false);
+                case TransactionState.Implicit:
+                    return new DeleteHeader(Namespace.CollectionName, true, Namespace.DatabaseName, transaction.SessionId, transaction.TxNumber);
+                case TransactionState.Committed:
+                    return ThrowEx<DeleteHeader>("Transaction already commited");
+                case TransactionState.Aborted:
+                    return ThrowEx<DeleteHeader>("Transaction already aborted");
+                default:
+                    return ThrowEx<DeleteHeader>("Invalid transaction state");
+            }
         }
 
         public ValueTask DisposeAsync()
@@ -187,9 +207,75 @@ namespace MongoDB.Client.Scheduler
             return _master.InsertAsync(message, token);
         }
 
+        private InsertHeader CreateInsertHeader(TransactionHandler transaction)
+        {
+            switch (transaction.State)
+            {
+                case TransactionState.Starting:
+                    transaction.State = TransactionState.InProgress;
+                    return new InsertHeader(Namespace.CollectionName, true, Namespace.DatabaseName, transaction.SessionId, _scheduler.ClusterTime, transaction.TxNumber, true, false);
+                case TransactionState.InProgress:
+                    return new InsertHeader(Namespace.CollectionName, true, Namespace.DatabaseName, transaction.SessionId, _scheduler.ClusterTime, transaction.TxNumber, false);
+                case TransactionState.Implicit:
+                    return new InsertHeader(Namespace.CollectionName, true, Namespace.DatabaseName, transaction.SessionId, transaction.TxNumber);
+                case TransactionState.Committed:
+                    return ThrowEx<InsertHeader>("Transaction already commited");
+                case TransactionState.Aborted:
+                    return ThrowEx<InsertHeader>("Transaction already aborted");
+                default:
+                    return ThrowEx<InsertHeader>("Invalid transaction state");
+            }
+        }
+
+
         public ValueTask TransactionAsync(TransactionMessage message, CancellationToken token)
         {
             return _master.TransactionAsync(message, token);
+        }
+
+        private FindRequest CreateGetMoreRequest(long cursorId, TransactionHandler transaction)
+        {
+            switch (transaction.State)
+            {
+                case TransactionState.Starting:
+                    transaction.State = TransactionState.InProgress;
+                    return new FindRequest(null, null, default, cursorId, null, _collectionNamespace.DatabaseName, transaction.SessionId, _scheduler.ClusterTime, transaction.TxNumber, true, false);
+                case TransactionState.InProgress:
+                    return new FindRequest(null, null, default, cursorId, null, _collectionNamespace.DatabaseName, transaction.SessionId, _scheduler.ClusterTime, transaction.TxNumber, false);
+                case TransactionState.Implicit:
+                    return new FindRequest(null, null, default, cursorId, null, _collectionNamespace.DatabaseName, transaction.SessionId, transaction.TxNumber);
+                case TransactionState.Committed:
+                    return ThrowEx<FindRequest>("Transaction already commited");
+                case TransactionState.Aborted:
+                    return ThrowEx<FindRequest>("Transaction already aborted");
+                default:
+                    return ThrowEx<FindRequest>("Invalid transaction state");
+            }
+        }
+
+        private FindRequest CreateFindRequest(BsonDocument filter, TransactionHandler transaction)
+        {
+            switch (transaction.State)
+            {
+                case TransactionState.Starting:
+                    transaction.State = TransactionState.InProgress;
+                    return new FindRequest(_collectionNamespace.CollectionName, filter, _limit, default, null, _collectionNamespace.DatabaseName, transaction.SessionId, _scheduler.ClusterTime, transaction.TxNumber, true, false);
+                case TransactionState.InProgress:
+                    return new FindRequest(_collectionNamespace.CollectionName, filter, _limit, default, null, _collectionNamespace.DatabaseName, transaction.SessionId, _scheduler.ClusterTime, transaction.TxNumber, false);
+                case TransactionState.Implicit:
+                    return new FindRequest(_collectionNamespace.CollectionName, filter, _limit, default, null, _collectionNamespace.DatabaseName, transaction.SessionId);
+                case TransactionState.Committed:
+                    return ThrowEx<FindRequest>("Transaction already commited");
+                case TransactionState.Aborted:
+                    return ThrowEx<FindRequest>("Transaction already aborted");
+                default:
+                    return ThrowEx<FindRequest>("Invalid transaction state");
+            }
+        }
+
+        private static TMessage ThrowEx<TMessage>(string message)
+        {
+            throw new MongoException(message);
         }
 
         // TODO:

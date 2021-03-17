@@ -4,7 +4,7 @@ using MongoDB.Client.Messages;
 
 namespace MongoDB.Client.Scheduler
 {
-    internal partial class StandaloneScheduler
+    internal partial class MongoScheduler
     {
         private class MongoRequestPolicy : IPooledObjectPolicy<MongoRequest>
         {

@@ -26,7 +26,7 @@ namespace MongoDB.Client.Connection
             _logger = loggerFactory.CreateLogger<MongoConnectionFactory>();
         }
 
-        public async ValueTask<MongoConnection> CreateAsync(MongoClientSettings settings, ChannelReader<MongoRequest> reader, ChannelReader<MongoRequest> findReader, IMongoScheduler requestScheduler)
+        public async ValueTask<MongoConnection> CreateAsync(MongoClientSettings settings, ChannelReader<MongoRequest> reader, ChannelReader<MongoRequest> findReader, MongoScheduler requestScheduler)
         {
             var context = await _networkFactory.ConnectAsync(_endPoint).ConfigureAwait(false);
             if (context is null)
