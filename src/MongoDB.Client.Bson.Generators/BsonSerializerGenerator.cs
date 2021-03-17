@@ -19,9 +19,8 @@ namespace MongoDB.Client.Bson.Generators
         public static Compilation Compilation;
         public void Execute(GeneratorExecutionContext context)
         {
-            //System.Diagnostics.Debugger.Launch();
-
 #if DEBUG
+            //System.Diagnostics.Debugger.Launch();
             var all = System.Diagnostics.Stopwatch.StartNew();
 #endif
 

@@ -84,14 +84,14 @@ namespace MongoDB.Client.ConsoleApp
                 {
                     await using var transaction = collection.Database.Client.StartTransaction();
                     await collection.InsertAsync(transaction, item);
-                    await collection.Find(transaction, filter).FirstOrDefaultAsync();
+                    var result = await collection.Find(transaction, filter).FirstOrDefaultAsync();
                     await collection.DeleteOneAsync(transaction, filter);
                     await transaction.CommitAsync();
                 }
                 else
                 {
                     await collection.InsertAsync(item);
-                    await collection.Find(filter).FirstOrDefaultAsync();
+                    var result = await collection.Find(filter).FirstOrDefaultAsync();
                     await collection.DeleteOneAsync(filter);
                 }
             }
