@@ -42,7 +42,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             var trueType = SerializerGenerator.ExtractTypeFromNullableIfNeed(TypeSym);
             if (trueType.IsReferenceType)
             {
-                AssignedVariableToken = SerializerGenerator.Identifier($"{trueType.Name}{NameSym.Name}");
+                if (trueType.Equals(SerializerGenerator.ArrayByteTypeSym, SymbolEqualityComparer.Default))
+                {
+                    AssignedVariableToken = SerializerGenerator.Identifier($"ByteArray{NameSym.Name}");
+                }
+                else
+                {
+                    AssignedVariableToken = SerializerGenerator.Identifier($"{trueType.Name}{NameSym.Name}");
+                }
+                
             }
             else
             {

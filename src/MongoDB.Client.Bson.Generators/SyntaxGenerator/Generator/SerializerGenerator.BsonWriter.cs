@@ -16,6 +16,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return InvocationExpr(BsonWriterToken, IdentifierName("Write_Type_Name_Value"), Argument(IdentifierName(name)), Argument(value));
         }
+        public static ExpressionSyntax Write_Type_Name_Value(ExpressionSyntax name, int binaryDataSubtype, ExpressionSyntax value)
+        {
+            return InvocationExpr(BsonWriterToken, IdentifierName("Write_Type_Name_Value"), Argument(name), Argument(NumericLiteralExpr(binaryDataSubtype)), Argument(value));
+        }
         public static ExpressionSyntax Write_Type_Name(int typeid, IdentifierNameSyntax name)
         {
             return InvocationExpr(BsonWriterToken, IdentifierName("Write_Type_Name"), Argument(NumericLiteralExpr(typeid)), Argument(name));

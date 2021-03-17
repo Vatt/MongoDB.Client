@@ -16,6 +16,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static INamedTypeSymbol BsonElementAttr => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonElementAttribute")!;
         public static INamedTypeSymbol BsonIdAttr => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonIdAttribute")!;
         public static INamedTypeSymbol BsonWriteIgnoreIfAttr => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonWriteIgnoreIfAttribute")!;
+        public static INamedTypeSymbol BsonBinaryDataAttr => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonBinaryDataAttribute")!;
 
         public static bool IsBsonExtensionSerializable(ISymbol nameSym, ISymbol typeSym, out ITypeSymbol extType)
         {
@@ -75,7 +76,23 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             return -1;
         }
+        public static int GetBinaryDataRepresentation(ISymbol symbol)
+        {
+            var binaryDataAttr = BsonBinaryDataAttr;
+            foreach (var attr in symbol.GetAttributes())
+            {
+                if (attr.AttributeClass!.Equals(binaryDataAttr, SymbolEqualityComparer.Default))
+                {
+                    if (attr.ConstructorArguments.IsEmpty)
+                    {
+                        return 1;
+                    }
+                    return (int)attr.ConstructorArguments[0].Value;
+                }
+            }
 
+            return -1;
+        }
         public static bool HaveParseWriteMethods(ISymbol typeSym, ISymbol retType = null)
         {
             ISymbol returnType = retType ?? typeSym;

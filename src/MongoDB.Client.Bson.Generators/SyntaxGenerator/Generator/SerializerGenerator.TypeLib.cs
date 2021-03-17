@@ -5,6 +5,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        public static INamedTypeSymbol System_Byte => BsonSerializerGenerator.Compilation.GetSpecialType(SpecialType.System_Byte);
+        public static INamedTypeSymbol System_Memory => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Memory`1")!;
         public static INamedTypeSymbol BsonReaderTypeSym => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Reader.BsonReader")!;
         public static INamedTypeSymbol BsonWriterTypeSym => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Writer.BsonWriter")!;
         public static INamedTypeSymbol System_DateTimeOffset => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.DateTimeOffset")!;
@@ -18,6 +20,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static INamedTypeSymbol System_Collections_Generic_IReadOnlyCollection_T => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyCollection`1")!;
         public static INamedTypeSymbol System_Collections_Generic_IReadOnlyList_T => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyList`1")!;
         public static INamedTypeSymbol System_Collections_Generic_ICollection_T => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.ICollection`1")!;
+        public static ITypeSymbol ArrayByteTypeSym => BsonSerializerGenerator.Compilation.CreateArrayTypeSymbol(System_Byte);
+        public static ITypeSymbol MemoryByteTypeSym => System_Memory.Construct(System_Byte);
         public static bool TryGetMetadata(ITypeSymbol source, out ISymbol result)
         {
             var str = source.ToString();
@@ -44,6 +48,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             }
             return false;
+        }
+        public static bool IsArrayByteOrMemoryByte(ISymbol sym)
+        {
+            return sym.Equals(ArrayByteTypeSym, SymbolEqualityComparer.Default) ||
+                   sym.Equals(MemoryByteTypeSym, SymbolEqualityComparer.Default);
         }
         public static bool IsBsonTimestamp(ISymbol sym)
         {
