@@ -38,8 +38,7 @@ namespace MongoDB.Client.Benchmarks
             var dbName = "BenchmarkDb";
             var collectionName = GetType().Name;
 
-            var client = new MongoClient(new DnsEndPoint(host, 27017));
-            await client.InitAsync();
+            var client = await MongoClient.CreateClient(new DnsEndPoint(host, 27017));
             var db = client.GetDatabase(dbName);
             _collection = db.GetCollection<GeoIp>(collectionName);
 

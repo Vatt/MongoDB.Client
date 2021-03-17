@@ -301,9 +301,23 @@ namespace MongoDB.Client.Scheduler
         }
 
 
-        public ValueTask TransactionAsync(TransactionMessage message, CancellationToken token)
+        public ValueTask CommitTransactionAsync(TransactionHandler transactionHandler, CancellationToken cancellationToken)
         {
-            return _primary!.TransactionAsync(message, token);
+            var scheduler = _primary!;
+            var requestNumber = scheduler.GetNextRequestNumber();
+            var transactionRequest = new TransactionRequest(1, null, "admin", transactionHandler.SessionId, _lastPing!.ClusterTime, transactionHandler.TxNumber, false);
+            var request = new TransactionMessage(requestNumber, transactionRequest);
+            return scheduler.TransactionAsync(request, cancellationToken);
+        }
+
+
+        public ValueTask AbortTransactionAsync(TransactionHandler transactionHandler, CancellationToken cancellationToken)
+        {
+            var scheduler = _primary!;
+            var requestNumber = scheduler.GetNextRequestNumber();
+            var transactionRequest = new TransactionRequest(null, 1, "admin", transactionHandler.SessionId, _lastPing!.ClusterTime, transactionHandler.TxNumber, false);
+            var request = new TransactionMessage(requestNumber, transactionRequest);
+            return scheduler.TransactionAsync(request, cancellationToken);
         }
 
 

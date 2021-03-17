@@ -22,8 +22,7 @@ namespace MongoDb.Client.WebApi
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            var client = new MongoClient(new DnsEndPoint(_options.Value.ConnectionString, 27017), _loggerFactory);
-            await client.InitAsync();
+            var client = await MongoClient.CreateClient(new DnsEndPoint(_options.Value.ConnectionString, 27017));
             _db = client.GetDatabase("WebApiDb");
         }
 

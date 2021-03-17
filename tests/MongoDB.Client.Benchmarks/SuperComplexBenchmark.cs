@@ -30,8 +30,7 @@ namespace MongoDB.Client.Benchmarks
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
             var dbName = "BenchmarkDb";
-            var client = new MongoClient(new DnsEndPoint(host, 27017));
-            await client.InitAsync();
+            var client = await MongoClient.CreateClient(new DnsEndPoint(host, 27017));
             var db = client.GetDatabase(dbName);
 
             _findCollection = db.GetCollection<RootDocument>(Guid.NewGuid().ToString());

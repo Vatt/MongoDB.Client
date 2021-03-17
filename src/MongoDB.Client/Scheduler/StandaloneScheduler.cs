@@ -5,6 +5,7 @@ using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Messages;
 using MongoDB.Client.Settings;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -91,9 +92,14 @@ namespace MongoDB.Client.Scheduler
             return _mongoScheduler.CreateCollectionAsync(request, token);
         }
 
-        public ValueTask TransactionAsync(TransactionMessage message, CancellationToken token)
+        public ValueTask CommitTransactionAsync(TransactionHandler transactionHandler, CancellationToken cancellationToken)
         {
-            throw new MongoException("Transactions not support on standalone");
+            throw new NotImplementedException("Transactions not support on standalone");
+        }
+
+        public ValueTask AbortTransactionAsync(TransactionHandler transactionHandler, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException("Transactions not support on standalone");
         }
 
         public ValueTask DisposeAsync()

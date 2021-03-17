@@ -126,7 +126,7 @@ namespace MongoDB.Client.ConsoleApp
 
             var client = await MongoClient.CreateClient(new DnsEndPoint(host, 27017), loggerFactory);
             // var client = MongoExperimental.CreateWithExperimentalConnection(new DnsEndPoint(host, 27017), loggerFactory);
-            await client.InitAsync();
+
             var db = client.GetDatabase("TestDb");
             var stopwatch = new Stopwatch();
             Console.WriteLine(typeof(T).Name);

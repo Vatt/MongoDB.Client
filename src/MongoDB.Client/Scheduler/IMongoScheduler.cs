@@ -16,6 +16,7 @@ namespace MongoDB.Client.Scheduler
         ValueTask<DeleteResult> DeleteAsync(TransactionHandler transaction, BsonDocument filter, int limit, CollectionNamespace collectionNamespace, CancellationToken token);
         ValueTask DropCollectionAsync(TransactionHandler transaction, CollectionNamespace collectionNamespace, CancellationToken token);
         ValueTask CreateCollectionAsync(TransactionHandler transaction, CollectionNamespace collectionNamespace, CancellationToken token);
-        //ValueTask TransactionAsync(TransactionMessage message, CancellationToken token);
+        ValueTask CommitTransactionAsync(TransactionHandler transactionHandler, CancellationToken cancellationToken);
+        ValueTask AbortTransactionAsync(TransactionHandler transactionHandler, CancellationToken cancellationToken);
     }
 }

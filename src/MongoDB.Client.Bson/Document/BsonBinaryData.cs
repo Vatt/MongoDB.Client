@@ -56,7 +56,7 @@ namespace MongoDB.Client.Bson.Document
                 case BsonBinaryDataType.EncryptedBSONValue:
                 case BsonBinaryDataType.UserDefined:
                 default:
-                    var array = Value as byte[];
+                    var array = (byte[]) Value;
                     var base64 = Convert.ToBase64String(array);
                     var type = (int)Type;
                     return $"new BinData({type}, \"{base64}\")";
