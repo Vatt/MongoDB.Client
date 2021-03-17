@@ -24,14 +24,11 @@ namespace MongoDB.Client.Bson.Generators
             var all = System.Diagnostics.Stopwatch.StartNew();
 #endif
 
-
             Context = context;
             Compilation = Context.Compilation;
 
-            var candidates = (context.SyntaxReceiver as BsonAttributeReciver)!.Candidates;
+            var symbols = (context.SyntaxContextReceiver as SemanticBsonAttributeReciver)!.Symbols;
 
-
-            var symbols = CollectSymbols(Compilation, candidates, context.CancellationToken);
             var masterContext = new MasterContext(symbols, context.CancellationToken);
             var units = Create(masterContext, context.CancellationToken);
             for (int index = 0; index < units.Length; index++)
@@ -69,52 +66,38 @@ namespace MongoDB.Client.Bson.Generators
             return units;
         }
 
-
-        private HashSet<BsonSerializerNode> CollectSymbols(Compilation compilation, HashSet<SyntaxNode> candidates, CancellationToken token)
+        public class SemanticBsonAttributeReciver : ISyntaxContextReceiver
         {
-            HashSet<BsonSerializerNode> symbols = new();
-            var bsonAttribute = SerializerGenerator.BsonSerializableAttr;
+            public HashSet<BsonSerializerNode> Symbols { get; } = new HashSet<BsonSerializerNode>();
 
-            foreach (var node in candidates)
+            INamedTypeSymbol BsonSerializableAttr = null;
+
+            public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
             {
-                token.ThrowIfCancellationRequested();
-                SemanticModel model = compilation.GetSemanticModel(node.SyntaxTree);
+                var model = context.SemanticModel;
+                BsonSerializableAttr ??= model.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonSerializableAttribute")!;
 
-                if (model.GetDeclaredSymbol(node) is INamedTypeSymbol symbol)
+                switch (context.Node)
                 {
-                    foreach (var attr in symbol.GetAttributes())
-                    {
-                        if (attr.AttributeClass.Equals(bsonAttribute, SymbolEqualityComparer.Default))
+                    case ClassDeclarationSyntax classDecl when classDecl.AttributeLists.Count > 0:
+                    case StructDeclarationSyntax structDecl when structDecl.AttributeLists.Count > 0:
+                    case RecordDeclarationSyntax recordDecl when recordDecl.AttributeLists.Count > 0:
+                        if (model.GetDeclaredSymbol(context.Node) is INamedTypeSymbol symbol)
                         {
-                            symbols.Add(new BsonSerializerNode(node, symbol));
-                            break;
+                            foreach (var attr in symbol.GetAttributes())
+                            {
+                                if (attr.AttributeClass.Equals(BsonSerializableAttr, SymbolEqualityComparer.Default))
+                                {
+                                    Symbols.Add(new BsonSerializerNode(context.Node, symbol));
+                                    break;
+                                }
+                            }
                         }
-                    }
-                }
-            }
-            return symbols;
-        }
+                        break;
 
-        public class BsonAttributeReciver : ISyntaxReceiver
-        {
-            public HashSet<SyntaxNode> Candidates { get; } = new HashSet<SyntaxNode>();
+                    default:
+                        break;
 
-            public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
-            {
-                if (syntaxNode is ClassDeclarationSyntax classDecl && classDecl.AttributeLists.Count > 0)
-                {
-                    Candidates.Add(syntaxNode);
-                    return;
-                }
-                if (syntaxNode is StructDeclarationSyntax structDecl && structDecl.AttributeLists.Count > 0)
-                {
-                    Candidates.Add(syntaxNode);
-                    return;
-                }
-                if (syntaxNode is RecordDeclarationSyntax recordDecl && recordDecl.AttributeLists.Count > 0)
-                {
-                    Candidates.Add(syntaxNode);
-                    return;
                 }
             }
         }
@@ -155,9 +138,10 @@ namespace MongoDB.Client.Bson.Generators
                 return hashCode;
             }
         }
+
         public void Initialize(GeneratorInitializationContext context)
         {
-            context.RegisterForSyntaxNotifications(() => new BsonAttributeReciver());
+            context.RegisterForSyntaxNotifications(() => new SemanticBsonAttributeReciver());
         }
     }
 }
