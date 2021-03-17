@@ -16,8 +16,8 @@ namespace MongoDB.Client.Tests.Models
         public byte[] MD5ByteProp { get; }
         
         [BsonBinaryData(BinaryDataRepresentation.MD5)]
-        public Memory<byte> MD5MemoryProp { get; }
-        public ByteArrayModel(byte[] ByteProp, Memory<byte> MemoryByteProp, byte[] MD5ByteProp, Memory<byte> MD5MemoryProp)
+        public Memory<byte>? MD5MemoryProp { get; }
+        public ByteArrayModel(byte[] ByteProp, Memory<byte> MemoryByteProp, byte[] MD5ByteProp, Memory<byte>? MD5MemoryProp)
         {
             this.ByteProp = ByteProp;
             this.MemoryByteProp = MemoryByteProp;
@@ -48,7 +48,7 @@ namespace MongoDB.Client.Tests.Models
             }
 
             return ByteProp.SequenceEqual(other.ByteProp) && MemoryByteProp.Span.SequenceEqual(other.MemoryByteProp.Span) && 
-                   MD5ByteProp.SequenceEqual(other.MD5ByteProp) && MD5MemoryProp.Span.SequenceEqual(other.MD5MemoryProp.Span);
+                   MD5ByteProp.SequenceEqual(other.MD5ByteProp) && MD5MemoryProp.Value.Span.SequenceEqual(other.MD5MemoryProp.Value.Span);
         }
 
         public override bool Equals(object? obj)
