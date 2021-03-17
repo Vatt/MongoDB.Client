@@ -276,5 +276,17 @@ namespace MongoDB.Client.Bson.Reader
             value = default;
             return false;
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetBinaryDataGeneric(out Memory<byte> value)
+        {
+            if (!TryGetBinaryDataGeneric(out byte[] temp))
+            {
+                value = default;
+                return false;
+            }
+
+            value = temp;
+            return true;
+        }
     }
 }
