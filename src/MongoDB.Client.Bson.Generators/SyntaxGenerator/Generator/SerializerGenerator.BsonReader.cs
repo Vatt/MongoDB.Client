@@ -88,9 +88,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return InvocationExpr(BsonReaderToken, SF.IdentifierName("GetIntFromNameSpan"), Argument(nameSpan), Argument(NumericLiteralExpr(offset)));
         }
-        public static ExpressionSyntax TryGetBinaryDataGeneric(ExpressionSyntax assignOrDecl)
+        public static ExpressionSyntax TryGetBinaryData(int subtype, ExpressionSyntax assignOrDecl)
         {
-            return InvocationExpr(BsonReaderToken, IdentifierName("TryGetBinaryDataGeneric"), OutArgument(assignOrDecl));
+            return InvocationExpr(BsonReaderToken, IdentifierName("TryGetBinaryData"), Argument(NumericLiteralExpr(subtype)), OutArgument(assignOrDecl));
         }
     }
 }

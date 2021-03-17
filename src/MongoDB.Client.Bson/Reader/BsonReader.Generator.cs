@@ -251,14 +251,14 @@ namespace MongoDB.Client.Bson.Reader
             }
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetBinaryDataGeneric(out byte[] value)
+        public bool TryGetBinaryData(byte expectedSubtype, out byte[] value)
         {
             if (TryGetInt32(out int len))
             {
                 if (_input.Remaining > len)
                 {
                     TryGetByte(out var subtype);
-                    if (subtype == 0)
+                    if (subtype == expectedSubtype)
                     {
                         value = new byte[len];
                         if (_input.TryCopyTo(value)) //TODO: check it
@@ -277,9 +277,9 @@ namespace MongoDB.Client.Bson.Reader
             return false;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetBinaryDataGeneric(out Memory<byte> value)
+        public bool TryGetBinaryData(byte expectedSubtype, out Memory<byte> value)
         {
-            if (!TryGetBinaryDataGeneric(out byte[] temp))
+            if (!TryGetBinaryData(expectedSubtype, out byte[] temp))
             {
                 value = default;
                 return false;

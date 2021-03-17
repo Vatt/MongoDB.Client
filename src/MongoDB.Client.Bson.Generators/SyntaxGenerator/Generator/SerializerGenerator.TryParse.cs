@@ -292,7 +292,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             if (IsArrayByteOrMemoryByte(typeSymbol))
             {
-                expr = TryGetBinaryDataGeneric(variable);
+                var arrayRepr = GetBinaryDataRepresentation(nameSym);
+                arrayRepr = arrayRepr == -1 ? 0 : arrayRepr;
+                switch (arrayRepr)
+                {
+                    case 0: break;
+                    case 5: break;
+                    default: 
+                        GeneratorDiagnostics.ReportUnsuportedByteArrayReprError(nameSym, typeSymbol);
+                        break;
+                }
+                expr = TryGetBinaryData(arrayRepr, variable);
                 return true;
             }
             if (IsBsonTimestamp(typeSymbol))

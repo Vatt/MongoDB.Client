@@ -113,16 +113,16 @@ namespace MongoDB.Client.Bson.Writer
             WriteByte((byte)BsonBinaryDataType.UUID);
             WriteGuidAsBytes(value);
         }
-        private void WriteByteArrayAsGenericBinaryData(byte[] value)
+        private void WriteBinaryData(byte subtype, byte[] value)
         {
             WriteInt32(value.Length);
-            WriteByte((byte)BsonBinaryDataType.Generic);
+            WriteByte(subtype);
             WriteBytes(value);
         }
-        private void WriteByteArrayAsGenericBinaryData(Memory<byte> value)
+        private void WriteBinaryData(byte subtype, Memory<byte> value)
         {
             WriteInt32(value.Length);
-            WriteByte((byte)BsonBinaryDataType.Generic);
+            WriteByte(subtype);
             WriteBytes(value.Span);
         }
 
@@ -367,31 +367,31 @@ namespace MongoDB.Client.Bson.Writer
             WriteGuidAsBinaryData(value);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write_Type_Name_Value(ReadOnlySpan<byte> name, byte[] value)
+        public void Write_Type_Name_Value(ReadOnlySpan<byte> name, byte subtype, byte[] value)
         {
             WriteByte(5);
             WriteCString(name);
-            WriteByteArrayAsGenericBinaryData(value);
+            WriteBinaryData(subtype, value);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write_Type_Name_Value(int intName, byte[] value)
+        public void Write_Type_Name_Value(int intName, byte subtype, byte[] value)
         {
             WriteByte(5);
             WriteIntIndex(intName);
-            WriteByteArrayAsGenericBinaryData(value);
+            WriteBinaryData(subtype, value);
         }
-        public void Write_Type_Name_Value(ReadOnlySpan<byte> name, Memory<byte> value)
+        public void Write_Type_Name_Value(ReadOnlySpan<byte> name, byte subtype, Memory<byte> value)
         {
             WriteByte(5);
             WriteCString(name);
-            WriteByteArrayAsGenericBinaryData(value);
+            WriteBinaryData(subtype, value);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write_Type_Name_Value(int intName, Memory<byte> value)
+        public void Write_Type_Name_Value(int intName, byte subtype, Memory<byte> value)
         {
             WriteByte(5);
             WriteIntIndex(intName);
-            WriteByteArrayAsGenericBinaryData(value);
+            WriteBinaryData(subtype, value);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, DateTimeOffset value)

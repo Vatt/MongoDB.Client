@@ -199,7 +199,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             if (IsArrayByteOrMemoryByte(typeSymbol))
             {
-                expr = Write_Type_Name_Value(bsonName, writeTarget);
+                var arrayRepr = GetBinaryDataRepresentation(nameSym);
+                arrayRepr = arrayRepr == -1 ? 0 : arrayRepr;
+                switch (arrayRepr)
+                {
+                    case 0: break;
+                    case 5: break;
+                    default: 
+                        GeneratorDiagnostics.ReportUnsuportedByteArrayReprError(nameSym, typeSymbol);
+                        break;
+                }
+                expr = Write_Type_Name_Value(bsonName, arrayRepr, writeTarget);
                 return true;
             }
             if (IsBsonTimestamp(typeSymbol))

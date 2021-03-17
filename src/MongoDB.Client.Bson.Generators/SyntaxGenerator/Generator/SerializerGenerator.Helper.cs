@@ -76,7 +76,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             return -1;
         }
-        public static int GetBinaryDataRepresentation(INamedTypeSymbol symbol)
+        public static int GetBinaryDataRepresentation(ISymbol symbol)
         {
             var binaryDataAttr = BsonBinaryDataAttr;
             foreach (var attr in symbol.GetAttributes())
