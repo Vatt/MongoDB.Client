@@ -113,7 +113,18 @@ namespace MongoDB.Client.Bson.Writer
             WriteByte((byte)BsonBinaryDataType.UUID);
             WriteGuidAsBytes(value);
         }
-
+        private void WriteBinaryData(byte subtype, byte[] value)
+        {
+            WriteInt32(value.Length);
+            WriteByte(subtype);
+            WriteBytes(value);
+        }
+        private void WriteBinaryData(byte subtype, Memory<byte> value)
+        {
+            WriteInt32(value.Length);
+            WriteByte(subtype);
+            WriteBytes(value.Span);
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteString(ReadOnlySpan<byte> value)
@@ -355,7 +366,33 @@ namespace MongoDB.Client.Bson.Writer
             WriteIntIndex(intName);
             WriteGuidAsBinaryData(value);
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write_Type_Name_Value(ReadOnlySpan<byte> name, byte subtype, byte[] value)
+        {
+            WriteByte(5);
+            WriteCString(name);
+            WriteBinaryData(subtype, value);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write_Type_Name_Value(int intName, byte subtype, byte[] value)
+        {
+            WriteByte(5);
+            WriteIntIndex(intName);
+            WriteBinaryData(subtype, value);
+        }
+        public void Write_Type_Name_Value(ReadOnlySpan<byte> name, byte subtype, Memory<byte> value)
+        {
+            WriteByte(5);
+            WriteCString(name);
+            WriteBinaryData(subtype, value);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write_Type_Name_Value(int intName, byte subtype, Memory<byte> value)
+        {
+            WriteByte(5);
+            WriteIntIndex(intName);
+            WriteBinaryData(subtype, value);
+        }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, DateTimeOffset value)
         {

@@ -57,7 +57,8 @@ namespace MongoDB.Client.Messages
         }
     }
 
-    public class MongoSignature
+    [BsonSerializable]
+    public partial class MongoSignature
     {
         [BsonElement("hash")] 
         public byte[] Hash { get; }
@@ -69,106 +70,6 @@ namespace MongoDB.Client.Messages
         {
             this.Hash = Hash;
             this.KeyId = KeyId;
-        }
-
-        private static ReadOnlySpan<byte> MongoSignaturehash => new byte[4] {104, 97, 115, 104};
-        private static ReadOnlySpan<byte> MongoSignaturekeyId => new byte[5] {107, 101, 121, 73, 100};
-
-        public static bool TryParseBson(ref Bson.Reader.BsonReader reader, out MongoSignature message)
-        {
-            message = default;
-            byte[]? Hash = default;
-            long Int64KeyId = default;
-            if (!reader.TryGetInt32(out int docLength))
-            {
-                return false;
-            }
-
-            var unreaded = reader.Remaining + sizeof(int);
-            while (unreaded - reader.Remaining < docLength - 1)
-            {
-                if (!reader.TryGetByte(out var bsonType))
-                {
-                    return false;
-                }
-
-                if (!reader.TryGetCStringAsSpan(out var bsonName))
-                {
-                    return false;
-                }
-
-                if (bsonType == 10)
-                {
-                    continue;
-                }
-
-                if (bsonName.SequenceEqual(MongoSignaturehash))
-                {
-                    if (!reader.TryGetBinaryData(out var temp))
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        if (temp.Type != BsonBinaryDataType.Generic)
-                        {
-                            ThrowHelper.UnsupportedTypeException(typeof(BsonBinaryData));
-                        }
-
-                        Hash = (byte[]) temp.Value;
-                        continue;
-                    }                    
-                }
-
-                if (bsonName.SequenceEqual(MongoSignaturekeyId))
-                {
-                    if (!reader.TryGetInt64(out Int64KeyId))
-                    {
-                        return false;
-                    }
-
-                    continue;
-                }
-
-                if (!reader.TrySkip(bsonType))
-                {
-                    return false;
-                }
-            }
-
-            if (!reader.TryGetByte(out var endMarker))
-            {
-                return false;
-            }
-
-            if (endMarker != 0)
-            {
-                throw new Bson.Serialization.Exceptions.SerializerEndMarkerException(
-                    nameof(MongoSignature), endMarker);
-            }
-
-            message = new MongoSignature(Hash: Hash!, KeyId: Int64KeyId);
-            return true;
-        }
-
-        public static void WriteBson(ref Bson.Writer.BsonWriter writer, in MongoSignature message)
-        {
-            var checkpoint = writer.Written;
-            var reserved = writer.Reserve(4);
-            if (message.Hash == null)
-            {
-                writer.WriteBsonNull(MongoSignaturehash);
-            }
-            else
-            {
-                writer.Write_Type_Name_Value(MongoSignaturehash, BsonBinaryData.Create(message.Hash));
-            }
-
-            writer.Write_Type_Name_Value(MongoSignaturekeyId, message.KeyId);
-            writer.WriteByte(0);
-            var docLength = writer.Written - checkpoint;
-            reserved.Write(docLength);
-            writer.Commit();
         }
     }
 

@@ -250,5 +250,56 @@ namespace MongoDB.Client.Bson.Reader
                     return ThrowHelper.UnsupportedDateTimeTypeException<bool>(bsonType);
             }
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetBinaryData(byte expectedSubtype, out byte[] value)
+        {
+            if (TryGetInt32(out int len))
+            {
+                if (_input.Remaining > len)
+                {
+                    TryGetByte(out var subtype);
+                    if (subtype == expectedSubtype)
+                    {
+                        value = new byte[len];
+                        if (_input.TryCopyTo(value)) //TODO: check it
+                        {
+                            _input.Advance(len);
+                            return true;
+                        }
+                        value = default;
+                        return false;
+                    }
+                    value = default;
+                    return ThrowHelper.UnknownSubtypeException<bool>(subtype);
+                }
+            }
+            value = default;
+            return false;
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetBinaryData(byte expectedSubtype, out Memory<byte> value)
+        {
+            if (!TryGetBinaryData(expectedSubtype, out byte[] temp))
+            {
+                value = default;
+                return false;
+            }
+
+            value = temp;
+            return true;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetBinaryData(byte expectedSubtype, out Memory<byte>? value)
+        {
+            if (!TryGetBinaryData(expectedSubtype, out byte[] temp))
+            {
+                value = default;
+                return false;
+            }
+
+            value = temp;
+            return true;
+        }
     }
 }

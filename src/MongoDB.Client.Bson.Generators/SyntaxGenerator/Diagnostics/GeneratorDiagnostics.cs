@@ -14,10 +14,16 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics
         private static readonly string SerializationMapUsingWarning = "MONGO04";
         private static readonly string GeneratingDurationInfo = "MONGO05";
         private static readonly string UnsuportedOperationType = "MONGO06";
+        private static readonly string UnsuportedByteArrayReprError = "MONGO07";
         //public static void Init(GeneratorExecutionContext ctx)
         //{
         //    _ctx = ctx;
         //}
+        public static void ReportUnsuportedByteArrayReprError(ISymbol decl, ITypeSymbol type)
+        {
+            var message = $"{decl.Name} has an unsupported binary data representation: {type.ToString()}";
+            _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(UnsuportedByteArrayReprError, "Generation failed", message, "SourceGenerator", DiagnosticSeverity.Error, true), decl.Locations[0]));
+        }
         public static void ReportGenerationContextTreeError(string message = null)
         {
             _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(UnsuportedOperationType, "Generation failed",
