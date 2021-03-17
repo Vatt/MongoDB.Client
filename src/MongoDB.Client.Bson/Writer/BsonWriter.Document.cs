@@ -1,7 +1,6 @@
 ﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Utils;
 using System;
-using System.Buffers.Binary;
 
 namespace MongoDB.Client.Bson.Writer
 {
@@ -116,9 +115,8 @@ namespace MongoDB.Client.Bson.Writer
             }
             WriteByte(EndMarker);
             var docLength = _written - docStartPoint;
-            Span<byte> sizeSpan = stackalloc byte[4];
-            BinaryPrimitives.WriteInt32LittleEndian(sizeSpan, docLength);
-            reserved.Write(sizeSpan);
+            reserved.Write(docLength);
+
             Commit();
         }
     }

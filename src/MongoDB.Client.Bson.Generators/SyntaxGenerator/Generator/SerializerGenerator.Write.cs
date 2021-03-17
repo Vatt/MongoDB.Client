@@ -86,9 +86,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 .AddStatements(
                     WriteByteStatement((byte)'\x00'),
                     VarLocalDeclarationStatement(docLength, BinaryExprMinus(WriterWrittenExpr, checkpoint)),
-                    LocalDeclarationStatement(SpanByteName, sizeSpan, StackAllocByteArray(4)),
-                    Statement(BinaryPrimitivesWriteInt32LittleEndian(sizeSpan, docLength)),
-                    Statement(ReservedWrite(reserved, sizeSpan)),
+                    Statement(ReservedWrite(reserved, docLength)),
                     Statement(WriterCommitExpr)
                     );
         }

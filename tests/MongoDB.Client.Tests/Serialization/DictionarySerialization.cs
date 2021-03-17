@@ -133,9 +133,7 @@ namespace MongoDB.Client.Tests.Serialization
             }
             writer.WriteByte(0);
             var docLength = writer.Written - checkpoint;
-            Span<byte> sizeSpan = stackalloc byte[4];
-            BinaryPrimitives.WriteInt32LittleEndian(sizeSpan, docLength);
-            reserved.Write(sizeSpan);
+            reserved.Write(docLength);
             writer.Commit();
         }
     }

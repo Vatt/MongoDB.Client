@@ -30,7 +30,7 @@ namespace MongoDB.Client.Bson.Writer
         {
             if (genericValue == null)
             {
-                typeReserved.Write(10);
+                typeReserved.WriteByte(10);
                 return;
             }
             //if (SerializerFnPtrProvider<T>.IsSerializable)
@@ -41,43 +41,43 @@ namespace MongoDB.Client.Bson.Writer
             {
                 case double value:
                     WriteDouble(value);
-                    typeReserved.Write(1);
+                    typeReserved.WriteByte(1);
                     return;
                 case string value:
                     WriteString(value);
-                    typeReserved.Write(2);
+                    typeReserved.WriteByte(2);
                     return;
                 case BsonArray value:
                     WriteDocument(value);
-                    typeReserved.Write(4);
+                    typeReserved.WriteByte(4);
                     return;
                 case BsonDocument value:
                     WriteDocument(value);
-                    typeReserved.Write(3);
+                    typeReserved.WriteByte(3);
                     return;
                 case Guid value:
                     WriteGuidAsBinaryData(value);
-                    typeReserved.Write(5);
+                    typeReserved.WriteByte(5);
                     return;
                 case BsonObjectId value:
                     WriteObjectId(value);
-                    typeReserved.Write(7);
+                    typeReserved.WriteByte(7);
                     return;
                 case bool value:
                     WriteBoolean(value);
-                    typeReserved.Write(8);
+                    typeReserved.WriteByte(8);
                     return;
                 case DateTimeOffset value:
                     WriteUtcDateTime(value);
-                    typeReserved.Write(9);
+                    typeReserved.WriteByte(9);
                     return;
                 case int value:
                     WriteInt32(value);
-                    typeReserved.Write(16);
+                    typeReserved.WriteByte(16);
                     return;
                 case long value:
                     WriteInt64(value);
-                    typeReserved.Write(18);
+                    typeReserved.WriteByte(18);
                     return;
                     //default:
                     //    System.Diagnostics.Debugger.Break();
@@ -100,7 +100,7 @@ namespace MongoDB.Client.Bson.Writer
                 {
                     ThrowSerializerIsNull(typeof(T).Name);
                 }
-                typeReserved.Write(3);
+                typeReserved.WriteByte(3);
                 serializer.WriteBson(ref this, genericValue);
             }
         }
