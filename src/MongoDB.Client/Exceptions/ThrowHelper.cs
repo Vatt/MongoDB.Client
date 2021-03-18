@@ -194,9 +194,9 @@ namespace MongoDB.Client.Exceptions
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         [DoesNotReturn]
-        public static void DropCollectionException(string errors)
+        public static void DropCollectionException(string errors, int code, string codename)
         {
-            throw new MongoDropCollectionException(errors);
+            throw new MongoCommandException(errors, code, codename);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -235,7 +235,7 @@ namespace MongoDB.Client.Exceptions
         }
         [MethodImpl(MethodImplOptions.NoInlining)]
         [DoesNotReturn]
-        public static void MongoInitExceptions()
+        public static T MongoInitExceptions<T>()
         {
             throw new MongoException($"Connection failed");
         }

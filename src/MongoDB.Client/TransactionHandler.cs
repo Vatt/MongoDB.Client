@@ -40,31 +40,17 @@ namespace MongoDB.Client
 
         public async ValueTask CommitAsync(CancellationToken cancellationToken = default)
         {
-            var requestNumber = _scheduler.GetNextRequestNumber();
-            var transactionRequest = CreateCommitRequest();
-            var request = new TransactionMessage(requestNumber, transactionRequest);
-            await _scheduler.TransactionAsync(request, cancellationToken).ConfigureAwait(false);
+            await _scheduler.CommitTransactionAsync(this, cancellationToken).ConfigureAwait(false);
             State = TransactionState.Committed;
         }
 
+
         public async ValueTask AbortAsync(CancellationToken cancellationToken = default)
         {
-            var requestNumber = _scheduler.GetNextRequestNumber();
-            var transactionRequest = CreateAbortRequest();
-            var request = new TransactionMessage(requestNumber, transactionRequest);
-            await _scheduler.TransactionAsync(request, cancellationToken).ConfigureAwait(false);
+            await _scheduler.AbortTransactionAsync(this, cancellationToken).ConfigureAwait(false);
             State = TransactionState.Aborted;
         }
 
-        private TransactionRequest CreateCommitRequest()
-        {
-            return new TransactionRequest(1, null, "admin", SessionId, _scheduler.ClusterTime, TxNumber, false);
-        }
-
-        private TransactionRequest CreateAbortRequest()
-        {
-            return new TransactionRequest(null, 1, "admin", SessionId, _scheduler.ClusterTime, TxNumber, false);
-        }
 
         public ValueTask DisposeAsync()
         {

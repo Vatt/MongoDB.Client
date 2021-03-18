@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Connections;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Experimental;
@@ -9,6 +9,7 @@ using MongoDB.Client.Protocol.Messages;
 using MongoDB.Client.Settings;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,156 +19,292 @@ namespace MongoDB.Client.Scheduler
 {
     internal sealed class ReplicaSetScheduler : IMongoScheduler
     {
-        private readonly NetworkConnectionFactory _networkfactory;
         private readonly ILoggerFactory _loggerFactory;
-        private MongoServiceConnection _service;
-        private MongoClientSettings _settings;
-        private List<IMongoScheduler> _shedulers;
-        private IMongoScheduler _master;
-        private List<IMongoScheduler> _slaves;
-        private ILogger _logger;
-        private MongoPingMessage _lastPing;
+        private readonly MongoClientSettings _settings;
+        private readonly ILogger _logger;
+        private ImmutableArray<MongoScheduler> _shedulers;
+        private ImmutableArray<MongoScheduler> _serondaries;
+
+        private MongoServiceConnection? _serviceConnection;
+
+        private MongoScheduler? _primary;
+
+        private MongoPingMessage? _lastPing;
         private int _schedulerCounter = 0;
-        private int _requestCounter = 0;
 
         public MongoClusterTime ClusterTime => _lastPing?.ClusterTime!;
-
 
         public ReplicaSetScheduler(MongoClientSettings settings, ILoggerFactory loggerFactory)
         {
             _settings = settings;
-            _logger = loggerFactory.CreateLogger<ReplicaSetScheduler>();
-            _networkfactory = new NetworkConnectionFactory(loggerFactory);
             _loggerFactory = loggerFactory;
+            _logger = loggerFactory.CreateLogger<ReplicaSetScheduler>();
             _shedulers = new();
-            _slaves = new();
+            _serondaries = new();
         }
 
 
-        private IMongoScheduler GetSlaveScheduler()
+        private MongoScheduler GetSecondaryScheduler()
         {
-            Interlocked.Increment(ref _schedulerCounter);
-            var schedulerId = _schedulerCounter % _slaves.Count;
-            var result = _slaves[schedulerId];
+            var counter = Interlocked.Increment(ref _schedulerCounter);
+            var secondary = _serondaries;
+            var schedulerId = counter % secondary.Length;
+            var result = secondary[schedulerId];
             return result;
         }
 
 
-        public async ValueTask StartAsync()
+        public async ValueTask StartAsync(CancellationToken token)
         {
             var endpoints = _settings.Endpoints;
             var maxConnections = _settings.ConnectionPoolMaxSize / endpoints.Length;
             maxConnections = maxConnections == 0 ? 1 : maxConnections;
-            for (int i = 0; i < _settings.Endpoints.Length; i++)
-            {
-                ConnectionContext? ctx;
-                try
-                {
-                    ctx = await _networkfactory.ConnectAsync(_settings.Endpoints[i]);
-                }
-                catch (Exception ex)
-                {
-                    continue;
-                }
-                _service = new MongoServiceConnection(ctx);
-                break;
-            }
-            if (_service is null)
-            {
-                ThrowHelper.MongoInitExceptions();
-            }
-            await _service.Connect(_settings, default).ConfigureAwait(false);
-            _lastPing = await _service.MongoPing().ConfigureAwait(false);
-            if (_lastPing.Primary is null)
+            _serviceConnection = await CreateServiceConnection(token).ConfigureAwait(false);
+            _lastPing = await _serviceConnection.MongoPing(token).ConfigureAwait(false);
+            var hosts = _lastPing.Hosts;
+            var primary = _lastPing.Primary;
+            var clusterTime = _lastPing.ClusterTime;
+            if (primary is null)
             {
                 ThrowHelper.PrimaryNullExceptions(); //TODO: fixit
             }
-            for (var i = 0; i < _lastPing.Hosts.Count; i++)
+            var schedulersBuilder = ImmutableArray.CreateBuilder<MongoScheduler>();
+            var secondariesBuilder = ImmutableArray.CreateBuilder<MongoScheduler>();
+            
+
+            for (var i = 0; i < hosts.Count; i++)
             {
-                var host = _lastPing.Hosts[i];
+                var host = hosts[i];
                 IMongoConnectionFactory connectionFactory = _settings.ClientType == ClientType.Default ? new MongoConnectionFactory(host, _loggerFactory) : new ExperimentalMongoConnectionFactory(host, _loggerFactory);
-                var scheduler = new StandaloneScheduler(maxConnections, _settings, connectionFactory, _loggerFactory, _lastPing.ClusterTime);
-                _shedulers.Add(scheduler);
-                if (host.Equals(_lastPing.Primary))
+                var scheduler = new MongoScheduler(_settings with { ConnectionPoolMaxSize = maxConnections }, connectionFactory, _loggerFactory, clusterTime);
+                try
                 {
-                    _master = scheduler;
+                    await scheduler.StartAsync(token).ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+                
+                schedulersBuilder.Add(scheduler);
+                if (host.Equals(primary))
+                {
+                    _primary = scheduler;
                 }
                 else
                 {
-                    _slaves.Add(scheduler);
+                    secondariesBuilder.Add(scheduler);
                 }
-                await scheduler.StartAsync();
+                
             }
+            _shedulers = schedulersBuilder.ToImmutable();
+            _serondaries = secondariesBuilder.ToImmutable();
         }
 
-
-        public int GetNextRequestNumber()
+        private async Task<MongoServiceConnection> CreateServiceConnection(CancellationToken token)
         {
-            return Interlocked.Increment(ref _requestCounter);
+            var _connectionfactory = new NetworkConnectionFactory(_loggerFactory);
+            for (int i = 0; i < _settings.Endpoints.Length; i++)
+            {
+                try
+                {
+                    var endpoint = _settings.Endpoints[i];
+                    var ctx = await _connectionfactory.ConnectAsync(endpoint, token);
+                    var serviceConnection = new MongoServiceConnection(ctx);
+                    await serviceConnection.Connect(_settings, token).ConfigureAwait(false);
+                    return serviceConnection;
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+            }
+
+            return ThrowHelper.MongoInitExceptions<MongoServiceConnection>();
         }
 
-        public Task ConnectionLost(MongoConnection connection)
+        public ValueTask DropCollectionAsync(DropCollectionMessage message, CancellationToken token)
         {
-            throw new NotImplementedException();
+            return _primary!.DropCollectionAsync(message, token);
         }
 
-        public ValueTask CreateCollectionAsync(CreateCollectionMessage message, CancellationToken cancellationToken)
+        public ValueTask CreateCollectionAsync(CreateCollectionMessage message, CancellationToken token)
         {
-            return _master.CreateCollectionAsync(message, cancellationToken);
+            return _primary!.CreateCollectionAsync(message, token);
         }
+
 
         public ValueTask<DeleteResult> DeleteAsync(DeleteMessage message, CancellationToken cancellationToken)
         {
-            return _master.DeleteAsync(message, cancellationToken);
+            return _primary!.DeleteAsync(message, cancellationToken);
         }
 
-        public ValueTask DisposeAsync()
+
+        public async ValueTask<FindResult<T>> FindAsync<T>(BsonDocument filter, int limit, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)
         {
-            throw new NotImplementedException();
+            var readPreferces = transaction.State == TransactionState.Implicit ? _settings.ReadPreference : ReadPreference.Primary;
+            var scheduler = GetScheduler(readPreferces);
+            var requestNum = scheduler.GetNextRequestNumber();
+            var requestDocument = CreateFindRequest(filter, limit, collectionNamespace, transaction, _lastPing!.ClusterTime);
+            if (ReferenceEquals(scheduler, _primary) == false)
+            {
+                requestDocument.ReadPreference = new Messages.ReadPreference(readPreferces);
+            }
+            var request = new FindMessage(requestNum, requestDocument);
+            var result = await scheduler.GetCursorAsync<T>(request, token).ConfigureAwait(false);
+            return new FindResult<T>(result, scheduler);
         }
 
-        public ValueTask DropCollectionAsync(DropCollectionMessage message, CancellationToken cancellationToken)
+        private FindRequest CreateFindRequest(BsonDocument filter, int limit, CollectionNamespace collectionNamespace, TransactionHandler transaction, MongoClusterTime clusterTime)
         {
-            return _master.DropCollectionAsync(message, cancellationToken);
+            switch (transaction.State)
+            {
+                case TransactionState.Starting:
+                    transaction.State = TransactionState.InProgress;
+                    return new FindRequest(collectionNamespace.CollectionName, filter, limit, default, null, collectionNamespace.DatabaseName, transaction.SessionId, clusterTime, transaction.TxNumber, true, false);
+                case TransactionState.InProgress:
+                    return new FindRequest(collectionNamespace.CollectionName, filter, limit, default, null, collectionNamespace.DatabaseName, transaction.SessionId, clusterTime, transaction.TxNumber, false);
+                case TransactionState.Implicit:
+                    return new FindRequest(collectionNamespace.CollectionName, filter, limit, default, null, collectionNamespace.DatabaseName, transaction.SessionId);
+                case TransactionState.Committed:
+                    return ThrowEx<FindRequest>("Transaction already commited");
+                case TransactionState.Aborted:
+                    return ThrowEx<FindRequest>("Transaction already aborted");
+                default:
+                    return ThrowEx<FindRequest>("Invalid transaction state");
+            }
         }
 
-        public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token)
+        public ValueTask<CursorResult<T>> GetMoreAsync<T>(MongoScheduler scheduler, long cursorId, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)
         {
-            var scheduler = GetScheduler(message);
-            var result = await scheduler.GetCursorAsync<T>(message, token).ConfigureAwait(false);
-            return result;
+            var requestNum = scheduler.GetNextRequestNumber();
+            var requestDocument = CreateGetMoreRequest(cursorId, collectionNamespace, transaction, _lastPing!.ClusterTime);
+            var request = new FindMessage(requestNum, requestDocument);
+            return scheduler.GetCursorAsync<T>(request, token);
         }
 
-        private IMongoScheduler GetScheduler(FindMessage message)
+        private FindRequest CreateGetMoreRequest(long cursorId, CollectionNamespace collectionNamespace, TransactionHandler transaction, MongoClusterTime clusterTime)
         {
-            var readPreference = message.Document.TxnNumber is null ? _settings.ReadPreference : ReadPreference.Primary;
-            IMongoScheduler ? scheduler = null;
+            switch (transaction.State)
+            {
+                case TransactionState.Starting:
+                    transaction.State = TransactionState.InProgress;
+                    return new FindRequest(null, null, default, cursorId, null, collectionNamespace.DatabaseName, transaction.SessionId, clusterTime, transaction.TxNumber, true, false);
+                case TransactionState.InProgress:
+                    return new FindRequest(null, null, default, cursorId, null, collectionNamespace.DatabaseName, transaction.SessionId, clusterTime, transaction.TxNumber, false);
+                case TransactionState.Implicit:
+                    return new FindRequest(null, null, default, cursorId, null, collectionNamespace.DatabaseName, transaction.SessionId, transaction.TxNumber);
+                case TransactionState.Committed:
+                    return ThrowEx<FindRequest>("Transaction already commited");
+                case TransactionState.Aborted:
+                    return ThrowEx<FindRequest>("Transaction already aborted");
+                default:
+                    return ThrowEx<FindRequest>("Invalid transaction state");
+            }
+        }
+
+        public ValueTask InsertAsync<T>(TransactionHandler transaction, IEnumerable<T> items, CollectionNamespace collectionNamespace, CancellationToken token)
+        {
+            var scheduler = _primary!;
+            var requestNumber = scheduler.GetNextRequestNumber();
+            var insertHeader = CreateInsertHeader(collectionNamespace, transaction, _lastPing!.ClusterTime);
+            var request = new InsertMessage<T>(requestNumber, insertHeader, items);
+            return scheduler.InsertAsync(request, token);
+        }
+
+        private InsertHeader CreateInsertHeader(CollectionNamespace collectionNamespace, TransactionHandler transaction, MongoClusterTime clusterTime)
+        {
+            switch (transaction.State)
+            {
+                case TransactionState.Starting:
+                    transaction.State = TransactionState.InProgress;
+                    return new InsertHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId, clusterTime, transaction.TxNumber, true, false);
+                case TransactionState.InProgress:
+                    return new InsertHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId, clusterTime, transaction.TxNumber, false);
+                case TransactionState.Implicit:
+                    return new InsertHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId, transaction.TxNumber);
+                case TransactionState.Committed:
+                    return ThrowEx<InsertHeader>("Transaction already commited");
+                case TransactionState.Aborted:
+                    return ThrowEx<InsertHeader>("Transaction already aborted");
+                default:
+                    return ThrowEx<InsertHeader>("Invalid transaction state");
+            }
+        }
+
+        public ValueTask<DeleteResult> DeleteAsync(TransactionHandler transaction, BsonDocument filter, int limit, CollectionNamespace collectionNamespace, CancellationToken token)
+        {
+            var scheduler = _primary!;
+            var requestNumber = scheduler.GetNextRequestNumber();
+            var deleteHeader = CreateDeleteHeader(collectionNamespace, transaction, _lastPing!.ClusterTime);
+
+            var deleteBody = new DeleteBody(filter, limit);
+
+            var request = new DeleteMessage(requestNumber, deleteHeader, deleteBody);
+            return scheduler.DeleteAsync(request, token);
+        }
+
+        private DeleteHeader CreateDeleteHeader(CollectionNamespace collectionNamespace, TransactionHandler transaction, MongoClusterTime clusterTime)
+        {
+            switch (transaction.State)
+            {
+                case TransactionState.Starting:
+                    transaction.State = TransactionState.InProgress;
+                    return new DeleteHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId, clusterTime, transaction.TxNumber, true, false);
+                case TransactionState.InProgress:
+                    return new DeleteHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId, clusterTime, transaction.TxNumber, false);
+                case TransactionState.Implicit:
+                    return new DeleteHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId, transaction.TxNumber);
+                case TransactionState.Committed:
+                    return ThrowEx<DeleteHeader>("Transaction already commited");
+                case TransactionState.Aborted:
+                    return ThrowEx<DeleteHeader>("Transaction already aborted");
+                default:
+                    return ThrowEx<DeleteHeader>("Invalid transaction state");
+            }
+        }
+
+        public ValueTask DropCollectionAsync(TransactionHandler transaction, CollectionNamespace collectionNamespace, CancellationToken token)
+        {
+            var scheduler = _primary!;
+            var requestNumber = scheduler.GetNextRequestNumber();
+            var dropCollectionHeader = new DropCollectionHeader(collectionNamespace.CollectionName, collectionNamespace.DatabaseName, transaction.SessionId);
+            var request = new DropCollectionMessage(requestNumber, dropCollectionHeader);
+            return scheduler.DropCollectionAsync(request, token);
+        }
+
+        public ValueTask CreateCollectionAsync(TransactionHandler transaction, CollectionNamespace collectionNamespace, CancellationToken token)
+        {
+            var scheduler = _primary!;
+            var requestNumber = scheduler.GetNextRequestNumber();
+            var createCollectionHeader = new CreateCollectionHeader(collectionNamespace.CollectionName, collectionNamespace.DatabaseName, transaction.SessionId);
+            var request = new CreateCollectionMessage(requestNumber, createCollectionHeader);
+            return scheduler.CreateCollectionAsync(request, token);
+        }
+
+        private MongoScheduler GetScheduler(ReadPreference readPreference)
+        {
+            MongoScheduler? scheduler = null;
             switch (readPreference)
             {
                 case ReadPreference.Primary:
-                    scheduler = _master;
+                    scheduler = _primary;
                     break;
                 case ReadPreference.PrimaryPreferred:
-                    scheduler = _master;
+                    scheduler = _primary;
                     if (scheduler is null)
                     {
-                        scheduler = GetSlaveScheduler();
-                        message.Document.ReadPreference = new Messages.ReadPreference(_settings.ReadPreference);
+                        scheduler = GetSecondaryScheduler();
                     }
                     break;
                 case ReadPreference.Secondary:
-                    scheduler = GetSlaveScheduler();
-                    message.Document.ReadPreference = new Messages.ReadPreference(_settings.ReadPreference);
+                    scheduler = GetSecondaryScheduler();
                     break;
                 case ReadPreference.SecondaryPreferred:
-                    scheduler = GetSlaveScheduler();
+                    scheduler = GetSecondaryScheduler();
                     if (scheduler is null)
                     {
-                        scheduler = _master;
-                    }
-                    else
-                    {
-                        message.Document.ReadPreference = new Messages.ReadPreference(_settings.ReadPreference);
+                        scheduler = _primary;
                     }
                     break;
                 case ReadPreference.Nearest:
@@ -182,14 +319,39 @@ namespace MongoDB.Client.Scheduler
             return scheduler;
         }
 
-        public ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token)
+
+        public ValueTask CommitTransactionAsync(TransactionHandler transactionHandler, CancellationToken cancellationToken)
         {
-            return _master.InsertAsync(message, token);
+            var scheduler = _primary!;
+            var requestNumber = scheduler.GetNextRequestNumber();
+            var transactionRequest = new TransactionRequest(1, null, "admin", transactionHandler.SessionId, _lastPing!.ClusterTime, transactionHandler.TxNumber, false);
+            var request = new TransactionMessage(requestNumber, transactionRequest);
+            return scheduler.TransactionAsync(request, cancellationToken);
         }
 
-        public ValueTask TransactionAsync(TransactionMessage message, CancellationToken token)
+
+        public ValueTask AbortTransactionAsync(TransactionHandler transactionHandler, CancellationToken cancellationToken)
         {
-            return _master.TransactionAsync(message, token);
+            var scheduler = _primary!;
+            var requestNumber = scheduler.GetNextRequestNumber();
+            var transactionRequest = new TransactionRequest(null, 1, "admin", transactionHandler.SessionId, _lastPing!.ClusterTime, transactionHandler.TxNumber, false);
+            var request = new TransactionMessage(requestNumber, transactionRequest);
+            return scheduler.TransactionAsync(request, cancellationToken);
+        }
+
+
+        public async ValueTask DisposeAsync()
+        {
+            foreach (var scheduler in _shedulers)
+            {
+                await scheduler.DisposeAsync();
+            }
+        }
+
+
+        private static TMessage ThrowEx<TMessage>(string message)
+        {
+            throw new MongoException(message);
         }
 
         // TODO:

@@ -1,244 +1,109 @@
 ﻿using Microsoft.Extensions.Logging;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Connection;
-using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
-using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Messages;
-using MongoDB.Client.Scheduler.Holders;
 using MongoDB.Client.Settings;
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace MongoDB.Client.Scheduler
 {
-
-    internal partial class StandaloneScheduler : IMongoScheduler, IAsyncDisposable
+    internal class StandaloneScheduler : IMongoScheduler
     {
-        private readonly IMongoConnectionFactory _connectionFactory;
-        private readonly ILogger<StandaloneScheduler> _logger;
-        //TODO: fix this
-        //private readonly List<MongoConnection> _connections; 
-        internal readonly List<MongoConnection> _connections;
-        private readonly Channel<MongoRequest> _channel;
-        private readonly Channel<MongoRequest> _findChannel;
-        private readonly ChannelWriter<MongoRequest> _channelWriter;
-        private readonly ChannelWriter<MongoRequest> _cursorChannel;
-        private readonly MongoClientSettings _settings;
-        private readonly int _maxConnections;
-        private static int _counter;
-
-        public MongoClusterTime? ClusterTime { get; }
-
-        public StandaloneScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory, MongoClusterTime? clusterTime)
-        {
-            _connectionFactory = connectionFactory;
-            _logger = loggerFactory.CreateLogger<StandaloneScheduler>();
-            var options = new BoundedChannelOptions(10);
-            _channel = Channel.CreateBounded<MongoRequest>(options);
-            _findChannel = Channel.CreateBounded<MongoRequest>(options);
-            _channelWriter = _channel.Writer;
-            _cursorChannel = _findChannel.Writer;
-            _connections = new List<MongoConnection>();
-            _settings = settings;
-            _counter = 0;
-            _maxConnections = settings.ConnectionPoolMaxSize;
-            ClusterTime = clusterTime;
-        }
+        private readonly MongoScheduler _mongoScheduler;
 
         public StandaloneScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
-            : this(settings, connectionFactory, loggerFactory, null)
         {
+            _mongoScheduler = new MongoScheduler(settings, connectionFactory, loggerFactory);
         }
 
 
-        public StandaloneScheduler(int maxConenctions, MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory, MongoClusterTime clusterTime)
-            : this(settings, connectionFactory, loggerFactory, clusterTime)
+        public ValueTask StartAsync(CancellationToken token)
         {
-            _maxConnections = maxConenctions;
+            return _mongoScheduler.StartAsync(token);
         }
 
-        public int GetNextRequestNumber()
+        public ValueTask DropCollectionAsync(DropCollectionMessage message, CancellationToken token)
         {
-            return Interlocked.Increment(ref _counter);
+            return _mongoScheduler.DropCollectionAsync(message, token);
         }
 
-
-        public async ValueTask StartAsync()
+        public ValueTask CreateCollectionAsync(CreateCollectionMessage message, CancellationToken token)
         {
-            if (_connections.Count == 0)
-            {
-                for (int i = 0; i < _maxConnections; i++)
-                {
-                    _connections.Add(await CreateNewConnection());
-                }
-            }
+            return _mongoScheduler.CreateCollectionAsync(message, token);
         }
 
-
-        private ValueTask<MongoConnection> CreateNewConnection()
+        public async ValueTask<FindResult<T>> FindAsync<T>(BsonDocument filter, int limit, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)
         {
-            return _connectionFactory.CreateAsync(_settings, _channel.Reader, _findChannel.Reader, this);
+            var requestNum = _mongoScheduler.GetNextRequestNumber();
+            var requestDocument = new FindRequest(collectionNamespace.CollectionName, filter, limit, default, null, collectionNamespace.DatabaseName, transaction.SessionId);
+            var request = new FindMessage(requestNum, requestDocument);
+            var result = await _mongoScheduler.GetCursorAsync<T>(request, token).ConfigureAwait(false);
+            return new FindResult<T>(result, _mongoScheduler);
         }
 
 
-        public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token = default)
+        public ValueTask<CursorResult<T>> GetMoreAsync<T>(MongoScheduler scheduler, long cursorId, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)
         {
-            var request = MongoRequestPool.Get();
-            var taskSrc = request.CompletionSource;
-            request.RequestNumber = message.Header.RequestNumber;
-            request.ParseAsync = CursorCallbackHolder<T>.CursorParseAsync;
-            request.WriteAsync = (protocol, token) =>
-            {
-                return protocol.WriteAsync(ProtocolWriters.FindMessageWriter, message, token);
-            };
-            request.RequestNumber = message.Header.RequestNumber;
-            await _cursorChannel.WriteAsync(request);
-            var cursor = (CursorResult<T>)await taskSrc.GetValueTask().ConfigureAwait(false);
-            MongoRequestPool.Return(request);
-            return cursor;
+            var requestNum = scheduler.GetNextRequestNumber();
+            var requestDocument = new FindRequest(null, null, default, cursorId, null, collectionNamespace.DatabaseName, transaction.SessionId);
+            var request = new FindMessage(requestNum, requestDocument);
+            return scheduler.GetCursorAsync<T>(request, token);
         }
 
 
-        public async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token = default)
+        public ValueTask InsertAsync<T>(TransactionHandler transaction, IEnumerable<T> items, CollectionNamespace collectionNamespace, CancellationToken token)
         {
-            var request = MongoRequestPool.Get();
-            var taskSource = request.CompletionSource;
-            request.RequestNumber = message.Header.RequestNumber;
-            request.ParseAsync = InsertCallbackHolder<T>.InsertParseAsync; //TODO: Try FIXIT
-            request.WriteAsync = (protocol, token) =>
-            {
-                return InsertCallbackHolder<T>.WriteAsync(message, protocol, token);
-            };
-            await _channelWriter.WriteAsync(request, token);
-            var response = await taskSource.GetValueTask().ConfigureAwait(false) as InsertResult;
-            MongoRequestPool.Return(request);
-            if (response is InsertResult result)
-            {
-                if (result.WriteErrors is null || result.WriteErrors.Count == 0)
-                {
-                    return;
-                }
-
-                ThrowHelper.InsertException(result.WriteErrors);
-            }
-            //TODO: FIXIT
-            /*else if (response is BsonParseResult bson)
-            {
-                Debugger.Break();
-            }
-            */
+            var requestNumber = _mongoScheduler.GetNextRequestNumber();
+            var insertHeader = new InsertHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId);
+            var request = new InsertMessage<T>(requestNumber, insertHeader, items);
+            return _mongoScheduler.InsertAsync(request, token);
         }
 
 
-        public async ValueTask<DeleteResult> DeleteAsync(DeleteMessage message, CancellationToken cancellationToken)
+        public ValueTask<DeleteResult> DeleteAsync(TransactionHandler transaction, BsonDocument filter, int limit, CollectionNamespace collectionNamespace, CancellationToken token)
         {
-            var request = MongoRequestPool.Get();//new DeleteMongoRequest(message, taskSource);
-            var taskSource = request.CompletionSource;
-            request.RequestNumber = message.Header.RequestNumber;
-            request.ParseAsync = DeleteCallbackHolder.DeleteParseAsync;
-            request.WriteAsync = (protocol, token) =>
-            {
-                return protocol.WriteAsync(ProtocolWriters.DeleteMessageWriter, message, token);
-            };
-            await _channelWriter.WriteAsync(request);
-            var deleteResult = await taskSource.GetValueTask().ConfigureAwait(false) as DeleteResult;
-            MongoRequestPool.Return(request);
-            return deleteResult!;
+            var requestNumber = _mongoScheduler.GetNextRequestNumber();
+            var deleteHeader = new DeleteHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId);
+
+            var deleteBody = new DeleteBody(filter, limit);
+
+            var request = new DeleteMessage(requestNumber, deleteHeader, deleteBody);
+            return _mongoScheduler.DeleteAsync(request, token);
         }
 
-        public async ValueTask TransactionAsync(TransactionMessage message, CancellationToken token)
+        public ValueTask DropCollectionAsync(TransactionHandler transaction, CollectionNamespace collectionNamespace, CancellationToken token)
         {
-            var request = MongoRequestPool.Get();
-            var taskSource = request.CompletionSource;
-            request.RequestNumber = message.Header.RequestNumber;
-            request.ParseAsync = TransactionCallbackHolder.TransactionParseAsync;
-            request.WriteAsync = (protocol, token) =>
-            {
-                return protocol.WriteAsync(ProtocolWriters.TransactionMessageWriter, message, token);
-            };
-            await _channelWriter.WriteAsync(request);
-            var transactionResult = await taskSource.GetValueTask().ConfigureAwait(false) as TransactionResult;
-            MongoRequestPool.Return(request);
-            if (transactionResult!.Ok != 1)
-            {
-                ThrowHelper.TransactionException(transactionResult!.ErrorMessage!, transactionResult!.Code!.Value, transactionResult!.CodeName!);
-            }
+            var requestNumber = _mongoScheduler.GetNextRequestNumber();
+            var dropCollectionHeader = new DropCollectionHeader(collectionNamespace.CollectionName, collectionNamespace.DatabaseName, transaction.SessionId);
+            var request = new DropCollectionMessage(requestNumber, dropCollectionHeader);
+            return _mongoScheduler.DropCollectionAsync(request, token);
         }
 
-        public async ValueTask DropCollectionAsync(DropCollectionMessage message, CancellationToken cancellationToken)
+        public ValueTask CreateCollectionAsync(TransactionHandler transaction, CollectionNamespace collectionNamespace, CancellationToken token)
         {
-            var taskSource = new ManualResetValueTaskSource<IParserResult>();
-            var request = new MongoRequest(taskSource);
-            request.RequestNumber = message.Header.RequestNumber;
-            request.ParseAsync = DropCollectionCallbackHolder.DropCollectionParseAsync;
-            request.WriteAsync = (protocol, token) =>
-            {
-                return protocol.WriteAsync(ProtocolWriters.DropCollectionMessageWriter, message, token);
-            };
-            await _channelWriter.WriteAsync(request);
-            var result = await taskSource.GetValueTask().ConfigureAwait(false);
-            if (result is DropCollectionResult dropCollectionResult)
-            {
-                if (dropCollectionResult.Ok != 1)
-                {
-                    ThrowHelper.DropCollectionException(dropCollectionResult.ErrorMessage!);
-                }
-            }
+            var requestNumber = _mongoScheduler.GetNextRequestNumber();
+            var createCollectionHeader = new CreateCollectionHeader(collectionNamespace.CollectionName, collectionNamespace.DatabaseName, transaction.SessionId);
+            var request = new CreateCollectionMessage(requestNumber, createCollectionHeader);
+            return _mongoScheduler.CreateCollectionAsync(request, token);
         }
 
-
-        public async ValueTask CreateCollectionAsync(CreateCollectionMessage message, CancellationToken cancellationToken)
+        public ValueTask CommitTransactionAsync(TransactionHandler transactionHandler, CancellationToken cancellationToken)
         {
-            var taskSource = new ManualResetValueTaskSource<IParserResult>();
-            var request = new MongoRequest(taskSource);
-            request.RequestNumber = message.Header.RequestNumber;
-            request.ParseAsync = CreateCollectionCallbackHolder.CreateCollectionParseAsync;
-            request.WriteAsync = (protocol, token) =>
-            {
-                return protocol.WriteAsync(ProtocolWriters.CreateCollectionMessageWriter, message, token);
-            };
-            await _channelWriter.WriteAsync(request);
-            var result = await taskSource.GetValueTask().ConfigureAwait(false);
-            if (result is CreateCollectionResult CreateCollectionResult)
-            {
-                if (CreateCollectionResult.Ok != 1)
-                {
-                    ThrowHelper.CreateCollectionException(CreateCollectionResult.ErrorMessage!, CreateCollectionResult.Code, CreateCollectionResult.CodeName!);
-                }
-            }
+            throw new NotImplementedException("Transactions not support on standalone");
         }
 
-        public async Task ConnectionLost(MongoConnection connection)
+        public ValueTask AbortTransactionAsync(TransactionHandler transactionHandler, CancellationToken cancellationToken)
         {
-            try
-            {
-                await connection.DisposeAsync().ConfigureAwait(false);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Error on disposing connection");
-            }
-            _connections.Remove(connection);
-            try
-            {
-                _connections.Add(await CreateNewConnection());
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Error on creating connection");
-            }
+            throw new NotImplementedException("Transactions not support on standalone");
         }
 
-        public async ValueTask DisposeAsync()
+        public ValueTask DisposeAsync()
         {
-            _channelWriter.Complete();
-            foreach (var connection in _connections)
-            {
-                await connection.DisposeAsync().ConfigureAwait(false);
-            }
+            return _mongoScheduler.DisposeAsync();
         }
     }
 }

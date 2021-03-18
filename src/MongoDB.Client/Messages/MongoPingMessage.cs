@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Exceptions;
-using System.Buffers.Binary;
 using System.Diagnostics.CodeAnalysis;
 
 namespace MongoDB.Client.Messages
@@ -14,7 +12,7 @@ namespace MongoDB.Client.Messages
     {
         private static readonly byte ColonChar = (byte) ':';
 
-        public static bool TryParseBson(ref Bson.Reader.BsonReader reader, out EndPoint message)
+        public static bool TryParseBson(ref Bson.Reader.BsonReader reader, [MaybeNullWhen(false)] out EndPoint message)
         {
             message = default;
             if (!reader.TryGetStringAsSpan(out var temp))

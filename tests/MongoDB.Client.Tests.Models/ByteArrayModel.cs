@@ -48,7 +48,7 @@ namespace MongoDB.Client.Tests.Models
             }
 
             return ByteProp.SequenceEqual(other.ByteProp) && MemoryByteProp.Span.SequenceEqual(other.MemoryByteProp.Span) && 
-                   MD5ByteProp.SequenceEqual(other.MD5ByteProp) && MD5MemoryProp.Value.Span.SequenceEqual(other.MD5MemoryProp.Value.Span);
+                   MD5ByteProp.SequenceEqual(other.MD5ByteProp) && MD5MemoryProp!.Value.Span.SequenceEqual(other.MD5MemoryProp!.Value.Span);
         }
 
         public override bool Equals(object? obj)

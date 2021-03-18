@@ -3,10 +3,8 @@ using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Exceptions;
 using MongoDB.Client.Bson.Utils;
 using System;
-using System.Buffers.Binary;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace MongoDB.Client.Bson.Reader
 {
@@ -26,7 +24,7 @@ namespace MongoDB.Client.Bson.Reader
             throw new SerializerIsNullException(typeName);
         }
 
-         public unsafe bool TryReadGeneric<T>(int bsonType, [MaybeNullWhen(false)] out T genericValue)
+        public unsafe bool TryReadGeneric<T>(int bsonType, [MaybeNullWhen(false)] out T genericValue)
         {
             genericValue = default;
             if (SerializerFnPtrProvider<T>.IsSerializable)
@@ -251,7 +249,7 @@ namespace MongoDB.Client.Bson.Reader
             }
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetBinaryData(byte expectedSubtype, out byte[] value)
+        public bool TryGetBinaryData(byte expectedSubtype, [MaybeNullWhen(false)] out byte[] value)
         {
             if (TryGetInt32(out int len))
             {
@@ -279,27 +277,27 @@ namespace MongoDB.Client.Bson.Reader
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetBinaryData(byte expectedSubtype, out Memory<byte> value)
         {
-            if (!TryGetBinaryData(expectedSubtype, out byte[] temp))
+            if (TryGetBinaryData(expectedSubtype, out byte[]? temp))
             {
-                value = default;
-                return false;
+                value = temp;
+                return true;
             }
 
-            value = temp;
-            return true;
+            value = default;
+            return false;
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetBinaryData(byte expectedSubtype, out Memory<byte>? value)
         {
-            if (!TryGetBinaryData(expectedSubtype, out byte[] temp))
+            if (TryGetBinaryData(expectedSubtype, out byte[]? temp))
             {
-                value = default;
-                return false;
+                value = temp;
+                return true;
             }
 
-            value = temp;
-            return true;
+            value = default;
+            return false;
         }
     }
 }

@@ -359,6 +359,15 @@ namespace MongoDB.Client.Bson.Writer
             WriteCString(name);
             WriteGuidAsBinaryData(value);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write_Type_Name_Value(ReadOnlySpan<char> name, Guid value)
+        {
+            WriteByte(5);
+            WriteCString(name);
+            WriteGuidAsBinaryData(value);
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write_Type_Name_Value(int intName, Guid value)
         {

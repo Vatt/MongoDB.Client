@@ -2,6 +2,7 @@ using MongoDB.Client.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Net;
 
 namespace MongoDB.Client.Settings
@@ -83,10 +84,10 @@ namespace MongoDB.Client.Settings
                 appName = appNameVal;
             }
 
-
+            var hosts = result.Hosts.ToArray();
             var settings = new MongoClientSettings
             {
-                Endpoints = result.Hosts.ToImmutableArray(),
+                Endpoints = hosts.ToImmutableArray(),
                 Login = result.Login,
                 Password = result.Password,
                 ReplicaSet = replSet,
