@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using MongoDB.Client.Exceptions;
 using MongoDB.Client.Tests.Models;
 using System;
 using System.Collections.Generic;
@@ -16,7 +17,8 @@ namespace MongoDB.Client.ConsoleApp
 
             //await LoadTest<GeoIp>(1024*1024, new[] { 512 });
             // await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, true);
-            await TestTransaction();
+            //await TestTransaction();
+            await TestStandalone();
             Console.WriteLine("Done");
         }
 
@@ -29,17 +31,26 @@ namespace MongoDB.Client.ConsoleApp
                     .SetMinimumLevel(LogLevel.Information)
                     .AddConsole();
             });
-            //var client = await MongoClient.CreateClient("mongodb://centos.mshome.net:27018,centos.mshome.net:27019,centos.mshome.net:27020/?replicaSet=rs0&maxPoolSize=9&appName=MongoDB.Client.ConsoleApp&readPreference=secondaryPreferred", loggerFactory);
-            var client = await MongoClient.CreateClient("mongodb://centos1.mshome.net,centos2.mshome.net,centos3.mshome.net/?replicaSet=rs0&maxPoolSize=9&appName=MongoDB.Client.ConsoleApp&readPreference=secondaryPreferred", loggerFactory);
+            var client = await MongoClient.CreateClient("mongodb://centos.mshome.net:27018,centos.mshome.net:27019,centos.mshome.net:27020/?replicaSet=rs0&maxPoolSize=9&appName=MongoDB.Client.ConsoleApp&readPreference=secondaryPreferred", loggerFactory);
+           // var client = await MongoClient.CreateClient("mongodb://centos1.mshome.net,centos2.mshome.net,centos3.mshome.net/?replicaSet=rs0&maxPoolSize=9&appName=MongoDB.Client.ConsoleApp&readPreference=secondaryPreferred", loggerFactory);
             var db = client.GetDatabase("TestDb");
 
-            await db.DropCollectionAsync("TransactionCollection");
+            try
+            {
+                await db.DropCollectionAsync("TransactionCollection");
+            }
+            catch (MongoCommandException e) when (e.Code == 26)
+            {
+                // skip
+            }
             await db.CreateCollectionAsync("TransactionCollection");
             var collection = db.GetCollection<GeoIp>("TransactionCollection");
 
             await WithoutTx(collection);
             await WithCommitTx(collection);
             await WithAbortTx(collection);
+
+            Console.WriteLine();
 
             async Task WithoutTx(MongoCollection<GeoIp> collection)
             {
@@ -79,6 +90,41 @@ namespace MongoDB.Client.ConsoleApp
 
                 await transaction.AbortAsync();
             }
+        }
+
+        static async Task TestStandalone()
+        {
+            var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
+
+            var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder
+                    .SetMinimumLevel(LogLevel.Information)
+                    .AddConsole();
+            });
+
+            var client = await MongoClient.CreateClient(new DnsEndPoint(host, 27017), loggerFactory);
+            var db = client.GetDatabase("TestDb");
+            try
+            {
+                await db.DropCollectionAsync("TransactionCollection");
+            }
+            catch (MongoCommandException e) when (e.Code == 26)
+            {
+                // skip
+            }
+            
+            await db.CreateCollectionAsync("TransactionCollection");
+            var collection = db.GetCollection<GeoIp>("TransactionCollection");
+
+            var item = new GeoIpSeeder().GenerateSeed(1).First();
+            var filter = new Bson.Document.BsonDocument("_id", item.Id);
+
+            await collection.InsertAsync(item);
+            var result = await collection.Find(filter).FirstOrDefaultAsync();
+            await collection.DeleteOneAsync(filter);
+
+            Console.WriteLine();
         }
 
         static async Task ReplicaSetConenctionTest<T>(int requestCount, IEnumerable<int> parallelism, bool useTransaction) where T : IIdentified

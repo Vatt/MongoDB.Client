@@ -29,6 +29,7 @@ namespace MongoDB.Client.Scheduler
         private readonly MongoClientSettings _settings;
         private readonly int _maxConnections;
         private static int _counter;
+        private SemaphoreSlim _initLock = new SemaphoreSlim(1, 1);
 
         public MongoClusterTime? ClusterTime { get; }
 
@@ -64,9 +65,23 @@ namespace MongoDB.Client.Scheduler
         {
             if (_connections.Count == 0)
             {
-                for (int i = 0; i < _maxConnections; i++)
+                await _initLock.WaitAsync(token).ConfigureAwait(false);
+
+                try
                 {
-                    _connections.Add(await CreateNewConnection(token));
+                    if (_connections.Count == 0)
+                    {
+                        for (int i = 0; i < _maxConnections; i++)
+                        {
+                            var connection = await CreateNewConnection(token).ConfigureAwait(false);
+                            _connections.Add(connection);
+                        }
+                    }
+ 
+                }
+                finally
+                {
+                    _initLock.Release();
                 }
             }
         }
@@ -89,7 +104,7 @@ namespace MongoDB.Client.Scheduler
                 return protocol.WriteAsync(ProtocolWriters.FindMessageWriter, message, token);
             };
             request.RequestNumber = message.Header.RequestNumber;
-            await _cursorChannel.WriteAsync(request);
+            await _cursorChannel.WriteAsync(request).ConfigureAwait(false);
             var cursor = (CursorResult<T>)await taskSrc.GetValueTask().ConfigureAwait(false);
             MongoRequestPool.Return(request);
             return cursor;
@@ -106,7 +121,7 @@ namespace MongoDB.Client.Scheduler
             {
                 return InsertCallbackHolder<T>.WriteAsync(message, protocol, token);
             };
-            await _channelWriter.WriteAsync(request, token);
+            await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
             var result = (InsertResult)await taskSource.GetValueTask().ConfigureAwait(false);
             MongoRequestPool.Return(request);
 
@@ -119,7 +134,7 @@ namespace MongoDB.Client.Scheduler
         }
 
 
-        public async ValueTask<DeleteResult> DeleteAsync(DeleteMessage message, CancellationToken cancellationToken)
+        public async ValueTask<DeleteResult> DeleteAsync(DeleteMessage message, CancellationToken token)
         {
             var request = MongoRequestPool.Get();//new DeleteMongoRequest(message, taskSource);
             var taskSource = request.CompletionSource;
@@ -129,7 +144,7 @@ namespace MongoDB.Client.Scheduler
             {
                 return protocol.WriteAsync(ProtocolWriters.DeleteMessageWriter, message, token);
             };
-            await _channelWriter.WriteAsync(request, cancellationToken);
+            await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
             var deleteResult = (DeleteResult)await taskSource.GetValueTask().ConfigureAwait(false);
             MongoRequestPool.Return(request);
             return deleteResult!;
@@ -145,7 +160,7 @@ namespace MongoDB.Client.Scheduler
             {
                 return protocol.WriteAsync(ProtocolWriters.TransactionMessageWriter, message, token);
             };
-            await _channelWriter.WriteAsync(request, token);
+            await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
             var transactionResult = (TransactionResult)await taskSource.GetValueTask().ConfigureAwait(false);
             MongoRequestPool.Return(request);
             if (transactionResult!.Ok != 1)
@@ -164,12 +179,12 @@ namespace MongoDB.Client.Scheduler
             {
                 return protocol.WriteAsync(ProtocolWriters.DropCollectionMessageWriter, message, token);
             };
-            await _channelWriter.WriteAsync(request, cancellationToken);
+            await _channelWriter.WriteAsync(request, cancellationToken).ConfigureAwait(false);
             var result = (DropCollectionResult)await taskSource.GetValueTask().ConfigureAwait(false);
 
             if (result.Ok != 1)
             {
-                ThrowHelper.DropCollectionException(result.ErrorMessage!);
+                ThrowHelper.DropCollectionException(result.ErrorMessage!, result.Code, result.CodeName);
             }
         }
 
@@ -206,7 +221,7 @@ namespace MongoDB.Client.Scheduler
             _connections.Remove(connection);
             try
             {
-                _connections.Add(await CreateNewConnection(default));
+                _connections.Add(await CreateNewConnection(default).ConfigureAwait(false));
             }
             catch (Exception e)
             {
@@ -221,6 +236,8 @@ namespace MongoDB.Client.Scheduler
             {
                 await connection.DisposeAsync().ConfigureAwait(false);
             }
+            _connections.Clear();
+            _initLock.Dispose();
         }
     }
 }

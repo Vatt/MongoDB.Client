@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Connection;
-using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Messages;
 using MongoDB.Client.Settings;

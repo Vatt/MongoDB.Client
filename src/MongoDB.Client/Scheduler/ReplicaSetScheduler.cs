@@ -22,8 +22,8 @@ namespace MongoDB.Client.Scheduler
         private readonly ILoggerFactory _loggerFactory;
         private readonly MongoClientSettings _settings;
         private readonly ILogger _logger;
-        private readonly ImmutableArray<MongoScheduler> _shedulers;
-        private readonly ImmutableArray<MongoScheduler> _serondaries;
+        private ImmutableArray<MongoScheduler> _shedulers;
+        private ImmutableArray<MongoScheduler> _serondaries;
 
         private MongoServiceConnection? _serviceConnection;
 
@@ -61,26 +61,44 @@ namespace MongoDB.Client.Scheduler
             maxConnections = maxConnections == 0 ? 1 : maxConnections;
             _serviceConnection = await CreateServiceConnection(token).ConfigureAwait(false);
             _lastPing = await _serviceConnection.MongoPing(token).ConfigureAwait(false);
-            if (_lastPing.Primary is null)
+            var hosts = _lastPing.Hosts;
+            var primary = _lastPing.Primary;
+            var clusterTime = _lastPing.ClusterTime;
+            if (primary is null)
             {
                 ThrowHelper.PrimaryNullExceptions(); //TODO: fixit
             }
-            for (var i = 0; i < _lastPing.Hosts.Count; i++)
+            var schedulersBuilder = ImmutableArray.CreateBuilder<MongoScheduler>();
+            var secondariesBuilder = ImmutableArray.CreateBuilder<MongoScheduler>();
+            
+
+            for (var i = 0; i < hosts.Count; i++)
             {
-                var host = _lastPing.Hosts[i];
+                var host = hosts[i];
                 IMongoConnectionFactory connectionFactory = _settings.ClientType == ClientType.Default ? new MongoConnectionFactory(host, _loggerFactory) : new ExperimentalMongoConnectionFactory(host, _loggerFactory);
-                var scheduler = new MongoScheduler(_settings with { ConnectionPoolMaxSize = maxConnections }, connectionFactory, _loggerFactory, _lastPing.ClusterTime);
-                _shedulers.Add(scheduler);
-                if (host.Equals(_lastPing.Primary))
+                var scheduler = new MongoScheduler(_settings with { ConnectionPoolMaxSize = maxConnections }, connectionFactory, _loggerFactory, clusterTime);
+                try
+                {
+                    await scheduler.StartAsync(token).ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+                
+                schedulersBuilder.Add(scheduler);
+                if (host.Equals(primary))
                 {
                     _primary = scheduler;
                 }
                 else
                 {
-                    _serondaries.Add(scheduler);
+                    secondariesBuilder.Add(scheduler);
                 }
-                await scheduler.StartAsync(token);
+                
             }
+            _shedulers = schedulersBuilder.ToImmutable();
+            _serondaries = secondariesBuilder.ToImmutable();
         }
 
         private async Task<MongoServiceConnection> CreateServiceConnection(CancellationToken token)
@@ -90,7 +108,8 @@ namespace MongoDB.Client.Scheduler
             {
                 try
                 {
-                    var ctx = await _connectionfactory.ConnectAsync(_settings.Endpoints[i], token);
+                    var endpoint = _settings.Endpoints[i];
+                    var ctx = await _connectionfactory.ConnectAsync(endpoint, token);
                     var serviceConnection = new MongoServiceConnection(ctx);
                     await serviceConnection.Connect(_settings, token).ConfigureAwait(false);
                     return serviceConnection;
