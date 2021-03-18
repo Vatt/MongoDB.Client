@@ -223,27 +223,26 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var sizeSpan = Identifier("sizeSpan");
             var index = Identifier("index");
             var array = Identifier("array");
-            var forEachItem = Identifier("item");
+            var loopItem = Identifier("item");
             var typeArg = (trueType as INamedTypeSymbol).TypeArguments[0];
             var haveCollectionIndexator = HaveCollectionIndexator(type);
             var writeOperation = ImmutableList.CreateBuilder<StatementSyntax>();
             var elementExpr = haveCollectionIndexator
                 ? ElementAccessExpr(array, index)
-                : IdentifierName(forEachItem);
-
+                : IdentifierName(loopItem);
 
             if (typeArg.IsReferenceType)
             {
                 writeOperation.IfStatement(
-                            condition: BinaryExprEqualsEquals(elementExpr, NullLiteralExpr()),
+                            condition: BinaryExprEqualsEquals(loopItem, NullLiteralExpr()),
                             statement: Block(WriteBsonNull(index)),
-                            @else: Block(WriteOperation(ctx, index, ctx.NameSym, typeArg, BsonWriterToken, elementExpr)));
+                            @else: Block(WriteOperation(ctx, index, ctx.NameSym, typeArg, BsonWriterToken, IdentifierName(loopItem))));
             }
             else if (typeArg.NullableAnnotation == NullableAnnotation.Annotated && typeArg.IsValueType)
             {
-                var operation = WriteOperation(ctx, index, ctx.NameSym, typeArg, BsonWriterToken, SimpleMemberAccess(elementExpr, NullableValueToken));
+                var operation = WriteOperation(ctx, index, ctx.NameSym, typeArg, BsonWriterToken, SimpleMemberAccess(loopItem, NullableValueToken));
                 writeOperation.IfStatement(
-                            condition: BinaryExprEqualsEquals(SimpleMemberAccess(elementExpr, NullableHasValueToken), FalseLiteralExpr),
+                            condition: BinaryExprEqualsEquals(SimpleMemberAccess(loopItem, NullableHasValueToken), FalseLiteralExpr),
                             statement: Block(WriteBsonNull(index)),
                             @else: Block(operation));
             }
@@ -256,9 +255,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 ? ForStatement(
                     condition: BinaryExprLessThan(index, SimpleMemberAccess(array, ListCountToken)),
                     incrementor: PostfixUnaryExpr(index),
-                    body: Block(writeOperation!))
+                    body: Block(VarLocalDeclarationStatement(loopItem, elementExpr), writeOperation!))
                 : ForEachStatement(
-                    identifier: forEachItem,
+                    identifier: loopItem,
                     expression: IdentifierName(array),
                     body: Block(writeOperation!, AddAssignmentExpr(index, NumericLiteralExpr(1))));
 

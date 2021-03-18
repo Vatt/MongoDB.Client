@@ -297,6 +297,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Block(expr).AddStatements(statements);
         }
+
+        public static BlockSyntax Block(StatementSyntax first, ImmutableList<StatementSyntax>.Builder buider)
+        {
+            return SF.Block(first).AddStatements(buider.ToArray());
+        }
         public static BlockSyntax Block(ImmutableList<StatementSyntax>.Builder buiider)
         {
             return Block(buiider.ToArray());
