@@ -145,10 +145,10 @@ namespace MongoDB.Client.Bson.Writer
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void GetNextSpan()
+        public void GetNextSpan(int sizeHint = 0)
         {
             Commit();
-            _span = _output.GetSpan();
+            _span = _output.GetSpan(sizeHint);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -282,13 +282,21 @@ namespace MongoDB.Client.Bson.Writer
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void SlowWriteCString(ReadOnlySpan<char> chars)
         {
+            if (_span.Length < 4)
+            {
+                GetNextSpan(4096);
+            }
             var encoder = Encoding.UTF8.GetEncoder();
             do
             {
-                encoder.Convert(chars, _span, true, out var charsUsedJustNow, out var bytesWrittenJustNow, out _);
+                encoder.Convert(chars, _span, true, out var charsUsedJustNow, out var bytesWrittenJustNow, out var completed);
 
                 chars = chars.Slice(charsUsedJustNow);
                 Advance(bytesWrittenJustNow);
+                if (completed == false)
+                {
+                    GetNextSpan(4096);
+                }
             } while (!chars.IsEmpty);
         }
 
@@ -312,13 +320,21 @@ namespace MongoDB.Client.Bson.Writer
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void SlowWriteString(ReadOnlySpan<char> value)
         {
+            if (_span.Length < 4)
+            {
+                GetNextSpan(4096);
+            }
             var encoder = Encoding.UTF8.GetEncoder();
             do
             {
-                encoder.Convert(value, _span, true, out var charsUsedJustNow, out var bytesWrittenJustNow, out _);
+                encoder.Convert(value, _span, true, out var charsUsedJustNow, out var bytesWrittenJustNow, out var completed);
 
                 value = value.Slice(charsUsedJustNow);
                 Advance(bytesWrittenJustNow);
+                if (completed == false)
+                {
+                    GetNextSpan(4096);
+                }
             } while (!value.IsEmpty);
             WriteByte(EndMarker);
         }
