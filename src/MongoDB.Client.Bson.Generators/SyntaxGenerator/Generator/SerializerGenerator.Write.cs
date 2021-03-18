@@ -120,7 +120,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         InvocationExprStatement(WriteArrayMethodName(ctx, trueType), RefArgument(writerId), Argument(writeTarget))
                 );
             }
-            if (TryGenerateBsonWrite(ctx, typeSym, writeTarget, out var bsonWriteExpr))
+            if (TryGenerateBsonWrite(name, nameSym, typeSym, writeTarget, out var bsonWriteExpr))
             {
                 return bsonWriteExpr.ToStatements().ToArray();
             }
@@ -148,21 +148,21 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return true;
         }
-        public static bool TryGenerateBsonWrite(MemberContext ctx, ITypeSymbol typeSym, ExpressionSyntax writeTarget, out ImmutableList<ExpressionSyntax> expressions)
+        public static bool TryGenerateBsonWrite(SyntaxToken nameToken, ISymbol nameSym, ITypeSymbol typeSym, ExpressionSyntax writeTarget, out ImmutableList<ExpressionSyntax> expressions)
         {
             expressions = default;
             ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(typeSym);
             if (IsBsonSerializable(trueType))
             {
                 expressions = ImmutableList.Create(
-                    Write_Type_Name(3, ctx.StaticSpanNameToken),
+                    Write_Type_Name(3, nameToken),
                     InvocationExpr(IdentifierName(trueType.ToString()), WriteBsonToken, RefArgument(BsonWriterToken), Argument(writeTarget))); //TODO: IdentifierName(SelfFullName(typeSym)) с этим чтото не так на генериках
                 return true;
             }
-            if (IsBsonExtensionSerializable(ctx.NameSym, trueType, out var extSym))
+            if (IsBsonExtensionSerializable(nameSym, trueType, out var extSym))
             {
                 expressions = ImmutableList.Create(
-                    Write_Type_Name(3, ctx.StaticSpanNameToken),
+                    Write_Type_Name(3, nameToken),
                     InvocationExpr(IdentifierName(extSym.ToString()), WriteBsonToken, RefArgument(BsonWriterToken), Argument(writeTarget))); //TODO: IdentifierName(SelfFullName(typeSym)) с этим чтото не так на генериках
                 return true;
             }
