@@ -31,7 +31,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     {
                         return false;
                     }
-
                     if (HaveParseWriteExtensionMethods(extType, typeSym) == false)
                     {
                         return false;

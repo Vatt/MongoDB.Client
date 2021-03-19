@@ -191,8 +191,9 @@ namespace MongoDB.Client.Tests.Serialization.TestModels
             return true;
         }
 
-        public static void WriteBson(ref BsonWriter writer, in CustomModel message)
+        public static void WriteBson(ref BsonWriter writer, in CustomModel message, out byte bsonType)
         {
+            bsonType = 3;
             var checkpoint = writer.Written;
             var reserved = writer.Reserve(4);
             writer.Write_Type_Name_Value(CustomModelA, message.A);
