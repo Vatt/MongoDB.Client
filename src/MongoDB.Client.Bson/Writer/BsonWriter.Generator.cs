@@ -491,13 +491,13 @@ namespace MongoDB.Client.Bson.Writer
         private void WriteIntIndexSlow(int index)
         {
             Span<byte> span = stackalloc byte[10];
-            Utf8Formatter.TryFormat(index, span, out int written2);
-            var count = Math.Min(_span.Length, written2);
-            span = span.Slice(0, written2);
+            Utf8Formatter.TryFormat(index, span, out int written);
+            var count = Math.Min(_span.Length, written);
+            span = span.Slice(0, written);
             span.Slice(0, count).CopyTo(_span);
             Advance(count);
             span.Slice(count).CopyTo(_span);
-            Advance(written2 - count);
+            Advance(written - count);
             WriteByte(EndMarker);
         }
     }
