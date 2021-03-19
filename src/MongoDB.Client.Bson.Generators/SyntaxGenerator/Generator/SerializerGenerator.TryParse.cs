@@ -298,7 +298,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     case 0: break;
                     case 5: break;
-                    default: 
+                    default:
                         GeneratorDiagnostics.ReportUnsuportedByteArrayReprError(nameSym, typeSymbol);
                         break;
                 }

@@ -50,7 +50,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                 {
                     AssignedVariableToken = SerializerGenerator.Identifier($"{trueType.Name}{NameSym.Name}");
                 }
-                
+
             }
             else
             {

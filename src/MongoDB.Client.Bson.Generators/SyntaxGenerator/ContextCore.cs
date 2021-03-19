@@ -34,7 +34,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     name += "." + sym.ContainingSymbol.Name + generics;
                     sym = sym.ContainingSymbol;
                 }
-                 return SerializerGenerator.Identifier($"{name}.g");
+                return SerializerGenerator.Identifier($"{name}.g");
             }
         }
 
