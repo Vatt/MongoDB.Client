@@ -2,6 +2,7 @@
 using MongoDB.Client.Bson.Utils;
 using System;
 using System.Buffers;
+using System.Buffers.Text;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -126,7 +127,7 @@ namespace MongoDB.Client.Bson.Reader
             return false;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public bool TryGetString([MaybeNullWhen(false)] out string value)
         {
             if (TryGetInt32(out int length))
@@ -163,7 +164,6 @@ namespace MongoDB.Client.Bson.Reader
         }
 
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetStringAsSpan(out ReadOnlySpan<byte> value)
         {
             if (TryGetInt32(out int length))
@@ -203,7 +203,6 @@ namespace MongoDB.Client.Bson.Reader
         }
 
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetObjectId(out BsonObjectId value)
         {
             const int oidSize = 12;
@@ -217,6 +216,7 @@ namespace MongoDB.Client.Bson.Reader
 
             return SlowGetObjectId(out value);
         }
+
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private bool SlowGetObjectId(out BsonObjectId value)
@@ -236,6 +236,7 @@ namespace MongoDB.Client.Bson.Reader
             value = default;
             return false;
         }
+
 
         public bool TryGetBinaryData(out BsonBinaryData value)
         {
@@ -339,21 +340,17 @@ namespace MongoDB.Client.Bson.Reader
         }
 
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetGuidFromString(out Guid value)
         {
             if (TryGetStringAsSpan(out var data))
             {
-                Span<char> buffer = stackalloc char[36];
-                Encoding.UTF8.GetChars(data, buffer);
-                value = Guid.Parse(buffer);
-                return true;
+                return Utf8Parser.TryParse(data, out value, out var consumed);
             }
             value = default;
             return false;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public bool TryGetUtcDatetime([MaybeNullWhen(false)] out DateTimeOffset value)
         {
             if (TryGetInt64(out long data))
@@ -365,7 +362,8 @@ namespace MongoDB.Client.Bson.Reader
             value = default;
             return false;
         }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
+
         public bool TryGetTimestamp([MaybeNullWhen(false)] out BsonTimestamp value)
         {
             if (TryGetInt64(out long data))
@@ -377,7 +375,8 @@ namespace MongoDB.Client.Bson.Reader
             value = default;
             return false;
         }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
+
         public bool TryGetBoolean(out bool value)
         {
             if (TryGetByte(out var boolean))

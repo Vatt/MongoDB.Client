@@ -9,7 +9,7 @@ namespace MongoDB.Client.Bson.Reader
 {
     public ref partial struct BsonReader
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        
         public bool TryGetDateTimeWithBsonType(int bsonType, out DateTimeOffset? value)
         {
             switch (bsonType)
@@ -26,7 +26,7 @@ namespace MongoDB.Client.Bson.Reader
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        
         public bool TryGetUtcDatetime([MaybeNullWhen(false)] out DateTimeOffset? value)
         {
             if (TryGetInt64(out long data))
@@ -104,7 +104,7 @@ namespace MongoDB.Client.Bson.Reader
             date = DateTimeOffset.FromUnixTimeMilliseconds(longDate);
             return true;
         }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        
         public bool TryGetObjectId(out BsonObjectId? value)
         {
             const int oidSize = 12;
@@ -139,7 +139,7 @@ namespace MongoDB.Client.Bson.Reader
             return false;
         }
         
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        
         public bool TryGetGuidWithBsonType(int bsonType, out Guid? value)
         {
             if (bsonType == 5)
@@ -197,7 +197,7 @@ namespace MongoDB.Client.Bson.Reader
         }
 
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        
         public bool TryGetGuidFromString(out Guid? value)
         {
             if (TryGetString(out var data))
@@ -209,32 +209,32 @@ namespace MongoDB.Client.Bson.Reader
             return false;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        
         public bool TryGetInt32(out int? value)
         {
-            value = default;
             if (_input.TryReadLittleEndian(out int temp))
             {
                 value = temp;
                 return true;
             }
+            value = default;
             return false;
         }
 
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        
         public bool TryGetInt64(out long? value)
         {
-            value = default;
             if (_input.TryReadLittleEndian(out long temp))
             {
                 value = temp;
                 return true;
             }
+            value = default;
             return false;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        
         public bool TryGetDouble(out double? value)
         {
             if (TryGetInt64(out long temp))
@@ -247,7 +247,7 @@ namespace MongoDB.Client.Bson.Reader
             return false;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        
         public bool TryGetBoolean(out bool? value)
         {
             if (TryGetByte(out var boolean))

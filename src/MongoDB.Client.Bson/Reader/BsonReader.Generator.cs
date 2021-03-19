@@ -216,7 +216,7 @@ namespace MongoDB.Client.Bson.Reader
         }
 
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+  
         public bool TryGetGuidWithBsonType(int bsonType, out Guid value)
         {
             if (bsonType == 5)
@@ -232,7 +232,7 @@ namespace MongoDB.Client.Bson.Reader
             return ThrowHelper.UnsupportedGuidTypeException<bool>(bsonType);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public bool TryGetDateTimeWithBsonType(int bsonType, out DateTimeOffset value)
         {
             switch (bsonType)
@@ -248,7 +248,8 @@ namespace MongoDB.Client.Bson.Reader
                     return ThrowHelper.UnsupportedDateTimeTypeException<bool>(bsonType);
             }
         }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
+
         public bool TryGetBinaryData(byte expectedSubtype, [MaybeNullWhen(false)] out byte[] value)
         {
             if (TryGetInt32(out int len))
@@ -274,7 +275,8 @@ namespace MongoDB.Client.Bson.Reader
             value = default;
             return false;
         }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    
+
         public bool TryGetBinaryData(byte expectedSubtype, out Memory<byte> value)
         {
             if (TryGetBinaryData(expectedSubtype, out byte[]? temp))
@@ -287,7 +289,7 @@ namespace MongoDB.Client.Bson.Reader
             return false;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
         public bool TryGetBinaryData(byte expectedSubtype, out Memory<byte>? value)
         {
             if (TryGetBinaryData(expectedSubtype, out byte[]? temp))
