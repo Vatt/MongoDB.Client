@@ -123,8 +123,9 @@ namespace MongoDB.Client.Tests.Serialization
             return true;
         }
 
-        public static void WriteBson(ref BsonWriter writer, in Dictionary<string, string> message)
+        public static void WriteBson(ref BsonWriter writer, in Dictionary<string, string> message, out byte bsonType)
         {
+            bsonType = 3;
             var checkpoint = writer.Written;
             var reserved = writer.Reserve(4);
             foreach (var (key, value) in message)

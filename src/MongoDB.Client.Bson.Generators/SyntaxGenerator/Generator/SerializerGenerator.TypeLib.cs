@@ -6,6 +6,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
     internal static partial class SerializerGenerator
     {
         public static INamedTypeSymbol System_Byte => BsonSerializerGenerator.Compilation.GetSpecialType(SpecialType.System_Byte);
+        public static INamedTypeSymbol System_Int32 => BsonSerializerGenerator.Compilation.GetSpecialType(SpecialType.System_Int32);
         public static INamedTypeSymbol System_Memory => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Memory`1")!;
         public static INamedTypeSymbol BsonReaderTypeSym => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Reader.BsonReader")!;
         public static INamedTypeSymbol BsonWriterTypeSym => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Writer.BsonWriter")!;

@@ -148,7 +148,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var outMessage = Identifier("array");
             var tempArrayRead = Identifier("temp");
             var tempArray = Identifier("internalArray");
-            
+
             var typeArg = (type as INamedTypeSymbol).TypeArguments[0];
             var trueTypeArg = ExtractTypeFromNullableIfNeed(typeArg);
 
@@ -277,7 +277,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     semicolonToken: default)
                 .WithBody(
                 Block(
-                    LocalDeclarationStatement(IntPredefinedType(), index, NumericLiteralExpr(0)), 
+                    LocalDeclarationStatement(IntPredefinedType(), index, NumericLiteralExpr(0)),
                     VarLocalDeclarationStatement(checkpoint, WriterWrittenExpr),
                     VarLocalDeclarationStatement(reserved, WriterReserve(4)),
                     loopStatement,

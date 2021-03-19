@@ -218,8 +218,14 @@ namespace MongoDB.Client.Bson.Writer
             WriteIntIndex(intName);
         }
 
-
-        
+        public void WriteName(ReadOnlySpan<byte> name)
+        {
+            WriteCString(name);
+        }
+        public void WriteName(int intName)
+        {
+            WriteIntIndex(intName);
+        }
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, double value)
         {
             WriteByte(1);
@@ -410,7 +416,7 @@ namespace MongoDB.Client.Bson.Writer
             WriteUtcDateTime(value);
         }
 
-
+        
         
         public void Write_Type_Name_Value(int intName, DateTimeOffset value)
         {

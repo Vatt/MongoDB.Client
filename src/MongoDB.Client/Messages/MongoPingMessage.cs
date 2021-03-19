@@ -33,7 +33,7 @@ namespace MongoDB.Client.Messages
             }
         }
 
-        public static void WriteBson(ref Bson.Writer.BsonWriter writer, in EndPoint message)
+        public static void WriteBson(ref Bson.Writer.BsonWriter writer, in EndPoint message, out byte bsonType)
         {
             throw new NotSupportedException(nameof(DnsEndPointSerializer));
         }

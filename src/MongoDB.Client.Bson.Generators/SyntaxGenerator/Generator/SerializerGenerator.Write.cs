@@ -122,7 +122,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             if (TryGenerateBsonWrite(name, nameSym, typeSym, writeTarget, out var bsonWriteExpr))
             {
-                return bsonWriteExpr.ToStatements().ToArray();
+                return bsonWriteExpr.ToArray();
             }
             GeneratorDiagnostics.ReportUnsuporterTypeError(ctx.NameSym, ctx.TypeSym);
             return new StatementSyntax[0];
@@ -148,22 +148,26 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return true;
         }
-        public static bool TryGenerateBsonWrite(SyntaxToken nameToken, ISymbol nameSym, ITypeSymbol typeSym, ExpressionSyntax writeTarget, out ImmutableList<ExpressionSyntax> expressions)
+        public static bool TryGenerateBsonWrite(SyntaxToken nameToken, ISymbol nameSym, ITypeSymbol typeSym, ExpressionSyntax writeTarget, out ImmutableList<StatementSyntax> expressions)
         {
             expressions = default;
+            var bsonTypeToken = Identifier("bsonTypeTemp");
+            var bsonReserved = Identifier("bsonTypeResereved");
             ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(typeSym);
             if (IsBsonSerializable(trueType))
             {
                 expressions = ImmutableList.Create(
-                    Write_Type_Name(3, nameToken),
-                    InvocationExpr(IdentifierName(trueType.ToString()), WriteBsonToken, RefArgument(BsonWriterToken), Argument(writeTarget))); //TODO: IdentifierName(SelfFullName(typeSym)) с этим чтото не так на генериках
+                    Statement(Write_Type_Name(3, nameToken)),
+                    InvocationExprStatement(IdentifierName(trueType.ToString()), WriteBsonToken, RefArgument(BsonWriterToken), Argument(writeTarget)));
                 return true;
             }
             if (IsBsonExtensionSerializable(nameSym, trueType, out var extSym))
             {
                 expressions = ImmutableList.Create(
-                    Write_Type_Name(3, nameToken),
-                    InvocationExpr(IdentifierName(extSym.ToString()), WriteBsonToken, RefArgument(BsonWriterToken), Argument(writeTarget))); //TODO: IdentifierName(SelfFullName(typeSym)) с этим чтото не так на генериках
+                    LocalDeclarationStatement(VarType, bsonReserved, WriterReserve(1)),
+                    Statement(WriteName(nameToken)),
+                    InvocationExprStatement(IdentifierName(extSym.ToString()), WriteBsonToken, RefArgument(BsonWriterToken), Argument(writeTarget), OutArgument(VarVariableDeclarationExpr(bsonTypeToken))),
+                    Statement(ReservedWriteByte(bsonReserved, bsonTypeToken)));
                 return true;
             }
 
@@ -203,7 +207,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     case 0: break;
                     case 5: break;
-                    default: 
+                    default:
                         GeneratorDiagnostics.ReportUnsuportedByteArrayReprError(nameSym, typeSymbol);
                         break;
                 }
