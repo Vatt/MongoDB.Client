@@ -172,7 +172,7 @@ namespace MongoDB.Client.Bson.Writer
         }
 
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        
         public void WriteBytes(ReadOnlySpan<byte> source)
         {
             if (source.TryCopyTo(_span))
@@ -206,7 +206,7 @@ namespace MongoDB.Client.Bson.Writer
         }
 
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        
         public void WriteInt32(int value)
         {
             if (BinaryPrimitives.TryWriteInt32LittleEndian(_span, value))
@@ -231,7 +231,7 @@ namespace MongoDB.Client.Bson.Writer
             Advance(sizeof(int) - rem);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        
         public void WriteInt64(long value)
         {
             if (BinaryPrimitives.TryWriteInt64LittleEndian(_span, value))
@@ -256,7 +256,7 @@ namespace MongoDB.Client.Bson.Writer
             Advance(sizeof(long) - rem);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        
         public void WriteDouble(double value)
         {
             long longValue = BitConverter.DoubleToInt64Bits(value);
@@ -264,7 +264,7 @@ namespace MongoDB.Client.Bson.Writer
         }
 
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        
         public void WriteCString(ReadOnlySpan<char> value)
         {
             var count = Encoding.UTF8.GetByteCount(value);
@@ -301,7 +301,7 @@ namespace MongoDB.Client.Bson.Writer
         }
 
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        
         public void WriteString(ReadOnlySpan<char> value)
         {
             var count = Encoding.UTF8.GetByteCount(value);
@@ -339,7 +339,7 @@ namespace MongoDB.Client.Bson.Writer
             WriteByte(EndMarker);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        
         public void WriteObjectId(in BsonObjectId value)
         {
             const int oidSize = 12;
@@ -364,7 +364,7 @@ namespace MongoDB.Client.Bson.Writer
             buffer.Slice(rem).CopyTo(_span);
             Advance(oidSize - rem);
         }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        
         public void WriteTimestamp(in BsonTimestamp value)
         {
             if (value.TryWriteBytes(_span))
@@ -388,14 +388,14 @@ namespace MongoDB.Client.Bson.Writer
             Advance(sizeof(long) - rem);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        
         public void WriteUtcDateTime(in DateTimeOffset datetime)
         {
             WriteInt64(datetime.ToUnixTimeMilliseconds());
         }
 
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        
         public void WriteGuidAsBytes(Guid guid)
         {
             const int guidSize = 16;
@@ -423,7 +423,7 @@ namespace MongoDB.Client.Bson.Writer
             Advance(guidSize - rem);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        
         public void WriteGuidAsString(Guid guid)
         {
             var buffer = ArrayPool<char>.Shared.Rent(32);
@@ -439,7 +439,7 @@ namespace MongoDB.Client.Bson.Writer
         }
 
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        
         public void WriteBoolean(bool value)
         {
             WriteByte((byte)(value ? 1 : 0));
