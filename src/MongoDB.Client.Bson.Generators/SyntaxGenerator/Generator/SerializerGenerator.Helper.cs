@@ -32,7 +32,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         return false;
                     }
 
-                    if (HaveParseWriteMethods(extType, typeSym) == false)
+                    if (HaveParseWriteExtensionMethods(extType, typeSym) == false)
                     {
                         return false;
                     }
@@ -92,6 +92,86 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
 
             return -1;
+        }
+        public static bool HaveParseWriteExtensionMethods(ISymbol typeSym, ISymbol retType = null)
+        {
+            ISymbol returnType = retType ?? typeSym;
+            if (typeSym is INamedTypeSymbol namedSym)
+            {
+                var readerSym = BsonReaderTypeSym;
+                var writerSym = BsonWriterTypeSym;
+                var parseMethod = namedSym.GetMembers()
+                    .Where(member => member.Kind == SymbolKind.Method)
+                    .Where(method => method.Name.Equals("TryParseBson", System.StringComparison.InvariantCulture) && method.Kind == SymbolKind.Method && method.IsStatic && method.DeclaredAccessibility == Accessibility.Public)
+                    .Where(method =>
+                    {
+
+                        var parseMethodSym = method as IMethodSymbol;
+                        if (parseMethodSym != null && parseMethodSym.ReturnType.SpecialType != SpecialType.System_Boolean)
+                        {
+                            return false;
+                        }
+                        if (parseMethodSym!.Parameters.Length != 2)
+                        {
+                            return false;
+                        }
+                        bool haveReader = false;
+                        bool haveResult = false;
+                        if (parseMethodSym.Parameters[0].RefKind == RefKind.Ref && parseMethodSym.Parameters[0].Type.Equals(readerSym, SymbolEqualityComparer.Default))
+                        {
+                            haveReader = true;
+                        }
+                        if (parseMethodSym.Parameters[1].RefKind == RefKind.Out && parseMethodSym.Parameters[1].Type.ToString().Equals(returnType.ToString()))
+                        {
+                            haveResult = true;
+                        }
+                        if (haveReader && haveResult)
+                        {
+                            return true;
+                        }
+                        return false;
+                    })
+                    .FirstOrDefault();
+                var writeMethod = namedSym.GetMembers()
+                    .Where(member => member.Kind == SymbolKind.Method)
+                    .Where(method => method.Name.Equals("WriteBson", System.StringComparison.InvariantCulture) && method.Kind == SymbolKind.Method && method.IsStatic && method.DeclaredAccessibility == Accessibility.Public)
+                    .Where(method =>
+                    {
+                        var writeMethodSym = method as IMethodSymbol;
+                        if (writeMethodSym != null && writeMethodSym.ReturnType.SpecialType != SpecialType.System_Void)
+                        {
+                            return false;
+                        }
+                        if (writeMethodSym!.Parameters.Length != 3)
+                        {
+                            return false;
+                        }
+                        bool haveReader = false;
+                        bool haveResult = false;
+                        bool haveBsonType = false;
+                        if (writeMethodSym.Parameters[0].RefKind == RefKind.Ref && writeMethodSym.Parameters[0].Type.Equals(writerSym, SymbolEqualityComparer.Default))
+                        {
+                            haveReader = true;
+                        }
+                        if (writeMethodSym.Parameters[1].RefKind == RefKind.In && writeMethodSym.Parameters[1].Type.ToString().Equals(returnType.ToString()))
+                        {
+                            haveResult = true;
+                        }
+                        if (writeMethodSym.Parameters[2].RefKind == RefKind.Out && writeMethodSym.Parameters[2].Type.Equals(System_Byte, SymbolEqualityComparer.Default))
+                        {
+                            haveBsonType = true;
+                        }
+                        if (haveReader && haveResult && haveBsonType)
+                        {
+                            return true;
+                        }
+                        return false;
+                    })
+                    .FirstOrDefault();
+                return parseMethod != null && writeMethod != null;
+            }
+
+            return false;
         }
         public static bool HaveParseWriteMethods(ISymbol typeSym, ISymbol retType = null)
         {

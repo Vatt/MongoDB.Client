@@ -71,6 +71,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static ExpressionSyntax ReservedWrite(SyntaxToken reserved, SyntaxToken target)
         {
             return InvocationExpr(IdentifierName(reserved), IdentifierName("Write"), Argument(IdentifierName(target)));
+        }     
+        public static ExpressionSyntax ReservedWriteByte(SyntaxToken reserved, SyntaxToken target)
+        {
+            return InvocationExpr(IdentifierName(reserved), IdentifierName("WriteByte"), Argument(IdentifierName(target)));
         }
         public static ExpressionSyntax WriteByte(byte value)
         {
@@ -87,6 +91,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static ExpressionStatementSyntax WriteByteStatement(ExpressionSyntax value)
         {
             return SyntaxFactory.ExpressionStatement(InvocationExpr(BsonWriterToken, IdentifierName("WriteByte"), Argument(value)));
+        }
+
+        public static ExpressionSyntax WriteName(SyntaxToken name)
+        {
+            return InvocationExpr(BsonWriterToken, IdentifierName("WriteName"), Argument(name));
         }
     }
 }
