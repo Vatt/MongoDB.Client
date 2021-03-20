@@ -60,6 +60,16 @@ namespace MongoDB.Client.Connection
                 var connectRequest = CreateQueryRequest(_initialDocument, GetNextRequestNumber());
                 var configMessage = await SendQueryAsync<BsonDocument>(connectRequest, token).ConfigureAwait(false);
                 var buildInfoRequest = CreateQueryRequest(new BsonDocument("buildInfo", 1), GetNextRequestNumber());
+                if (settings.Login is not null && settings.Password is not null)
+                {
+                    var saslStart = InitHelper.CreateSaslStart(settings);
+                    var result = await SendQueryAsync<BsonDocument>(CreateQueryRequest(saslStart, GetNextRequestNumber()), token).ConfigureAwait(false);
+                    var isOk = (double)result[0]["ok"].Value;  
+                    if (isOk == 0)
+                    {
+                        ThrowHelper.MongoAuthentificationException(result[0]["errmsg"].ToString(), (int)result[0]["code"].Value!);
+                    }
+                }
                 var hell = await SendQueryAsync<BsonDocument>(buildInfoRequest, token).ConfigureAwait(false);
                 return new ConnectionInfo(configMessage[0], hell[0]);
             }

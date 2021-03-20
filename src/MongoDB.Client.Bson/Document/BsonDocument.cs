@@ -30,7 +30,11 @@ namespace MongoDB.Client.Bson.Document
         {
             Add(name, value);
         }
-
+        public BsonDocument(string name, bool value)
+            : this()
+        {
+            Add(name, value);
+        }
         public BsonDocument(string name, BsonBinaryData value)
             : this()
         {

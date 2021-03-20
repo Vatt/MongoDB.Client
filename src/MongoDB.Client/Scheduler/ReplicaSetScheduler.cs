@@ -114,7 +114,11 @@ namespace MongoDB.Client.Scheduler
                     await serviceConnection.Connect(_settings, token).ConfigureAwait(false);
                     return serviceConnection;
                 }
-                catch (Exception)
+                catch (MongoAuthentificationException ex)
+                {
+                    ThrowHelper.MongoInitExceptions<MongoServiceConnection>(ex);
+                }
+                catch (Exception ex)
                 {
                     continue;
                 }

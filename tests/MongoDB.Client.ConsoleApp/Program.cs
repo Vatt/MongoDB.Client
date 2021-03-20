@@ -16,9 +16,9 @@ namespace MongoDB.Client.ConsoleApp
         {
 
             //await LoadTest<GeoIp>(1024*1024, new[] { 512 });
-            // await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, true);
+             await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, true);
             //await TestTransaction();
-            await TestStandalone();
+            //await TestStandalone();
             Console.WriteLine("Done");
         }
 
@@ -31,8 +31,8 @@ namespace MongoDB.Client.ConsoleApp
                     .SetMinimumLevel(LogLevel.Information)
                     .AddConsole();
             });
-            var client = await MongoClient.CreateClient("mongodb://centos.mshome.net:27018,centos.mshome.net:27019,centos.mshome.net:27020/?replicaSet=rs0&maxPoolSize=9&appName=MongoDB.Client.ConsoleApp&readPreference=secondaryPreferred", loggerFactory);
-           // var client = await MongoClient.CreateClient("mongodb://centos1.mshome.net,centos2.mshome.net,centos3.mshome.net/?replicaSet=rs0&maxPoolSize=9&appName=MongoDB.Client.ConsoleApp&readPreference=secondaryPreferred", loggerFactory);
+            //var client = await MongoClient.CreateClient("mongodb://centos.mshome.net:27018,centos.mshome.net:27019,centos.mshome.net:27020/?replicaSet=rs0&maxPoolSize=9&appName=MongoDB.Client.ConsoleApp&readPreference=secondaryPreferred", loggerFactory);
+            var client = await MongoClient.CreateClient("mongodb://gamover:gam2106@centos1.mshome.net,centos2.mshome.net,centos3.mshome.net/?replicaSet=rs0&maxPoolSize=9&appName=MongoDB.Client.ConsoleApp&readPreference=secondaryPreferred", loggerFactory);
             var db = client.GetDatabase("TestDb");
 
             try
@@ -135,7 +135,8 @@ namespace MongoDB.Client.ConsoleApp
                     .SetMinimumLevel(LogLevel.Information)
                     .AddConsole();
             });
-            var client = await MongoClient.CreateClient("mongodb://centos.mshome.net:27018,centos.mshome.net:27019,centos.mshome.net:27020/?replicaSet=rs0&maxPoolSize=9&appName=MongoDB.Client.ConsoleApp&readPreference=Primary", loggerFactory);
+            //var client = await MongoClient.CreateClient("mongodb://centos.mshome.net:27018,centos.mshome.net:27019,centos.mshome.net:27020/?replicaSet=rs0&maxPoolSize=9&appName=MongoDB.Client.ConsoleApp&readPreference=Primary", loggerFactory);
+            var client = await MongoClient.CreateClient("mongodb://gamover:gam2106@centos1.mshome.net,centos2.mshome.net,centos3.mshome.net/?replicaSet=rs0&maxPoolSize=3&appName=MongoDB.Client.ConsoleApp&readPreference=secondaryPreferred", loggerFactory);
             var db = client.GetDatabase("TestDb");
             var stopwatch = new Stopwatch();
             Console.WriteLine(typeof(T).Name);

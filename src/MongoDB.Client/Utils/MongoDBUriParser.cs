@@ -4,22 +4,23 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Net;
+using System.Text;
 
 namespace MongoDB.Client.Utils
 {
     internal class MongoUriParseResult
     {
         public string Scheme { get; }
-        public string? Login { get; }
-        public string? Password { get; }
+        public byte[]? Login { get; }
+        public byte[]? Password { get; }
         public string? AdminDb { get; }
         public IEnumerable<EndPoint> Hosts { get; }
         public Dictionary<string, string> Options { get; }
 
         internal MongoUriParseResult(
             string scheme,
-            string? login,
-            string? password,
+            byte[]? login,
+            byte[]? password,
             IEnumerable<EndPoint> hosts,
             string? adminDb,
             string? optionsString)
@@ -84,12 +85,12 @@ namespace MongoDB.Client.Utils
         static private Parser<MongoUriParseResult> _uriParser;
         static MongoDBUriParser()
         {
-            Parser<(string, string)> userInfoParser =
+            Parser<(byte[], byte[])> userInfoParser =
                 from user in Parse.Or(Parse.LetterOrDigit, Parse.Chars(/*':',*/ '%', '/', '?', '#', '[', ']'/*, '@'*/)).Many().Text()
                 from separator in Parse.Char(':').Once()
                 from password in Parse.Or(Parse.LetterOrDigit, Parse.Chars(/*':',*/ '%', '/', '?', '#', '[', ']'/*, '@'*/)).Many().Text()
                 from end in Parse.Char('@').Once()
-                select (user, password);
+                select (Encoding.UTF8.GetBytes(user), Encoding.UTF8.GetBytes(password));
 
             Parser<int> portParser =
                 from colon in Parse.Char(':').Once()

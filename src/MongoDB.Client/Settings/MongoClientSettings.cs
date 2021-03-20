@@ -9,25 +9,26 @@ namespace MongoDB.Client.Settings
 {
     public record MongoClientSettings
     {
-        public MongoClientSettings(IEnumerable<EndPoint> endpoints, string? login, string? password)
+        public MongoClientSettings(IEnumerable<EndPoint> endpoints, string adminDb, byte[]? login, byte[]? password)
         {
             Login = login;
             Password = password;
             Endpoints = endpoints.ToImmutableArray();
+            AdminDB = adminDb;
         }
 
         public MongoClientSettings(EndPoint[] endpoints)
-        : this(endpoints, string.Empty, string.Empty)
+        : this(endpoints, "admin", null, null)
         {
         }
 
         public MongoClientSettings(EndPoint endpoint)
-            : this(new[] { endpoint }, string.Empty, string.Empty)
+            : this(new[] { endpoint }, "admin", null, null)
         {
         }
 
         public MongoClientSettings()
-            : this(new[] { new IPEndPoint(IPAddress.Loopback, 27017) }, string.Empty, string.Empty)
+            : this(new[] { new IPEndPoint(IPAddress.Loopback, 27017) }, "admin", null, null)
         {
         }
 
@@ -47,8 +48,9 @@ namespace MongoDB.Client.Settings
         }
 
         public string? ApplicationName { get; init; }
-        public string? Login { get; init; }
-        public string? Password { get; init; }
+        public string AdminDB { get; init; }
+        public byte[]? Login { get; init; }
+        public byte[]? Password { get; init; }
         public string? ReplicaSet { get; init; }
         public ReadPreference ReadPreference { get; init; }
         public ClientType ClientType { get; init; }
@@ -57,10 +59,7 @@ namespace MongoDB.Client.Settings
         public static MongoClientSettings FromConnectionString(string uriString)
         {
             var result = MongoDBUriParser.ParseUri(uriString);
-
             result.Options.TryGetValue("replicaSet", out var replSet);
-
-
             int connectionPoolMaxSize = 16;
             if (result.Options.TryGetValue("maxPoolSize", out var maxPoolSize))
             {
@@ -88,6 +87,7 @@ namespace MongoDB.Client.Settings
             var settings = new MongoClientSettings
             {
                 Endpoints = hosts.ToImmutableArray(),
+                AdminDB = result.AdminDb ?? "admin",
                 Login = result.Login,
                 Password = result.Password,
                 ReplicaSet = replSet,
