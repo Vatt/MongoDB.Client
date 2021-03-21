@@ -62,7 +62,7 @@ namespace MongoDB.Client.Connection
                 var buildInfoRequest = CreateQueryRequest(new BsonDocument("buildInfo", 1), GetNextRequestNumber());
                 if (settings.Login is not null && settings.Password is not null)
                 {
-                    var saslStart = InitHelper.CreateSaslStart(settings);
+                    var saslStart = InitHelper.CreateSaslStart(settings, ((BsonBinaryData)(configMessage[0]["speculativeAuthenticate"].AsBsonDocument["payload"].Value)).Value as byte[] );
                     var result = await SendQueryAsync<BsonDocument>(CreateQueryRequest(saslStart, GetNextRequestNumber()), token).ConfigureAwait(false);
                     var isOk = (double)result[0]["ok"].Value;  
                     if (isOk == 0)

@@ -16,10 +16,10 @@ namespace MongoDB.Client.ConsoleApp
         {
 
             //await LoadTest<GeoIp>(1024*1024, new[] { 512 });
-            // await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, true);
+             await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, true);
             //await TestTransaction();
           //  await TestStandalone();
-            await TestStandaloneWithPassword();
+           // await TestStandaloneWithPassword();
             Console.WriteLine("Done");
         }
 
