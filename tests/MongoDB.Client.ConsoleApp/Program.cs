@@ -16,9 +16,10 @@ namespace MongoDB.Client.ConsoleApp
         {
 
             //await LoadTest<GeoIp>(1024*1024, new[] { 512 });
-             await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, true);
+            // await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, true);
             //await TestTransaction();
-            //await TestStandalone();
+          //  await TestStandalone();
+            await TestStandaloneWithPassword();
             Console.WriteLine("Done");
         }
 
@@ -104,6 +105,39 @@ namespace MongoDB.Client.ConsoleApp
             });
 
             var client = await MongoClient.CreateClient(new DnsEndPoint(host, 27017), loggerFactory);
+            var db = client.GetDatabase("TestDb");
+            try
+            {
+                await db.DropCollectionAsync("TransactionCollection");
+            }
+            catch (MongoCommandException e) when (e.Code == 26)
+            {
+                // skip
+            }
+            
+            await db.CreateCollectionAsync("TransactionCollection");
+            var collection = db.GetCollection<GeoIp>("TransactionCollection");
+
+            var item = new GeoIpSeeder().GenerateSeed(1).First();
+            var filter = new Bson.Document.BsonDocument("_id", item.Id);
+
+            await collection.InsertAsync(item);
+            var result = await collection.Find(filter).FirstOrDefaultAsync();
+            await collection.DeleteOneAsync(filter);
+
+            Console.WriteLine();
+        }        
+        
+        static async Task TestStandaloneWithPassword()
+        {
+            var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder
+                    .SetMinimumLevel(LogLevel.Information)
+                    .AddConsole();
+            });
+
+            var client = await MongoClient.CreateClient("mongodb://user:password@centos.mshome.net:27016/", loggerFactory);
             var db = client.GetDatabase("TestDb");
             try
             {

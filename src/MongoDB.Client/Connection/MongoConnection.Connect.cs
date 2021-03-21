@@ -15,10 +15,14 @@ namespace MongoDB.Client.Connection
     public sealed partial class MongoConnection
     {
         internal ConnectionInfo ConnectionInfo;
+
+
         internal ValueTask StartAsync(ConnectionContext connection, CancellationToken cancellationToken = default)
         {
             return StartAsync(connection.CreateReader(), connection.CreateWriter(), cancellationToken);
         }
+
+
         internal async ValueTask StartAsync(ProtocolReader reader, ProtocolWriter writer, CancellationToken cancellationToken)
         {
             _protocolReader = reader;
@@ -31,45 +35,26 @@ namespace MongoDB.Client.Connection
             {
                 var _initialDocument = InitHelper.CreateInitialCommand(_settings);
                 var connectRequest = CreateQueryRequest(_initialDocument, GetNextRequestNumber());
-                var configMessage = await SendQueryAsync<BsonDocument>(connectRequest, token).ConfigureAwait(false);
+                var isMaster = await SendQueryAsync<BsonDocument>(connectRequest, token).ConfigureAwait(false);
                 var buildInfoRequest = CreateQueryRequest(new BsonDocument("buildInfo", 1), GetNextRequestNumber());
-                var hell = await SendQueryAsync<BsonDocument>(buildInfoRequest, token).ConfigureAwait(false);
-                return new ConnectionInfo(configMessage[0], hell[0]);
+                var buildInfo = await SendQueryAsync<BsonDocument>(buildInfoRequest, token).ConfigureAwait(false);
+                return new ConnectionInfo(isMaster[0], buildInfo[0]);
             }
         }
+
+
         private QueryMessage CreateQueryRequest(string database, BsonDocument document, int number)
         {
             return new QueryMessage(number, database, document);
         }
+
+
         private QueryMessage CreateQueryRequest(BsonDocument document, int number)
         {
-            var doc = CreateWrapperDocument(document);
-            return CreateQueryRequest("admin.$cmd", doc, number);
+            return CreateQueryRequest("admin.$cmd", document, number);
         }
 
-        private static BsonDocument CreateWrapperDocument(BsonDocument document)
-        {
-            BsonDocument? readPreferenceDocument = null;
-            if (readPreferenceDocument is null)
-            {
-                return document;
-            }
-            var doc = new BsonDocument
-                {
-                    {"$query", document},
-                    {"$readPreference", readPreferenceDocument}
-                };
 
-            return doc;
-            //if (doc.Count == 1)
-            //{
-            //    return doc["$query"].AsBsonDocument;
-            //}
-            //else
-            //{
-            //    return doc;
-            //}
-        }
         public async ValueTask<QueryResult<TResp>> SendQueryAsync<TResp>(QueryMessage message, CancellationToken cancellationToken)
         {
             if (_protocolWriter is null)
@@ -125,7 +110,5 @@ namespace MongoDB.Client.Connection
                 }
             }
         }
-
-
     }
 }
