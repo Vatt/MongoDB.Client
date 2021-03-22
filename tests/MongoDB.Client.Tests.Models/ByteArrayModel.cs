@@ -5,7 +5,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Tests.Models
 {
-    [BsonSerializable]
+    [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters | GeneratorMode.IfConditions)]
     public partial class ByteArrayModel : IEquatable<ByteArrayModel>
 
     {

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -6,6 +7,31 @@ using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 {
+    internal class GeneratorMode
+    {
+        [Flags]
+        private enum PrivateMode : byte
+        {
+            IfConditions = 1,
+            ConstuctorOnlyParameters = 2,
+        }
+        public bool IfConditions { get; set; }
+        public bool ConstructorOnlyParameters { get; }
+        public GeneratorMode(byte byteMode)
+        {
+            PrivateMode mode = (PrivateMode)byteMode;
+            
+            //IfConditions = (mode | PrivateMode.IfConditions) == PrivateMode.IfConditions;
+            //ConstructorOnlyParameters = (mode | PrivateMode.ConstuctorOnlyParameters) == PrivateMode.ConstuctorOnlyParameters;   
+            IfConditions = mode.HasFlag(PrivateMode.IfConditions);
+            ConstructorOnlyParameters = mode.HasFlag(PrivateMode.ConstuctorOnlyParameters);
+        }
+        public GeneratorMode()
+        {
+            IfConditions = false;
+            ConstructorOnlyParameters = false;
+        }
+    }
     internal class ContextCore
     {
         internal MasterContext Root { get; }
@@ -14,7 +40,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         internal List<MemberContext> Members { get; }
         internal ImmutableArray<ITypeSymbol>? GenericArgs { get; }
         internal ImmutableArray<IParameterSymbol>? ConstructorParams { get; }
-        internal int GeneratorMode { get; }
+        internal GeneratorMode GeneratorMode { get; }
         internal SyntaxToken SerializerName
         {
             get
@@ -79,7 +105,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     continue;
                 }
             }
-            GeneratorMode = Members.Count <= 2 ? 2 : SerializerGenerator.GetGeneratorMode(symbol);
+            GeneratorMode = SerializerGenerator.GetGeneratorMode(symbol);
+            if (Members.Count <= 2)
+            {
+                GeneratorMode.IfConditions = true;
+            }
         }
 
         public bool ConstructorContains(string name)
