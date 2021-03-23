@@ -14,12 +14,11 @@ namespace MongoDB.Client.ConsoleApp
     {
         static async Task Main(string[] args)
         {
-
             //await LoadTest<GeoIp>(1024*1024, new[] { 512 });
-             await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, true);
+            //   await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, true);
             //await TestTransaction();
-          //  await TestStandalone();
-           // await TestStandaloneWithPassword();
+            //  await TestStandalone();
+            await TestStandaloneWithPassword();
             Console.WriteLine("Done");
         }
 
@@ -137,7 +136,7 @@ namespace MongoDB.Client.ConsoleApp
                     .AddConsole();
             });
 
-            var client = await MongoClient.CreateClient("mongodb://user:password@centos.mshome.net:27016/", loggerFactory);
+            var client = await MongoClient.CreateClient("mongodb://root:root@centos.mshome.net:27016/", loggerFactory);
             var db = client.GetDatabase("TestDb");
             try
             {

@@ -7,28 +7,32 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Buffers.Binary;
 using MongoDB.Client.Exceptions;
+using System.Linq;
 
 namespace MongoDB.Client.Connection
 {
     internal static class InitHelper
     {
-        private static byte[] _rPrefix;
-        public static BsonDocument CreateInitialCommand(MongoClientSettings settings)
+
+        public static (BsonDocument, SaslStart?) CreateInitialCommand(MongoClientSettings settings)
         {
+            SaslStart? sasl = null;
             var command = CreateCommand();
             AddClientDocumentToCommand(command, settings.ApplicationName ?? string.Empty);
             AddCompressorsToCommand(command, Compressors);
             if (settings.Login is not null && settings.Password is not null)
             {
-                AddLoginInfoToCommand(command, settings.Login, settings.Password, settings.AdminDB);
+                sasl = AddLoginInfoToCommand(command, settings.Login, settings.AdminDB);
             }
-            return command;
+            return (command, sasl);
         }
-        private static byte[] CreateScramLoginBytes(byte[] login)
+
+        private static SaslStart CreateScramLoginBytes(byte[] login)
         {
             var prepared = PrepareLogin(login);
             var randonBytes = GenerateRandonBytes(20);
-            _rPrefix = randonBytes;
+
+            var bareMessage = "n=" + Strict.GetString(prepared) + "," + "r=" + Strict.GetString(randonBytes);
             var len = 5 + 3 + prepared.Length + 20;
             var bytes = new byte[len];
             Span<byte> span = bytes;
@@ -44,20 +48,24 @@ namespace MongoDB.Client.Connection
             bytes[5 + prepared.Length + 1] = 114;
             bytes[5 + prepared.Length + 2] = 61;
             randonBytes.CopyTo(randomSlice);
-            return bytes;
+
+            return new SaslStart(randonBytes, bareMessage, bytes);
         }
 
         private static byte[] GenerateRandonBytes(int len)
         {
+            const string legalCharacters = "!\"#$%&'()*+-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
             var rnd = new Random();
             var array = new byte[len];
             for (int i = 0; i < len; i++)
             {
-                array[i] = (byte)rnd.Next(33, 126);
+                var idx = rnd.Next(0, legalCharacters.Length);
+                array[i] = (byte)legalCharacters[idx];
             }
 
             return array;
         }
+
         private static byte[] PrepareLogin(byte[] rawLogin)
         {
             var badBytesCount = 0;
@@ -88,12 +96,12 @@ namespace MongoDB.Client.Connection
                         newBytes[++newIdx] = 51;
                         newBytes[++newIdx] = 68;
                         break;
-                    case 44: 
+                    case 44:
                         newBytes[++newIdx] = 61;
                         newBytes[++newIdx] = 50;
                         newBytes[++newIdx] = 67;
                         break;
-                    default: 
+                    default:
                         newBytes[++newIdx] = span[i];
                         break;
                 }
@@ -101,47 +109,93 @@ namespace MongoDB.Client.Connection
 
             return newBytes;
         }
-        public static BsonDocument CreateSaslStart(MongoClientSettings settings, byte[] replyBytes)
+
+
+        private class Cache
+        {
+
+        }
+
+
+
+        private static readonly UTF8Encoding Strict = new UTF8Encoding(false, true);
+        public static (BsonDocument, byte[]) CreateSaslStart(MongoClientSettings settings, byte[] replyBytes, SaslStart saslStart, int conversationId)
         {
             var document = new BsonDocument();
-            ParseReplyScramBytes(replyBytes, out var r, out var s, out var i);
-            var prefixCheck = r.Slice(0, _rPrefix.Length);
-            if(prefixCheck.SequenceEqual(_rPrefix) == false)
+            ParseReplyScramBytes(replyBytes, out var rb, out _, out _);
+            var prefixCheck = rb.Slice(0, saslStart.Salt.Length);
+            if (prefixCheck.SequenceEqual(saslStart.Salt) == false)
             {
                 ThrowHelper.MongoAuthentificationException("Server sent an invalid nonce.", 0);
             }
-            Span<byte> clientFinalMessageWithoutProof = new byte[9 + r.Length];
-            clientFinalMessageWithoutProof[0] = 99;
-            clientFinalMessageWithoutProof[1] = 61;
-            clientFinalMessageWithoutProof[2] = 98;
-            clientFinalMessageWithoutProof[3] = 105;
-            clientFinalMessageWithoutProof[4] = 119;
-            clientFinalMessageWithoutProof[5] = 115;
-            clientFinalMessageWithoutProof[6] = 44;
-            clientFinalMessageWithoutProof[7] = 114;
-            clientFinalMessageWithoutProof[8] = 61;
-            r.CopyTo(clientFinalMessageWithoutProof.Slice(9));
+            var serverFirstMessage = Strict.GetString(replyBytes);
+            ParseReplyScramBytes(serverFirstMessage, out var r, out var s, out var i);
 
-            Span<byte> salt = Convert.FromBase64String(Encoding.UTF8.GetString(s));
+            const string gs2Header = "n,,";
+            var channelBinding = "c=" + Convert.ToBase64String(Strict.GetBytes(gs2Header));
+            var nonce = "r=" + r;
+            var clientFinalMessageWithoutProof = channelBinding + "," + nonce;
+
+            Span<byte> salt = Convert.FromBase64String(s);
 
             byte[] clientKey;
             byte[] serverKey;
 
-            var passBytes = Hi(settings.Password, salt, i);
-            document.Add("saslContinue", 1);
-            document.Add("conversationId", 1);
-            document.Add("payload", BsonBinaryData.Create(SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes("n,,n=gamover,r=.`@cYWf%6FKEx?WCtDE9"))));
-            //document.Add("payload", BsonBinaryData.Create(SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(settings.Login))));
-            //document.Add("payload", BsonBinaryData.Create(Encoding.UTF8.GetBytes("c=biws,r=.`@cYWf%6FKEx?WCtDE96MxRvkhr3OD7pNbXztr9wSPdUNY4J1sh,p=4Xgx4lMurUvq/iMPdX0/V41bdqzHwFSFUn59OwBdkFc=")));
-            return document;
-        }
-        private static byte[] Hi(Span<byte> passBytes, Span<byte> salt, int iterations)
-        {
-            var hashed = ComputeHash(salt, iterations, out var block);
+            var passBytes = Hi(settings.Password!, salt, i);
+            clientKey = Hmac256(Strict, passBytes, "Client Key");
+            serverKey = Hmac256(Strict, passBytes, "Server Key");
 
-            return default;
+
+            var storedKey = H256(clientKey);
+            var authMessage = saslStart.BaseMessage + "," + serverFirstMessage + "," + clientFinalMessageWithoutProof;
+            var clientSignature = Hmac256(Strict, storedKey, authMessage);
+            var clientProof = XOR(clientKey, clientSignature);
+            var serverSignature = Hmac256(Strict, serverKey, authMessage);
+            var proof = "p=" + Convert.ToBase64String(clientProof);
+            var clientFinalMessage = clientFinalMessageWithoutProof + "," + proof;
+            var bytesToSend = Strict.GetBytes(clientFinalMessage);
+
+            document.Add("saslContinue", 1);
+            document.Add("conversationId", conversationId);
+            document.Add("payload", BsonBinaryData.Create(bytesToSend));
+            return (document, serverSignature);
         }
-        private static byte[] ComputeHash(Span<byte> salt, int iterations, out int block)
+        private static byte[] Hi(byte[] passBytes, Span<byte> salt, int iterations)
+        {
+            using var hmac = new HMACSHA256(passBytes);
+            var hashed = ComputeHash(hmac, salt, iterations, out var block);
+            var asd = string.Join(string.Empty, hashed.Select(b => b.ToString("X2")));
+            return hashed;
+        }
+
+        private static byte[] Hmac256(UTF8Encoding encoding, byte[] data, string key)
+        {
+            using (var hmac = new HMACSHA256(data))
+            {
+                return hmac.ComputeHash(encoding.GetBytes(key));
+            }
+        }
+
+        private static byte[] H256(byte[] data)
+        {
+            using (var sha256 = SHA256.Create())
+            {
+                return sha256.ComputeHash(data);
+            }
+        }
+
+        private static byte[] XOR(byte[] a, byte[] b)
+        {
+            var result = new byte[a.Length];
+            for (int i = 0; i < a.Length; i++)
+            {
+                result[i] = (byte)(a[i] ^ b[i]);
+            }
+
+            return result;
+        }
+
+        private static byte[] ComputeHash(HMAC algorithm, Span<byte> salt, int iterations, out int block)
         {
             //HMAC SHA256 hash size - 256
             const int blockSize = 256 >> 3;
@@ -150,13 +204,11 @@ namespace MongoDB.Client.Connection
             Span<byte> span = bytes;
             salt.CopyTo(bytes);
             BinaryPrimitives.WriteInt32BigEndian(span.Slice(28), block);
-            var algorithm = HMAC.Create("HMACSHA256");
             bytes = algorithm.ComputeHash(bytes);
             var result = bytes;
             for (int i = 1; i < iterations; i++)
             {
                 bytes = algorithm.ComputeHash(bytes);
-
                 for (int j = 0; j < blockSize; j++)
                 {
                     result[j] ^= bytes[j];
@@ -173,13 +225,13 @@ namespace MongoDB.Client.Connection
             var span = bytes.AsSpan();
             int rEnd = 0;
             int sStart = 0;
-            int sEnd = 0; 
+            int sEnd = 0;
             int iStart = 0;
-            for(int index = 0; i < bytes.Length; index++)
+            for (int index = 0; i < bytes.Length; index++)
             {
                 if (span[index] == 44)
                 {
-                    if(span[index + 1] == 115 && span[index + 2] == 61)
+                    if (span[index + 1] == 115 && span[index + 2] == 61)
                     {
                         rEnd = index;
                         sStart = index + 3;
@@ -196,20 +248,53 @@ namespace MongoDB.Client.Connection
             s = span.Slice(sStart, sEnd - sStart);
             var iSpan = span.Slice(iStart, bytes.Length - iStart);
             i = int.Parse(Encoding.UTF8.GetString(iSpan));
- 
+
         }
-        private static void AddLoginInfoToCommand(BsonDocument command, byte[] login, byte[] password, string db)
+
+        private static void ParseReplyScramBytes(ReadOnlySpan<char> bytes, out string r, out string s, out int i)
+        {
+            i = default;
+            var span = bytes;
+            int rEnd = 0;
+            int sStart = 0;
+            int sEnd = 0;
+            int iStart = 0;
+            for (int index = 0; i < bytes.Length; index++)
+            {
+                if (span[index] == 44)
+                {
+                    if (span[index + 1] == 115 && span[index + 2] == 61)
+                    {
+                        rEnd = index;
+                        sStart = index + 3;
+                    }
+                    if (span[index + 1] == 105 && span[index + 2] == 61)
+                    {
+                        sEnd = index;
+                        iStart = index + 3;
+                        break;
+                    }
+                }
+            }
+            r = new string(span.Slice(2, rEnd - 2));
+            s = new string(span.Slice(sStart, sEnd - sStart));
+            var iSpan = span.Slice(iStart, bytes.Length - iStart);
+            i = int.Parse(iSpan);
+        }
+
+        private static SaslStart AddLoginInfoToCommand(BsonDocument command, byte[] login, string db)
         {
             var loginStr = Encoding.UTF8.GetString(login);
             command.Add("saslSupportedMechs", $"{db}.{loginStr}");
             BsonDocument speculativeAuthenticate = new BsonDocument();
             speculativeAuthenticate.Add("saslStart", 1);
             speculativeAuthenticate.Add("mechanism", "SCRAM-SHA-256");
-            speculativeAuthenticate.Add("payload", BsonBinaryData.Create(CreateScramLoginBytes(login)));
-            //speculativeAuthenticate.Add("payload", BsonBinaryData.Create(Encoding.UTF8.GetBytes("n,,n=gamover,r=.`@cYWf%6FKEx?WCtDE9")));
+            var saslStart = CreateScramLoginBytes(login);
+            speculativeAuthenticate.Add("payload", BsonBinaryData.Create(saslStart.Payload));
             speculativeAuthenticate.Add("options", new BsonDocument("skipEmptyExchange", true));
             speculativeAuthenticate.Add("db", db);
             command.Add("speculativeAuthenticate", speculativeAuthenticate);
+            return saslStart;
         }
         private static void AddClientDocumentToCommand(BsonDocument command, string appname)
         {

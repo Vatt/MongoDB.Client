@@ -1,5 +1,6 @@
 ﻿using MongoDB.Client.Utils;
 using System.Linq;
+using System.Text;
 using Xunit;
 
 namespace MongoDB.Client.Tests.UriParser
@@ -19,8 +20,8 @@ namespace MongoDB.Client.Tests.UriParser
 
             Assert.NotNull(result.Login);
             Assert.NotNull(result.Password);
-            Assert.Equal("gamover", result.Login);
-            Assert.Equal("12345", result.Password);
+            Assert.True(result.Login.SequenceEqual(Encoding.UTF8.GetBytes("gamover")));
+            Assert.True(result.Password.SequenceEqual(Encoding.UTF8.GetBytes("12345")));
             Assert.Equal("Unspecified/centos1.mshome.net:3340", result.Hosts.ToArray()[0].ToString());
             Assert.Equal("Unspecified/centos2.mshome.net:27017", result.Hosts.ToArray()[1].ToString());
             Assert.Equal("Unspecified/centos3.mshome.net:27017", result.Hosts.ToArray()[2].ToString());
@@ -59,8 +60,8 @@ namespace MongoDB.Client.Tests.UriParser
 
             Assert.NotNull(result.Login);
             Assert.NotNull(result.Password);
-            Assert.Equal("myDBReader", result.Login);
-            Assert.Equal("D1fficultP%40ssw0rd", result.Password);
+            Assert.True(result.Login.SequenceEqual(Encoding.UTF8.GetBytes("myDBReader")));
+            Assert.True(result.Password.SequenceEqual(Encoding.UTF8.GetBytes("D1fficultP%40ssw0rd")));
             Assert.Equal("Unspecified/mongodb0.example.com:27017", result.Hosts.ToArray()[0].ToString());
             Assert.Equal("Unspecified/mongodb1.example.com:27017", result.Hosts.ToArray()[1].ToString());
             Assert.Equal("Unspecified/mongodb2.example.com:27017", result.Hosts.ToArray()[2].ToString());
@@ -90,8 +91,8 @@ namespace MongoDB.Client.Tests.UriParser
 
             Assert.NotNull(result.Login);
             Assert.NotNull(result.Password);
-            Assert.Equal("sysop", result.Login);
-            Assert.Equal("moon", result.Password);
+            Assert.True(result.Login.SequenceEqual(Encoding.UTF8.GetBytes("sysop")));
+            Assert.True(result.Password.SequenceEqual(Encoding.UTF8.GetBytes("moon")));
             Assert.Equal("Unspecified/localhost:27017", result.Hosts.ToArray()[0].ToString());
             Assert.Equal("records", result.AdminDb);
             Assert.True(result.Options.Count == 0);

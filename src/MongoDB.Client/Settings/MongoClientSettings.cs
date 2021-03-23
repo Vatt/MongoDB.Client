@@ -54,13 +54,13 @@ namespace MongoDB.Client.Settings
         public string? ReplicaSet { get; init; }
         public ReadPreference ReadPreference { get; init; }
         public ClientType ClientType { get; init; }
-        public int ConnectionPoolMaxSize { get; init; } = 16;
+        public int ConnectionPoolMaxSize { get; init; }
 
         public static MongoClientSettings FromConnectionString(string uriString)
         {
             var result = MongoDBUriParser.ParseUri(uriString);
             result.Options.TryGetValue("replicaSet", out var replSet);
-            int connectionPoolMaxSize = 16;
+            int connectionPoolMaxSize = 8;
             if (result.Options.TryGetValue("maxPoolSize", out var maxPoolSize))
             {
                 connectionPoolMaxSize = int.Parse(maxPoolSize);

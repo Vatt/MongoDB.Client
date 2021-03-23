@@ -33,7 +33,7 @@ namespace MongoDB.Client.Experimental
             }
             var id = Interlocked.Increment(ref CONNECTION_ID);
             var connection = new MongoConnection(id, settings, _loggerFactory.CreateLogger<MongoConnection>(), reader, findReader, requestScheduler);
-            await connection.StartAsyncExperimental(context, token).ConfigureAwait(false);
+            var connectionInfo = await connection.StartAsyncExperimental(context, token).ConfigureAwait(false);
             return connection;
         }
     }

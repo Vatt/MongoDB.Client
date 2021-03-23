@@ -17,28 +17,51 @@ namespace MongoDB.Client.Connection
         internal ConnectionInfo ConnectionInfo;
 
 
-        internal ValueTask StartAsync(ConnectionContext connection, CancellationToken cancellationToken = default)
+        internal ValueTask<ConnectionInfo> StartAsync(ConnectionContext connection, CancellationToken cancellationToken = default)
         {
             return StartAsync(connection.CreateReader(), connection.CreateWriter(), cancellationToken);
         }
 
 
-        internal async ValueTask StartAsync(ProtocolReader reader, ProtocolWriter writer, CancellationToken cancellationToken)
+        internal async ValueTask<ConnectionInfo> StartAsync(ProtocolReader reader, ProtocolWriter writer, CancellationToken cancellationToken)
         {
             _protocolReader = reader;
             _protocolWriter = writer;
             _protocolListenerTask = StartProtocolListenerAsync();
             ConnectionInfo = await DoConnectAsync(cancellationToken).ConfigureAwait(false);
+
+
+
             _channelListenerTask = StartChannelListerAsync();
             _channelFindListenerTask = StartFindChannelListerAsync();
+            return ConnectionInfo;
             async Task<ConnectionInfo> DoConnectAsync(CancellationToken token)
             {
-                var _initialDocument = InitHelper.CreateInitialCommand(_settings);
-                var connectRequest = CreateQueryRequest(_initialDocument, GetNextRequestNumber());
-                var isMaster = await SendQueryAsync<BsonDocument>(connectRequest, token).ConfigureAwait(false);
+                var (initialDocument, saslStart) = InitHelper.CreateInitialCommand(_settings);
+                var connectRequest = CreateQueryRequest(initialDocument, GetNextRequestNumber());
+                var isMasterQueryResult = await SendQueryAsync<BsonDocument>(connectRequest, token).ConfigureAwait(false);
+                var isMaster = isMasterQueryResult[0];
                 var buildInfoRequest = CreateQueryRequest(new BsonDocument("buildInfo", 1), GetNextRequestNumber());
-                var buildInfo = await SendQueryAsync<BsonDocument>(buildInfoRequest, token).ConfigureAwait(false);
-                return new ConnectionInfo(isMaster[0], buildInfo[0]);
+                var buildInfoQueryResult = await SendQueryAsync<BsonDocument>(buildInfoRequest, token).ConfigureAwait(false);
+                var buildInfo = buildInfoQueryResult[0];
+
+                if (isMaster.TryGet("speculativeAuthenticate", out var authDataElement))
+                {
+                    var authData = authDataElement.AsBsonDocument!;
+                    var payloadBinaryData = (BsonBinaryData)authData["payload"].Value!;
+                    var payload = (byte[]) payloadBinaryData.Value;
+
+                    var conversationId = authData["conversationId"].AsInt;
+                    var (saslDoc, serverSignature) = InitHelper.CreateSaslStart(_settings, payload, saslStart!, conversationId);
+                    var result = await SendQueryAsync<BsonDocument>(CreateQueryRequest(saslDoc, GetNextRequestNumber()), token).ConfigureAwait(false);
+                    var isOk = (double)result[0]["ok"].Value!;
+                    if (isOk == 0)
+                    {
+                        ThrowHelper.MongoAuthentificationException(result[0]["errmsg"].ToString(), (int)result[0]["code"].Value!);
+                    }
+                }
+
+                return new ConnectionInfo(isMaster, buildInfo);
             }
         }
 

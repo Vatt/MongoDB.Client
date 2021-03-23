@@ -105,6 +105,7 @@ namespace MongoDB.Client.Bson.Document
 
         public BsonDocument? AsBsonDocument => (BsonDocument?)Value;
         public string? AsString => (string?)Value;
+        public int AsInt => (int)Value!;
 
         public override string ToString()
         {

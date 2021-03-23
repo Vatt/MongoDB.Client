@@ -201,6 +201,11 @@ namespace MongoDB.Client.Bson.Document
             _elements.Add(BsonElement.Create(this, name, value));
         }
 
+        public bool TryGet(string name, out BsonElement value)
+        {
+            value = _elements.FirstOrDefault(e => e.Name.Equals(name, StringComparison.Ordinal));
+            return value.IsEmpty == false;
+        }
 
         public BsonElement this[int idx] => _elements[idx];
         public BsonElement this[string name] => _elements.First(e => e.Name.Equals(name, StringComparison.Ordinal));
