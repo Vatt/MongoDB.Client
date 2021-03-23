@@ -133,7 +133,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             }
             foreach(var param in ConstructorParams)
             {
-                if (MembersContains(param.Name, out var namedType))
+                if (MembersContains(param, out var namedType))
                 {
                     Members.Add(new MemberContext(this, namedType));
                 }
@@ -141,12 +141,39 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             }
         }
 
-        public bool MembersContains(string name, out ISymbol symbol)
+        public bool MembersContains(IParameterSymbol parameter, out ISymbol symbol)
         {
             symbol = Declaration.GetMembers()
                 .Where(sym => sym.Kind is SymbolKind.Property or SymbolKind.Field)
-                .FirstOrDefault(sym => sym.Name.Equals(name));
-            return symbol != null;
+                .FirstOrDefault(sym => sym.Name.Equals(parameter.Name));
+            if (symbol is not null)
+            {
+                return true;
+            }
+
+            if (Declaration.BaseType is not null)
+            {
+                return InheritMemberContains(parameter, Declaration.BaseType, out symbol);
+            }
+
+            return false;
+        }
+        private bool InheritMemberContains(IParameterSymbol parameter, INamedTypeSymbol symbol, out ISymbol result)
+        {
+            result = symbol.GetMembers()
+                .Where(sym => sym.Kind is SymbolKind.Property or SymbolKind.Field)
+                .FirstOrDefault(sym => sym.Name.Equals(parameter.Name));
+            if (result is not null)
+            {
+                return true;
+            }
+
+            if (symbol.BaseType is not null)
+            {
+                return InheritMemberContains(parameter, symbol.BaseType, out result);
+            }
+
+            return false;
         }
         public bool ConstructorContains(string name)
         {
