@@ -79,6 +79,24 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     ConstructorParams = constructor.Parameters;
                 }
             }
+            GeneratorMode = SerializerGenerator.GetGeneratorMode(symbol);
+
+            if (GeneratorMode.ConstructorOnlyParameters)
+            {
+                CreateContructorOnlyMembers();
+            }
+            else
+            {
+                CreateDefaultMembers();
+            }
+            
+            if (Members.Count <= 2)
+            {
+                GeneratorMode.IfConditions = true;
+            }
+        }
+        public void CreateDefaultMembers()
+        {
             foreach (var member in Declaration.GetMembers())
             {
                 if ((member.IsStatic && Declaration.TypeKind != TypeKind.Enum) || member.IsAbstract ||
@@ -105,13 +123,19 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     continue;
                 }
             }
-            GeneratorMode = SerializerGenerator.GetGeneratorMode(symbol);
-            if (Members.Count <= 2)
+        }
+        public void CreateContructorOnlyMembers()
+        {
+            if (ConstructorParams.HasValue == false)
             {
-                GeneratorMode.IfConditions = true;
+                //TODO: report diagnostic error
+                return;
+            }
+            foreach(var param in ConstructorParams)
+            {
+                Members.Add(new MemberContext(this, new ParameterNameSymbol(param)));
             }
         }
-
         public bool ConstructorContains(string name)
         {
             if (ConstructorParams.HasValue)

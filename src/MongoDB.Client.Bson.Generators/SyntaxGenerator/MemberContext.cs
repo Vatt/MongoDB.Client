@@ -29,6 +29,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                 case IPropertySymbol prop:
                     TypeSym = prop.Type;
                     break;
+                case IParameterSymbol paramSym:
+                    TypeSym = paramSym.Type;
+                    break;
                 default: break;
             }
 
