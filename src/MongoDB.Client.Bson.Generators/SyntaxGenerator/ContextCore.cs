@@ -133,8 +133,20 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             }
             foreach(var param in ConstructorParams)
             {
-                Members.Add(new MemberContext(this, new ParameterNameSymbol(param)));
+                if (MembersContains(param.Name, out var namedType))
+                {
+                    Members.Add(new MemberContext(this, namedType));
+                }
+                
             }
+        }
+
+        public bool MembersContains(string name, out ISymbol symbol)
+        {
+            symbol = Declaration.GetMembers()
+                .Where(sym => sym.Kind is SymbolKind.Property or SymbolKind.Field)
+                .FirstOrDefault(sym => sym.Name.Equals(name));
+            return symbol != null;
         }
         public bool ConstructorContains(string name)
         {
