@@ -1,8 +1,8 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization.Attributes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Tests.Models
 {
@@ -49,10 +49,6 @@ namespace MongoDB.Client.Tests.Models
         //TODO: Fix IList creations
         public IList<long> LongListProp { get; set; }
         public IList<int> IntListProp { get; set; }
-        public IList<InnerStruct> InnerStructListProp { get; set; }
-        public IList<InnerRecord> InnerRecordListProp { get; set; }
-        public IList<IList<InnerRecord>> DoubleListInnerRecordProp { get; set; }
-        public List<IList<InnerStruct>> DoubleListInnerStructProp { get; set; }
         public List<string> StringListProp { get; set; }
 
         public ICollection<string> StringCollection { get; set; }
@@ -75,7 +71,7 @@ namespace MongoDB.Client.Tests.Models
                 IntProp = 42,
                 DoubleProp = 42.42,
                 StringField = "42",
-                DateProp = DateTimeOffset.UtcNow,
+                DateProp = new DateTimeOffset(2021, 01, 01, 5, 30, 0, TimeSpan.Zero),
                 BsonDocumentProp = new BsonDocument("BsonDoc", BsonObjectId.NewObjectId()),
                 BsonObjectIdField = BsonObjectId.NewObjectId(),
                 LongProp = 42,
@@ -83,14 +79,9 @@ namespace MongoDB.Client.Tests.Models
                 StringListProp = new List<string> { "42", "42", "42" },
                 LongListProp = new List<long> { 42, 42, 42 },
                 IntListProp = new List<int> { 42, 42, 42 },
-                InnerStructListProp = new List<InnerStruct> { new InnerStruct { A = 42, B = 42, C = 42 } },
-                InnerRecordListProp = new List<InnerRecord> { new InnerRecord(42, 42, 42) },
-                DoubleListInnerStructProp = new List<IList<InnerStruct>> {  new List<InnerStruct> { new InnerStruct { A = 42, B = 42, C = 42 } } } ,
-                DoubleListInnerRecordProp = new List<IList<InnerRecord>> {  new List<InnerRecord> { new InnerRecord(42, 42, 42) } } ,
                 StringCollection = new List<string> { "42", "42", "42" },
                 StringReadOnlyCollection = new List<string> { "42", "42", "42" },
                 StringReadOnlyList = new List<string> { "42", "42", "42" },
-
             };
         }
 
@@ -106,18 +97,17 @@ namespace MongoDB.Client.Tests.Models
                 return true;
             }
 
-            return StringField == other.StringField && BsonObjectIdField.Equals(other.BsonObjectIdField) && 
+            return StringField == other.StringField && BsonObjectIdField.Equals(other.BsonObjectIdField) &&
                    InnerRecordField.Equals(other.InnerRecordField) && IntProp == other.IntProp &&
-                   DoubleProp.Equals(other.DoubleProp) && DateProp.Equals(other.DateProp) && 
-                   BsonDocumentProp.Equals(other.BsonDocumentProp) && LongProp == other.LongProp && 
-                   GuidProp.Equals(other.GuidProp) && InnerStructProp.Equals(other.InnerStructProp) && 
-                   LongListProp.SequenceEqual(other.LongListProp) && 
-                   IntListProp.SequenceEqual(other.IntListProp) && 
-                   InnerStructListProp.SequenceEqual(other.InnerStructListProp) && 
-                   InnerRecordListProp.SequenceEqual(other.InnerRecordListProp) && 
-                   DoubleListInnerRecordProp.SequenceEqual(other.DoubleListInnerRecordProp) && 
-                   DoubleListInnerStructProp.SequenceEqual(other.DoubleListInnerStructProp) && 
-                   StringListProp.SequenceEqual(other.StringListProp);
+                   DoubleProp.Equals(other.DoubleProp) && DateProp.Equals(other.DateProp) &&
+                   BsonDocumentProp.Equals(other.BsonDocumentProp) && LongProp == other.LongProp &&
+                   GuidProp.Equals(other.GuidProp) && InnerStructProp.Equals(other.InnerStructProp) &&
+                   LongListProp.SequenceEqual(other.LongListProp) &&
+                   IntListProp.SequenceEqual(other.IntListProp) &&
+                   StringListProp.SequenceEqual(other.StringListProp) &&
+                   StringCollection.SequenceEqual(other.StringCollection) &&
+                   StringReadOnlyCollection.SequenceEqual(other.StringReadOnlyCollection) &&
+                   StringReadOnlyList.SequenceEqual(other.StringReadOnlyList);
         }
 
         public override bool Equals(object? obj)
@@ -137,30 +127,7 @@ namespace MongoDB.Client.Tests.Models
                 return false;
             }
 
-            return Equals((CommonModel) obj);
-        }
-
-        public override int GetHashCode()
-        {
-            var hashCode = new HashCode();
-            hashCode.Add(StringField);
-            hashCode.Add(BsonObjectIdField);
-            hashCode.Add(InnerRecordField);
-            hashCode.Add(IntProp);
-            hashCode.Add(DoubleProp);
-            hashCode.Add(DateProp);
-            hashCode.Add(BsonDocumentProp);
-            hashCode.Add(LongProp);
-            hashCode.Add(GuidProp);
-            hashCode.Add(InnerStructProp);
-            hashCode.Add(LongListProp);
-            hashCode.Add(IntListProp);
-            hashCode.Add(InnerStructListProp);
-            hashCode.Add(InnerRecordListProp);
-            hashCode.Add(DoubleListInnerRecordProp);
-            hashCode.Add(DoubleListInnerStructProp);
-            hashCode.Add(StringListProp);
-            return hashCode.ToHashCode();
+            return Equals((CommonModel)obj);
         }
     }
 }

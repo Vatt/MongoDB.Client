@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
+using Microsoft.Extensions.Logging;
 using MongoDB.Client.Protocol.Readers;
-using System;
 
 namespace MongoDB.Client.Connection
 {

@@ -126,7 +126,8 @@ namespace MongoDB.Client.Messages
                     _items.Item1 = value;
                 }
 
-                if (_other.Count > 1 && index == 1) {
+                if (_other.Count > 1 && index == 1)
+                {
                     _items.Item2 = value;
                 }
 

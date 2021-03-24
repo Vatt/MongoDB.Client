@@ -40,12 +40,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var bsonTypeToken = Identifier("bsonType");
             var bsonNameToken = Identifier("bsonName");
             StatementSyntax[] operations = default;
-            switch (ctx.GeneratorMode)
+            switch (ctx.GeneratorMode.IfConditions)
             {
-                case 1:
+                case false:
                     operations = ContextTreeTryParseOperations(ctx, bsonTypeToken, bsonNameToken);
                     break;
-                case 2:
+                case true:
                     operations = Operations(ctx, bsonTypeToken, bsonNameToken);
                     break;
             }

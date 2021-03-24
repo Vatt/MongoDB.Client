@@ -1,5 +1,5 @@
-﻿using MongoDB.Client.Bson.Serialization.Attributes;
-using System;
+﻿using System;
+using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {

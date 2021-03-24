@@ -1,8 +1,8 @@
-﻿using MongoDB.Client.Bson.Document;
+﻿using System;
+using System.Reflection;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Writer;
-using System;
-using System.Reflection;
 
 namespace MongoDB.Client.Bson.Serialization
 {

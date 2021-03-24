@@ -1,13 +1,13 @@
-﻿using MongoDB.Client.Bson.Serialization;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Writer;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
 using MongoDB.Client.Protocol.Writers;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MongoDB.Client.Scheduler.Holders
 {

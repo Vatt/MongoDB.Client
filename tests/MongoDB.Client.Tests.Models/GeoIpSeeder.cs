@@ -1,5 +1,5 @@
-﻿using MongoDB.Client.Bson.Document;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using MongoDB.Client.Bson.Document;
 
 namespace MongoDB.Client.Tests.Models
 {

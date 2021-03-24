@@ -1,8 +1,8 @@
-﻿using MongoDB.Client.Messages;
-using MongoDB.Client.Scheduler;
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using MongoDB.Client.Messages;
+using MongoDB.Client.Scheduler;
 
 namespace MongoDB.Client
 {
@@ -36,7 +36,7 @@ namespace MongoDB.Client
             var number = Interlocked.Increment(ref _transactionCounter);
             return new TransactionHandler(number, TransactionState.Starting, new SessionId(), scheduler);
         }
-        
+
 
         public async ValueTask CommitAsync(CancellationToken cancellationToken = default)
         {

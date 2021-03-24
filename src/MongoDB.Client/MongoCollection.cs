@@ -1,11 +1,11 @@
-﻿using MongoDB.Client.Bson.Document;
+﻿using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Scheduler;
 using MongoDB.Client.Utils;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MongoDB.Client
 {

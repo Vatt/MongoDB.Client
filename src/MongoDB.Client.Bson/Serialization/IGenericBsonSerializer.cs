@@ -1,6 +1,6 @@
-﻿using MongoDB.Client.Bson.Reader;
+﻿using System.Diagnostics.CodeAnalysis;
+using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Writer;
-using System.Diagnostics.CodeAnalysis;
 
 namespace MongoDB.Client.Bson.Serialization
 {

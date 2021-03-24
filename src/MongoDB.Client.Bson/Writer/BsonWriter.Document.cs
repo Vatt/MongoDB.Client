@@ -1,6 +1,6 @@
-﻿using MongoDB.Client.Bson.Document;
+﻿using System;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Utils;
-using System;
 
 namespace MongoDB.Client.Bson.Writer
 {
@@ -89,7 +89,7 @@ namespace MongoDB.Client.Bson.Writer
                     WriteGuidAsBytes((Guid)value.Value);
                     break;
                 case BsonBinaryDataType.Generic:
-                    var span = ((byte[]) value.Value).AsSpan();
+                    var span = ((byte[])value.Value).AsSpan();
                     WriteInt32(span.Length);
                     WriteByte((byte)value.Type);
                     WriteBytes(span);

@@ -1,10 +1,10 @@
-﻿using MongoDB.Client.Exceptions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
+using MongoDB.Client.Exceptions;
 
 namespace MongoDB.Client.Protocol.Core
 {
@@ -67,7 +67,7 @@ namespace MongoDB.Client.Protocol.Core
                 }
 
                 writer.WriteMessage(protocolMessage, _writer);
-           
+
                 var result = await _writer.FlushAsync(cancellationToken).ConfigureAwait(false);
 
                 if (result.IsCanceled)

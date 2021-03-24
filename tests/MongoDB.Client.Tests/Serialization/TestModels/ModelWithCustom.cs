@@ -1,10 +1,9 @@
-﻿using MongoDB.Client.Bson.Reader;
-using MongoDB.Client.Bson.Serialization.Attributes;
-using MongoDB.Client.Bson.Writer;
-using System;
-using System.Buffers.Binary;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using MongoDB.Client.Bson.Reader;
+using MongoDB.Client.Bson.Serialization.Attributes;
+using MongoDB.Client.Bson.Writer;
 
 namespace MongoDB.Client.Tests.Serialization.TestModels
 {

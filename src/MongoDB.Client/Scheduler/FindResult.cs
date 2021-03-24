@@ -10,7 +10,7 @@ namespace MongoDB.Client.Scheduler
             Scheduler = scheduler;
         }
 
-        public CursorResult<T> CursorResult { get;}
+        public CursorResult<T> CursorResult { get; }
         public MongoScheduler Scheduler { get; }
     }
 }

@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Connections;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using MongoDB.Client.Network.Transport.Sockets;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Connections;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using MongoDB.Client.Network.Transport.Sockets;
 namespace MongoDB.Client.Network
 {
     public class NetworkConnectionFactory

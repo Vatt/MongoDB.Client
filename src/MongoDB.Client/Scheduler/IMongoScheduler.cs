@@ -1,9 +1,9 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Messages;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Messages;
 
 namespace MongoDB.Client.Scheduler
 {

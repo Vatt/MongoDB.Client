@@ -1,7 +1,7 @@
-﻿using MongoDB.Client.Messages;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MongoDB.Client.Messages;
 
 namespace MongoDB.Client
 {

@@ -1,11 +1,11 @@
-﻿using BenchmarkDotNet.Attributes;
+﻿using System.IO;
+using System.Linq;
+using BenchmarkDotNet.Attributes;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Client.Benchmarks.Serialization;
 using MongoDB.Client.Tests.Models;
-using System.IO;
-using System.Linq;
 using BsonReader = MongoDB.Client.Bson.Reader.BsonReader;
 using BsonWriter = MongoDB.Client.Bson.Writer.BsonWriter;
 

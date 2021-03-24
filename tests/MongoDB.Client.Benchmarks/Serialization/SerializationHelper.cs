@@ -1,11 +1,11 @@
-﻿using MongoDB.Client.Bson.Serialization;
+﻿using System.IO.Pipelines;
+using System.Linq;
+using System.Threading.Tasks;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
 using MongoDB.Client.Protocol.Writers;
-using System.IO.Pipelines;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace MongoDB.Client.Benchmarks.Serialization
 {

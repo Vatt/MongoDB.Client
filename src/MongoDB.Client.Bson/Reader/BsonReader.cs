@@ -1,11 +1,11 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Utils;
-using System;
+﻿using System;
 using System.Buffers;
 using System.Buffers.Text;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
+using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Utils;
 
 namespace MongoDB.Client.Bson.Reader
 {

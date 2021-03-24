@@ -1,12 +1,12 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Experimental;
 using MongoDB.Client.Scheduler;
 using MongoDB.Client.Settings;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MongoDB.Client
 {

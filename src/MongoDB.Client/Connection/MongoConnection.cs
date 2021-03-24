@@ -1,13 +1,13 @@
-﻿using Microsoft.Extensions.Logging;
-using MongoDB.Client.Messages;
-using MongoDB.Client.Protocol.Core;
-using MongoDB.Client.Scheduler;
-using MongoDB.Client.Settings;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using MongoDB.Client.Messages;
+using MongoDB.Client.Protocol.Core;
+using MongoDB.Client.Scheduler;
+using MongoDB.Client.Settings;
 
 namespace MongoDB.Client.Connection
 {

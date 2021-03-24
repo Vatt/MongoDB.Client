@@ -1,7 +1,7 @@
-﻿using MongoDB.Client.Bson.Document;
-using System;
+﻿using System;
 using System.Net;
 using System.Threading.Tasks;
+using MongoDB.Client.Bson.Document;
 
 namespace MongoDB.Client.Tests.Client
 {

@@ -4,12 +4,12 @@ using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization
 {
-    public class ReadOnlyStruct : BaseSerialization
+    public class ConstrcutorOnlyTest : BaseSerialization
     {
         [Fact]
-        public async Task ReadOnlyStructTest()
+        public async Task ConstructorOnly()
         {
-            var model = new ReadonlyStruct(42, 42, "42");
+            var model = new ConstrcutorOnlyModel(SomeEnum.EnumValueOne, 42, null, 42, 42);
             var result = await RoundTripAsync(model);
             Assert.Equal(model, result);
         }

@@ -58,7 +58,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return false;
         }
 
-        public static int GetGeneratorMode(INamedTypeSymbol symbol)
+        public static GeneratorMode GetGeneratorMode(INamedTypeSymbol symbol)
         {
             var bsonAttr = BsonSerializableAttr;
             foreach (var attr in symbol.GetAttributes())
@@ -67,13 +67,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     if (attr.ConstructorArguments.IsEmpty)
                     {
-                        return 1;
+                        return new GeneratorMode();
                     }
-                    return (int)attr.ConstructorArguments[0].Value;
+                    return new GeneratorMode((byte)attr.ConstructorArguments[0].Value);
                 }
             }
-
-            return -1;
+            return new GeneratorMode();
         }
         public static int GetBinaryDataRepresentation(ISymbol symbol)
         {
