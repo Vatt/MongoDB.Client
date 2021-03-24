@@ -1,10 +1,10 @@
-﻿using MongoDB.Client.Bson.Document;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Exceptions;
 using MongoDB.Client.Bson.Utils;
-using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 
 namespace MongoDB.Client.Bson.Reader
 {
@@ -216,7 +216,7 @@ namespace MongoDB.Client.Bson.Reader
         }
 
 
-  
+
         public bool TryGetGuidWithBsonType(int bsonType, out Guid value)
         {
             if (bsonType == 5)
@@ -275,7 +275,7 @@ namespace MongoDB.Client.Bson.Reader
             value = default;
             return false;
         }
-    
+
 
         public bool TryGetBinaryData(byte expectedSubtype, out Memory<byte> value)
         {

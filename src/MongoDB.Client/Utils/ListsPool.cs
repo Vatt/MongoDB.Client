@@ -1,5 +1,5 @@
-﻿using Microsoft.Extensions.ObjectPool;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Microsoft.Extensions.ObjectPool;
 
 namespace MongoDB.Client.Utils
 {

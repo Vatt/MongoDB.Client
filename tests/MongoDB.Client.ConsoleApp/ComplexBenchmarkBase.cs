@@ -1,10 +1,10 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Tests.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Tests.Models;
 
 namespace MongoDB.Client.ConsoleApp
 {

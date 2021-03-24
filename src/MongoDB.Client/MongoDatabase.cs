@@ -1,6 +1,6 @@
-﻿using MongoDB.Client.Scheduler;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
+using MongoDB.Client.Scheduler;
 
 namespace MongoDB.Client
 {

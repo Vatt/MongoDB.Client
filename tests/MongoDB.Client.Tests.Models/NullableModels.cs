@@ -22,9 +22,9 @@ namespace MongoDB.Client.Tests.Models
         public List<List<StructNullable?>?>? NullList { get; set; }
         public IReadOnlyList<StructNullable?> List1 { get; set; }
         public ICollection<StructNullable?>? List2 { get; set; }
-        public IReadOnlyCollection<StructNullable?>? List3{ get; set; }
-        public IList<StructNullable?>? List4{ get; set; }
-        
+        public IReadOnlyCollection<StructNullable?>? List3 { get; set; }
+        public IList<StructNullable?>? List4 { get; set; }
+
 
         public bool Equals(ListElementNullable? other)
         {
@@ -87,10 +87,10 @@ namespace MongoDB.Client.Tests.Models
                 NullableStrings = new() { "42", null, "42" },
                 NullableBsonObjectId = new() { BsonObjectId.NewObjectId(), null, BsonObjectId.NewObjectId() },
                 NullList = null,
-                List1 = new List<StructNullable?> { StructNullable.Create(), null, StructNullable.Create() } ,
-                List2 = new List<StructNullable?> { StructNullable.Create(), null, StructNullable.Create() } ,
-                List3 = new List<StructNullable?> { StructNullable.Create(), null, StructNullable.Create() } ,
-                List4 = new List<StructNullable?> { StructNullable.Create(), null, StructNullable.Create() } ,
+                List1 = new List<StructNullable?> { StructNullable.Create(), null, StructNullable.Create() },
+                List2 = new List<StructNullable?> { StructNullable.Create(), null, StructNullable.Create() },
+                List3 = new List<StructNullable?> { StructNullable.Create(), null, StructNullable.Create() },
+                List4 = new List<StructNullable?> { StructNullable.Create(), null, StructNullable.Create() },
             };
         }
     }
@@ -1098,5 +1098,5 @@ namespace MongoDB.Client.Tests.Models
 
 
 
-    
+
 }

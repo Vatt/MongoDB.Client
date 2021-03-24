@@ -1,16 +1,16 @@
-﻿using MongoDB.Client.Bson.Serialization.Attributes;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text;
 using MongoDB.Client.Bson.Document;
-using System.Diagnostics.CodeAnalysis;
+using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Messages
 {
     public static class DnsEndPointSerializer
     {
-        private static readonly byte ColonChar = (byte) ':';
+        private static readonly byte ColonChar = (byte)':';
 
         public static bool TryParseBson(ref Bson.Reader.BsonReader reader, [MaybeNullWhen(false)] out EndPoint message)
         {
@@ -45,7 +45,7 @@ namespace MongoDB.Client.Messages
         [BsonElement("clusterTime")]
         public BsonTimestamp ClusterTime { get; }
 
-        [BsonElement("signature")] 
+        [BsonElement("signature")]
         public MongoSignature MongoSignature { get; }
 
         public MongoClusterTime(BsonTimestamp ClusterTime, MongoSignature MongoSignature)
@@ -58,10 +58,10 @@ namespace MongoDB.Client.Messages
     [BsonSerializable]
     public partial class MongoSignature
     {
-        [BsonElement("hash")] 
+        [BsonElement("hash")]
         public byte[] Hash { get; }
 
-        [BsonElement("keyId")] 
+        [BsonElement("keyId")]
         public long KeyId { get; }
 
         public MongoSignature(byte[] Hash, long KeyId)

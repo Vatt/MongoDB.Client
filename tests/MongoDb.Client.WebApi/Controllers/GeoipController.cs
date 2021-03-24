@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using MongoDb.Client.WebApi.Mongo;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using MongoDb.Client.WebApi.Mongo;
 
 namespace MongoDb.Client.WebApi.Controllers
 {

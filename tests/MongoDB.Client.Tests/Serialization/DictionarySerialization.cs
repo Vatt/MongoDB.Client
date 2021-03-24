@@ -1,11 +1,10 @@
-﻿using MongoDB.Client.Bson.Reader;
-using MongoDB.Client.Bson.Serialization.Attributes;
-using MongoDB.Client.Bson.Writer;
-using System;
-using System.Buffers.Binary;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using MongoDB.Client.Bson.Reader;
+using MongoDB.Client.Bson.Serialization.Attributes;
+using MongoDB.Client.Bson.Writer;
 using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization
@@ -42,7 +41,7 @@ namespace MongoDB.Client.Tests.Serialization
         public override bool Equals(object obj)
         {
             return obj is ModelWithDictionary dictionary && Equals(dictionary);
-    
+
         }
 
         public bool Equals(ModelWithDictionary other)

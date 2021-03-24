@@ -1,9 +1,9 @@
-﻿using MongoDB.Client.Bson.Writer;
-using MongoDB.Client.Protocol.Core;
-using MongoDB.Client.Protocol.Messages;
-using System;
+﻿using System;
 using System.Buffers;
 using System.Buffers.Binary;
+using MongoDB.Client.Bson.Writer;
+using MongoDB.Client.Protocol.Core;
+using MongoDB.Client.Protocol.Messages;
 
 namespace MongoDB.Client.Protocol.Writers
 {

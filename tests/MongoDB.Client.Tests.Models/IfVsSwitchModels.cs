@@ -1,7 +1,4 @@
-﻿using System;
-using System.Buffers.Binary;
-using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization.Attributes;
+﻿using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Tests.Models
 {
@@ -53,8 +50,8 @@ namespace MongoDB.Client.Tests.Models
         }
     }
     [BsonSerializable]
-    public partial class SwitchShortNamesModel 
-    { 
+    public partial class SwitchShortNamesModel
+    {
         public int A;
         public int BB;
         public int CCC;

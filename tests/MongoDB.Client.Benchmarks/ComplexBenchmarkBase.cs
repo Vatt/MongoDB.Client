@@ -1,16 +1,16 @@
-﻿using BenchmarkDotNet.Attributes;
-using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Tests.Models;
-using MongoDB.Driver;
-using System;
+﻿using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Net;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using OldClient = MongoDB.Driver.MongoClient;
+using BenchmarkDotNet.Attributes;
+using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Tests.Models;
+using MongoDB.Driver;
 using NewClient = MongoDB.Client.MongoClient;
 using NewSettings = MongoDB.Client.Settings.MongoClientSettings;
+using OldClient = MongoDB.Driver.MongoClient;
 
 namespace MongoDB.Client.Benchmarks
 {

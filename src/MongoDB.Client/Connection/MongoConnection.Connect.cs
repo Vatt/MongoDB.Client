@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Connections;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Connections;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
@@ -7,8 +9,6 @@ using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Messages;
 using MongoDB.Client.Protocol.Readers;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MongoDB.Client.Connection
 {

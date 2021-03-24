@@ -1,5 +1,5 @@
-﻿using MongoDB.Client.Utils;
-using System.Linq;
+﻿using System.Linq;
+using MongoDB.Client.Utils;
 using Xunit;
 
 namespace MongoDB.Client.Tests.UriParser

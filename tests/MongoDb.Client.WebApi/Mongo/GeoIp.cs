@@ -1,6 +1,6 @@
-﻿using MongoDB.Bson;
+﻿using System.Text.Json.Serialization;
+using MongoDB.Bson;
 using MongoDB.Client.Bson.Serialization.Attributes;
-using System.Text.Json.Serialization;
 
 namespace MongoDb.Client.WebApi
 {

@@ -11,10 +11,10 @@ namespace MongoDB.Client.Tests.Models
     {
         public byte[] ByteProp { get; }
         public Memory<byte> MemoryByteProp { get; }
-        
+
         [BsonBinaryData(BinaryDataRepresentation.MD5)]
         public byte[] MD5ByteProp { get; }
-        
+
         [BsonBinaryData(BinaryDataRepresentation.MD5)]
         public Memory<byte>? MD5MemoryProp { get; }
         public ByteArrayModel(byte[] ByteProp, Memory<byte> MemoryByteProp, byte[] MD5ByteProp, Memory<byte>? MD5MemoryProp)
@@ -28,10 +28,10 @@ namespace MongoDB.Client.Tests.Models
         public static ByteArrayModel Create()
         {
             return new ByteArrayModel(
-                new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
-                new byte[] {0, 9, 8, 7, 6, 5, 4, 3, 2, 1},
-                MD5.HashData(new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 0}),
-                MD5.HashData(new byte[] {0, 9, 8, 7, 6, 5, 4, 3, 2, 1})
+                new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 },
+                new byte[] { 0, 9, 8, 7, 6, 5, 4, 3, 2, 1 },
+                MD5.HashData(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 }),
+                MD5.HashData(new byte[] { 0, 9, 8, 7, 6, 5, 4, 3, 2, 1 })
                 );
         }
 
@@ -47,7 +47,7 @@ namespace MongoDB.Client.Tests.Models
                 return true;
             }
 
-            return ByteProp.SequenceEqual(other.ByteProp) && MemoryByteProp.Span.SequenceEqual(other.MemoryByteProp.Span) && 
+            return ByteProp.SequenceEqual(other.ByteProp) && MemoryByteProp.Span.SequenceEqual(other.MemoryByteProp.Span) &&
                    MD5ByteProp.SequenceEqual(other.MD5ByteProp) && MD5MemoryProp!.Value.Span.SequenceEqual(other.MD5MemoryProp!.Value.Span);
         }
 
@@ -68,7 +68,7 @@ namespace MongoDB.Client.Tests.Models
                 return false;
             }
 
-            return Equals((ByteArrayModel) obj);
+            return Equals((ByteArrayModel)obj);
         }
 
         public override int GetHashCode()

@@ -1,10 +1,10 @@
-﻿using MongoDB.Client.Bson.Serialization;
+﻿using System;
+using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Utils;
-using System;
-using System.Buffers;
-using System.Diagnostics.CodeAnalysis;
 
 namespace MongoDB.Client.Protocol.Readers
 {

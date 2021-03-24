@@ -1,9 +1,9 @@
-﻿using MongoDB.Client.Bson.Utils;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using MongoDB.Client.Bson.Utils;
 
 namespace MongoDB.Client.Bson.Document
 {

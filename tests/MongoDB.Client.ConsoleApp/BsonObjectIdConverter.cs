@@ -1,9 +1,9 @@
-﻿using MongoDB.Client.Bson.Document;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using MongoDB.Client.Bson.Document;
 
 namespace MongoDB.Client.ConsoleApp
 {

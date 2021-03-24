@@ -1,9 +1,9 @@
-using MongoDB.Client.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Net;
+using MongoDB.Client.Utils;
 
 namespace MongoDB.Client.Settings
 {

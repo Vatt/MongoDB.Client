@@ -17,7 +17,7 @@ namespace MongoDB.Client.Benchmarks
         private ArrayBufferWriter _switchBuffer;
         private ArrayBufferWriter _switchGroupBuffer;
         private ArrayBufferWriter _switchNonGroupBuffer;
-        
+
         [GlobalSetup]
         public void Setup()
         {

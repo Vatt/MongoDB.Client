@@ -1,8 +1,6 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization.Attributes;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Tests.Models
 {
@@ -65,7 +63,7 @@ namespace MongoDB.Client.Tests.Models
                 return false;
             }
 
-            return Equals((ConstrcutorOnlyModel) obj);
+            return Equals((ConstrcutorOnlyModel)obj);
         }
 
         public override int GetHashCode()

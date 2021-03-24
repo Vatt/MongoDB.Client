@@ -1,8 +1,8 @@
-﻿using BenchmarkDotNet.Attributes;
-using MongoDB.Client.Tests.Models;
-using System;
+﻿using System;
 using System.Net;
 using System.Threading.Tasks;
+using BenchmarkDotNet.Attributes;
+using MongoDB.Client.Tests.Models;
 
 namespace MongoDB.Client.Benchmarks
 {

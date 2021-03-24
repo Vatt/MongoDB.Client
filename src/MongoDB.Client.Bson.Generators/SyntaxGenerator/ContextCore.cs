@@ -20,7 +20,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         public GeneratorMode(byte byteMode)
         {
             PrivateMode mode = (PrivateMode)byteMode;
-            
+
             //IfConditions = (mode | PrivateMode.IfConditions) == PrivateMode.IfConditions;
             //ConstructorOnlyParameters = (mode | PrivateMode.ConstuctorOnlyParameters) == PrivateMode.ConstuctorOnlyParameters;   
             IfConditions = mode.HasFlag(PrivateMode.IfConditions);
@@ -91,7 +91,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             {
                 CreateDefaultMembers();
             }
-            
+
             if (Members.Count <= 2)
             {
                 GeneratorMode.IfConditions = true;
@@ -125,13 +125,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                 //TODO: report diagnostic error
                 return;
             }
-            foreach(var param in ConstructorParams)
+            foreach (var param in ConstructorParams)
             {
                 if (MembersContains(param, out var namedType))
                 {
                     Members.Add(new MemberContext(this, namedType));
                 }
-                
+
             }
         }
 
@@ -140,8 +140,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             symbol = Declaration.GetMembers()
                 .Where(sym => IsBadMemberSym(sym) == false)
                 .FirstOrDefault(sym => CheckGetAccessibility(sym) &&
-                                       ExtractTypeFromSymbol(sym, out var type) && 
-                                       sym.Name.Equals(parameter.Name) && 
+                                       ExtractTypeFromSymbol(sym, out var type) &&
+                                       sym.Name.Equals(parameter.Name) &&
                                        type.Equals(parameter.Type, SymbolEqualityComparer.Default));
             if (symbol is not null)
             {
@@ -161,8 +161,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             result = symbol.GetMembers()
                 .Where(sym => IsBadMemberSym(sym) == false)
                 .FirstOrDefault(sym => CheckGetAccessibility(sym) &&
-                                       ExtractTypeFromSymbol(sym, out var type) && 
-                                       sym.Name.Equals(parameter.Name) && 
+                                       ExtractTypeFromSymbol(sym, out var type) &&
+                                       sym.Name.Equals(parameter.Name) &&
                                        type.Equals(parameter.Type, SymbolEqualityComparer.Default));
             if (result is not null)
             {
@@ -220,7 +220,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             {
                 return true;
             }
-            if (member is IFieldSymbol {IsReadOnly: true, IsConst: false})
+            if (member is IFieldSymbol { IsReadOnly: true, IsConst: false })
             {
                 return true;
             }
@@ -229,8 +229,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         }
         private static bool IsBadMemberSym(ISymbol member)
         {
-            if ( member.IsAbstract ||
-                 SerializerGenerator.IsIgnore(member) || 
+            if (member.IsAbstract ||
+                 SerializerGenerator.IsIgnore(member) ||
                  (member.Kind != SymbolKind.Property && member.Kind != SymbolKind.Field) ||
                  member.DeclaredAccessibility != Accessibility.Public)
             {

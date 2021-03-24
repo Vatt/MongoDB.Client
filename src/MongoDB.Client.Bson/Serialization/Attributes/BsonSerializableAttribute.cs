@@ -6,7 +6,7 @@ namespace MongoDB.Client.Bson.Serialization.Attributes
     public enum GeneratorMode : byte
     {
         IfConditions = 1,
-        ConstuctorOnlyParameters = 2,  
+        ConstuctorOnlyParameters = 2,
     }
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
     public sealed class BsonSerializableAttribute : Attribute
@@ -17,7 +17,7 @@ namespace MongoDB.Client.Bson.Serialization.Attributes
         }
         public BsonSerializableAttribute(GeneratorMode mode)
         {
-            
+
         }
     }
 }

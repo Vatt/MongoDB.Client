@@ -1,8 +1,8 @@
-﻿using BenchmarkDotNet.Attributes;
-using MongoDB.Driver;
-using System;
+﻿using System;
 using System.Net;
 using System.Threading.Tasks;
+using BenchmarkDotNet.Attributes;
+using MongoDB.Driver;
 using BsonDocument = MongoDB.Client.Bson.Document.BsonDocument;
 using SimpleModel = MongoDB.Client.Tests.Models.SimpleModel;
 

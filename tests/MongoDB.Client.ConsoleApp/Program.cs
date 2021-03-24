@@ -1,12 +1,12 @@
-using Microsoft.Extensions.Logging;
-using MongoDB.Client.Exceptions;
-using MongoDB.Client.Tests.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using MongoDB.Client.Exceptions;
+using MongoDB.Client.Tests.Models;
 
 namespace MongoDB.Client.ConsoleApp
 {
@@ -32,7 +32,7 @@ namespace MongoDB.Client.ConsoleApp
                     .AddConsole();
             });
             var client = await MongoClient.CreateClient("mongodb://centos.mshome.net:27018,centos.mshome.net:27019,centos.mshome.net:27020/?replicaSet=rs0&maxPoolSize=9&appName=MongoDB.Client.ConsoleApp&readPreference=secondaryPreferred", loggerFactory);
-           // var client = await MongoClient.CreateClient("mongodb://centos1.mshome.net,centos2.mshome.net,centos3.mshome.net/?replicaSet=rs0&maxPoolSize=9&appName=MongoDB.Client.ConsoleApp&readPreference=secondaryPreferred", loggerFactory);
+            // var client = await MongoClient.CreateClient("mongodb://centos1.mshome.net,centos2.mshome.net,centos3.mshome.net/?replicaSet=rs0&maxPoolSize=9&appName=MongoDB.Client.ConsoleApp&readPreference=secondaryPreferred", loggerFactory);
             var db = client.GetDatabase("TestDb");
 
             try
@@ -113,7 +113,7 @@ namespace MongoDB.Client.ConsoleApp
             {
                 // skip
             }
-            
+
             await db.CreateCollectionAsync("TransactionCollection");
             var collection = db.GetCollection<GeoIp>("TransactionCollection");
 

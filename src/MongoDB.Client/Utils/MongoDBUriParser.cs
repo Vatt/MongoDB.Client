@@ -1,9 +1,9 @@
-﻿using Sprache;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Net;
+using Sprache;
 
 namespace MongoDB.Client.Utils
 {

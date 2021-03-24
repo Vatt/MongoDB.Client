@@ -1,7 +1,7 @@
-﻿using MongoDB.Client.Protocol.Core;
-using System.Buffers;
+﻿using System.Buffers;
 using System.IO.Pipelines;
 using System.Threading;
+using MongoDB.Client.Protocol.Core;
 
 namespace MongoDB.Client.Experimental
 {

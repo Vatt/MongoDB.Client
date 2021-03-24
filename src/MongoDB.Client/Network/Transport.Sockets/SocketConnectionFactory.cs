@@ -1,7 +1,3 @@
-using Microsoft.AspNetCore.Connections;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using MongoDB.Client.Network.Transport.Sockets.Internal;
 using System;
 using System.Buffers;
 using System.IO.Pipelines;
@@ -9,6 +5,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Connections;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using MongoDB.Client.Network.Transport.Sockets.Internal;
 
 namespace MongoDB.Client.Network.Transport.Sockets
 {

@@ -1,7 +1,7 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Settings;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Settings;
 
 namespace MongoDB.Client.Connection
 {

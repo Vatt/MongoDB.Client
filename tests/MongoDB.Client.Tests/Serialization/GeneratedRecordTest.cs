@@ -1,7 +1,7 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Tests.Serialization.TestModels;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Tests.Serialization.TestModels;
 using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization

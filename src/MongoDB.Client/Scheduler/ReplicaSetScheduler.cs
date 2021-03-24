@@ -1,4 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
@@ -7,12 +13,6 @@ using MongoDB.Client.Messages;
 using MongoDB.Client.Network;
 using MongoDB.Client.Protocol.Messages;
 using MongoDB.Client.Settings;
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using System.Threading;
-using System.Threading.Tasks;
 using ReadPreference = MongoDB.Client.Settings.ReadPreference;
 
 namespace MongoDB.Client.Scheduler
@@ -70,7 +70,7 @@ namespace MongoDB.Client.Scheduler
             }
             var schedulersBuilder = ImmutableArray.CreateBuilder<MongoScheduler>();
             var secondariesBuilder = ImmutableArray.CreateBuilder<MongoScheduler>();
-            
+
 
             for (var i = 0; i < hosts.Count; i++)
             {
@@ -85,7 +85,7 @@ namespace MongoDB.Client.Scheduler
                 {
                     continue;
                 }
-                
+
                 schedulersBuilder.Add(scheduler);
                 if (host.Equals(primary))
                 {
@@ -95,7 +95,7 @@ namespace MongoDB.Client.Scheduler
                 {
                     secondariesBuilder.Add(scheduler);
                 }
-                
+
             }
             _shedulers = schedulersBuilder.ToImmutable();
             _serondaries = secondariesBuilder.ToImmutable();

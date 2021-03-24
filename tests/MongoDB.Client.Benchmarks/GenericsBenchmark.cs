@@ -1,7 +1,7 @@
+using System.Linq;
 using BenchmarkDotNet.Attributes;
 using MongoDB.Client.Benchmarks.Serialization;
 using MongoDB.Client.Benchmarks.Serialization.Models;
-using System.Linq;
 using BsonReader = MongoDB.Client.Bson.Reader.BsonReader;
 using BsonWriter = MongoDB.Client.Bson.Writer.BsonWriter;
 using GenericDocument = MongoDB.Client.Tests.Models.GenericDocument<double, string, MongoDB.Client.Bson.Document.BsonDocument, MongoDB.Client.Bson.Document.BsonObjectId, int, long,

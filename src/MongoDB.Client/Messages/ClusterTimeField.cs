@@ -1,7 +1,4 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization.Attributes;
-
-namespace MongoDB.Client.Messages
+﻿namespace MongoDB.Client.Messages
 {
     //[BsonSerializable]
     //public partial class ClusterTimeField

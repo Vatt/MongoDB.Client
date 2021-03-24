@@ -1,10 +1,10 @@
-﻿using MongoDB.Client.Messages;
-using MongoDB.Client.Protocol.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
+using MongoDB.Client.Messages;
+using MongoDB.Client.Protocol.Common;
 
 namespace MongoDB.Client.Exceptions
 {

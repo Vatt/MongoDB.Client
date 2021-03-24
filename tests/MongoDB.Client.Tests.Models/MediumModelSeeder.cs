@@ -1,5 +1,5 @@
-﻿using MongoDB.Bson;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using MongoDB.Bson;
 using BsonObjectId = MongoDB.Client.Bson.Document.BsonObjectId;
 
 namespace MongoDB.Client.Tests.Models
