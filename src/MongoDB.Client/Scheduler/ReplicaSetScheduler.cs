@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using MongoDB.Client.Authentication;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
@@ -21,6 +22,7 @@ namespace MongoDB.Client.Scheduler
     {
         private readonly ILoggerFactory _loggerFactory;
         private readonly MongoClientSettings _settings;
+        private readonly ScramAuthenticator _authenticator;
         private readonly ILogger _logger;
         private ImmutableArray<MongoScheduler> _shedulers;
         private ImmutableArray<MongoScheduler> _serondaries;
@@ -41,6 +43,7 @@ namespace MongoDB.Client.Scheduler
             _logger = loggerFactory.CreateLogger<ReplicaSetScheduler>();
             _shedulers = new();
             _serondaries = new();
+            _authenticator = new ScramAuthenticator(settings);
         }
 
 
@@ -76,7 +79,7 @@ namespace MongoDB.Client.Scheduler
             {
                 var host = hosts[i];
                 IMongoConnectionFactory connectionFactory = _settings.ClientType == ClientType.Default ? new MongoConnectionFactory(host, _loggerFactory) : new ExperimentalMongoConnectionFactory(host, _loggerFactory);
-                var scheduler = new MongoScheduler(_settings with { ConnectionPoolMaxSize = maxConnections }, connectionFactory, _loggerFactory, clusterTime);
+                var scheduler = new MongoScheduler(_settings with { ConnectionPoolMaxSize = maxConnections }, connectionFactory, _loggerFactory, clusterTime, _authenticator);
                 try
                 {
                     await scheduler.StartAsync(token).ConfigureAwait(false);
@@ -111,7 +114,7 @@ namespace MongoDB.Client.Scheduler
                     var endpoint = _settings.Endpoints[i];
                     var ctx = await _connectionfactory.ConnectAsync(endpoint, token);
                     var serviceConnection = new MongoServiceConnection(ctx);
-                    await serviceConnection.Connect(_settings, token).ConfigureAwait(false);
+                    await serviceConnection.Connect(_authenticator, _settings, token).ConfigureAwait(false);
                     return serviceConnection;
                 }
                 catch (MongoAuthentificationException ex)

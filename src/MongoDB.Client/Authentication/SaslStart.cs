@@ -1,4 +1,4 @@
-﻿namespace MongoDB.Client.Connection
+﻿namespace MongoDB.Client.Authentication
 {
     internal class SaslStart
     {

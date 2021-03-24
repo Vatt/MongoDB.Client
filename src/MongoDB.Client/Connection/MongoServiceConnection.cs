@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Connections;
+using MongoDB.Client.Authentication;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
@@ -14,17 +15,21 @@ using System.Threading.Tasks;
 
 namespace MongoDB.Client.Connection
 {
-    internal class MongoServiceConnection
+    internal class MongoServiceConnection : IMongoConnection
     {
         private static MongoPingMesageReader MongoPingMessageReader = new MongoPingMesageReader();
         private static BsonDocument _pingDocument = new BsonDocument("isMaster", 1);
-        internal ConnectionInfo ConnectionInfo;
-        private ProtocolReader _protocolReader;
-        private ProtocolWriter _protocolWriter;
+        private const string AdminDatabase = "admin.$cmd";
+        private static readonly BsonDocument BuildInfo = new BsonDocument("buildInfo", 1);
+        internal ConnectionInfo? ConnectionInfo;
+        private readonly ProtocolReader _protocolReader;
+        private readonly ProtocolWriter _protocolWriter;
+        private readonly ConnectionContext _connection;
         private CancellationTokenSource _shutdownCts = new CancellationTokenSource();
         private int _requestId = 0;
         public MongoServiceConnection(ConnectionContext connection)
         {
+            _connection = connection;
             _protocolReader = connection.CreateReader();
             _protocolWriter = connection.CreateWriter();
         }
@@ -36,8 +41,7 @@ namespace MongoDB.Client.Connection
 
         public async ValueTask<MongoPingMessage> MongoPing(CancellationToken token)
         {
-            var message = new QueryMessage(GetNextRequestNumber(), "admin.$cmd", _pingDocument);
-            //var test = await SendQueryAsync<BsonDocument>(message, _shutdownCts.Token).ConfigureAwait(false);
+            var message = new QueryMessage(GetNextRequestNumber(), AdminDatabase, _pingDocument);
             if (_protocolWriter is null)
             {
                 ThrowHelper.ThrowNotInitialized();
@@ -53,64 +57,46 @@ namespace MongoDB.Client.Connection
             return bodyResult;
         }
 
-        public async ValueTask Connect(MongoClientSettings settings, CancellationToken token)
+        public async ValueTask Connect(ScramAuthenticator authenticator, MongoClientSettings settings, CancellationToken token)
         {
             ConnectionInfo = await DoConnectAsync(token).ConfigureAwait(false);
 
             async Task<ConnectionInfo> DoConnectAsync(CancellationToken token)
             {
-                var (initialDocument, bareMessage) = InitHelper.CreateInitialCommand(settings);
-                var connectRequest = CreateQueryRequest(initialDocument, GetNextRequestNumber());
-                var configMessage = await SendQueryAsync<BsonDocument>(connectRequest, token).ConfigureAwait(false);
-                var buildInfoRequest = CreateQueryRequest(new BsonDocument("buildInfo", 1), GetNextRequestNumber());
-                if (settings.Login is not null && settings.Password is not null)
-                {
-                    //var saslStart = InitHelper.CreateSaslStart(settings, ((BsonBinaryData)(configMessage[0]["speculativeAuthenticate"].AsBsonDocument["payload"].Value)).Value as byte[] );
-                    //var result = await SendQueryAsync<BsonDocument>(CreateQueryRequest(saslStart, GetNextRequestNumber()), token).ConfigureAwait(false);
-                    //var isOk = (double)result[0]["ok"].Value;  
-                    //if (isOk == 0)
-                    //{
-                    //    ThrowHelper.MongoAuthentificationException(result[0]["errmsg"].ToString(), (int)result[0]["code"].Value!);
-                    //}
-                }
-                var hell = await SendQueryAsync<BsonDocument>(buildInfoRequest, token).ConfigureAwait(false);
-                return new ConnectionInfo(configMessage[0], hell[0]);
+                var initialDocument = InitHelper.CreateInitialCommand(settings);
+                var saslStart = authenticator.AuthenticateIsMaster(initialDocument);
+
+                var isMasterQueryResult = await SendQueryAsync<BsonDocument>(AdminDatabase, initialDocument, token).ConfigureAwait(false);
+                var isMaster = isMasterQueryResult[0];
+                var buildInfoQueryResult = await SendQueryAsync<BsonDocument>(AdminDatabase, BuildInfo, token).ConfigureAwait(false);
+                var buildInfo = buildInfoQueryResult[0];
+
+                await authenticator.AuthenticateAsync(this, isMaster, saslStart, token).ConfigureAwait(false);
+
+                return new ConnectionInfo(isMaster, buildInfo);
             }
         }
 
-        private QueryMessage CreateQueryRequest(string database, BsonDocument document, int number)
+        private static async ValueTask<T> ReadAsyncPrivate<T>(ProtocolReader protocolReader, IMessageReader<T> reader, CancellationToken token)
         {
-            return new QueryMessage(number, database, document);
-        }
-
-        private QueryMessage CreateQueryRequest(BsonDocument document, int number)
-        {
-            var doc = CreateWrapperDocument(document);
-            return CreateQueryRequest("admin.$cmd", doc, number);
-        }
-
-        private static BsonDocument CreateWrapperDocument(BsonDocument document)
-        {
-            BsonDocument? readPreferenceDocument = null;
-            if (readPreferenceDocument is null)
+            var result = await protocolReader.ReadAsync(reader, token).ConfigureAwait(false);
+            protocolReader.Advance();
+            if (result.IsCanceled || result.IsCompleted)
             {
-                return document;
+                //TODO: DO SOME
             }
-            var doc = new BsonDocument
-                {
-                    {"$query", document},
-                    {"$readPreference", readPreferenceDocument}
-                };
-
-            return doc;
+            return result.Message;
         }
 
-        public async ValueTask<QueryResult<TResp>?> SendQueryAsync<TResp>(QueryMessage message, CancellationToken token)
+        public async ValueTask<QueryResult<TResp>> SendQueryAsync<TResp>(string database, BsonDocument document, CancellationToken token)
         {
             if (_protocolWriter is null)
             {
                 ThrowHelper.ThrowNotInitialized();
             }
+
+            var message = new QueryMessage(GetNextRequestNumber(), database, document);
+
             await _protocolWriter.WriteUnsafeAsync(ProtocolWriters.QueryMessageWriter, message, token).ConfigureAwait(false);
             var header = await ReadAsyncPrivate(_protocolReader, ProtocolReaders.MessageHeaderReader, _shutdownCts.Token).ConfigureAwait(false);
             if (header.Opcode != Opcode.Reply)
@@ -121,6 +107,8 @@ namespace MongoDB.Client.Connection
             MongoResponseMessage replyMessage = new ReplyMessage(header, replyResult);
             var result = await ParseAsync<TResp>(_protocolReader, replyMessage);
             return result as QueryResult<TResp>;
+
+
             async ValueTask<IParserResult> ParseAsync<T>(ProtocolReader reader, MongoResponseMessage mongoResponse)
             {
                 switch (mongoResponse)
@@ -136,15 +124,9 @@ namespace MongoDB.Client.Connection
             }
         }
 
-        private static async ValueTask<T> ReadAsyncPrivate<T>(ProtocolReader protocolReader, IMessageReader<T> reader, CancellationToken token)
+        public ValueTask DisposeAsync()
         {
-            var result = await protocolReader.ReadAsync(reader, token).ConfigureAwait(false);
-            protocolReader.Advance();
-            if (result.IsCanceled || result.IsCompleted)
-            {
-                //TODO: DO SOME
-            }
-            return result.Message;
+            return _connection.DisposeAsync();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Connections;
+using MongoDB.Client.Authentication;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
@@ -12,18 +13,21 @@ using System.Threading.Tasks;
 
 namespace MongoDB.Client.Connection
 {
-    public sealed partial class MongoConnection
+    public sealed partial class MongoConnection : IMongoConnection
     {
+        private const string AdminDatabase = "admin.$cmd";
+        private static readonly BsonDocument BuildInfo = new BsonDocument("buildInfo", 1);
+
         internal ConnectionInfo ConnectionInfo;
 
 
-        internal ValueTask<ConnectionInfo> StartAsync(ConnectionContext connection, CancellationToken cancellationToken = default)
+        internal ValueTask<ConnectionInfo> StartAsync(ScramAuthenticator authenticator, ConnectionContext connection, CancellationToken cancellationToken = default)
         {
-            return StartAsync(connection.CreateReader(), connection.CreateWriter(), cancellationToken);
+            return StartAsync(authenticator, connection.CreateReader(), connection.CreateWriter(), cancellationToken);
         }
 
 
-        internal async ValueTask<ConnectionInfo> StartAsync(ProtocolReader reader, ProtocolWriter writer, CancellationToken cancellationToken)
+        internal async ValueTask<ConnectionInfo> StartAsync(ScramAuthenticator authenticator, ProtocolReader reader, ProtocolWriter writer, CancellationToken cancellationToken)
         {
             _protocolReader = reader;
             _protocolWriter = writer;
@@ -31,59 +35,46 @@ namespace MongoDB.Client.Connection
             ConnectionInfo = await DoConnectAsync(cancellationToken).ConfigureAwait(false);
 
 
-
             _channelListenerTask = StartChannelListerAsync();
             _channelFindListenerTask = StartFindChannelListerAsync();
             return ConnectionInfo;
             async Task<ConnectionInfo> DoConnectAsync(CancellationToken token)
             {
-                var (initialDocument, saslStart) = InitHelper.CreateInitialCommand(_settings);
-                var connectRequest = CreateQueryRequest(initialDocument, GetNextRequestNumber());
-                var isMasterQueryResult = await SendQueryAsync<BsonDocument>(connectRequest, token).ConfigureAwait(false);
+                var initialDocument = InitHelper.CreateInitialCommand(_settings);
+                var saslStart = authenticator.AuthenticateIsMaster(initialDocument);
+
+                var isMasterQueryResult = await SendQueryAsync<BsonDocument>(AdminDatabase, initialDocument, token).ConfigureAwait(false);
                 var isMaster = isMasterQueryResult[0];
-                var buildInfoRequest = CreateQueryRequest(new BsonDocument("buildInfo", 1), GetNextRequestNumber());
-                var buildInfoQueryResult = await SendQueryAsync<BsonDocument>(buildInfoRequest, token).ConfigureAwait(false);
+                var buildInfoQueryResult = await SendQueryAsync<BsonDocument>(AdminDatabase, BuildInfo, token).ConfigureAwait(false);
                 var buildInfo = buildInfoQueryResult[0];
 
-                if (isMaster.TryGet("speculativeAuthenticate", out var authDataElement))
-                {
-                    var authData = authDataElement.AsBsonDocument!;
-                    var payloadBinaryData = (BsonBinaryData)authData["payload"].Value!;
-                    var payload = (byte[]) payloadBinaryData.Value;
-
-                    var conversationId = authData["conversationId"].AsInt;
-                    var (saslDoc, serverSignature) = InitHelper.CreateSaslStart(_settings, payload, saslStart!, conversationId);
-                    var result = await SendQueryAsync<BsonDocument>(CreateQueryRequest(saslDoc, GetNextRequestNumber()), token).ConfigureAwait(false);
-                    var isOk = (double)result[0]["ok"].Value!;
-                    if (isOk == 0)
-                    {
-                        ThrowHelper.MongoAuthentificationException(result[0]["errmsg"].ToString(), (int)result[0]["code"].Value!);
-                    }
-                }
+                await authenticator.AuthenticateAsync(this, isMaster, saslStart, token).ConfigureAwait(false);
 
                 return new ConnectionInfo(isMaster, buildInfo);
             }
         }
 
 
-        private QueryMessage CreateQueryRequest(string database, BsonDocument document, int number)
+        private QueryMessage CreateQueryRequest(string database, BsonDocument document)
         {
-            return new QueryMessage(number, database, document);
+            return new QueryMessage(GetNextRequestNumber(), database, document);
         }
 
 
-        private QueryMessage CreateQueryRequest(BsonDocument document, int number)
+        private QueryMessage CreateQueryRequest(BsonDocument document)
         {
-            return CreateQueryRequest("admin.$cmd", document, number);
+            return CreateQueryRequest(AdminDatabase, document);
         }
 
-
-        public async ValueTask<QueryResult<TResp>> SendQueryAsync<TResp>(QueryMessage message, CancellationToken cancellationToken)
+        public async ValueTask<QueryResult<TResp>> SendQueryAsync<TResp>(string database, BsonDocument document, CancellationToken cancellationToken)
         {
             if (_protocolWriter is null)
             {
                 ThrowHelper.ThrowNotInitialized();
             }
+
+            var message = new QueryMessage(GetNextRequestNumber(), database, document);
+
             ManualResetValueTaskSource<IParserResult> taskSource;
             if (_queue.TryDequeue(out var taskSrc))
             {

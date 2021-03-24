@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using MongoDB.Client.Authentication;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
@@ -18,6 +19,7 @@ namespace MongoDB.Client.Scheduler
     internal partial class MongoScheduler : IAsyncDisposable
     {
         private readonly IMongoConnectionFactory _connectionFactory;
+        private readonly ScramAuthenticator _authenticator;
         private readonly ILogger<StandaloneScheduler> _logger;
         //TODO: fix this
         //private readonly List<MongoConnection> _connections; 
@@ -33,7 +35,7 @@ namespace MongoDB.Client.Scheduler
 
         public MongoClusterTime? ClusterTime { get; }
 
-        public MongoScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory, MongoClusterTime? clusterTime)
+        public MongoScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory, MongoClusterTime? clusterTime, ScramAuthenticator authenticator)
         {
             _connectionFactory = connectionFactory;
             _logger = loggerFactory.CreateLogger<StandaloneScheduler>();
@@ -47,10 +49,11 @@ namespace MongoDB.Client.Scheduler
             _counter = 0;
             _maxConnections = settings.ConnectionPoolMaxSize;
             ClusterTime = clusterTime;
+            _authenticator = authenticator;
         }
 
-        public MongoScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
-            : this(settings, connectionFactory, loggerFactory, null)
+        public MongoScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory, ScramAuthenticator authenticator)
+            : this(settings, connectionFactory, loggerFactory, null, authenticator)
         {
         }
 
@@ -89,7 +92,7 @@ namespace MongoDB.Client.Scheduler
 
         private ValueTask<MongoConnection> CreateNewConnection(CancellationToken token)
         {
-            return _connectionFactory.CreateAsync(_settings, _channel.Reader, _findChannel.Reader, this, token);
+            return _connectionFactory.CreateAsync(_settings, _authenticator, _channel.Reader, _findChannel.Reader, this, token);
         }
 
 

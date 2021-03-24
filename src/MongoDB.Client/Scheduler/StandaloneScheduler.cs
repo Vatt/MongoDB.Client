@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using MongoDB.Client.Authentication;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Messages;
@@ -17,7 +18,7 @@ namespace MongoDB.Client.Scheduler
 
         public StandaloneScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
         {
-            _mongoScheduler = new MongoScheduler(settings, connectionFactory, loggerFactory);
+            _mongoScheduler = new MongoScheduler(settings, connectionFactory, loggerFactory, new ScramAuthenticator(settings));
         }
 
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using MongoDB.Client.Authentication;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Scheduler;
@@ -24,7 +25,7 @@ namespace MongoDB.Client.Experimental
             _loggerFactory = loggerFactory;
         }
 
-        public async ValueTask<MongoConnection> CreateAsync(MongoClientSettings settings, ChannelReader<MongoRequest> reader, ChannelReader<MongoRequest> findReader, MongoScheduler requestScheduler, CancellationToken token)
+        public async ValueTask<MongoConnection> CreateAsync(MongoClientSettings settings, ScramAuthenticator authenticator, ChannelReader<MongoRequest> reader, ChannelReader<MongoRequest> findReader, MongoScheduler requestScheduler, CancellationToken token)
         {
             var context = await _networkFactory.ConnectAsync(_endPoint, cancellationToken: token).ConfigureAwait(false);
             if (context is null)
@@ -33,7 +34,7 @@ namespace MongoDB.Client.Experimental
             }
             var id = Interlocked.Increment(ref CONNECTION_ID);
             var connection = new MongoConnection(id, settings, _loggerFactory.CreateLogger<MongoConnection>(), reader, findReader, requestScheduler);
-            var connectionInfo = await connection.StartAsyncExperimental(context, token).ConfigureAwait(false);
+            var connectionInfo = await connection.StartAsyncExperimental(authenticator, context, token).ConfigureAwait(false);
             return connection;
         }
     }
