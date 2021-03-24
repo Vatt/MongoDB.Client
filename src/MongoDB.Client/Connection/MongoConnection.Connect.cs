@@ -54,18 +54,6 @@ namespace MongoDB.Client.Connection
             }
         }
 
-
-        private QueryMessage CreateQueryRequest(string database, BsonDocument document)
-        {
-            return new QueryMessage(GetNextRequestNumber(), database, document);
-        }
-
-
-        private QueryMessage CreateQueryRequest(BsonDocument document)
-        {
-            return CreateQueryRequest(AdminDatabase, document);
-        }
-
         public async ValueTask<QueryResult<TResp>> SendQueryAsync<TResp>(string database, BsonDocument document, CancellationToken cancellationToken)
         {
             if (_protocolWriter is null)
