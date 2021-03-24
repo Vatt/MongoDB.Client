@@ -55,22 +55,11 @@ namespace MongoDB.Client.Authentication
                 var v = ParseV(Strict.GetString(payload));
                 var receivedServerSignature = Convert.FromBase64String(v);
 
-                if (!ConstantTimeEquals(serverSignature, receivedServerSignature))
+                if (!serverSignature.AsSpan().SequenceEqual(receivedServerSignature))
                 {
                     ThrowHelper.MongoAuthentificationException("Server signature was invalid.", 0);
                 }
             }
-        }
-
-        private bool ConstantTimeEquals(byte[] a, byte[] b)
-        {
-            var diff = a.Length ^ b.Length;
-            for (var i = 0; i < a.Length && i < b.Length; i++)
-            {
-                diff |= a[i] ^ b[i];
-            }
-
-            return diff == 0;
         }
 
         private string ParseV(string payload)
