@@ -39,18 +39,43 @@ namespace MongoDB.Client.Authentication
             if (isMasterResult.TryGet("speculativeAuthenticate", out var authDataElement) && saslStart is not null)
             {
                 var authData = authDataElement.AsBsonDocument!;
-                var payloadBinaryData = (BsonBinaryData)authData["payload"].Value!;
-                var payload = (byte[])payloadBinaryData.Value;
+                var payload = authData["payload"].AsByteArray!;
 
                 var conversationId = authData["conversationId"].AsInt;
                 var (saslDoc, serverSignature) = CreateSaslStart(payload, saslStart!, conversationId);
-                var result = await connection.SendQueryAsync<BsonDocument>("admin.$cmd", saslDoc, token).ConfigureAwait(false);
-                var isOk = (double)result[0]["ok"].Value!;
+                var queryResult = await connection.SendQueryAsync<BsonDocument>("admin.$cmd", saslDoc, token).ConfigureAwait(false);
+                var result = queryResult[0];
+                var isOk = result["ok"].AsDouble;
                 if (isOk == 0)
                 {
-                    ThrowHelper.MongoAuthentificationException(result[0]["errmsg"].ToString(), (int)result[0]["code"].Value!);
+                    ThrowHelper.MongoAuthentificationException(result["errmsg"].ToString(), result["code"].AsInt);
+                }
+
+                payload = result["payload"].AsByteArray!;
+                var v = ParseV(Strict.GetString(payload));
+                var receivedServerSignature = Convert.FromBase64String(v);
+
+                if (!ConstantTimeEquals(serverSignature, receivedServerSignature))
+                {
+                    ThrowHelper.MongoAuthentificationException("Server signature was invalid.", 0);
                 }
             }
+        }
+
+        private bool ConstantTimeEquals(byte[] a, byte[] b)
+        {
+            var diff = a.Length ^ b.Length;
+            for (var i = 0; i < a.Length && i < b.Length; i++)
+            {
+                diff |= a[i] ^ b[i];
+            }
+
+            return diff == 0;
+        }
+
+        private string ParseV(string payload)
+        {
+            return payload.Substring(2);
         }
 
         private (BsonDocument, byte[]) CreateSaslStart(byte[] replyBytes, SaslStart saslStart, int conversationId)
