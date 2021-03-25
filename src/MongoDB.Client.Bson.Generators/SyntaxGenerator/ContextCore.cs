@@ -123,7 +123,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     {
                         foreach (var param in recordDecl.ParameterList.Parameters)
                         {
-                            var test = Declaration!.GetMembers(param.Identifier.Text).FirstOrDefault();
+                            var test = FindMemberByName(Declaration, param.Identifier.Text);
                             if (test is null)
                             {
                                 GeneratorDiagnostics.ReportMatchConstructorParametersError(Declaration);
@@ -172,7 +172,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                 {
                     case IdentifierNameSyntax id:
                         {
-                            var test = Declaration.GetMembers().Where(x => x is IFieldSymbol or IPropertySymbol).FirstOrDefault(m => m.Name.Equals(id.Identifier.NormalizeWhitespace().Text));
+                            var test = FindMemberByName(Declaration, id.Identifier.NormalizeWhitespace().Text);
                             if (test is not null)
                             {
                                 leftMember = test;
@@ -185,7 +185,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                             {
                                 continue;
                             }
-                            var test = Declaration.GetMembers().Where(x => x is IFieldSymbol or IPropertySymbol).FirstOrDefault(m => m.Name.Equals(accsess.Name.Identifier.Text));
+                            var test = FindMemberByName(Declaration, accsess.Name.Identifier.Text);
                             if (test is not null)
                             {
                                 leftMember = test;
@@ -233,6 +233,27 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             }
 
             return binds;
+        }
+
+        private static ISymbol FindMemberByName(INamedTypeSymbol sym, string name)
+        {
+            foreach (var member in sym.GetMembers(name))
+            {
+                if (IsBadMemberSym(member))
+                {
+                    continue;
+                }
+                if (CheckAccessibility(member) && member.Name.Equals(name))
+                {
+                    return member;
+                }
+                if (CheckGetAccessibility(member) && member.Name.Equals(name))
+                {
+                    return member;
+                }
+            }
+
+            return sym.BaseType is not null ? FindMemberByName(sym.BaseType, name) : default;
         }
         public void CreateDefaultMembers()
         {
