@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
@@ -41,6 +44,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         internal List<MemberContext> Members { get; }
         internal ImmutableArray<ITypeSymbol>? GenericArgs { get; }
         internal ImmutableArray<IParameterSymbol>? ConstructorParams { get; }
+        internal IReadOnlyDictionary<ISymbol, string> ConstructorParamsBinds { get; }
         internal GeneratorMode GeneratorMode { get; }
         internal SyntaxToken SerializerName
         {
@@ -81,6 +85,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     ConstructorParams = constructor.Parameters;
                 }
             }
+            if (ConstructorParams.HasValue)
+            {
+                ConstructorParamsBinds = MatchContructorArguments();
+            }
             GeneratorMode = SerializerGenerator.GetGeneratorMode(symbol);
 
             if (GeneratorMode.ConstructorOnlyParameters)
@@ -96,6 +104,135 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             {
                 GeneratorMode.IfConditions = true;
             }
+        }
+        private Dictionary<ISymbol, string> MatchContructorArguments()
+        {
+            IEnumerable<ConstructorDeclarationSyntax> ctors = default;
+            ConstructorDeclarationSyntax primaryCtor = default;
+            var binds = new Dictionary<ISymbol, string>();
+            switch (DeclarationNode)
+            {
+                case ClassDeclarationSyntax classDecl:
+                    ctors = classDecl.Members.OfType<ConstructorDeclarationSyntax>();
+                    break;
+                case StructDeclarationSyntax structDecl:
+                    ctors = structDecl.Members.OfType<ConstructorDeclarationSyntax>();
+                    break;
+                case RecordDeclarationSyntax recordDecl:
+                    if (recordDecl.ParameterList is not null)
+                    {
+                        foreach (var param in recordDecl.ParameterList.Parameters)
+                        {
+                            var test = Declaration!.GetMembers(param.Identifier.Text).FirstOrDefault();
+                            if (test is null)
+                            {
+                                GeneratorDiagnostics.ReportMatchConstructorParametersError(Declaration);
+                            }
+                            binds.Add(test!, param.Identifier.Text);
+                        }
+                        return default;
+                    }
+                    ctors = recordDecl.Members.OfType<ConstructorDeclarationSyntax>();
+                    break;
+
+            }
+            if (ctors is null)
+            {
+                GeneratorDiagnostics.ReportMatchConstructorParametersError(Declaration);
+            }
+            foreach(var ctor in ctors)
+            {
+                bool found = true;
+                foreach(var param in ctor.ParameterList.Parameters)
+                {
+                    if (ConstructorParams.Value.FirstOrDefault(x => x.Name.Equals(param.NormalizeWhitespace().Identifier.Text)) == default)
+                    {
+                        found = false;
+                        break;
+                    }
+                }
+                if (found)
+                {
+                    primaryCtor = ctor;
+                    break;
+                }
+            }
+            if (primaryCtor is null)
+            {
+                GeneratorDiagnostics.ReportMatchConstructorParametersError(Declaration);
+            }
+            //TODO: also check expression body to
+            foreach(var assign in primaryCtor!.Body!.NormalizeWhitespace().DescendantNodes().OfType<AssignmentExpressionSyntax>())
+            {
+                var left = assign.Left;
+                var right = assign.Right;
+                ISymbol leftMember = default;
+                IdentifierNameSyntax rightId = default;
+                switch (left)
+                {
+                    case IdentifierNameSyntax id:
+                        {
+                            var test = Declaration.GetMembers().Where(x => x is IFieldSymbol or IPropertySymbol).FirstOrDefault(m => m.Name.Equals(id.Identifier.NormalizeWhitespace().Text));
+                            if (test is not null)
+                            {
+                                leftMember = test;
+                            }
+                            break;  
+                        }
+                    case MemberAccessExpressionSyntax accsess:
+                        {
+                            if (accsess.Expression is not ThisExpressionSyntax)
+                            {
+                                continue;
+                            }
+                            var test = Declaration.GetMembers().Where(x => x is IFieldSymbol or IPropertySymbol).FirstOrDefault(m => m.Name.Equals(accsess.Name.Identifier.Text));
+                            if (test is not null)
+                            {
+                                leftMember = test;
+                            }
+                            break;
+                        }
+                    default:
+                        break;
+                }
+
+                switch (right)
+                {
+                    case IdentifierNameSyntax id:
+                        var test = ConstructorParams!.Value.FirstOrDefault(m => m.Name.Equals(id.Identifier.NormalizeWhitespace().Text));
+                        if (test is not null)
+                        {
+                            rightId = id;
+                        }
+                        break;
+                    default:
+                        /*foreach (var rightNode in right.NormalizeWhitespace().DescendantNodes())
+                        {
+                            var id = rightNode as IdentifierNameSyntax;
+                            if (id is null)
+                            {
+                                continue;
+                            }
+                            test = ConstructorParams.Value.FirstOrDefault(m => m.Name.Equals(id.Identifier.NormalizeWhitespace().Text));
+                            if (test is not null)
+                            {
+                                rightId = id;
+                                break;
+                            }
+                        }*/
+                        break;
+                }
+                if (leftMember is not null && rightId is not null)
+                {
+                    binds.Add(leftMember, rightId.Identifier.Text);
+                }
+                else
+                {
+                    GeneratorDiagnostics.ReportMatchConstructorParametersError(Declaration);
+                }
+            }
+
+            return binds;
         }
         public void CreateDefaultMembers()
         {
