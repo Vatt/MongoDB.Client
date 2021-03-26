@@ -116,8 +116,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var assignments = new List<ExpressionStatementSyntax>();
                 foreach (var member in ctx.Members)
                 {
-                    var parameter = constructorParams!.Value.FirstOrDefault(param => param.Name.Equals(member.NameSym.Name));
-                    if (parameter != default)
+                    if (ctx.ConstructorParamsBinds.TryGetValue(member.NameSym, out var parameter))
                     {
                         args.Add(Argument(member.AssignedVariableToken, NameColon(parameter)));
                     }

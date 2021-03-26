@@ -107,6 +107,191 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         }
         private Dictionary<ISymbol, string> MatchContructorArguments()
         {
+            var binds = new Dictionary<ISymbol, string>();
+            foreach (var param in ConstructorParams)
+            {
+                var member = FindMemberByName(Declaration, param.Name);
+                if (member is null)
+                {
+                    GeneratorDiagnostics.ReportMatchConstructorParametersError(Declaration);
+                }
+                binds.Add(member, param.Name);
+            }
+
+            return binds;
+        }
+        private static ISymbol FindMemberByName(INamedTypeSymbol sym, string name)
+        {
+            foreach (var member in sym.GetMembers())
+            {
+                if (IsBadMemberSym(member))
+                {
+                    continue;
+                }
+                if (CheckAccessibility(member) && NameEquals(member.Name, name))
+                {
+                    return member;
+                }
+                if (CheckGetAccessibility(member) && NameEquals(member.Name, name))
+                {
+                    return member;
+                }
+            }
+
+            return sym.BaseType is not null ? FindMemberByName(sym.BaseType, name) : default;
+        }
+        public void CreateDefaultMembers()
+        {
+            foreach (var member in Declaration.GetMembers())
+            {
+                if (IsBadMemberSym(member))
+                {
+                    continue;
+                }
+
+                if (CheckAccessibility(member))
+                {
+                    Members.Add(new MemberContext(this, member));
+                    continue;
+                }
+                if (CheckGetAccessibility(member) && ConstructorContains(member.Name))
+                {
+                    Members.Add(new MemberContext(this, member));
+                    continue;
+                }
+            }
+        }
+        public void CreateContructorOnlyMembers()
+        {
+            if (ConstructorParams.HasValue == false)
+            {
+                //TODO: report diagnostic error
+                return;
+            }
+            foreach (var param in ConstructorParams)
+            {
+                if (MembersContains(param, out var namedType))
+                {
+                    Members.Add(new MemberContext(this, namedType));
+                }
+
+            }
+        }
+
+        private static  bool NameEquals(string symName, string paramName)
+        {
+            var fmtParamName = paramName.ToUpper().Replace("_", string.Empty);
+            return symName.ToUpper().Equals(fmtParamName);
+        }
+        public bool MembersContains(IParameterSymbol parameter, out ISymbol symbol)
+        {
+            symbol = Declaration.GetMembers()
+                .Where(sym => IsBadMemberSym(sym) == false)
+                .FirstOrDefault(sym => CheckGetAccessibility(sym) &&
+                                       ExtractTypeFromSymbol(sym, out var type) &&
+                                       //sym.Name.Equals(parameter.Name) &&
+                                       NameEquals(sym.Name, parameter.Name) &&
+                                       type.Equals(parameter.Type, SymbolEqualityComparer.Default));
+            if (symbol is not null)
+            {
+                return true;
+            }
+
+            if (BaseSym is not null)
+            {
+                return InheritMemberContains(parameter, BaseSym, out symbol);
+            }
+
+            return false;
+        }
+        private bool InheritMemberContains(IParameterSymbol parameter, INamedTypeSymbol symbol, out ISymbol result)
+        {
+            var baseSym = symbol.BaseType;
+            result = symbol.GetMembers()
+                .Where(sym => IsBadMemberSym(sym) == false)
+                .FirstOrDefault(sym => CheckGetAccessibility(sym) &&
+                                       ExtractTypeFromSymbol(sym, out var type) &&
+                                       //sym.Name.Equals(parameter.Name) &&
+                                       NameEquals(sym.Name, parameter.Name) &&
+                                       type.Equals(parameter.Type, SymbolEqualityComparer.Default));
+            if (result is not null)
+            {
+                return true;
+            }
+
+            if (baseSym is not null)
+            {
+                return InheritMemberContains(parameter, baseSym, out result);
+            }
+
+            return false;
+        }
+        public bool ConstructorContains(string name)
+        {
+            if (ConstructorParams.HasValue)
+            {
+                //var param = ConstructorParams.Value.FirstOrDefault(type => type.Name.Equals(name));
+                var param = ConstructorParams.Value.FirstOrDefault(type => NameEquals(type.Name, name));
+                return param != null;
+            }
+
+            return false;
+        }
+
+        private static bool ExtractTypeFromSymbol(ISymbol sym, out ITypeSymbol type)
+        {
+            switch (sym)
+            {
+                case IFieldSymbol field:
+                    type = field.Type;
+                    return true;
+                case IPropertySymbol prop:
+                    type = prop.Type;
+                    return true;
+                default:
+                    type = default;
+                    return false;
+            }
+        }
+
+        private static bool CheckAccessibility(ISymbol member)
+        {
+            if ((member is IPropertySymbol { SetMethod: { }, GetMethod: { }, IsReadOnly: false }) ||
+                (member is IFieldSymbol { IsReadOnly: false, IsConst: false }))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool CheckGetAccessibility(ISymbol member)
+        {
+            if (member is IPropertySymbol prop && (prop.IsReadOnly || prop.GetMethod != null))
+            {
+                return true;
+            }
+            if (member is IFieldSymbol { IsReadOnly: true, IsConst: false })
+            {
+                return true;
+            }
+
+            return false;
+        }
+        private static bool IsBadMemberSym(ISymbol member)
+        {
+            if (member.IsAbstract || SerializerGenerator.IsIgnore(member) ||
+               (member.Kind != SymbolKind.Property && member.Kind != SymbolKind.Field) ||
+                member.DeclaredAccessibility != Accessibility.Public)
+            {
+                return true;
+            }
+
+            return false;
+        }
+        
+        /*private Dictionary<ISymbol, string> MatchContructorArguments()
+        {
             IEnumerable<ConstructorDeclarationSyntax> ctors = default;
             ConstructorDeclarationSyntax primaryCtor = default;
             var binds = new Dictionary<ISymbol, string>();
@@ -219,7 +404,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                                 rightId = id;
                                 break;
                             }
-                        }*/
+                        }#1#
                         break;
                 }
                 if (leftMember is not null && rightId is not null)
@@ -231,171 +416,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     GeneratorDiagnostics.ReportMatchConstructorParametersError(Declaration);
                 }
             }
-
             return binds;
-        }
-
-        private static ISymbol FindMemberByName(INamedTypeSymbol sym, string name)
-        {
-            foreach (var member in sym.GetMembers(name))
-            {
-                if (IsBadMemberSym(member))
-                {
-                    continue;
-                }
-                if (CheckAccessibility(member) && member.Name.Equals(name))
-                {
-                    return member;
-                }
-                if (CheckGetAccessibility(member) && member.Name.Equals(name))
-                {
-                    return member;
-                }
-            }
-
-            return sym.BaseType is not null ? FindMemberByName(sym.BaseType, name) : default;
-        }
-        public void CreateDefaultMembers()
-        {
-            foreach (var member in Declaration.GetMembers())
-            {
-                if (IsBadMemberSym(member))
-                {
-                    continue;
-                }
-
-                if (CheckAccessibility(member))
-                {
-                    Members.Add(new MemberContext(this, member));
-                    continue;
-                }
-                if (CheckGetAccessibility(member) && ConstructorContains(member.Name))
-                {
-                    Members.Add(new MemberContext(this, member));
-                    continue;
-                }
-            }
-        }
-        public void CreateContructorOnlyMembers()
-        {
-            if (ConstructorParams.HasValue == false)
-            {
-                //TODO: report diagnostic error
-                return;
-            }
-            foreach (var param in ConstructorParams)
-            {
-                if (MembersContains(param, out var namedType))
-                {
-                    Members.Add(new MemberContext(this, namedType));
-                }
-
-            }
-        }
-
-        public bool MembersContains(IParameterSymbol parameter, out ISymbol symbol)
-        {
-            symbol = Declaration.GetMembers()
-                .Where(sym => IsBadMemberSym(sym) == false)
-                .FirstOrDefault(sym => CheckGetAccessibility(sym) &&
-                                       ExtractTypeFromSymbol(sym, out var type) &&
-                                       sym.Name.Equals(parameter.Name) &&
-                                       type.Equals(parameter.Type, SymbolEqualityComparer.Default));
-            if (symbol is not null)
-            {
-                return true;
-            }
-
-            if (BaseSym is not null)
-            {
-                return InheritMemberContains(parameter, BaseSym, out symbol);
-            }
-
-            return false;
-        }
-        private bool InheritMemberContains(IParameterSymbol parameter, INamedTypeSymbol symbol, out ISymbol result)
-        {
-            var baseSym = symbol.BaseType;
-            result = symbol.GetMembers()
-                .Where(sym => IsBadMemberSym(sym) == false)
-                .FirstOrDefault(sym => CheckGetAccessibility(sym) &&
-                                       ExtractTypeFromSymbol(sym, out var type) &&
-                                       sym.Name.Equals(parameter.Name) &&
-                                       type.Equals(parameter.Type, SymbolEqualityComparer.Default));
-            if (result is not null)
-            {
-                return true;
-            }
-
-            if (baseSym is not null)
-            {
-                return InheritMemberContains(parameter, baseSym, out result);
-            }
-
-            return false;
-        }
-        public bool ConstructorContains(string name)
-        {
-            if (ConstructorParams.HasValue)
-            {
-                var param = ConstructorParams.Value.FirstOrDefault(type => type.Name.Equals(name));
-                return param != null;
-            }
-
-            return false;
-        }
-
-        private static bool ExtractTypeFromSymbol(ISymbol sym, out ITypeSymbol type)
-        {
-            switch (sym)
-            {
-                case IFieldSymbol field:
-                    type = field.Type;
-                    return true;
-                case IPropertySymbol prop:
-                    type = prop.Type;
-                    return true;
-                default:
-                    type = default;
-                    return false;
-            }
-        }
-
-        private static bool CheckAccessibility(ISymbol member)
-        {
-            if ((member is IPropertySymbol { SetMethod: { }, GetMethod: { }, IsReadOnly: false }) ||
-                (member is IFieldSymbol { IsReadOnly: false, IsConst: false }))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool CheckGetAccessibility(ISymbol member)
-        {
-            if (member is IPropertySymbol prop && (prop.IsReadOnly || prop.GetMethod != null))
-            {
-                return true;
-            }
-            if (member is IFieldSymbol { IsReadOnly: true, IsConst: false })
-            {
-                return true;
-            }
-
-            return false;
-        }
-        private static bool IsBadMemberSym(ISymbol member)
-        {
-            if (member.IsAbstract ||
-                 SerializerGenerator.IsIgnore(member) ||
-                 (member.Kind != SymbolKind.Property && member.Kind != SymbolKind.Field) ||
-                 member.DeclaredAccessibility != Accessibility.Public)
-            {
-                return true;
-            }
-
-            return false;
-        }
+        }*/
     }
 }
