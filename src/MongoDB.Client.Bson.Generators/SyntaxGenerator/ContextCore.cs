@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
 
@@ -178,7 +176,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             }
         }
 
-        private static  bool NameEquals(string symName, string paramName)
+        private static bool NameEquals(string symName, string paramName)
         {
             var fmtParamName = paramName.ToUpper().Replace("_", string.Empty);
             return symName.ToUpper().Equals(fmtParamName);
@@ -189,7 +187,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                 .Where(sym => IsBadMemberSym(sym) == false)
                 .FirstOrDefault(sym => CheckGetAccessibility(sym) &&
                                        ExtractTypeFromSymbol(sym, out var type) &&
-                                       //sym.Name.Equals(parameter.Name) &&
                                        NameEquals(sym.Name, parameter.Name) &&
                                        type.Equals(parameter.Type, SymbolEqualityComparer.Default));
             if (symbol is not null)
@@ -211,7 +208,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                 .Where(sym => IsBadMemberSym(sym) == false)
                 .FirstOrDefault(sym => CheckGetAccessibility(sym) &&
                                        ExtractTypeFromSymbol(sym, out var type) &&
-                                       //sym.Name.Equals(parameter.Name) &&
                                        NameEquals(sym.Name, parameter.Name) &&
                                        type.Equals(parameter.Type, SymbolEqualityComparer.Default));
             if (result is not null)
@@ -230,7 +226,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         {
             if (ConstructorParams.HasValue)
             {
-                //var param = ConstructorParams.Value.FirstOrDefault(type => type.Name.Equals(name));
                 var param = ConstructorParams.Value.FirstOrDefault(type => NameEquals(type.Name, name));
                 return param != null;
             }
@@ -289,7 +284,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
 
             return false;
         }
-        
+
         /*private Dictionary<ISymbol, string> MatchContructorArguments()
         {
             IEnumerable<ConstructorDeclarationSyntax> ctors = default;
