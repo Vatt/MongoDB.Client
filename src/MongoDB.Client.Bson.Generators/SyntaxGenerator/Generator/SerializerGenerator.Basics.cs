@@ -350,6 +350,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.NameColon(IdentifierName(symbol.Name));
         }
+        public static NameColonSyntax NameColon(string name)
+        {
+            return SF.NameColon(IdentifierName(name));
+        }
         public static SwitchSectionSyntax SwitchSection(ExpressionSyntax labelExpr, BlockSyntax body)
         {
             var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(labelExpr));

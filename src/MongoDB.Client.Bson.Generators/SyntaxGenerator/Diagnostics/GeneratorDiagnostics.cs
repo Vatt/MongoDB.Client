@@ -15,10 +15,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics
         private static readonly string GeneratingDurationInfo = "MONGO05";
         private static readonly string UnsuportedOperationType = "MONGO06";
         private static readonly string UnsuportedByteArrayReprError = "MONGO07";
+        private static readonly string MatchConstructorParametersError = "MONGO08";
         //public static void Init(GeneratorExecutionContext ctx)
         //{
         //    _ctx = ctx;
         //}
+        public static void ReportMatchConstructorParametersError(ISymbol sym)
+        {
+            var message = "Can't match constructor parameters";
+            _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(UnhandledExceptionError, "Generation failed",
+                message, "SourceGenerator", DiagnosticSeverity.Error, true), sym.Locations[0]));
+        }
         public static void ReportUnsuportedByteArrayReprError(ISymbol decl, ITypeSymbol type)
         {
             var message = $"{decl.Name} has an unsupported binary data representation: {type.ToString()}";

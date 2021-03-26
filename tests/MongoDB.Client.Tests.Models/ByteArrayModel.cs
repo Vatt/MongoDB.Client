@@ -17,6 +17,8 @@ namespace MongoDB.Client.Tests.Models
 
         [BsonBinaryData(BinaryDataRepresentation.MD5)]
         public Memory<byte>? MD5MemoryProp { get; }
+        [BsonConstructor]
+        //public ByteArrayModel(byte[] ByteProp, Memory<byte> MemoryByteProp, byte[] MD5ByteProp, Memory<byte>? MD5MemoryProp)
         public ByteArrayModel(byte[] ByteProp, Memory<byte> MemoryByteProp, byte[] MD5ByteProp, Memory<byte>? MD5MemoryProp)
         {
             this.ByteProp = ByteProp;
@@ -24,7 +26,13 @@ namespace MongoDB.Client.Tests.Models
             this.MD5ByteProp = MD5ByteProp;
             this.MD5MemoryProp = MD5MemoryProp;
         }
-
+        public ByteArrayModel(int a, int b, int c)
+        {
+            this.ByteProp = null;
+            this.MemoryByteProp = null;
+            this.MD5ByteProp = null;
+            this.MD5MemoryProp = null;
+        }
         public static ByteArrayModel Create()
         {
             return new ByteArrayModel(

@@ -9,10 +9,10 @@ namespace MongoDB.Client.Tests.Models
         public int D { get; }
         public int E { get; }
 
-        public ConstrcutorOnlyModelBase(int D, int E)
+        public ConstrcutorOnlyModelBase(int dd, int ee)
         {
-            this.D = D;
-            this.E = E;
+            this.D = dd;
+            E = ee;
         }
     }
     [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters | GeneratorMode.IfConditions)]
@@ -23,11 +23,11 @@ namespace MongoDB.Client.Tests.Models
         public int? B { get; }
         public List<int>? C { get; }
 
-        public ConstrcutorOnlyModel(SomeEnum? SomeEnum, int A, int? B, int D, int E) : base(D, E)
+        public ConstrcutorOnlyModel(SomeEnum? someEnum, int a, int? b, int d, int e) : base(d, e)
         {
-            this.SomeEnum = SomeEnum;
-            this.A = A;
-            this.B = B;
+            SomeEnum = someEnum;
+            A = a;
+            B = b;
             C = null;
         }
 
