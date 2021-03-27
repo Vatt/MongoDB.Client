@@ -25,6 +25,7 @@ namespace MongoDB.Client.Tests.Serialization
         public string MyOtherVal { get; set; }
         public string MyAndVal { get; set; }
         public string MySomeValue { get; set; }
+        public string My { get; set; }
         public string A { get; set; }
 
         public override bool Equals(object obj)
@@ -35,7 +36,7 @@ namespace MongoDB.Client.Tests.Serialization
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(MyProperty, MyValue, MyOtherVal, MyAndVal, MySomeValue, A);
+            return HashCode.Combine(MyProperty, MyValue, MyOtherVal, MyAndVal, MySomeValue, A, My);
         }
 
         public bool Equals(Model2 other)
@@ -56,7 +57,8 @@ namespace MongoDB.Client.Tests.Serialization
                    MyOtherVal == other.MyOtherVal &&
                    MyAndVal == other.MyAndVal &&
                    MySomeValue == other.MySomeValue &&
-                   A == other.A;
+                   A == other.A &&
+                   My == other.My;
         }
     }
 

@@ -37,16 +37,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var docLenToken = Identifier("docLength");
             var unreadedToken = Identifier("unreaded");
             var endMarkerToken = Identifier("endMarker");
-            var bsonTypeToken = Identifier("bsonType");
-            var bsonNameToken = Identifier("bsonName");
+            
             StatementSyntax[] operations = default;
             switch (ctx.GeneratorMode.IfConditions)
             {
                 case false:
-                    operations = ContextTreeTryParseOperations(ctx, bsonTypeToken, bsonNameToken);
+                    operations = ContextTreeTryParseOperations(ctx, BsonTypeToken, BsonNameToken);
                     break;
                 case true:
-                    operations = Operations(ctx, bsonTypeToken, bsonNameToken);
+                    operations = Operations(ctx, BsonTypeToken, BsonNameToken);
                     break;
             }
             return SF.MethodDeclaration(
@@ -75,11 +74,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                   BinaryExprMinus(IdentifierName(docLenToken), NumericLiteralExpr(1))),
                            statement:
                               Block(
-                                  IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(bsonTypeToken))),
-                                  IfNotReturnFalse(TryGetCStringAsSpan(VarVariableDeclarationExpr(bsonNameToken))),
-                                  IfContinue(BinaryExprEqualsEquals(IdentifierName(bsonTypeToken), NumericLiteralExpr(10))),
+                                  IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(BsonTypeToken))),
+                                  IfNotReturnFalse(TryGetCStringAsSpan(VarVariableDeclarationExpr(BsonNameToken))),
+                                  IfContinue(BinaryExprEqualsEquals(IdentifierName(BsonTypeToken), NumericLiteralExpr(10))),
                                   operations,
-                                  IfNotReturnFalse(TrySkip(IdentifierName(bsonTypeToken))))),
+                                  IfNotReturnFalse(TrySkip(BsonTypeToken)))),
                           IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
                           SF.IfStatement(
                               condition:

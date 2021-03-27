@@ -23,7 +23,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics
         public static void ReportMatchConstructorParametersError(ISymbol sym)
         {
             var message = "Can't match constructor parameters";
-            _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(UnhandledExceptionError, "Generation failed",
+            _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(MatchConstructorParametersError, "Generation failed",
                 message, "SourceGenerator", DiagnosticSeverity.Error, true), sym.Locations[0]));
         }
         public static void ReportUnsuportedByteArrayReprError(ISymbol decl, ITypeSymbol type)

@@ -153,7 +153,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var caseOp = CreateCaseContext(group.Value, group.Key, offset);
                 root.Add(caseOp);
             }
-
             return GenerateRoot(ctx, root, bsonType, bsonName);
         }
         private static SwitchStatementSyntax GenerateSwitch(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
@@ -204,6 +203,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                             builder.AddRange(GenerateCondition(ctx, operation, bsonType, bsonName));
                             break;
                         case OpCtxType.Switch:
+                            builder.Add(IfBreak(BinaryExprLessThan(BsonNameLengthExpr, NumericLiteralExpr(operation.Offset!.Value))));
                             builder.Add(GenerateSwitch(ctx, operation, bsonType, bsonName));
                             break;
                         default:
@@ -244,10 +244,24 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var sections = ImmutableList.CreateBuilder<SwitchSectionSyntax>();
             foreach (var operation in host.InnerOperations.Where(op => op.Type == OpCtxType.Case))
             {
-                var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(NumericLiteralExpr(operation.Key.Value)));
                 sections.Add(GenerateCase(ctx, operation, bsonType, bsonName));
             }
-            return new[] { SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(host.Offset.Value)), sections) };
+
+            var offset = host.Offset.HasValue ? host.Offset.Value : 0;
+            if (host.Offset == 0)
+            {
+                return new[]
+                {
+                    SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(offset)), sections)
+                };
+            }
+            return new StatementSyntax[]
+            {
+                IfStatement(
+                    condition: BinaryExprLessThan(BsonNameLengthExpr, NumericLiteralExpr(offset)),
+                    statement: Block(IfNotReturnFalse(TrySkip(BsonTypeToken)), ContinueStatement)),
+                SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(host.Offset!.Value)), sections)
+            };
         }
     }
 }

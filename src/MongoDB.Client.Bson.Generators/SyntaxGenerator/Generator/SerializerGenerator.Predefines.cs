@@ -8,7 +8,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
     {
         public static readonly TypeSyntax BsonReaderType = SF.ParseTypeName("MongoDB.Client.Bson.Reader.BsonReader");
         public static readonly TypeSyntax BsonWriterType = SF.ParseTypeName("MongoDB.Client.Bson.Writer.BsonWriter");
-
+        public static SyntaxToken TrySkipLabel => Identifier("TRY_SKIP_LABEL");
         public static SyntaxToken NullableHasValueToken => Identifier("HasValue");
         public static SyntaxToken NullableValueToken => Identifier("Value");
         public static SyntaxToken ListAddToken => Identifier("Add");
@@ -20,5 +20,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static SyntaxToken BsonWriterToken => Identifier("writer");
         public static SyntaxToken TryParseOutVarToken => Identifier("message");
         public static SyntaxToken WriterInputVarToken => Identifier("message");
+        public static SyntaxToken BsonNameToken => Identifier("bsonName");
+        public static SyntaxToken BsonTypeToken => Identifier("bsonType");
     }
 }
