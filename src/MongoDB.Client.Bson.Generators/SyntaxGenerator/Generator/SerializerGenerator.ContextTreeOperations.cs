@@ -252,7 +252,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return new[]
                 {
-                    SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(offset)), sections)
+                    SwitchStatement(GetSpanElementUnsafe(bsonName, host.Offset!.Value), sections)
                 };
             }
             return new StatementSyntax[]
@@ -260,7 +260,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 IfStatement(
                     condition: BinaryExprLessThan(BsonNameLengthExpr, NumericLiteralExpr(offset)),
                     statement: Block(IfNotReturnFalse(TrySkip(BsonTypeToken)), ContinueStatement)),
-                SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(host.Offset!.Value)), sections)
+                SwitchStatement(GetSpanElementUnsafe(bsonName, host.Offset!.Value), sections)
             };
         }
     }
