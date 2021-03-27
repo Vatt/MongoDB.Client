@@ -153,25 +153,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var caseOp = CreateCaseContext(group.Value, group.Key, offset);
                 root.Add(caseOp);
             }
-            int minOffset = FindMinOffset(offset, root);
-            return GenerateRoot(minOffset, ctx, root, bsonType, bsonName);
-        }
-        private static int FindMinOffset(int minOffset, OperationContext ctx)
-        {
-            var min = minOffset;
-            if (ctx.Offset.HasValue && ctx.Offset.Value < min)
-            {
-                min = ctx.Offset.Value;
-            }
-            if(ctx.InnerOperations is null || ctx.InnerOperations.Count == 0)
-            {
-                return min;
-            }
-            foreach(var op in ctx.InnerOperations)
-            {
-                min = FindMinOffset(min, op);
-            }
-            return min;
+            return GenerateRoot(ctx, root, bsonType, bsonName);
         }
         private static SwitchStatementSyntax GenerateSwitch(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
         {
@@ -252,7 +234,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             GeneratorDiagnostics.ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
             return default;
         }
-        private static StatementSyntax[] GenerateRoot(int minimalOffset, ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
+        private static StatementSyntax[] GenerateRoot(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
         {
             if (host.InnerOperations.Where(op => op.Type == OpCtxType.Condition).FirstOrDefault() != default)
             {
@@ -264,7 +246,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(NumericLiteralExpr(operation.Key.Value)));
                 sections.Add(GenerateCase(ctx, operation, bsonType, bsonName));
             }
-            if (minimalOffset == 0)
+            if (host.Offset == 0)
             {
                 return new[]
                 {

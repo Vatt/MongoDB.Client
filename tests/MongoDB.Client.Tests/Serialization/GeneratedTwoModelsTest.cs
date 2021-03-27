@@ -10,7 +10,7 @@ namespace MongoDB.Client.Tests.Serialization
         [Fact]
         public async Task TwoModelsTest()
         {
-            var model = new Model1 { MyProperty = "MyProperty", MyValue = "MyValue", MyAndVal = "AndVal", MyOtherVal = "OtherVal", MySomeValue = "SomeValue", A = "A" };
+            var model = new Model1 { MyyProperty = "MyProperty", MyValue = "MyValue", MyyAndVal = "AndVal", MyyOtherVal = "OtherVal", MyySomeValue = "SomeValue", A = "A" };
             var result = await RoundTripAsync<Model1, Model2>(model);
 
             Assert.True(model.Equals(result));
@@ -20,11 +20,12 @@ namespace MongoDB.Client.Tests.Serialization
     [BsonSerializable]
     public partial class Model1 : IEquatable<Model1>, IEquatable<Model2>
     {
-        public string MyProperty { get; set; }
+        public string MyyProperty { get; set; }
         public string MyValue { get; set; }
-        public string MyOtherVal { get; set; }
-        public string MyAndVal { get; set; }
-        public string MySomeValue { get; set; }
+        public string MyyOtherVal { get; set; }
+        public string MyyAndVal { get; set; }
+        public string MyySomeValue { get; set; }
+        public string My { get; set; }
         public string A { get; set; }
 
         public override bool Equals(object obj)
@@ -35,39 +36,40 @@ namespace MongoDB.Client.Tests.Serialization
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(MyProperty, MyValue, MyOtherVal, MyAndVal, MySomeValue, A);
+            return HashCode.Combine(MyyProperty, MyValue, MyyOtherVal, MyyAndVal, MyySomeValue, A, My);
         }
 
         public bool Equals(Model2 other)
         {
             return other is not null &&
-                   MyProperty == other.MyProperty &&
+                   MyyProperty == other.MyyProperty &&
                    MyValue == other.MyValue &&
-                   MyOtherVal == other.MyOtherVal &&
-                   MyAndVal == other.MyAndVal &&
-                   MySomeValue == other.MySomeValue;
+                   MyyOtherVal == other.MyyOtherVal &&
+                   MyyAndVal == other.MyyAndVal &&
+                   MyySomeValue == other.MyySomeValue;
         }
 
         public bool Equals(Model1 other)
         {
             return other is not null &&
-                   MyProperty == other.MyProperty &&
+                   MyyProperty == other.MyyProperty &&
                    MyValue == other.MyValue &&
-                   MyOtherVal == other.MyOtherVal &&
-                   MyAndVal == other.MyAndVal &&
-                   MySomeValue == other.MySomeValue &&
-                   A == other.A;
+                   MyyOtherVal == other.MyyOtherVal &&
+                   MyyAndVal == other.MyyAndVal &&
+                   MyySomeValue == other.MyySomeValue &&
+                   A == other.A &&
+                   My == other.My;
         }
     }
 
     [BsonSerializable]
     public partial class Model2 : IEquatable<Model1>, IEquatable<Model2>
     {
-        public string MyProperty { get; set; }
+        public string MyyProperty { get; set; }
         public string MyValue { get; set; }
-        public string MyOtherVal { get; set; }
-        public string MyAndVal { get; set; }
-        public string MySomeValue { get; set; }
+        public string MyyOtherVal { get; set; }
+        public string MyyAndVal { get; set; }
+        public string MyySomeValue { get; set; }
 
         public override bool Equals(object obj)
         {
@@ -77,26 +79,26 @@ namespace MongoDB.Client.Tests.Serialization
         public bool Equals(Model2 other)
         {
             return other is not null &&
-                   MyProperty == other.MyProperty &&
+                   MyyProperty == other.MyyProperty &&
                    MyValue == other.MyValue &&
-                   MyOtherVal == other.MyOtherVal &&
-                   MyAndVal == other.MyAndVal &&
-                   MySomeValue == other.MySomeValue;
+                   MyyOtherVal == other.MyyOtherVal &&
+                   MyyAndVal == other.MyyAndVal &&
+                   MyySomeValue == other.MyySomeValue;
         }
 
         public bool Equals(Model1 other)
         {
             return other is not null &&
-                   MyProperty == other.MyProperty &&
+                   MyyProperty == other.MyyProperty &&
                    MyValue == other.MyValue &&
-                   MyOtherVal == other.MyOtherVal &&
-                   MyAndVal == other.MyAndVal &&
-                   MySomeValue == other.MySomeValue;
+                   MyyOtherVal == other.MyyOtherVal &&
+                   MyyAndVal == other.MyyAndVal &&
+                   MyySomeValue == other.MyySomeValue;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(MyProperty, MyValue);
+            return HashCode.Combine(MyyProperty, MyValue);
         }
     }
 }
