@@ -11,6 +11,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
     {
         public static readonly TypeSyntax VarType = SF.ParseTypeName("var");
         public static readonly ExpressionSyntax NewBsonObjectIdExpr = InvocationExpr(TypeFullName(BsonObjectId), SF.IdentifierName("NewObjectId"));
+        public static readonly ExpressionSyntax BsonNameLengthExpr = SimpleMemberAccess(BsonNameToken, Identifier("Length"));
         public static readonly GenericNameSyntax ReadOnlySpanByteName = GenericName(Identifier("ReadOnlySpan"), BytePredefinedType());
         public static readonly GenericNameSyntax SpanByteName = GenericName(Identifier("Span"), BytePredefinedType());
         public static readonly ContinueStatementSyntax ContinueStatement = SF.ContinueStatement();
@@ -18,6 +19,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static readonly StatementSyntax ReturnFalseStatement = ReturnStatement(SF.LiteralExpression(SyntaxKind.FalseLiteralExpression));
         public static readonly StatementSyntax ReturnNothingStatement = ReturnStatement();
         public static readonly SizeOfExpressionSyntax SizeOfInt32Expr = SizeOf(IntPredefinedType());
+        public static readonly BreakStatementSyntax BreakStatement = SF.BreakStatement();
         public static SyntaxToken SequenceEqualToken => SF.Identifier("SequenceEqual");
         public static ITypeSymbol ExtractTypeFromNullableIfNeed(ITypeSymbol original)
         {
@@ -148,6 +150,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static IfStatementSyntax IfGoto(ExpressionSyntax condition, SyntaxToken gotoLabel)
         {
             return SF.IfStatement(condition, SF.Block(Goto(gotoLabel)));
+        }
+        public static IfStatementSyntax IfBreak(ExpressionSyntax condition)
+        {
+            return SF.IfStatement(condition, SF.Block(BreakStatement));
         }
         public static ArrayCreationExpressionSyntax SingleDimensionByteArrayCreation(int size, SeparatedSyntaxList<ExpressionSyntax>? expressions = default)
         {
@@ -333,6 +339,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static BlockSyntax Block(params ExpressionSyntax[] expressions)
         {
             return SF.Block(expressions.Select(e => Statement(e)));
+        }
+        public static BlockSyntax Block(ExpressionSyntax expression, params StatementSyntax[] statements)
+        {
+            return SF.Block(Statement(expression)).AddStatements(statements);
         }
         public static BlockSyntax Block(ExpressionSyntax expr1, ExpressionSyntax expr2, StatementSyntax statement)
         {

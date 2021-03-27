@@ -130,7 +130,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return switchOp;
         }
-        private static StatementSyntax[] ContextTreeTryParseOperations(ContextCore ctx, SyntaxToken bsonType, SyntaxToken bsonName, out bool isNeedTryParseaLabel)
+        private static StatementSyntax[] ContextTreeTryParseOperations(ContextCore ctx, SyntaxToken bsonType, SyntaxToken bsonName)
         {
             var offset = 0;
             var canContinue = ContextTreeGroupMembers(offset, ctx.Members, out var conditions, out var groups);
@@ -153,8 +153,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var caseOp = CreateCaseContext(group.Value, group.Key, offset);
                 root.Add(caseOp);
             }
-
-            isNeedTryParseaLabel = root.Offset!.Value > 0;
             return GenerateRoot(ctx, root, bsonType, bsonName);
         }
         private static SwitchStatementSyntax GenerateSwitch(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
@@ -205,6 +203,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                             builder.AddRange(GenerateCondition(ctx, operation, bsonType, bsonName));
                             break;
                         case OpCtxType.Switch:
+                            builder.Add(IfBreak(BinaryExprLessThan(BsonNameLengthExpr, NumericLiteralExpr(operation.Offset!.Value))));
                             builder.Add(GenerateSwitch(ctx, operation, bsonType, bsonName));
                             break;
                         default:
@@ -245,7 +244,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var sections = ImmutableList.CreateBuilder<SwitchSectionSyntax>();
             foreach (var operation in host.InnerOperations.Where(op => op.Type == OpCtxType.Case))
             {
-                var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(NumericLiteralExpr(operation.Key.Value)));
                 sections.Add(GenerateCase(ctx, operation, bsonType, bsonName));
             }
 
@@ -261,8 +259,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return new StatementSyntax[]
                 {
-                    IfGoto(BinaryExprLessThan(SimpleMemberAccess(bsonName, Identifier("Length")), NumericLiteralExpr(offset)), TrySkipLabel),
-                    SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(host.Offset.Value)), sections)
+                    IfStatement(
+                        condition: BinaryExprLessThan(BsonNameLengthExpr, NumericLiteralExpr(offset)),
+                        statement: Block(IfNotReturnFalse(TrySkip(BsonTypeToken)), ContinueStatement)),
+                    SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(host.Offset!.Value)), sections)
                 };
             }
 
