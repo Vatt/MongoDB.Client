@@ -145,6 +145,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.IfStatement(condition, SF.Block(SF.ContinueStatement()));
         }
+        public static IfStatementSyntax IfGoto(ExpressionSyntax condition, SyntaxToken gotoLabel)
+        {
+            return SF.IfStatement(condition, SF.Block(Goto(gotoLabel)));
+        }
         public static ArrayCreationExpressionSyntax SingleDimensionByteArrayCreation(int size, SeparatedSyntaxList<ExpressionSyntax>? expressions = default)
         {
             var rank = new SyntaxList<ArrayRankSpecifierSyntax>(SF.ArrayRankSpecifier().AddSizes(NumericLiteralExpr(size)));
@@ -353,6 +357,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static NameColonSyntax NameColon(string name)
         {
             return SF.NameColon(IdentifierName(name));
+        }
+        public static LabeledStatementSyntax Label(SyntaxToken identifier, StatementSyntax lowerStatement)
+        {
+            return SF.LabeledStatement(identifier, lowerStatement);
+        }
+        public static GotoStatementSyntax Goto(SyntaxToken identifier)
+        {
+            return SF.GotoStatement(SyntaxKind.GotoStatement, IdentifierName(identifier));
         }
         public static SwitchSectionSyntax SwitchSection(ExpressionSyntax labelExpr, BlockSyntax body)
         {

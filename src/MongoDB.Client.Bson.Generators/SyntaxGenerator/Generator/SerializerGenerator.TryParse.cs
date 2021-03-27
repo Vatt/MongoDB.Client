@@ -79,7 +79,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                   IfNotReturnFalse(TryGetCStringAsSpan(VarVariableDeclarationExpr(bsonNameToken))),
                                   IfContinue(BinaryExprEqualsEquals(IdentifierName(bsonTypeToken), NumericLiteralExpr(10))),
                                   operations,
-                                  IfNotReturnFalse(TrySkip(IdentifierName(bsonTypeToken))))),
+                                  Label(TrySkipLabel, IfNotReturnFalse(TrySkip(IdentifierName(bsonTypeToken)))))
+                                  ),
                           IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
                           SF.IfStatement(
                               condition:
