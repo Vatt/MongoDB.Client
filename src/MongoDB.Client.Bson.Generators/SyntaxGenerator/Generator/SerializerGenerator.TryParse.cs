@@ -39,11 +39,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var endMarkerToken = Identifier("endMarker");
             var bsonTypeToken = Identifier("bsonType");
             var bsonNameToken = Identifier("bsonName");
+            bool isNeedTryParseaLabel = false;
             StatementSyntax[] operations = default;
             switch (ctx.GeneratorMode.IfConditions)
             {
                 case false:
-                    operations = ContextTreeTryParseOperations(ctx, bsonTypeToken, bsonNameToken);
+                    operations = ContextTreeTryParseOperations(ctx, bsonTypeToken, bsonNameToken, out isNeedTryParseaLabel);
                     break;
                 case true:
                     operations = Operations(ctx, bsonTypeToken, bsonNameToken);
@@ -79,7 +80,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                   IfNotReturnFalse(TryGetCStringAsSpan(VarVariableDeclarationExpr(bsonNameToken))),
                                   IfContinue(BinaryExprEqualsEquals(IdentifierName(bsonTypeToken), NumericLiteralExpr(10))),
                                   operations,
-                                  Label(TrySkipLabel, IfNotReturnFalse(TrySkip(IdentifierName(bsonTypeToken)))))
+                                  isNeedTryParseaLabel
+                                      ? Label(TrySkipLabel, IfNotReturnFalse(TrySkip(IdentifierName(bsonTypeToken))))
+                                      : IfNotReturnFalse(TrySkip(IdentifierName(bsonTypeToken))))
                                   ),
                           IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
                           SF.IfStatement(

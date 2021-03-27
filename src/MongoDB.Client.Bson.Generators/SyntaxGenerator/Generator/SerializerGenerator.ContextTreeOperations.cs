@@ -130,7 +130,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return switchOp;
         }
-        private static StatementSyntax[] ContextTreeTryParseOperations(ContextCore ctx, SyntaxToken bsonType, SyntaxToken bsonName)
+        private static StatementSyntax[] ContextTreeTryParseOperations(ContextCore ctx, SyntaxToken bsonType, SyntaxToken bsonName, out bool isNeedTryParseaLabel)
         {
             var offset = 0;
             var canContinue = ContextTreeGroupMembers(offset, ctx.Members, out var conditions, out var groups);
@@ -153,6 +153,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var caseOp = CreateCaseContext(group.Value, group.Key, offset);
                 root.Add(caseOp);
             }
+
+            isNeedTryParseaLabel = root.Offset!.Value > 0;
             return GenerateRoot(ctx, root, bsonType, bsonName);
         }
         private static SwitchStatementSyntax GenerateSwitch(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
@@ -246,18 +248,20 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(NumericLiteralExpr(operation.Key.Value)));
                 sections.Add(GenerateCase(ctx, operation, bsonType, bsonName));
             }
+
+            var offset = host.Offset.HasValue ? host.Offset.Value : 0;
             if (host.Offset == 0)
             {
                 return new[]
                 {
-                    SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(host.Offset.Value)), sections)
+                    SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(offset)), sections)
                 };
             }
             else
             {
                 return new StatementSyntax[]
                 {
-                    IfGoto(BinaryExprLessThan(SimpleMemberAccess(bsonName, Identifier("Length")), NumericLiteralExpr(minimalOffset)), TrySkipLabel),
+                    IfGoto(BinaryExprLessThan(SimpleMemberAccess(bsonName, Identifier("Length")), NumericLiteralExpr(offset)), TrySkipLabel),
                     SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(host.Offset.Value)), sections)
                 };
             }
