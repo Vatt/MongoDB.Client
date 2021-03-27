@@ -166,7 +166,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 GeneratorDiagnostics.ReportGenerationContextTreeError();
             }
-            return SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(host.Offset.Value)), sections);
+            return SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(host.Offset!.Value)), sections);
         }
         private static SwitchSectionSyntax GenerateCase(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
         {
@@ -183,11 +183,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     goto RETURN;
                 }
-                else if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
+
+                if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
                 {
                     goto RETURN;
                 }
-                else if (TryGenerateTryParseBson(member, bsonName, builder))
+
+                if (TryGenerateTryParseBson(member, bsonName, builder))
                 {
                     goto RETURN;
                 }
@@ -224,11 +226,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return builder.ToArray();
             }
-            else if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
+
+            if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
             {
                 return builder.ToArray();
             }
-            else if (TryGenerateTryParseBson(member, bsonName, builder))
+
+            if (TryGenerateTryParseBson(member, bsonName, builder))
             {
                 return builder.ToArray();
             }
@@ -237,7 +241,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         private static StatementSyntax[] GenerateRoot(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
         {
-            if (host.InnerOperations.Where(op => op.Type == OpCtxType.Condition).FirstOrDefault() != default)
+            if (host.InnerOperations.FirstOrDefault(op => op.Type == OpCtxType.Condition) != default)
             {
                 GeneratorDiagnostics.ReportGenerationContextTreeError(nameof(GenerateRoot));
             }
@@ -247,7 +251,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 sections.Add(GenerateCase(ctx, operation, bsonType, bsonName));
             }
 
-            var offset = host.Offset.HasValue ? host.Offset.Value : 0;
+            var offset = host.Offset ?? 0;
             if (host.Offset == 0)
             {
                 return new[]

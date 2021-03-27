@@ -37,7 +37,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var docLenToken = Identifier("docLength");
             var unreadedToken = Identifier("unreaded");
             var endMarkerToken = Identifier("endMarker");
-            
+
             StatementSyntax[] operations = default;
             switch (ctx.GeneratorMode.IfConditions)
             {
@@ -108,7 +108,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             if (ctx.HavePrimaryConstructor)
             {
                 List<ArgumentSyntax> args = new();
-                var constructorParams = ctx.ConstructorParams;
                 var assignments = new List<ExpressionStatementSyntax>();
                 foreach (var member in ctx.Members)
                 {

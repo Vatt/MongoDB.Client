@@ -1,7 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
@@ -15,24 +13,24 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
 
         public static ExpressionSyntax MemoryMarshalGetArrayDataReference(SyntaxToken arrayToken)
-        { 
+        {
             return InvocationExpr(MemoryMarshalToken, GenericName(Identifier("GetArrayDataReference"), BytePredefinedType()), Argument(arrayToken));
         }
         public static ExpressionSyntax MemoryMarshalGetReference(SyntaxToken spanToken)
-        { 
-            return InvocationExpr(MemoryMarshalToken, Identifier("GetReference") , Argument(spanToken));
+        {
+            return InvocationExpr(MemoryMarshalToken, Identifier("GetReference"), Argument(spanToken));
         }
 
         public static ExpressionSyntax GetSpanElementUnsafe(SyntaxToken span, int index)
         {
             if (index == 0)
             {
-                return MemoryMarshalGetReference(span); 
+                return MemoryMarshalGetReference(span);
             }
             return InvocationExpr(
-                UnsafeToken, 
+                UnsafeToken,
                 UnsafeAddToken,
-                RefArgument(MemoryMarshalGetReference(span)), 
+                RefArgument(MemoryMarshalGetReference(span)),
                 Argument(CastToNInt(NumericLiteralExpr(index))));
         }
     }
