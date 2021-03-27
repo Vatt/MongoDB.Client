@@ -37,7 +37,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var docLenToken = Identifier("docLength");
             var unreadedToken = Identifier("unreaded");
             var endMarkerToken = Identifier("endMarker");
-            
+
             StatementSyntax[] operations = default;
             switch (ctx.GeneratorMode.IfConditions)
             {
@@ -67,23 +67,20 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                      DeclareTempVariables(ctx),
                      IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(docLenToken))),
                      VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemainingExpr, SizeOfInt32Expr)),
-                       SF.WhileStatement(
-                           condition:
-                              BinaryExprLessThan(
-                                  BinaryExprMinus(IdentifierName(unreadedToken), ReaderRemainingExpr),
-                                  BinaryExprMinus(IdentifierName(docLenToken), NumericLiteralExpr(1))),
-                           statement:
-                              Block(
-                                  IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(BsonTypeToken))),
-                                  IfNotReturnFalse(TryGetCStringAsSpan(VarVariableDeclarationExpr(BsonNameToken))),
-                                  IfContinue(BinaryExprEqualsEquals(IdentifierName(BsonTypeToken), NumericLiteralExpr(10))),
-                                  operations,
-                                  IfNotReturnFalse(TrySkip(BsonTypeToken)))),
-                          IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
-                          SF.IfStatement(
-                              condition:
-                                  BinaryExprNotEquals(endMarkerToken, NumericLiteralExpr((byte)'\x00')),
-                              statement: Block(SerializerEndMarkerException(declaration, IdentifierName(endMarkerToken)))))
+                     SF.WhileStatement(
+                         BinaryExprLessThan(
+                             BinaryExprMinus(IdentifierName(unreadedToken), ReaderRemainingExpr),
+                             BinaryExprMinus(IdentifierName(docLenToken), NumericLiteralExpr(1))),
+                         Block(
+                             IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(BsonTypeToken))),
+                             IfNotReturnFalse(TryGetCStringAsSpan(VarVariableDeclarationExpr(BsonNameToken))),
+                             IfContinue(BinaryExprEqualsEquals(IdentifierName(BsonTypeToken), NumericLiteralExpr(10))),
+                             operations,
+                             IfNotReturnFalse(TrySkip(BsonTypeToken)))),
+                     IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
+                     SF.IfStatement(
+                         BinaryExprNotEquals(endMarkerToken, NumericLiteralExpr((byte)'\x00')),
+                         Block(SerializerEndMarkerException(declaration, IdentifierName(endMarkerToken)))))
                         .AddStatements(CreateMessage(ctx))
                         .AddStatements(ReturnTrueStatement));
         }
@@ -111,7 +108,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             if (ctx.HavePrimaryConstructor)
             {
                 List<ArgumentSyntax> args = new();
-                var constructorParams = ctx.ConstructorParams;
                 var assignments = new List<ExpressionStatementSyntax>();
                 foreach (var member in ctx.Members)
                 {

@@ -48,6 +48,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member);
         }
+        public static MemberAccessExpressionSyntax SimpleMemberAccess(ExpressionSyntax source, GenericNameSyntax member)
+        {
+            return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member);
+        }
         public static MemberAccessExpressionSyntax SimpleMemberAccess(ExpressionSyntax source, SyntaxToken member)
         {
             return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, IdentifierName(member));
@@ -92,6 +96,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static ExpressionSyntax InvocationExpr(SyntaxToken source, SyntaxToken member, params ArgumentSyntax[] args)
         {
             return InvocationExpr(IdentifierName(source), IdentifierName(member), args);
+        }
+        public static ExpressionSyntax InvocationExpr(SyntaxToken source, GenericNameSyntax member, params ArgumentSyntax[] args)
+        {
+            return SF.InvocationExpression(SimpleMemberAccess(IdentifierName(source), member), SF.ArgumentList().AddArguments(args));
         }
         public static ExpressionSyntax InvocationExpr(ExpressionSyntax source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
         {
@@ -244,6 +252,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return SF.Token(SyntaxKind.ReadOnlyKeyword);
         }
         public static PredefinedTypeSyntax IntPredefinedType()
+        {
+            return SF.PredefinedType(IntKeyword());
+        }
+        public static PredefinedTypeSyntax NativeIntPredefinedType()
         {
             return SF.PredefinedType(IntKeyword());
         }

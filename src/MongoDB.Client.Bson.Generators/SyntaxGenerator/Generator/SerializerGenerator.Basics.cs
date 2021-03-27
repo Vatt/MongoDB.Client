@@ -66,6 +66,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.CastExpression(IntPredefinedType(), expr);
         }
+        public static CastExpressionSyntax CastToNInt(ExpressionSyntax expr)
+        {
+            return SF.CastExpression(IdentifierName("nint"), expr);
+        }
         public static CastExpressionSyntax Cast(TypeSyntax type, ExpressionSyntax expr)
         {
             return SF.CastExpression(type, expr);

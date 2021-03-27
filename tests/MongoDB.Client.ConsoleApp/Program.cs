@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -18,30 +20,9 @@ namespace MongoDB.Client.ConsoleApp
         {
 
             //await LoadTest<GeoIp>(1024*1024, new[] { 512 });
-            // await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, true);
+             await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, true);
             //await TestTransaction();
             //await TestStandalone();
-            JsonTest();
-            Console.WriteLine("Done");
-        }
-
-        private class JsonDto
-        {
-            public int Ab { get; }
-            public int AA { get; }
-
-            [JsonConstructor]
-            public JsonDto(int Aa, int a_b)
-            {
-                this.Ab = Aa;
-                this.AA = a_b;
-            }
-        }
-
-        public static void JsonTest()
-        {
-            var ser = JsonSerializer.Serialize(new JsonDto(42, 24));
-            var deser = JsonSerializer.Deserialize<JsonDto>(ser);
         }
         static async Task TestTransaction()
         {
