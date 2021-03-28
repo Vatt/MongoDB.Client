@@ -140,9 +140,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         private static MethodDeclarationSyntax ReadArrayMethod(MemberContext ctx, ITypeSymbol type)
         {
-            var docLenToken = Identifier("arrayDocLength");
-            var unreadedToken = Identifier("arrayUnreaded");
-            var endMarkerToken = Identifier("arrayEndMarker");
             var bsonTypeToken = Identifier("arrayBsonType");
             var bsonNameToken = Identifier("arrayBsonName");
             var outMessage = Identifier("array");
@@ -151,8 +148,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             var typeArg = (type as INamedTypeSymbol).TypeArguments[0];
             var trueTypeArg = ExtractTypeFromNullableIfNeed(typeArg);
-
-            //ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
             if (TryGenerateSimpleReadOpereation(ctx, trueTypeArg, tempArrayRead, bsonTypeToken, tempArray, builder))
             {
@@ -169,6 +164,16 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             GeneratorDiagnostics.ReportUnsuporterTypeError(ctx.NameSym, trueTypeArg);
         RETURN:
+            var opCtx = new CollectionReadWriteContext()
+            {
+                Declaration = ctx.Root.Declaration,
+                BsonTypeToken = bsonTypeToken,
+                BsonNameReadOperationExpr = TrySkipCStringExpr,
+                OutMessageToken = outMessage,
+                BsonValueReadOperation = builder,
+                TempCollection = tempArray,
+                LocalCollectionCreateExpr = ObjectCreation(TypeFullName(System_Collections_Generic_List_T.Construct(typeArg)))
+            };
             return SF.MethodDeclaration(
                     attributeLists: default,
                     modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()),
@@ -177,41 +182,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     identifier: ReadArrayMethodName(ctx.NameSym, type),
                     parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken),
                                                  OutParameter(IdentifierName(type.ToString()), outMessage)),
-                    body: default,
+                    body: CollectionTryParseBody(opCtx),
                     constraintClauses: default,
                     expressionBody: default,
                     typeParameterList: default,
-                    semicolonToken: default)
-                .WithBody(
-                   Block(
-                       SimpleAssignExprStatement(outMessage, DefaultLiteralExpr()),
-                       VarLocalDeclarationStatement(tempArray, ObjectCreation(TypeFullName(System_Collections_Generic_List_T.Construct(typeArg)))),
-                       IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(docLenToken))),
-                       VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemainingExpr, SizeOfInt32Expr)),
-                       SF.WhileStatement(
-                           condition:
-                               BinaryExprLessThan(
-                                   BinaryExprMinus(IdentifierName(unreadedToken), ReaderRemainingExpr),
-                                   BinaryExprMinus(IdentifierName(docLenToken), NumericLiteralExpr(1))),
-                           statement:
-                               Block(
-                                   IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(bsonTypeToken))),
-                                   IfNotReturnFalse(TrySkipCStringExpr),
-                                   IfStatement(
-                                       condition: BinaryExprEqualsEquals(bsonTypeToken, NumericLiteralExpr(10)),
-                                       statement: Block(
-                                           InvocationExprStatement(tempArray, ListAddToken, Argument(DefaultLiteralExpr())),
-                                           ContinueStatement
-                                           )),
-                                   builder.ToArray()
-                                   )),
-                       IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
-                       IfStatement(
-                           BinaryExprNotEquals(endMarkerToken, NumericLiteralExpr((byte)'\x00')),
-                           Block(Statement(SerializerEndMarkerException(ctx.Root.Declaration, IdentifierName(endMarkerToken))))),
-                       SimpleAssignExprStatement(IdentifierName(outMessage), tempArray),
-                       ReturnTrueStatement
-                       ));
+                    semicolonToken: default);
         }
 
         private static MethodDeclarationSyntax WriteArrayMethod(MemberContext ctx, ITypeSymbol type)
