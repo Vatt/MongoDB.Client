@@ -59,8 +59,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         .AddMembers(GenerateEnumsStaticNamesSpansIfHave(ctx))
                         .AddMembers(TryParseMethod(ctx))
                         .AddMembers(WriteMethod(ctx))
-                        .AddMembers(GenerateReadArrayMethods(ctx))
-                        .AddMembers(GenerateWriteArrayMethods(ctx))
+                        .AddMembers(GenerateListCollectionArrayMethods(ctx))
+                        .AddMembers(GenerateWriteListCollectionMethods(ctx))
                         .AddMembers(GenerateReadStringReprEnumMethods(ctx))
                         .AddMembers(GenerateWriteStringReprEnumMethods(ctx));
                     break;
@@ -71,8 +71,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         .AddMembers(GenerateEnumsStaticNamesSpansIfHave(ctx))
                         .AddMembers(TryParseMethod(ctx))
                         .AddMembers(WriteMethod(ctx))
-                        .AddMembers(GenerateReadArrayMethods(ctx))
-                        .AddMembers(GenerateWriteArrayMethods(ctx))
+                        .AddMembers(GenerateListCollectionArrayMethods(ctx))
+                        .AddMembers(GenerateWriteListCollectionMethods(ctx))
                         .AddMembers(GenerateReadStringReprEnumMethods(ctx))
                         .AddMembers(GenerateWriteStringReprEnumMethods(ctx));
                     break;
@@ -84,8 +84,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         })
                         .AddRange(GenerateStaticNamesSpans(ctx))
                         .AddRange(GenerateEnumsStaticNamesSpansIfHave(ctx))
-                        .AddRange(GenerateReadArrayMethods(ctx))
-                        .AddRange(GenerateWriteArrayMethods(ctx))
+                        .AddRange(GenerateListCollectionArrayMethods(ctx))
+                        .AddRange(GenerateWriteListCollectionMethods(ctx))
                         .AddRange(GenerateReadStringReprEnumMethods(ctx))
                         .AddRange(GenerateWriteStringReprEnumMethods(ctx));
                     declaration = SF.RecordDeclaration(

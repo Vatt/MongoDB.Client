@@ -21,6 +21,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static INamedTypeSymbol System_Collections_Generic_IReadOnlyCollection_T => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyCollection`1")!;
         public static INamedTypeSymbol System_Collections_Generic_IReadOnlyList_T => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyList`1")!;
         public static INamedTypeSymbol System_Collections_Generic_ICollection_T => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.ICollection`1")!;
+        public static INamedTypeSymbol System_Collections_Generic_Dictionary_K_V => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.Dictionary`2")!;
+        public static INamedTypeSymbol System_Collections_Generic_IDictionary_K_V => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.IDictionary`2")!;
+        public static INamedTypeSymbol System_Collections_Generic_IReadOnlyDictionary_K_V => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyDictionary`2")!;
         public static ITypeSymbol ArrayByteTypeSym => BsonSerializerGenerator.Compilation.CreateArrayTypeSymbol(System_Byte);
         public static ITypeSymbol MemoryByteTypeSym => System_Memory.Construct(System_Byte);
         public static bool TryGetMetadata(ITypeSymbol source, out ISymbol result)
@@ -80,6 +83,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                    symbol.OriginalDefinition.Equals(System_Collections_Generic_IReadOnlyCollection_T, SymbolEqualityComparer.Default) ||
                    symbol.OriginalDefinition.Equals(System_Collections_Generic_IReadOnlyList_T, SymbolEqualityComparer.Default) ||
                    symbol.OriginalDefinition.Equals(System_Collections_Generic_ICollection_T, SymbolEqualityComparer.Default);
+        }
+        public static bool IsDictionaryCollection(ISymbol symbol)
+        {
+            return symbol.OriginalDefinition.Equals(System_Collections_Generic_Dictionary_K_V, SymbolEqualityComparer.Default) ||
+                   symbol.OriginalDefinition.Equals(System_Collections_Generic_IDictionary_K_V, SymbolEqualityComparer.Default) ||
+                   symbol.OriginalDefinition.Equals(System_Collections_Generic_IReadOnlyDictionary_K_V, SymbolEqualityComparer.Default);
         }
         public static bool IsBsonObjectId(ISymbol sym)
         {

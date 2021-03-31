@@ -117,7 +117,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 return Statements
                 (
                         Statement(Write_Type_Name(4, name)),
-                        InvocationExprStatement(WriteArrayMethodName(ctx, trueType), RefArgument(writerId), Argument(writeTarget))
+                        InvocationExprStatement(WriteListCollectionMethodName(ctx, trueType), RefArgument(writerId), Argument(writeTarget))
                 );
             }
             if (TryGenerateBsonWrite(name, nameSym, typeSym, writeTarget, out var bsonWriteExpr))

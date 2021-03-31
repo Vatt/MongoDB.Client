@@ -9,7 +9,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        public class CollectionReadWriteContext
+        public class CollectionWroteContext
         {
             public ISymbol Declaration;
             public ExpressionSyntax BsonNameReadOperationExpr;
@@ -19,7 +19,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             public SyntaxToken OutMessageToken;
             public SyntaxToken TempCollection;
         }
-        public static BlockSyntax CollectionTryParseBody(CollectionReadWriteContext ctx)
+        public class CollectionWriteContext
+        {
+            public ISymbol Declaration;
+            public ExpressionSyntax BsonNameWriteOperationExpr;
+            public ImmutableList<StatementSyntax>.Builder BsonValueWriteOperation;
+        }
+        public static BlockSyntax CollectionTryParseBody(CollectionWroteContext ctx)
         {
             var docLenToken = Identifier("collectionDocLength");
             var unreadedToken = Identifier("collectionUnreaded");
@@ -56,7 +62,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             );
         }
 
-        public static BlockSyntax CollectionWriteBody(CollectionReadWriteContext ctx)
+        public static BlockSyntax CollectionWriteBody(CollectionWroteContext ctx)
         {
             return default;
         }
