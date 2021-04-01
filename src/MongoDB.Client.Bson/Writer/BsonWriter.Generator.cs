@@ -194,7 +194,11 @@ namespace MongoDB.Client.Bson.Writer
             WriteCString(name);
         }
 
-
+        public void WriteBsonNull(string name)
+        {
+            WriteByte(10);
+            WriteCString(name);
+        }
 
         public void WriteBsonNull(int intName)
         {
@@ -240,7 +244,12 @@ namespace MongoDB.Client.Bson.Writer
             WriteCString(name);
             WriteString(value);
         }
-
+        public void Write_Type_Name_Value(string name, int value)
+        {
+            WriteByte(1);
+            WriteCString(name);
+            WriteInt32(value);
+        }
 
 
         public void Write_Type_Name_Value(int intName, double value)

@@ -59,6 +59,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetCStringAsSpan"), OutArgument(assignOrDecl));
         }
+        public static ExpressionSyntax TryGetCString(ExpressionSyntax assignOrDecl)
+        {
+            return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetCString"), OutArgument(assignOrDecl));
+        }
         public static ExpressionSyntax TryGetByte(ExpressionSyntax assignOrDecl)
         {
             return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetByte"), OutArgument(assignOrDecl));

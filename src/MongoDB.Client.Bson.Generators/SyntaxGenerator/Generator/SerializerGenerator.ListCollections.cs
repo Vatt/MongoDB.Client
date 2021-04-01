@@ -41,7 +41,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return Identifier(name);
         }
-        private static MethodDeclarationSyntax[] GenerateListCollectionArrayMethods(ContextCore ctx)
+        private static MethodDeclarationSyntax[] GenerateReadListCollectionMethods(ContextCore ctx)
         {
             List<MethodDeclarationSyntax> methods = new();
 
@@ -62,6 +62,36 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         type = type.TypeArguments[0] as INamedTypeSymbol;
                         //if (type is null || type.TypeArguments.IsEmpty)
                         if (type is null || (IsListCollection(type) == false))
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return methods.ToArray();
+        }
+        private static MethodDeclarationSyntax[] GenerateReadDictionaryMethods(ContextCore ctx)
+        {
+            List<MethodDeclarationSyntax> methods = new();
+
+            foreach (var member in ctx.Members)
+            {
+                if (IsDictionaryCollection(member.TypeSym))
+                {
+                    var type = member.TypeSym as INamedTypeSymbol;
+                    if (type is null)
+                    {
+                        methods.Add(ReadDictionaryMethod(member, member.TypeSym));
+                        break;
+                    }
+                    type = member.TypeSym as INamedTypeSymbol;
+                    while (true)
+                    {
+                        methods.Add(ReadDictionaryMethod(member, type));
+                        type = type.TypeArguments[1] as INamedTypeSymbol;
+                        //if (type is null || type.TypeArguments.IsEmpty)
+                        if (type is null || (IsDictionaryCollection(type) == false))
                         {
                             break;
                         }
@@ -109,7 +139,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             builder.IfNotReturnFalseElse(condition: operation,
                                          @else:
                                             Block(
-                                                InvocationExprStatement(outMessage, ListAddToken, Argument(tempVar != null ? tempVar : IdentifierName(readTarget))),
+                                                InvocationExprStatement(outMessage, CollectionAddToken, Argument(tempVar != null ? tempVar : IdentifierName(readTarget))),
                                                 ContinueStatement));
             return true;
         }
@@ -135,7 +165,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             var operation = InvocationExpr(IdentifierName(callType.ToString()), TryParseBsonToken, RefArgument(BsonReaderToken), OutArgument(TypedVariableDeclarationExpr(TypeFullName(outArgType), readTarget)));
             builder.IfNotReturnFalseElse(condition: operation,
-                                         @else: Block(InvocationExprStatement(outMessage, ListAddToken, Argument(readTarget)), ContinueStatement));
+                                         @else: Block(InvocationExprStatement(outMessage, CollectionAddToken, Argument(readTarget)), ContinueStatement));
             return true;
         }
         private static MethodDeclarationSyntax ReadArrayMethod(MemberContext ctx, ITypeSymbol type)
@@ -164,7 +194,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             if (TryGetEnumReadOperation(tempArrayRead, ctx.NameSym, trueTypeArg, true, out var enumOp))
             {
-                builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(tempArray, ListAddToken, Argument(enumOp.TempExpr))));
+                builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(tempArray, CollectionAddToken, Argument(enumOp.TempExpr))));
                 goto RETURN;
             }
             GeneratorDiagnostics.ReportUnsuporterTypeError(ctx.NameSym, trueTypeArg);
@@ -200,7 +230,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                    IfStatement(
                                        condition: BinaryExprEqualsEquals(bsonTypeToken, NumericLiteralExpr(10)),
                                        statement: Block(
-                                           InvocationExprStatement(tempArray, ListAddToken, Argument(DefaultLiteralExpr())),
+                                           InvocationExprStatement(tempArray, CollectionAddToken, Argument(DefaultLiteralExpr())),
                                            ContinueStatement
                                            )),
                                    builder.ToArray()

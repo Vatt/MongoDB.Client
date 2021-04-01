@@ -35,7 +35,7 @@ namespace MongoDB.Client.Tests.Serialization
     {
         public string Value { get; set; }
 
-        [BsonSerializer(typeof(DictionarySerializer))]
+        //[BsonSerializer(typeof(DictionarySerializer))]
         public Dictionary<string, string> Data { get; set; }
 
         public override bool Equals(object obj)

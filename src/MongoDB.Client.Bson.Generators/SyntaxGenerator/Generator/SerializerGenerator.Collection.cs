@@ -48,7 +48,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         IfStatement(
                             condition: BinaryExprEqualsEquals(ctx.BsonTypeToken, NumericLiteralExpr(10)),
                             statement: Block(
-                                InvocationExprStatement(ctx.TempCollection, ListAddToken, Argument(DefaultLiteralExpr())),
+                                InvocationExprStatement(ctx.TempCollection, CollectionAddToken, Argument(DefaultLiteralExpr())),
                                 ContinueStatement
                             )),
                         ctx.BsonValueReadOperation

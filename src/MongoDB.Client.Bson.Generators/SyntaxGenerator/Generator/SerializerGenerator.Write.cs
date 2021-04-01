@@ -120,6 +120,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         InvocationExprStatement(WriteListCollectionMethodName(ctx, trueType), RefArgument(writerId), Argument(writeTarget))
                 );
             }
+            if (trueType is INamedTypeSymbol namedType1 && IsDictionaryCollection(namedType1))
+            {
+                return Statements
+                (
+                    Statement(Write_Type_Name(3, name)),
+                    InvocationExprStatement(WriteDictionaryMethodName(ctx, trueType), RefArgument(writerId), Argument(writeTarget))
+                );
+            }
             if (TryGenerateBsonWrite(name, nameSym, typeSym, writeTarget, out var bsonWriteExpr))
             {
                 return bsonWriteExpr.ToArray();
