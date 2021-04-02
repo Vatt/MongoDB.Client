@@ -244,10 +244,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var checkpoint = Identifier("checkpoint");
             var reserved = Identifier("reserved");
             var docLength = Identifier("docLength");
-            var array = Identifier("collection");
-            var loopItem = Identifier("item");
-            var keyExpr = Identifier("item.Key");
-            var valueExpr = Identifier("item.Value");
+            var collection = Identifier("collection");
+            var keyToken = Identifier("key");
+            var valueToken = Identifier("value");
             var typeArg = (trueType as INamedTypeSymbol).TypeArguments[1];
 
             var writeOperation = ImmutableList.CreateBuilder<StatementSyntax>();
@@ -255,28 +254,22 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             if (typeArg.IsReferenceType)
             {
                 writeOperation.IfStatement(
-                            condition: BinaryExprEqualsEquals(valueExpr, NullLiteralExpr()),
-                            statement: Block(WriteBsonNull(keyExpr)),
-                            @else: Block(WriteOperation(ctx, keyExpr, ctx.NameSym, typeArg, BsonWriterToken, IdentifierName(valueExpr))));
+                            condition: BinaryExprEqualsEquals(valueToken, NullLiteralExpr()),
+                            statement: Block(WriteBsonNull(keyToken)),
+                            @else: Block(WriteOperation(ctx, keyToken, ctx.NameSym, typeArg, BsonWriterToken, IdentifierName(valueToken))));
             }
             else if (typeArg.NullableAnnotation == NullableAnnotation.Annotated && typeArg.IsValueType)
             {
-                var operation = WriteOperation(ctx, keyExpr, ctx.NameSym, typeArg, BsonWriterToken, SimpleMemberAccess(valueExpr, NullableValueToken));
+                var operation = WriteOperation(ctx, keyToken, ctx.NameSym, typeArg, BsonWriterToken, SimpleMemberAccess(valueToken, NullableValueToken));
                 writeOperation.IfStatement(
-                            condition: BinaryExprEqualsEquals(SimpleMemberAccess(valueExpr, NullableHasValueToken), FalseLiteralExpr),
-                            statement: Block(WriteBsonNull(keyExpr)),
+                            condition: BinaryExprEqualsEquals(SimpleMemberAccess(valueToken, NullableHasValueToken), FalseLiteralExpr),
+                            statement: Block(WriteBsonNull(keyToken)),
                             @else: Block(operation));
             }
             else
             {
-                writeOperation.AddRange(WriteOperation(ctx, keyExpr, ctx.NameSym, typeArg, BsonWriterToken, IdentifierName(valueExpr)));
+                writeOperation.AddRange(WriteOperation(ctx, keyToken, ctx.NameSym, typeArg, BsonWriterToken, IdentifierName(valueToken)));
             }
-
-            var loopStatement =  ForEachStatement(
-                    identifier: loopItem,
-                    expression: IdentifierName(array),
-                    body: Block(writeOperation));
-
             return SF.MethodDeclaration(
                     attributeLists: default,
                     modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()),
@@ -285,7 +278,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     identifier: WriteDictionaryMethodName(ctx, trueType),
                     parameterList: ParameterList(
                         RefParameter(BsonWriterType, BsonWriterToken),
-                        Parameter(TypeFullName(trueType), array)),
+                        Parameter(TypeFullName(trueType), collection)),
                     body: default,
                     constraintClauses: default,
                     expressionBody: default,
@@ -295,7 +288,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 Block(
                     VarLocalDeclarationStatement(checkpoint, WriterWrittenExpr),
                     VarLocalDeclarationStatement(reserved, WriterReserve(4)),
-                    loopStatement,
+                    ForEachVariableStatement(
+                        variable: VarValueTupleDeclarationExpr(keyToken, valueToken),
+                        expression: IdentifierName(collection),
+                        body: Block(writeOperation)),
                     WriteByteStatement((byte)'\x00'),
                     VarLocalDeclarationStatement(docLength, BinaryExprMinus(WriterWrittenExpr, IdentifierName(checkpoint))),
                     Statement(ReservedWrite(reserved, docLength)),

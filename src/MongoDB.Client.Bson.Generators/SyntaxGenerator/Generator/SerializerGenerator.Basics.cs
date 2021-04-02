@@ -62,6 +62,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return InvocationExpr(IdentifierName(spanName), SF.Identifier("SequenceEqual" + equalNum), SF.Argument(IdentifierName(otherSpanName)));
             // return InvocationExpr(IdentifierName(spanName), SequenceEqualToken, SF.Argument(IdentifierName(otherSpanName)));
         }
+
+        public static DeclarationExpressionSyntax VarValueTupleDeclarationExpr(params SyntaxToken[] tokens)
+        {
+            var designation = SF.ParenthesizedVariableDesignation(new SeparatedSyntaxList<VariableDesignationSyntax>().AddRange(tokens.Select(SF.SingleVariableDesignation)));
+            return VarVariableDeclarationExpr(designation);
+        }
         public static CastExpressionSyntax CastToInt(ExpressionSyntax expr)
         {
             return SF.CastExpression(IntPredefinedType(), expr);
@@ -240,6 +246,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.DeclarationExpression(VarType, SF.SingleVariableDesignation(varId));
         }
+        public static DeclarationExpressionSyntax VarVariableDeclarationExpr(VariableDesignationSyntax designator)
+        {
+            return SF.DeclarationExpression(VarType, designator);
+        }
         public static DeclarationExpressionSyntax IntVariableDeclarationExpr(SyntaxToken varId)
         {
             return SF.DeclarationExpression(IntPredefinedType(), SF.SingleVariableDesignation(varId));
@@ -271,6 +281,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static ForEachStatementSyntax ForEachStatement(SyntaxToken identifier, ExpressionSyntax expression, BlockSyntax body)
         {
             return SF.ForEachStatement(VarType, identifier, expression, body);
+        }
+        public static ForEachVariableStatementSyntax ForEachVariableStatement(ExpressionSyntax variable, ExpressionSyntax expression, BlockSyntax body)
+        {
+            return SF.ForEachVariableStatement(variable, expression, body);
         }
         public static ElementAccessExpressionSyntax ElementAccessExpr(ExpressionSyntax target, SyntaxToken index)
         {
