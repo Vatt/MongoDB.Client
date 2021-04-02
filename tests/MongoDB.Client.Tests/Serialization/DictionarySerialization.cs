@@ -22,7 +22,13 @@ namespace MongoDB.Client.Tests.Serialization
                     ["key1"] = "value1",
                     ["key2"] = "value2",
                     ["key3"] = "value3",
-                }
+                },
+                NullableData = new Dictionary<string, int?>
+                {
+                ["key1"] = 1,
+                ["key2"] = 2,
+                ["key3"] = 3,
+            }
             };
             var result = await RoundTripAsync(model);
 
@@ -35,8 +41,9 @@ namespace MongoDB.Client.Tests.Serialization
     {
         public string Value { get; set; }
 
-        [BsonSerializer(typeof(DictionarySerializer))]
+        //[BsonSerializer(typeof(DictionarySerializer))]
         public Dictionary<string, string> Data { get; set; }
+        public Dictionary<string, int?>? NullableData { get; set; }
 
         public override bool Equals(object obj)
         {
@@ -50,7 +57,7 @@ namespace MongoDB.Client.Tests.Serialization
             {
                 return false;
             }
-            if (Data.Count != other.Data.Count)
+            if (Data.Count != other.Data.Count && NullableData!.Count != other.NullableData!.Count)
             {
                 return false;
             }
@@ -62,13 +69,19 @@ namespace MongoDB.Client.Tests.Serialization
                     return false;
                 }
             }
-
+            foreach (var (key, value) in NullableData!)
+            {
+                if (other.NullableData!.TryGetValue(key, out var otherValue) == false || value != otherValue)
+                {
+                    return false;
+                }
+            }
             return true;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Value, Data);
+            return HashCode.Combine(Value, Data, NullableData);
         }
     }
 

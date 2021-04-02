@@ -11,7 +11,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static SyntaxToken TrySkipLabel => Identifier("TRY_SKIP_LABEL");
         public static SyntaxToken NullableHasValueToken => Identifier("HasValue");
         public static SyntaxToken NullableValueToken => Identifier("Value");
-        public static SyntaxToken ListAddToken => Identifier("Add");
+        public static SyntaxToken CollectionAddToken => Identifier("Add");
         public static SyntaxToken ListCountToken => Identifier("Count");
 
         public static SyntaxToken WriteBsonToken => Identifier("WriteBson");

@@ -12,31 +12,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
     {
         public static SyntaxToken TryGetSerializerToken = Identifier("TryGetSerializer");
         public static ExpressionSyntax SerializerMapId = IdentifierName("MongoDB.Client.Bson.Serialization.SerializersMap");
-        public static StatementSyntax[] OtherTryParseBson(MemberContext member)
-        {
-            var serializerIdentifier = $"{member.NameSym.Name}Serializer";
-            var genericName = GenericName(TryGetSerializerToken, TypeFullName(member.TypeSym));
-            var serializersMapCall = InvocationExpr(SerializerMapId,
-                                                    genericName,
-                                                    OutArgument(VarVariableDeclarationExpr(Identifier(serializerIdentifier))));
-            var serializerTryParse = InvocationExpr(IdentifierName(serializerIdentifier), TryParseBsonToken, RefArgument(BsonReaderToken), OutArgument(IdentifierName(member.AssignedVariableToken)));
-            return Statements(
-                IfNot(serializersMapCall, SerializerNotFoundException(member.TypeSym)),
-                IfNotReturnFalse(serializerTryParse));
-        }
-        public static StatementSyntax[] OtherWriteBson(MemberContext member)
-        {
-            var serializerIdentifier = $"{member.NameSym.Name}Serializer";
-            var genericName = GenericName(TryGetSerializerToken, TypeFullName(member.TypeSym));
-            var serializersMapCall = InvocationExpr(SerializerMapId,
-                                                    genericName,
-                                                    OutArgument(VarVariableDeclarationExpr(Identifier(serializerIdentifier))));
-            var sma = SimpleMemberAccess(WriterInputVarToken, IdentifierName(member.NameSym));
-            var serializerWrite = InvocationExprStatement(IdentifierName(serializerIdentifier), IdentifierName(WriteBsonToken), RefArgument(BsonWriterToken), Argument(sma));
-            return Statements(
-                IfNot(serializersMapCall, SerializerNotFoundException(member.TypeSym)),
-                serializerWrite);
-        }
         public static string SelfName(ISymbol symbol)
         {
             if (symbol is INamedTypeSymbol namedSym && namedSym.TypeArguments.Length > 0)
@@ -84,8 +59,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         .AddMembers(GenerateEnumsStaticNamesSpansIfHave(ctx))
                         .AddMembers(TryParseMethod(ctx))
                         .AddMembers(WriteMethod(ctx))
-                        .AddMembers(GenerateReadArrayMethods(ctx))
-                        .AddMembers(GenerateWriteArrayMethods(ctx))
+                        .AddMembers(GenerateReadListCollectionMethods(ctx))
+                        .AddMembers(GenerateReadDictionaryMethods(ctx))
+                        .AddMembers(GenerateWriteDictionaryMethods(ctx))
+                        .AddMembers(GenerateWriteListCollectionMethods(ctx))
                         .AddMembers(GenerateReadStringReprEnumMethods(ctx))
                         .AddMembers(GenerateWriteStringReprEnumMethods(ctx));
                     break;
@@ -96,8 +73,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         .AddMembers(GenerateEnumsStaticNamesSpansIfHave(ctx))
                         .AddMembers(TryParseMethod(ctx))
                         .AddMembers(WriteMethod(ctx))
-                        .AddMembers(GenerateReadArrayMethods(ctx))
-                        .AddMembers(GenerateWriteArrayMethods(ctx))
+                        .AddMembers(GenerateReadListCollectionMethods(ctx))
+                        .AddMembers(GenerateReadDictionaryMethods(ctx))
+                        .AddMembers(GenerateWriteDictionaryMethods(ctx))
+                        .AddMembers(GenerateWriteListCollectionMethods(ctx))
                         .AddMembers(GenerateReadStringReprEnumMethods(ctx))
                         .AddMembers(GenerateWriteStringReprEnumMethods(ctx));
                     break;
@@ -109,8 +88,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         })
                         .AddRange(GenerateStaticNamesSpans(ctx))
                         .AddRange(GenerateEnumsStaticNamesSpansIfHave(ctx))
-                        .AddRange(GenerateReadArrayMethods(ctx))
-                        .AddRange(GenerateWriteArrayMethods(ctx))
+                        .AddRange(GenerateReadListCollectionMethods(ctx))
+                        .AddRange(GenerateWriteListCollectionMethods(ctx))
+                        .AddRange(GenerateReadDictionaryMethods(ctx))
+                        .AddRange(GenerateWriteDictionaryMethods(ctx))
                         .AddRange(GenerateReadStringReprEnumMethods(ctx))
                         .AddRange(GenerateWriteStringReprEnumMethods(ctx));
                     declaration = SF.RecordDeclaration(
