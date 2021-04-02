@@ -112,21 +112,27 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     Statement(WriteGeneric(writeTarget, IdentifierName(identifierName)))
                 );
             }
-            if (trueType is INamedTypeSymbol namedType && IsListCollection(namedType))
+            if (trueType is INamedTypeSymbol namedType)
             {
-                return Statements
-                (
+                if (IsListCollection(namedType))
+                {
+                    return Statements
+                    (
                         Statement(Write_Type_Name(4, name)),
                         InvocationExprStatement(WriteListCollectionMethodName(ctx, trueType), RefArgument(writerId), Argument(writeTarget))
-                );
-            }
-            if (trueType is INamedTypeSymbol namedType1 && IsDictionaryCollection(namedType1))
-            {
-                return Statements
-                (
-                    Statement(Write_Type_Name(3, name)),
-                    InvocationExprStatement(WriteDictionaryMethodName(ctx, trueType), RefArgument(writerId), Argument(writeTarget))
-                );
+                    );
+                }
+
+                if (IsDictionaryCollection(namedType))
+                {
+                    return Statements
+                    (
+                        Statement(Write_Type_Name(3, name)),
+                        InvocationExprStatement(WriteDictionaryMethodName(ctx, trueType), RefArgument(writerId), Argument(writeTarget))
+                    );
+                }
+                
+                
             }
             if (TryGenerateBsonWrite(name, nameSym, typeSym, writeTarget, out var bsonWriteExpr))
             {

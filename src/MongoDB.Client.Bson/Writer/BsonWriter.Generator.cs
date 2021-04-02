@@ -244,21 +244,6 @@ namespace MongoDB.Client.Bson.Writer
             WriteCString(name);
             WriteDouble(value);
         }
-
-        public void Write_Type_Name_Value(string name, string value)
-        {
-            WriteByte(1);
-            WriteCString(name);
-            WriteString(value);
-        }
-        public void Write_Type_Name_Value(string name, int value)
-        {
-            WriteByte(1);
-            WriteCString(name);
-            WriteInt32(value);
-        }
-
-
         public void Write_Type_Name_Value(int intName, double value)
         {
             WriteByte(1);
@@ -301,7 +286,12 @@ namespace MongoDB.Client.Bson.Writer
             WriteIntIndex(intName);
             WriteString(value);
         }
-
+        public void Write_Type_Name_Value(string name, string value)
+        {
+            WriteByte(2);
+            WriteCString(name);
+            WriteString(value);
+        }
 
 
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, BsonDocument value)
@@ -504,7 +494,12 @@ namespace MongoDB.Client.Bson.Writer
             WriteIntIndex(intName);
             WriteInt32(value);
         }
-
+        public void Write_Type_Name_Value(string name, int value)
+        {
+            WriteByte(16);
+            WriteCString(name);
+            WriteInt32(value);
+        }
 
 
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, long value)

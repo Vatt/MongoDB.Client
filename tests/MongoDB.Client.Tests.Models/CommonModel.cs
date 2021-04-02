@@ -54,7 +54,7 @@ namespace MongoDB.Client.Tests.Models
         public ICollection<string> StringCollection { get; set; }
         public IReadOnlyCollection<string> StringReadOnlyCollection { get; set; }
         public IReadOnlyList<string> StringReadOnlyList { get; set; }
-
+        public Dictionary<string, string> StringDictionary { get; set; }
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         [BsonConstructor]
@@ -82,6 +82,7 @@ namespace MongoDB.Client.Tests.Models
                 StringCollection = new List<string> { "42", "42", "42" },
                 StringReadOnlyCollection = new List<string> { "42", "42", "42" },
                 StringReadOnlyList = new List<string> { "42", "42", "42" },
+                StringDictionary = new() { ["42"] = "42", ["24"] = "24" }
             };
         }
 
@@ -107,7 +108,8 @@ namespace MongoDB.Client.Tests.Models
                    StringListProp.SequenceEqual(other.StringListProp) &&
                    StringCollection.SequenceEqual(other.StringCollection) &&
                    StringReadOnlyCollection.SequenceEqual(other.StringReadOnlyCollection) &&
-                   StringReadOnlyList.SequenceEqual(other.StringReadOnlyList);
+                   StringReadOnlyList.SequenceEqual(other.StringReadOnlyList);// &&
+                   //StringDictionary.SequenceEqual(other.StringDictionary);
         }
 
         public override bool Equals(object? obj)
