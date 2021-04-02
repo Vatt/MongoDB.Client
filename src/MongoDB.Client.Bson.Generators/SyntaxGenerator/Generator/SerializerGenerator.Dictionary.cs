@@ -16,8 +16,19 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             while (true)
             {
-                name = $"{name}{type.TypeArguments[0].Name}";
-                type = type.TypeArguments[1] as INamedTypeSymbol;
+                name = $"{name}";
+                foreach(var arg in type.TypeArguments)
+                {
+                    name += arg.Name;
+                }
+                if (type.NullableAnnotation == NullableAnnotation.Annotated && type.IsValueType)
+                {
+                    type = type.TypeArguments[0] as INamedTypeSymbol;
+                }
+                else
+                {
+                    type = type.TypeArguments[1] as INamedTypeSymbol;
+                }
                 if (type is null || type.TypeArguments.IsEmpty)
                 {
                     break;
@@ -32,8 +43,22 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             while (true)
             {
-                name = $"{name}{type.TypeArguments[0].Name}";
-                type = type.TypeArguments[1] as INamedTypeSymbol;
+                //TODO: fix it normal
+                name = $"{name}";
+                foreach(var arg in type.TypeArguments)
+                {
+                    name += arg.Name;
+                }
+                if (type.NullableAnnotation == NullableAnnotation.Annotated && type.IsValueType)
+                {
+                    type = type.TypeArguments[0] as INamedTypeSymbol;
+                }
+                else
+                {
+                    type = type.TypeArguments[1] as INamedTypeSymbol;
+                }
+                
+
                 if (type is null || type.TypeArguments.IsEmpty)
                 {
                     break;
@@ -173,7 +198,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()),
                     explicitInterfaceSpecifier: default,
                     returnType: BoolPredefinedType(),
-                    identifier: ReadListCollectionMethodName(ctx.NameSym, type),
+                    identifier: ReadDictionaryMethodName(ctx.NameSym, type),
                     parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken),
                                                  OutParameter(IdentifierName(type.ToString()), outMessage)),
                     body: default,
@@ -219,16 +244,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var checkpoint = Identifier("checkpoint");
             var reserved = Identifier("reserved");
             var docLength = Identifier("docLength");
-            var sizeSpan = Identifier("sizeSpan");
-            var index = Identifier("index");
-            var array = Identifier("array");
+            var array = Identifier("collection");
             var loopItem = Identifier("item");
-            //var keyExpr = SimpleMemberAccess(loopItem, Identifier("Key"));
             var keyExpr = Identifier("item.Key");
-            //var valueExpr = SimpleMemberAccess(loopItem, Identifier("Value"));
             var valueExpr = Identifier("item.Value");
             var typeArg = (trueType as INamedTypeSymbol).TypeArguments[1];
-            var haveCollectionIndexator = HaveCollectionIndexator(type);
+
             var writeOperation = ImmutableList.CreateBuilder<StatementSyntax>();
             
             if (typeArg.IsReferenceType)
@@ -240,10 +261,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             else if (typeArg.NullableAnnotation == NullableAnnotation.Annotated && typeArg.IsValueType)
             {
-                var operation = WriteOperation(ctx, index, ctx.NameSym, typeArg, BsonWriterToken, SimpleMemberAccess(loopItem, NullableValueToken));
+                var operation = WriteOperation(ctx, keyExpr, ctx.NameSym, typeArg, BsonWriterToken, SimpleMemberAccess(valueExpr, NullableValueToken));
                 writeOperation.IfStatement(
-                            condition: BinaryExprEqualsEquals(SimpleMemberAccess(loopItem, NullableHasValueToken), FalseLiteralExpr),
-                            statement: Block(WriteBsonNull(index)),
+                            condition: BinaryExprEqualsEquals(SimpleMemberAccess(valueExpr, NullableHasValueToken), FalseLiteralExpr),
+                            statement: Block(WriteBsonNull(keyExpr)),
                             @else: Block(operation));
             }
             else
@@ -261,7 +282,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()),
                     explicitInterfaceSpecifier: default,
                     returnType: VoidPredefinedType(),
-                    identifier: WriteListCollectionMethodName(ctx, trueType),
+                    identifier: WriteDictionaryMethodName(ctx, trueType),
                     parameterList: ParameterList(
                         RefParameter(BsonWriterType, BsonWriterToken),
                         Parameter(TypeFullName(trueType), array)),
