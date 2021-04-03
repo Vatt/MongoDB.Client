@@ -40,13 +40,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var typed = sym as INamedTypeSymbol;
             if (IsDictionaryCollection(sym))
             {
-                var dictSym = System_Collections_Generic_Dictionary_K_V.Construct(System_String, typed.TypeArguments[1]);
+                var dictSym = System_Collections_Generic_Dictionary_K_V.Construct(System_String, typed!.TypeArguments[1]);
                 return IdentifierName(dictSym.ToString());
             }
 
             if (IsListCollection(sym))
             {
-                var listSym = System_Collections_Generic_List_T.Construct(typed.TypeArguments[0]);
+                var listSym = System_Collections_Generic_List_T.Construct(typed!.TypeArguments[0]);
                 return IdentifierName(listSym.ToString());
             }
 
@@ -70,7 +70,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static MethodDeclarationSyntax[] CollectionMethods(MemberContext member, ITypeSymbol type)
         {
-            //if (IsListCollection(member.TypeSym))
             if (IsListCollection(type))
             {
                 return new[]
@@ -79,7 +78,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     WriteListCollectionMethod(member, type)
                 };
             }
-            //if (IsDictionaryCollection(member.TypeSym))
             if (IsDictionaryCollection(type))
             {
                 return new[]
@@ -92,38 +90,34 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             GeneratorDiagnostics.ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
             return default;
         }
-        //TODO: fix HashSet<string>
+
         public static MethodDeclarationSyntax[] GenerateCollectionMethods(ContextCore ctx)
         {
             List<MethodDeclarationSyntax> methods = new();
-            HashSet<string> declared = new();
+            HashSet<ITypeSymbol> declared = new();
             foreach(var member in ctx.Members.Where( x => IsCollection(x.TypeSym)))
             {
                 var type = member.TypeSym as INamedTypeSymbol;
-                if (type is null && declared.Contains(CollectionTryParseMethodName(type).Text) is false && declared.Contains(CollectionWriteMethodName(type).Text) is false)
+                if (type is null && declared.Contains(type, SymbolEqualityComparer.Default) is false)
                 {
                     methods.AddRange(CollectionMethods(member, member.TypeSym));
-                    declared.Add(CollectionTryParseMethodName(type).Text);
-                    declared.Add(CollectionWriteMethodName(type).Text);
+                    declared.Add(type);
                     continue;
                 }
                 while (true)
                 {
-                    if (declared.Contains(CollectionTryParseMethodName(type).Text) is false && declared.Contains(CollectionWriteMethodName(type).Text) is false)
+                    if (declared.Contains(type, SymbolEqualityComparer.Default) is false)
                     {
                         methods.AddRange(CollectionMethods(member, type));
-                        declared.Add(CollectionTryParseMethodName(type).Text);
-                        declared.Add(CollectionWriteMethodName(type).Text);
+                        declared.Add(type);
                     }
-
-
                     if (IsListCollection(type))
                     {
-                        type = type.TypeArguments[0] as INamedTypeSymbol;
+                        type = type!.TypeArguments[0] as INamedTypeSymbol;
                     }
                     else if (IsDictionaryCollection(type))
                     {
-                        type = type.TypeArguments[1] as INamedTypeSymbol;
+                        type = type!.TypeArguments[1] as INamedTypeSymbol;
                     }
                     else
                     {
