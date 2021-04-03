@@ -119,7 +119,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     return Statements
                     (
                         Statement(Write_Type_Name(4, name)),
-                        InvocationExprStatement(WriteListCollectionMethodName(ctx, trueType), RefArgument(writerId), Argument(writeTarget))
+                        //InvocationExprStatement(CollectionWriteMethodName(typeSym), RefArgument(writerId), Argument(writeTarget))
+                        InvocationExprStatement(CollectionWriteMethodName(trueType), RefArgument(writerId), Argument(writeTarget))
                     );
                 }
 
@@ -128,7 +129,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     return Statements
                     (
                         Statement(Write_Type_Name(3, name)),
-                        InvocationExprStatement(WriteDictionaryMethodName(ctx, trueType), RefArgument(writerId), Argument(writeTarget))
+                        //InvocationExprStatement(CollectionWriteMethodName(typeSym), RefArgument(writerId), Argument(writeTarget))
+                        InvocationExprStatement(CollectionWriteMethodName(trueType), RefArgument(writerId), Argument(writeTarget))
                     );
                 }
                 

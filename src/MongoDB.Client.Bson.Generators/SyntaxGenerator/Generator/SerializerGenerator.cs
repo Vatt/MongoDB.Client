@@ -348,10 +348,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             ITypeSymbol trueType = sym.Name.Equals("Nullable") ? ((INamedTypeSymbol)sym).TypeParameters[0] : sym;
             return SF.ParseTypeName(trueType.Name);
         }
-        public static TypeParameterSyntax FullTypeParameter(ITypeSymbol sym)
-        {
-            return SF.TypeParameter(sym.ToString());
-        }
         public static TypeParameterSyntax TypeParameter(ITypeSymbol sym)
         {
             return SF.TypeParameter(sym.Name);

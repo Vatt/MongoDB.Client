@@ -42,6 +42,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
                 return namedType.TypeArguments[0];
             }
+            if (original is IArrayTypeSymbol arraySym && arraySym.NullableAnnotation == NullableAnnotation.Annotated)
+            {
+                //var extractedElementType = ExtractTypeFromNullableIfNeed(arraySym.ElementType);
+                //return BsonSerializerGenerator.Compilation.CreateArrayTypeSymbol(extractedElementType, 1);
+                return BsonSerializerGenerator.Compilation.CreateArrayTypeSymbol(arraySym.ElementType, 1);
+            }
             return original;
         }
         public static ExpressionSyntax SpanSequenceEqual(SyntaxToken spanName, SyntaxToken otherSpanName, int aliasNameLength)
