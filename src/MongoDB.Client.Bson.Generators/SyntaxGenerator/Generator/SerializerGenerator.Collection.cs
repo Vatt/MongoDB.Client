@@ -20,7 +20,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             public readonly SyntaxToken OutMessageToken;
             public readonly SyntaxToken TempCollectionReadTargetToken;
             public readonly SyntaxToken TempCollectionToken;
-            //public readonly ExpressionSyntax TryReadBsonNameExpr;
             public readonly ArgumentSyntax[] CollectionAddArguments;
 
             public CollectionReadContext(
@@ -197,6 +196,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var (operation, tempVar) = ReadOperation(ctx.Root, ctx.NameSym, type, BsonReaderToken,
                 TypedVariableDeclarationExpr(TypeFullName(type), readCtx.TempCollectionReadTargetToken),
                 readCtx.BsonTypeToken);
+            Debug.Assert(tempVar is null);
             if (operation == default)
             {
                 return false;
