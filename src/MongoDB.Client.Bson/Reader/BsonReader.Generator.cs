@@ -24,6 +24,16 @@ namespace MongoDB.Client.Bson.Reader
             throw new SerializerIsNullException(typeName);
         }
 
+        public unsafe bool TryReadGenericNullable<T>(int bsonType, [MaybeNullWhen(false)] out T? genericValue)
+        {
+            genericValue = default;
+            if(TryReadGeneric<T>(bsonType, out var temp))
+            {
+                genericValue = temp;
+                return true;
+            }
+            return false;
+        }
         public unsafe bool TryReadGeneric<T>(int bsonType, [MaybeNullWhen(false)] out T genericValue)
         {
             genericValue = default;

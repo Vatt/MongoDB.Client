@@ -10,6 +10,37 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        public class CollectionReadContext
+        {
+            public readonly SyntaxToken DocLenToken;
+            public readonly SyntaxToken UnreadedToken;
+            public readonly SyntaxToken EndMarkerToken;
+            public readonly SyntaxToken BsonTypeToken;
+            public readonly SyntaxToken BsonNameToken;
+            public readonly SyntaxToken OutMessageToken;
+            public readonly SyntaxToken TempCollectionReadTargetToken;
+            public readonly SyntaxToken TempCollectionToken;
+            //public readonly ExpressionSyntax TryReadBsonNameExpr;
+            public readonly ArgumentSyntax[] CollectionAddArguments;
+
+            public CollectionReadContext(
+                SyntaxToken docLenToken, SyntaxToken unreadedToken, SyntaxToken endMarkerToken,
+                SyntaxToken bsonTypeToken, SyntaxToken bsonNameToken, SyntaxToken outMessageTokenToken,
+                SyntaxToken tempCollectionReadTargetToken, SyntaxToken tempCollectionToken, 
+                /*ExpressionSyntax tryReadBsonNameExpr,*/ ArgumentSyntax[] collectionAddArguments)
+            {
+                DocLenToken = docLenToken;
+                UnreadedToken = unreadedToken;
+                EndMarkerToken = endMarkerToken;
+                BsonTypeToken = bsonTypeToken;
+                BsonNameToken = bsonNameToken;
+                OutMessageToken = outMessageTokenToken;
+                TempCollectionReadTargetToken = tempCollectionReadTargetToken;
+                TempCollectionToken = tempCollectionToken;
+                //TryReadBsonNameExpr = tryReadBsonNameExpr;
+                CollectionAddArguments = collectionAddArguments;
+            }
+        }
         public static string UnwrapTypeName(ITypeSymbol type)
         {
             string name = type.Name;
@@ -131,6 +162,53 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 }
             }
             return methods.ToArray();
+        }
+        private static bool TryGenerateCollectionTryParseBson(ITypeSymbol typeSym, ISymbol nameSym, CollectionReadContext readCtx, ImmutableList<StatementSyntax>.Builder builder)
+        {
+            ITypeSymbol callType = default;
+            ITypeSymbol outArgType = default;
+            if (IsBsonSerializable(typeSym))
+            {
+                callType = typeSym;
+                outArgType = typeSym;
+            }
+
+            if (IsBsonExtensionSerializable(nameSym, typeSym, out var extSym))
+            {
+                callType = extSym;
+                outArgType = typeSym;
+            }
+
+            if (callType is null || outArgType is null)
+            {
+                return false;
+            }
+
+            var operation = InvocationExpr(IdentifierName(callType.ToString()), TryParseBsonToken,
+                                           RefArgument(BsonReaderToken),
+                                           OutArgument(TypedVariableDeclarationExpr(TypeFullName(outArgType),
+                                                       readCtx.TempCollectionReadTargetToken)));
+            builder.IfNotReturnFalseElse(condition: operation,
+                @else: Block(InvocationExprStatement(readCtx.TempCollectionToken, CollectionAddToken, readCtx.CollectionAddArguments), ContinueStatement));
+            return true;
+        }
+        private static bool TryGenerateCollectionSimpleRead(MemberContext ctx, ITypeSymbol type, CollectionReadContext readCtx, ImmutableList<StatementSyntax>.Builder builder)
+        {
+            var (operation, tempVar) = ReadOperation(ctx.Root, ctx.NameSym, type, BsonReaderToken,
+                TypedVariableDeclarationExpr(TypeFullName(type), readCtx.TempCollectionReadTargetToken),
+                readCtx.BsonTypeToken);
+            if (operation == default)
+            {
+                return false;
+            }
+
+            builder.IfNotReturnFalseElse(
+                condition: operation,
+                @else:
+                Block(
+                    InvocationExprStatement(readCtx.TempCollectionToken, CollectionAddToken, readCtx.CollectionAddArguments),
+                    ContinueStatement));
+            return true;
         }
     }
 

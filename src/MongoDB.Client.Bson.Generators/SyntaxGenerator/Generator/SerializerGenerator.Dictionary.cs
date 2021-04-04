@@ -9,71 +9,35 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        private static bool TryGenerateSimpleReadOpereation1(MemberContext ctx, ITypeSymbol type, SyntaxToken readTarget, SyntaxToken bsonName, SyntaxToken bsonType, SyntaxToken outMessage, ImmutableList<StatementSyntax>.Builder builder)
-        {
-            var (operation, tempVar) = ReadOperation(ctx.Root, ctx.NameSym, type, BsonReaderToken, TypedVariableDeclarationExpr(TypeFullName(type), readTarget), bsonType);
-            if (operation == default)
-            {
-                return false;
-            }
-            builder.IfNotReturnFalseElse(condition: operation,
-                                         @else:
-                                            Block(
-                                                InvocationExprStatement(outMessage, CollectionAddToken, Argument(bsonName),  Argument(tempVar != null ? tempVar : IdentifierName(readTarget))),
-                                                ContinueStatement));
-            return true;
-        }
-        private static bool TryGenerateTryParseBsonArrayOperation1(ITypeSymbol typeSym, ISymbol nameSym, SyntaxToken bsonName, SyntaxToken readTarget, SyntaxToken outMessage, ImmutableList<StatementSyntax>.Builder builder)
-        {
-            ITypeSymbol callType = default;
-            ITypeSymbol outArgType = default;
-            if (IsBsonSerializable(typeSym))
-            {
-                callType = typeSym;
-                outArgType = typeSym;
-            }
-
-            if (IsBsonExtensionSerializable(nameSym, typeSym, out var extSym))
-            {
-                callType = extSym;
-                outArgType = typeSym;
-            }
-
-            if (callType is null || outArgType is null)
-            {
-                return false;
-            }
-            var operation = InvocationExpr(IdentifierName(callType.ToString()), TryParseBsonToken, RefArgument(BsonReaderToken), OutArgument(TypedVariableDeclarationExpr(TypeFullName(outArgType), readTarget)));
-            builder.IfNotReturnFalseElse(condition: operation,
-                                         @else: Block(InvocationExprStatement(outMessage, CollectionAddToken, Argument(bsonName), Argument(readTarget)), ContinueStatement));
-            return true;
-        }
+        public static readonly CollectionReadContext DictionaryReadContext = new CollectionReadContext(
+            Identifier("dictionaryDocLength"),
+            Identifier("dictionaryUnreaded"),
+            Identifier("dictionaryEndMarker"),
+            Identifier("dictionaryBsonType"),
+            Identifier("dictionaryBsonName"),
+            Identifier("dictionary"),
+            Identifier("temp"),
+            Identifier("internalDictionary"),
+            new[]{ Argument(Identifier("dictionaryBsonName")), Argument(Identifier("temp")) });
         private static MethodDeclarationSyntax TryParseDictionaryMethod(MemberContext ctx, ITypeSymbol type)
         {
-            var docLenToken = Identifier("collectionDocLength");
-            var unreadedToken = Identifier("collectionUnreaded");
-            var endMarkerToken = Identifier("collectionEndMarker");
-            var bsonTypeToken = Identifier("collectionBsonType");
-            var bsonNameToken = Identifier("collectionBsonName");
-            var outMessage = Identifier("collection");
-            var tempArrayRead = Identifier("temp");
-            var tempArray = Identifier("internalCollection");
             var typeArg = (type as INamedTypeSymbol).TypeArguments[1];
             var trueTypeArg = ExtractTypeFromNullableIfNeed(typeArg);
 
             //ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
-            if (TryGenerateSimpleReadOpereation1(ctx, trueTypeArg, tempArrayRead, bsonNameToken, bsonTypeToken, tempArray, builder))
+            if (TryGenerateCollectionSimpleRead(ctx, trueTypeArg, DictionaryReadContext, builder))
             {
                 goto RETURN;
             }
-            if (TryGenerateTryParseBsonArrayOperation1(trueTypeArg, ctx.NameSym, bsonNameToken, tempArrayRead, tempArray, builder))
+            if (TryGenerateCollectionTryParseBson(trueTypeArg, ctx.NameSym, DictionaryReadContext, builder))
             {
                 goto RETURN;
             }
-            if (TryGetEnumReadOperation(tempArrayRead, ctx.NameSym, trueTypeArg, true, out var enumOp))
+            if (TryGetEnumReadOperation(DictionaryReadContext.TempCollectionReadTargetToken, ctx.NameSym, trueTypeArg, true, out var enumOp))
             {
-                builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(tempArray, CollectionAddToken, Argument(bsonNameToken),  Argument(enumOp.TempExpr))));
+                builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(DictionaryReadContext.TempCollectionToken, CollectionAddToken, 
+                                                                               Argument(DictionaryReadContext.BsonNameToken),  Argument(enumOp.TempExpr))));
                 goto RETURN;
             }
             GeneratorDiagnostics.ReportUnsuporterTypeError(ctx.NameSym, trueTypeArg);
@@ -85,7 +49,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     returnType: BoolPredefinedType(),
                     identifier: CollectionTryParseMethodName(type),
                     parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken),
-                                                 OutParameter(IdentifierName(type.ToString()), outMessage)),
+                                                 OutParameter(IdentifierName(type.ToString()), DictionaryReadContext.OutMessageToken)),
                     body: default,
                     constraintClauses: default,
                     expressionBody: default,
@@ -93,33 +57,33 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     semicolonToken: default)
                 .WithBody(
                    Block(
-                       SimpleAssignExprStatement(outMessage, DefaultLiteralExpr()),
-                       //VarLocalDeclarationStatement(tempArray, ObjectCreation(TypeFullName(System_Collections_Generic_Dictionary_K_V.Construct(System_String, typeArg)))),
-                       VarLocalDeclarationStatement(tempArray, ObjectCreation(ConstructCollectionType(type))),
-                       IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(docLenToken))),
-                       VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemainingExpr, SizeOfInt32Expr)),
+                       SimpleAssignExprStatement(DictionaryReadContext.OutMessageToken, DefaultLiteralExpr()),
+                       VarLocalDeclarationStatement(DictionaryReadContext.TempCollectionToken, ObjectCreation(ConstructCollectionType(type))),
+                       IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(DictionaryReadContext.DocLenToken))),
+                       VarLocalDeclarationStatement(DictionaryReadContext.UnreadedToken, BinaryExprPlus(ReaderRemainingExpr, SizeOfInt32Expr)),
                        SF.WhileStatement(
                            condition:
                                BinaryExprLessThan(
-                                   BinaryExprMinus(IdentifierName(unreadedToken), ReaderRemainingExpr),
-                                   BinaryExprMinus(IdentifierName(docLenToken), NumericLiteralExpr(1))),
+                                   BinaryExprMinus(DictionaryReadContext.UnreadedToken, ReaderRemainingExpr),
+                                   BinaryExprMinus(DictionaryReadContext.DocLenToken, NumericLiteralExpr(1))),
                            statement:
                                Block(
-                                   IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(bsonTypeToken))),
-                                   IfNotReturnFalse(TryGetCString(VarVariableDeclarationExpr(bsonNameToken))),
+                                   IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(DictionaryReadContext.BsonTypeToken))),
+                                   IfNotReturnFalse(TryGetCString(VarVariableDeclarationExpr(DictionaryReadContext.BsonNameToken))),
                                    IfStatement(
-                                       condition: BinaryExprEqualsEquals(bsonTypeToken, NumericLiteralExpr(10)),
+                                       condition: BinaryExprEqualsEquals(DictionaryReadContext.BsonTypeToken, NumericLiteralExpr(10)),
                                        statement: Block(
-                                           InvocationExprStatement(tempArray, CollectionAddToken, Argument(bsonNameToken), Argument(DefaultLiteralExpr())),
+                                           InvocationExprStatement(DictionaryReadContext.TempCollectionToken, CollectionAddToken, 
+                                                                    Argument(DictionaryReadContext.BsonNameToken), Argument(DefaultLiteralExpr())),
                                            ContinueStatement
                                            )),
                                    builder.ToArray()
                                    )),
-                       IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
+                       IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(DictionaryReadContext.EndMarkerToken))),
                        IfStatement(
-                           BinaryExprNotEquals(endMarkerToken, NumericLiteralExpr((byte)'\x00')),
-                           Block(Statement(SerializerEndMarkerException(ctx.Root.Declaration, IdentifierName(endMarkerToken))))),
-                       SimpleAssignExprStatement(IdentifierName(outMessage), tempArray),
+                           BinaryExprNotEquals(DictionaryReadContext.EndMarkerToken, NumericLiteralExpr((byte)'\x00')),
+                           Block(Statement(SerializerEndMarkerException(ctx.Root.Declaration, IdentifierName(DictionaryReadContext.EndMarkerToken))))),
+                       SimpleAssignExprStatement(DictionaryReadContext.OutMessageToken, DictionaryReadContext.TempCollectionToken),
                        ReturnTrueStatement
                        ));
         }

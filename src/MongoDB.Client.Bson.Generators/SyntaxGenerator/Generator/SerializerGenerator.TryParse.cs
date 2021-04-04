@@ -210,7 +210,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             if (trueType.IsReferenceType)
             {
-                var condition = InvocationExpr(IdentifierName(type.ToString()), IdentifierName("TryParseBson"),
+                var condition = InvocationExpr(IdentifierName(type.ToString()), TryParseBsonToken,
                                                RefArgument(BsonReaderToken),
                                                OutArgument(member.AssignedVariableToken));
                 builder.IfStatement(condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken, member.ByteName.Length),
@@ -220,7 +220,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             else
             {
                 var localTryParseVar = Identifier($"{member.AssignedVariableToken.ToString()}TryParseTemp");
-                var condition = InvocationExpr(IdentifierName(type.ToString()), IdentifierName("TryParseBson"),
+                var condition = InvocationExpr(IdentifierName(type.ToString()), TryParseBsonToken,
                                                RefArgument(BsonReaderToken), OutArgument(VarVariableDeclarationExpr(localTryParseVar)));
 
                 builder.IfStatement(condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken, member.ByteName.Length),
@@ -239,10 +239,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
              * **/
             if (ctx.GenericArgs?.FirstOrDefault(sym => sym.Name.Equals(trueTypeSym.Name)) != default) // generic type arguments
             {
-                var temp = Identifier($"{nameSym.Name}TempGenericNullable");
                 if (trueTypeSym.NullableAnnotation == NullableAnnotation.Annotated)
                 {
-                    return new(TryReadGenericNullable(TypeName(trueTypeSym.OriginalDefinition), bsonType, VarVariableDeclarationExpr(temp)), IdentifierName(temp));
+                    return TryReadGenericNullable(bsonType, readTarget);
                 }
                 else
                 {

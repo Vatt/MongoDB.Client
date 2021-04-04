@@ -203,6 +203,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.BinaryExpression(SyntaxKind.SubtractExpression, left, right);
         }
+        public static BinaryExpressionSyntax BinaryExprMinus(SyntaxToken left, ExpressionSyntax right)
+        {
+            return SF.BinaryExpression(SyntaxKind.SubtractExpression, IdentifierName(left), right);
+        }
         public static BinaryExpressionSyntax BinaryExprMinus(ExpressionSyntax left, SyntaxToken right)
         {
             return SF.BinaryExpression(SyntaxKind.SubtractExpression, left, IdentifierName(right));
