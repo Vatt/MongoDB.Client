@@ -18,12 +18,49 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             Identifier("temp"),
             Identifier("internalDictionary"),
             new[]{ Argument(Identifier("dictionaryBsonName")), Argument(Identifier("temp")) });
+
+        public static void ExtractDictionaryTypeArgs(INamedTypeSymbol type, out ITypeSymbol keyTypeArg, out ITypeSymbol valueTypeArg, out bool isICollectionOfValueTuple)
+        {
+            isICollectionOfValueTuple = IsICollectionOfValueTuple(type);
+            if (isICollectionOfValueTuple)
+            {
+                var tuple = type!.TypeArguments[0] as INamedTypeSymbol;
+                if (tuple!.TupleElements.Length > 2)
+                {
+                    ReportDictionaryKeyTypeError(type);
+                }
+                keyTypeArg = tuple.TupleElements[0].Type;
+                valueTypeArg = tuple.TupleElements[1].Type;
+                
+            }
+            else
+            {
+                keyTypeArg =  type!.TypeArguments[0];
+                valueTypeArg = type.TypeArguments[1];
+            }
+        }
         private static MethodDeclarationSyntax TryParseDictionaryMethod(MemberContext ctx, ITypeSymbol type)
         {
-            var typeArg = (type as INamedTypeSymbol).TypeArguments[1];
-            var trueTypeArg = ExtractTypeFromNullableIfNeed(typeArg);
+            ITypeSymbol keyArg = default;
+            ITypeSymbol typeArg = default;
+            var named = (type as INamedTypeSymbol);
+            StatementSyntax assigmentExpr = default;
+            ExtractDictionaryTypeArgs(named, out keyArg, out typeArg, out var isICollectionOfValueTuple);
 
-            //ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
+            if (keyArg!.Equals(System_String, SymbolEqualityComparer.Default) == false)
+            {
+                ReportDictionaryKeyTypeError(type);
+            }
+
+            if (isICollectionOfValueTuple)
+            {
+                assigmentExpr = SimpleAssignExprStatement(DictionaryReadContext.OutMessageToken, Cast(type, DictionaryReadContext.TempCollectionToken));
+            }
+            else
+            {
+                assigmentExpr = SimpleAssignExprStatement(DictionaryReadContext.OutMessageToken, DictionaryReadContext.TempCollectionToken);
+            }
+            var trueTypeArg = ExtractTypeFromNullableIfNeed(typeArg);
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
             if (TryGenerateCollectionSimpleRead(ctx, trueTypeArg, DictionaryReadContext, builder))
             {
@@ -73,7 +110,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                        condition: BinaryExprEqualsEquals(DictionaryReadContext.BsonTypeToken, NumericLiteralExpr(10)),
                                        statement: Block(
                                            InvocationExprStatement(DictionaryReadContext.TempCollectionToken, CollectionAddToken, 
-                                                                    Argument(DictionaryReadContext.BsonNameToken), Argument(DefaultLiteralExpr())),
+                                                                   Argument(DictionaryReadContext.BsonNameToken), Argument(DefaultLiteralExpr())),
                                            ContinueStatement
                                            )),
                                    builder.ToArray()
@@ -82,22 +119,22 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                        IfStatement(
                            BinaryExprNotEquals(DictionaryReadContext.EndMarkerToken, NumericLiteralExpr((byte)'\x00')),
                            Block(Statement(SerializerEndMarkerException(ctx.Root.Declaration, IdentifierName(DictionaryReadContext.EndMarkerToken))))),
-                       SimpleAssignExprStatement(DictionaryReadContext.OutMessageToken, DictionaryReadContext.TempCollectionToken),
+                       //SimpleAssignExprStatement(DictionaryReadContext.OutMessageToken, DictionaryReadContext.TempCollectionToken),
+                       assigmentExpr,
                        ReturnTrueStatement
                        ));
         }
 
         private static MethodDeclarationSyntax WriteDictionaryMethod(MemberContext ctx, ITypeSymbol type)
         {
-            ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
             var checkpoint = Identifier("checkpoint");
             var reserved = Identifier("reserved");
             var docLength = Identifier("docLength");
             var collection = Identifier("collection");
             var keyToken = Identifier("key");
             var valueToken = Identifier("value");
-            var typeArg = (trueType as INamedTypeSymbol).TypeArguments[1];
-
+            ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
+            ExtractDictionaryTypeArgs(trueType as INamedTypeSymbol, out _, out var typeArg, out _);
             var writeOperation = ImmutableList.CreateBuilder<StatementSyntax>();
             
             if (typeArg.IsReferenceType)

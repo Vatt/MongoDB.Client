@@ -68,7 +68,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var typed = sym as INamedTypeSymbol;
             if (IsDictionaryCollection(sym))
             {
-                var dictSym = System_Collections_Generic_Dictionary_K_V.Construct(System_String, typed!.TypeArguments[1]);
+                ExtractDictionaryTypeArgs(typed, out var keyArg, out var typeArg, out _);
+                var dictSym = System_Collections_Generic_Dictionary_K_V.Construct(keyArg, typeArg);
                 return IdentifierName(dictSym.ToString());
             }
 
@@ -145,7 +146,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     }
                     else if (IsDictionaryCollection(type))
                     {
-                        type = type!.TypeArguments[1] as INamedTypeSymbol;
+                        ExtractDictionaryTypeArgs(type, out _, out var tempType ,out _);
+                        type = tempType as INamedTypeSymbol;
                     }
                     else
                     {

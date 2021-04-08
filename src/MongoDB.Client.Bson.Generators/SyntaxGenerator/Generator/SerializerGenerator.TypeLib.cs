@@ -5,27 +5,27 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        public static INamedTypeSymbol System_Byte => BsonSerializerGenerator.Compilation.GetSpecialType(SpecialType.System_Byte);
-        public static INamedTypeSymbol System_Int32 => BsonSerializerGenerator.Compilation.GetSpecialType(SpecialType.System_Int32);
-        public static INamedTypeSymbol System_String => BsonSerializerGenerator.Compilation.GetSpecialType(SpecialType.System_String);
-        public static INamedTypeSymbol System_Memory => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Memory`1")!;
-        public static INamedTypeSymbol BsonReaderTypeSym => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Reader.BsonReader")!;
-        public static INamedTypeSymbol BsonWriterTypeSym => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Writer.BsonWriter")!;
-        public static INamedTypeSymbol System_DateTimeOffset => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.DateTimeOffset")!;
-        public static INamedTypeSymbol System_Guid => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Guid")!;
-        public static INamedTypeSymbol BsonTimestamp => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonTimestamp")!;
-        public static INamedTypeSymbol BsonObjectId => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonObjectId")!;
-        public static INamedTypeSymbol BsonArray => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonArray")!;
-        public static INamedTypeSymbol BsonDocument => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonDocument")!;
-        public static INamedTypeSymbol System_Collections_Generic_IList_T => BsonSerializerGenerator.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IList_T);
-        public static INamedTypeSymbol System_Collections_Generic_List_T => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.List`1")!;
-        public static INamedTypeSymbol System_Collections_Generic_IReadOnlyCollection_T => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyCollection`1")!;
-        public static INamedTypeSymbol System_Collections_Generic_IReadOnlyList_T => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyList`1")!;
-        public static INamedTypeSymbol System_Collections_Generic_ICollection_T => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.ICollection`1")!;
-        public static INamedTypeSymbol System_Collections_Generic_Dictionary_K_V => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.Dictionary`2")!;
-        public static INamedTypeSymbol System_Collections_Generic_IDictionary_K_V => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.IDictionary`2")!;
-        public static INamedTypeSymbol System_Collections_Generic_IReadOnlyDictionary_K_V => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyDictionary`2")!;
-        public static ITypeSymbol ArrayByteTypeSym => BsonSerializerGenerator.Compilation.CreateArrayTypeSymbol(System_Byte);
+        public static INamedTypeSymbol System_Byte => ExecutionContext.Compilation.GetSpecialType(SpecialType.System_Byte);
+        public static INamedTypeSymbol System_Int32 => ExecutionContext.Compilation.GetSpecialType(SpecialType.System_Int32);
+        public static INamedTypeSymbol System_String => ExecutionContext.Compilation.GetSpecialType(SpecialType.System_String);
+        public static INamedTypeSymbol System_Memory => ExecutionContext.Compilation.GetTypeByMetadataName("System.Memory`1")!;
+        public static INamedTypeSymbol BsonReaderTypeSym => ExecutionContext.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Reader.BsonReader")!;
+        public static INamedTypeSymbol BsonWriterTypeSym => ExecutionContext.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Writer.BsonWriter")!;
+        public static INamedTypeSymbol System_DateTimeOffset => ExecutionContext.Compilation.GetTypeByMetadataName("System.DateTimeOffset")!;
+        public static INamedTypeSymbol System_Guid => ExecutionContext.Compilation.GetTypeByMetadataName("System.Guid")!;
+        public static INamedTypeSymbol BsonTimestamp => ExecutionContext.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonTimestamp")!;
+        public static INamedTypeSymbol BsonObjectId => ExecutionContext.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonObjectId")!;
+        public static INamedTypeSymbol BsonArray => ExecutionContext.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonArray")!;
+        public static INamedTypeSymbol BsonDocument => ExecutionContext.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Document.BsonDocument")!;
+        public static INamedTypeSymbol System_Collections_Generic_IList_T => ExecutionContext.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IList_T);
+        public static INamedTypeSymbol System_Collections_Generic_List_T => ExecutionContext.Compilation.GetTypeByMetadataName("System.Collections.Generic.List`1")!;
+        public static INamedTypeSymbol System_Collections_Generic_IReadOnlyCollection_T => ExecutionContext.Compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyCollection`1")!;
+        public static INamedTypeSymbol System_Collections_Generic_IReadOnlyList_T => ExecutionContext.Compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyList`1")!;
+        public static INamedTypeSymbol System_Collections_Generic_ICollection_T => ExecutionContext.Compilation.GetTypeByMetadataName("System.Collections.Generic.ICollection`1")!;
+        public static INamedTypeSymbol System_Collections_Generic_Dictionary_K_V => ExecutionContext.Compilation.GetTypeByMetadataName("System.Collections.Generic.Dictionary`2")!;
+        public static INamedTypeSymbol System_Collections_Generic_IDictionary_K_V => ExecutionContext.Compilation.GetTypeByMetadataName("System.Collections.Generic.IDictionary`2")!;
+        public static INamedTypeSymbol System_Collections_Generic_IReadOnlyDictionary_K_V => ExecutionContext.Compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyDictionary`2")!;
+        public static ITypeSymbol ArrayByteTypeSym => ExecutionContext.Compilation.CreateArrayTypeSymbol(System_Byte);
         public static ITypeSymbol MemoryByteTypeSym => System_Memory.Construct(System_Byte);
         public static bool TryGetMetadata(ITypeSymbol source, out ISymbol result)
         {
@@ -94,12 +94,31 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             if (symbol.OriginalDefinition.Equals(System_Collections_Generic_ICollection_T, SymbolEqualityComparer.Default))
             {
                 var named = symbol as INamedTypeSymbol;
-                var ta = named!.TypeArguments[0];
-                if (ta.IsTupleType)
+                var typeArgument = named!.TypeArguments[0];
+                if (typeArgument.IsTupleType)
                 {
                     return false;
                 }
+                else
+                {
+                    return true;
+                }
             } 
+            return false;
+        }
+
+        public static bool IsICollectionOfValueTuple(ISymbol symbol)
+        {
+            if (symbol.OriginalDefinition.Equals(System_Collections_Generic_ICollection_T, SymbolEqualityComparer.Default) == false)
+            {
+                return false;
+            }
+
+            if (symbol is INamedTypeSymbol named && named.TypeArguments[0].IsTupleType)
+            {
+                return true;
+            }
+
             return false;
         }
         public static bool IsDictionaryCollection(ISymbol symbol)
