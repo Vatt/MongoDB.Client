@@ -3,7 +3,6 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
@@ -187,7 +186,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     var typedMetadata = trueType as INamedTypeSymbol;
                     if (typedMetadata == null)
                     {
-                        GeneratorDiagnostics.ReportUnhandledException(nameof(GenerateEnumsStaticNamesSpansIfHave), member.NameSym);
+                        ReportUnhandledException(nameof(GenerateEnumsStaticNamesSpansIfHave), member.NameSym);
                     }
                     declarations[member.TypeSym] = new();
                     foreach (var enumMember in typedMetadata.GetMembers().Where(sym => sym.Kind == SymbolKind.Field))

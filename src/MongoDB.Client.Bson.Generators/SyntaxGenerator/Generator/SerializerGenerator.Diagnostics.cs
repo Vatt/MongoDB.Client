@@ -1,12 +1,11 @@
-﻿using System;
+﻿using System.Text;
 using Microsoft.CodeAnalysis;
-
-namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics
+using System;
+namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
-
-    static class GeneratorDiagnostics
+    internal static partial class SerializerGenerator
     {
-        private static GeneratorExecutionContext _ctx => BsonSerializerGenerator.Context;
+        private static GeneratorExecutionContext ExecutionContext => BsonSerializerGenerator.Context;
         private static readonly string UnhandledExceptionError = "MONGO00";
         private static readonly string UnsuportedTypeError = "MONGO01";
         private static readonly string UnsuportedGenericTypeError = "MONGO02";
@@ -24,61 +23,61 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics
         public static void ReportDictionaryKeyTypeError(ISymbol sym)
         {
             var message = "The dictionary only supports the string key parameter";
-            _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(DictionaryKeyTypeError, "Generation failed",
+            ExecutionContext.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(DictionaryKeyTypeError, "Generation failed",
                 message, "SourceGenerator", DiagnosticSeverity.Error, true), sym.Locations[0]));
         }
         public static void ReportMatchConstructorParametersError(ISymbol sym)
         {
             var message = "Can't match constructor parameters";
-            _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(MatchConstructorParametersError, "Generation failed",
+            ExecutionContext.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(MatchConstructorParametersError, "Generation failed",
                 message, "SourceGenerator", DiagnosticSeverity.Error, true), sym.Locations[0]));
         }
         public static void ReportUnsuportedByteArrayReprError(ISymbol decl, ITypeSymbol type)
         {
             var message = $"{decl.Name} has an unsupported binary data representation: {type.ToString()}";
-            _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(UnsuportedByteArrayReprError, "Generation failed", message, "SourceGenerator", DiagnosticSeverity.Error, true), decl.Locations[0]));
+            ExecutionContext.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(UnsuportedByteArrayReprError, "Generation failed", message, "SourceGenerator", DiagnosticSeverity.Error, true), decl.Locations[0]));
         }
         public static void ReportGenerationContextTreeError(string message = null)
         {
-            _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(UnsuportedOperationType, "Generation failed",
+            ExecutionContext.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(UnsuportedOperationType, "Generation failed",
                 message ?? "Generation context tree operations was failed", "SourceGenerator", DiagnosticSeverity.Error, true), null));
         }
         public static void ReportUnhandledException(Exception ex)
         {
             var st = ex.StackTrace.Replace('\n', ' ').Replace('\r', ' ');
             var message = $"Generator unhandled error - {ex.Message}{st}";
-            _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(UnhandledExceptionError, "Generation failed",
+            ExecutionContext.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(UnhandledExceptionError, "Generation failed",
                 message, "SourceGenerator", DiagnosticSeverity.Error, true), Location.None));
         }
         public static void ReportUnhandledException(string message, ISymbol sym)
         {
-            _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(UnhandledExceptionError, "Generation failed",
+            ExecutionContext.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(UnhandledExceptionError, "Generation failed",
                 message, "SourceGenerator", DiagnosticSeverity.Error, true), sym.Locations[0]));
         }
         public static void ReportNullableFieldsError(ISymbol decl)
         {
             var message = $"Field {decl.Name}: nullable fields not suported, try make {decl.Name} as property";
-            _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(NullableFieldsError, "Generation failed", message, "SourceGenerator", DiagnosticSeverity.Error, true), decl.Locations[0]));
+            ExecutionContext.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(NullableFieldsError, "Generation failed", message, "SourceGenerator", DiagnosticSeverity.Error, true), decl.Locations[0]));
         }
         public static void ReportUnsuporterTypeError(ISymbol decl, ITypeSymbol type)
         {
             var message = $"{decl.Name} has an unsupported type: {type.ToString()}";
-            _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(UnsuportedTypeError, "Generation failed", message, "SourceGenerator", DiagnosticSeverity.Error, true), decl.Locations[0]));
+            ExecutionContext.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(UnsuportedTypeError, "Generation failed", message, "SourceGenerator", DiagnosticSeverity.Error, true), decl.Locations[0]));
         }
         public static void ReportUnsuporterGenericTypeError(ISymbol decl, ITypeSymbol type)
         {
             var message = $"Field or Property {decl.Name} has an unsuported generic type {type.Name}";
-            _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(UnsuportedGenericTypeError, "Generation failed", message, "SourceGenerator", DiagnosticSeverity.Error, true), decl.Locations[0]));
+            ExecutionContext.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(UnsuportedGenericTypeError, "Generation failed", message, "SourceGenerator", DiagnosticSeverity.Error, true), decl.Locations[0]));
         }
         public static void ReportSerializerMapUsingWarning(ISymbol decl)
         {
             var message = "Undefined serializer type. Using SerializersMap";
-            _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(SerializationMapUsingWarning, "Generation warn", message, "SourceGenerator", DiagnosticSeverity.Warning, true), decl.Locations[0]));
+            ExecutionContext.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(SerializationMapUsingWarning, "Generation warn", message, "SourceGenerator", DiagnosticSeverity.Warning, true), decl.Locations[0]));
         }
 
         public static void ReportDuration(string stage, TimeSpan time)
         {
-            _ctx.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(GeneratingDurationInfo, "Generation info",
+            ExecutionContext.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(GeneratingDurationInfo, "Generation info",
                stage + ": " + time.ToString(), "SourceGenerator", DiagnosticSeverity.Warning, true), Location.None));
         }
     }

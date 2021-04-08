@@ -84,17 +84,42 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static bool IsListCollection(ISymbol symbol)
         {
-            return symbol.OriginalDefinition.Equals(System_Collections_Generic_List_T, SymbolEqualityComparer.Default) ||
-                   symbol.OriginalDefinition.Equals(System_Collections_Generic_IList_T, SymbolEqualityComparer.Default) ||
-                   symbol.OriginalDefinition.Equals(System_Collections_Generic_IReadOnlyCollection_T, SymbolEqualityComparer.Default) ||
-                   symbol.OriginalDefinition.Equals(System_Collections_Generic_IReadOnlyList_T, SymbolEqualityComparer.Default) ||
-                   symbol.OriginalDefinition.Equals(System_Collections_Generic_ICollection_T, SymbolEqualityComparer.Default);
+            if (symbol.OriginalDefinition.Equals(System_Collections_Generic_List_T, SymbolEqualityComparer.Default) ||
+                symbol.OriginalDefinition.Equals(System_Collections_Generic_IList_T, SymbolEqualityComparer.Default) ||
+                symbol.OriginalDefinition.Equals(System_Collections_Generic_IReadOnlyCollection_T, SymbolEqualityComparer.Default) ||
+                symbol.OriginalDefinition.Equals(System_Collections_Generic_IReadOnlyList_T, SymbolEqualityComparer.Default))
+            {
+                return true;
+            }
+            if (symbol.OriginalDefinition.Equals(System_Collections_Generic_ICollection_T, SymbolEqualityComparer.Default))
+            {
+                var named = symbol as INamedTypeSymbol;
+                var ta = named!.TypeArguments[0];
+                if (ta.IsTupleType)
+                {
+                    return false;
+                }
+            } 
+            return false;
         }
         public static bool IsDictionaryCollection(ISymbol symbol)
         {
-            return symbol.OriginalDefinition.Equals(System_Collections_Generic_Dictionary_K_V, SymbolEqualityComparer.Default) ||
-                   symbol.OriginalDefinition.Equals(System_Collections_Generic_IDictionary_K_V, SymbolEqualityComparer.Default) ||
-                   symbol.OriginalDefinition.Equals(System_Collections_Generic_IReadOnlyDictionary_K_V, SymbolEqualityComparer.Default);
+            if (symbol.OriginalDefinition.Equals(System_Collections_Generic_Dictionary_K_V, SymbolEqualityComparer.Default) ||
+                symbol.OriginalDefinition.Equals(System_Collections_Generic_IDictionary_K_V, SymbolEqualityComparer.Default) ||
+                symbol.OriginalDefinition.Equals(System_Collections_Generic_IReadOnlyDictionary_K_V, SymbolEqualityComparer.Default))
+            {
+                return true;
+            }
+            if (symbol.OriginalDefinition.Equals(System_Collections_Generic_ICollection_T, SymbolEqualityComparer.Default))
+            {
+                var named = symbol as INamedTypeSymbol;
+                var ta = named!.TypeArguments[0];
+                if (ta.IsTupleType)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
         public static bool IsBsonObjectId(ISymbol sym)
         {

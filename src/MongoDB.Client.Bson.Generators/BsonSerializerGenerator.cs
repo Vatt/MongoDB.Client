@@ -38,7 +38,7 @@ namespace MongoDB.Client.Bson.Generators
             }
 
 #if DEBUG
-            SyntaxGenerator.Diagnostics.GeneratorDiagnostics.ReportDuration("All", all.Elapsed);
+            SerializerGenerator.ReportDuration("All", all.Elapsed);
 #endif
         }
 

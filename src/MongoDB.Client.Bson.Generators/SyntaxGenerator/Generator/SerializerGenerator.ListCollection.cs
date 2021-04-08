@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
@@ -40,7 +39,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(ListReadContext.TempCollectionToken, CollectionAddToken, Argument(enumOp.TempExpr))));
                 goto RETURN;
             }
-            GeneratorDiagnostics.ReportUnsuporterTypeError(ctx.NameSym, trueTypeArg);
+            ReportUnsuporterTypeError(ctx.NameSym, trueTypeArg);
         RETURN:
             return SF.MethodDeclaration(
                     attributeLists: default,

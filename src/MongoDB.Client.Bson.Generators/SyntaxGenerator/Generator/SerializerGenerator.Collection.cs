@@ -4,13 +4,12 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        public class CollectionReadContext
+        public readonly struct CollectionReadContext
         {
             public readonly SyntaxToken DocLenToken;
             public readonly SyntaxToken UnreadedToken;
@@ -26,7 +25,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 SyntaxToken docLenToken, SyntaxToken unreadedToken, SyntaxToken endMarkerToken,
                 SyntaxToken bsonTypeToken, SyntaxToken bsonNameToken, SyntaxToken outMessageTokenToken,
                 SyntaxToken tempCollectionReadTargetToken, SyntaxToken tempCollectionToken, 
-                /*ExpressionSyntax tryReadBsonNameExpr,*/ ArgumentSyntax[] collectionAddArguments)
+                ArgumentSyntax[] collectionAddArguments)
             {
                 DocLenToken = docLenToken;
                 UnreadedToken = unreadedToken;
@@ -36,7 +35,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 OutMessageToken = outMessageTokenToken;
                 TempCollectionReadTargetToken = tempCollectionReadTargetToken;
                 TempCollectionToken = tempCollectionToken;
-                //TryReadBsonNameExpr = tryReadBsonNameExpr;
                 CollectionAddArguments = collectionAddArguments;
             }
         }
@@ -117,7 +115,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 };
             }
 
-            GeneratorDiagnostics.ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
+            ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
             return default;
         }
 

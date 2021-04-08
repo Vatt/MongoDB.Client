@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
@@ -158,7 +157,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     continue;
                 }
-                GeneratorDiagnostics.ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
+                ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
             }
             return builder.ToArray();
         }
@@ -296,7 +295,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     case 0: break;
                     case 5: break;
                     default:
-                        GeneratorDiagnostics.ReportUnsuportedByteArrayReprError(nameSym, typeSymbol);
+                        ReportUnsuportedByteArrayReprError(nameSym, typeSymbol);
                         break;
                 }
                 expr = TryGetBinaryData(arrayRepr, variable);
@@ -334,7 +333,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             if (typeSymbol.SpecialType != SpecialType.None)
             {
-                GeneratorDiagnostics.ReportUnsuporterTypeError(nameSym, typeSymbol);
+                ReportUnsuporterTypeError(nameSym, typeSymbol);
             }
             return false;
         }
