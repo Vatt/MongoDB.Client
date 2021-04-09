@@ -24,19 +24,19 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             keyTypeArg = default;
             valueTypeArg = default;
             isICollectionOfValueTuple = false;
-            if (IsICollectionOfValueTupleOrKeyValuePair(type))
+            if (IsCollectionOfValueTupleOrKeyValuePair(type))
             {
-                var tuple = type!.TypeArguments[0] as INamedTypeSymbol;
-                if (tuple.IsTupleType && tuple!.TupleElements.Length != 2)
+                var tupleOrPair = type!.TypeArguments[0] as INamedTypeSymbol;
+                if (tupleOrPair!.IsTupleType && tupleOrPair!.TupleElements.Length != 2)
                 {
                     ReportDictionaryKeyTypeError(type);
                 }
-                else if (tuple.IsTupleType && tuple!.TupleElements.Length == 2)
+                else if (tupleOrPair.IsTupleType && tupleOrPair!.TupleElements.Length == 2)
                 {
                     isICollectionOfValueTuple = true;
-                    keyTypeArg = tuple.TupleElements[0].Type;
-                    valueTypeArg = tuple.TupleElements[1].Type;
-                }else if (tuple.OriginalDefinition.Equals(System_Collections_Generic_KeyValuePair, SymbolEqualityComparer.Default))
+                    keyTypeArg = tupleOrPair.TupleElements[0].Type;
+                    valueTypeArg = tupleOrPair.TupleElements[1].Type;
+                }else if (tupleOrPair.OriginalDefinition.Equals(System_Collections_Generic_KeyValuePair, SymbolEqualityComparer.Default))
                 {
                     var pair = type.TypeArguments[0] as INamedTypeSymbol;
                     keyTypeArg = pair.TypeArguments[0];

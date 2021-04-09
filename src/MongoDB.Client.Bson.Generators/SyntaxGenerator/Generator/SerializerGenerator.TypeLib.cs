@@ -87,12 +87,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             if (symbol.OriginalDefinition.Equals(System_Collections_Generic_List_T, SymbolEqualityComparer.Default) ||
                 symbol.OriginalDefinition.Equals(System_Collections_Generic_IList_T, SymbolEqualityComparer.Default) ||
-                symbol.OriginalDefinition.Equals(System_Collections_Generic_IReadOnlyCollection_T, SymbolEqualityComparer.Default) ||
                 symbol.OriginalDefinition.Equals(System_Collections_Generic_IReadOnlyList_T, SymbolEqualityComparer.Default))
             {
                 return true;
             }
-            if (symbol.OriginalDefinition.Equals(System_Collections_Generic_ICollection_T, SymbolEqualityComparer.Default))
+            if (symbol.OriginalDefinition.Equals(System_Collections_Generic_ICollection_T, SymbolEqualityComparer.Default) ||
+                symbol.OriginalDefinition.Equals(System_Collections_Generic_IReadOnlyCollection_T, SymbolEqualityComparer.Default))
             {
                 var named = symbol as INamedTypeSymbol;
                 var typeArgument = named!.TypeArguments[0];
@@ -111,9 +111,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return false;
         }
 
-        public static bool IsICollectionOfValueTupleOrKeyValuePair(ISymbol symbol)
+        public static bool IsCollectionOfValueTupleOrKeyValuePair(ISymbol symbol)
         {
-            if (symbol.OriginalDefinition.Equals(System_Collections_Generic_ICollection_T, SymbolEqualityComparer.Default) == false)
+            if (symbol.OriginalDefinition.Equals(System_Collections_Generic_ICollection_T, SymbolEqualityComparer.Default) == false &&
+                symbol.OriginalDefinition.Equals(System_Collections_Generic_IReadOnlyCollection_T, SymbolEqualityComparer.Default) == false)
             {
                 return false;
             }
@@ -141,7 +142,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return true;
             }
-            if (symbol.OriginalDefinition.Equals(System_Collections_Generic_ICollection_T, SymbolEqualityComparer.Default))
+            if (symbol.OriginalDefinition.Equals(System_Collections_Generic_ICollection_T, SymbolEqualityComparer.Default)||
+                symbol.OriginalDefinition.Equals(System_Collections_Generic_IReadOnlyCollection_T, SymbolEqualityComparer.Default))
             {
                 var named = symbol as INamedTypeSymbol;
                 var ta = named!.TypeArguments[0];
