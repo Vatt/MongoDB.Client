@@ -21,16 +21,31 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
         public static void ExtractDictionaryTypeArgs(INamedTypeSymbol type, out ITypeSymbol keyTypeArg, out ITypeSymbol valueTypeArg, out bool isICollectionOfValueTuple)
         {
-            isICollectionOfValueTuple = IsICollectionOfValueTuple(type);
-            if (isICollectionOfValueTuple)
+            keyTypeArg = default;
+            valueTypeArg = default;
+            isICollectionOfValueTuple = false;
+            if (IsICollectionOfValueTupleOrKeyValuePair(type))
             {
                 var tuple = type!.TypeArguments[0] as INamedTypeSymbol;
-                if (tuple!.TupleElements.Length > 2)
+                if (tuple.IsTupleType && tuple!.TupleElements.Length != 2)
                 {
                     ReportDictionaryKeyTypeError(type);
                 }
-                keyTypeArg = tuple.TupleElements[0].Type;
-                valueTypeArg = tuple.TupleElements[1].Type;
+                else if (tuple.IsTupleType && tuple!.TupleElements.Length == 2)
+                {
+                    isICollectionOfValueTuple = true;
+                    keyTypeArg = tuple.TupleElements[0].Type;
+                    valueTypeArg = tuple.TupleElements[1].Type;
+                }else if (tuple.OriginalDefinition.Equals(System_Collections_Generic_KeyValuePair, SymbolEqualityComparer.Default))
+                {
+                    var pair = type.TypeArguments[0] as INamedTypeSymbol;
+                    keyTypeArg = pair.TypeArguments[0];
+                    valueTypeArg = pair.TypeArguments[1];
+                }
+                else
+                {
+                    ReportDictionaryKeyTypeError(type);
+                }
                 
             }
             else

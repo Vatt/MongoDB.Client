@@ -5,7 +5,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        private static GeneratorExecutionContext ExecutionContext => BsonSerializerGenerator.Context;
         private static readonly string UnhandledExceptionError = "MONGO00";
         private static readonly string UnsuportedTypeError = "MONGO01";
         private static readonly string UnsuportedGenericTypeError = "MONGO02";

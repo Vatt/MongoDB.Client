@@ -193,9 +193,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         private static bool TryGenerateCollectionSimpleRead(MemberContext ctx, ITypeSymbol type, CollectionReadContext readCtx, ImmutableList<StatementSyntax>.Builder builder)
         {
-            var (operation, tempVar) = ReadOperation(ctx.Root, ctx.NameSym, type, BsonReaderToken,
-                TypedVariableDeclarationExpr(TypeFullName(type), readCtx.TempCollectionReadTargetToken),
-                readCtx.BsonTypeToken);
+            var (operation, tempVar) = ReadOperation(ctx.Root, ctx.NameSym, type, BsonReaderToken, TypedVariableDeclarationExpr(TypeFullName(type), readCtx.TempCollectionReadTargetToken), readCtx.BsonTypeToken);
             Debug.Assert(tempVar is null);
             if (operation == default)
             {
