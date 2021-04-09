@@ -2,7 +2,6 @@
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
@@ -119,7 +118,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     return Statements
                     (
                         Statement(Write_Type_Name(4, name)),
-                        InvocationExprStatement(WriteListCollectionMethodName(ctx, trueType), RefArgument(writerId), Argument(writeTarget))
+                        //InvocationExprStatement(CollectionWriteMethodName(typeSym), RefArgument(writerId), Argument(writeTarget))
+                        InvocationExprStatement(CollectionWriteMethodName(trueType), RefArgument(writerId), Argument(writeTarget))
                     );
                 }
 
@@ -128,7 +128,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     return Statements
                     (
                         Statement(Write_Type_Name(3, name)),
-                        InvocationExprStatement(WriteDictionaryMethodName(ctx, trueType), RefArgument(writerId), Argument(writeTarget))
+                        //InvocationExprStatement(CollectionWriteMethodName(typeSym), RefArgument(writerId), Argument(writeTarget))
+                        InvocationExprStatement(CollectionWriteMethodName(trueType), RefArgument(writerId), Argument(writeTarget))
                     );
                 }
                 
@@ -138,7 +139,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return bsonWriteExpr.ToArray();
             }
-            GeneratorDiagnostics.ReportUnsuporterTypeError(ctx.NameSym, ctx.TypeSym);
+            ReportUnsuporterTypeError(ctx.NameSym, ctx.TypeSym);
             return new StatementSyntax[0];
         }
         public static bool TryGenerateWriteEnum(MemberContext member, ITypeSymbol typeSym, ExpressionSyntax writeTarget, out ImmutableList<ExpressionSyntax> statements)
@@ -222,7 +223,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     case 0: break;
                     case 5: break;
                     default:
-                        GeneratorDiagnostics.ReportUnsuportedByteArrayReprError(nameSym, typeSymbol);
+                        ReportUnsuportedByteArrayReprError(nameSym, typeSymbol);
                         break;
                 }
                 expr = Write_Type_Name_Value(bsonName, arrayRepr, writeTarget);
@@ -260,7 +261,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             if (typeSymbol.SpecialType != SpecialType.None)
             {
-                GeneratorDiagnostics.ReportUnsuporterTypeError(nameSym, typeSymbol);
+                ReportUnsuporterTypeError(nameSym, typeSymbol);
             }
             return false;
         }

@@ -7,6 +7,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        private static GeneratorExecutionContext ExecutionContext => BsonSerializerGenerator.Context;
+        private static Compilation Compilation => BsonSerializerGenerator.Compilation;
+        
         public static readonly LiteralExpressionSyntax TrueLiteralExpr = SF.LiteralExpression(SyntaxKind.TrueLiteralExpression);
         public static readonly LiteralExpressionSyntax FalseLiteralExpr = SF.LiteralExpression(SyntaxKind.FalseLiteralExpression);
         public static StatementSyntax[] Statements(params ExpressionSyntax[] expressions)
@@ -347,10 +350,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             ITypeSymbol trueType = sym.Name.Equals("Nullable") ? ((INamedTypeSymbol)sym).TypeParameters[0] : sym;
             return SF.ParseTypeName(trueType.Name);
-        }
-        public static TypeParameterSyntax FullTypeParameter(ITypeSymbol sym)
-        {
-            return SF.TypeParameter(sym.ToString());
         }
         public static TypeParameterSyntax TypeParameter(ITypeSymbol sym)
         {

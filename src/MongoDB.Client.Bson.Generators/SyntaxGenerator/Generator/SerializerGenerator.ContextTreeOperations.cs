@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
@@ -164,7 +163,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             if (sections.Count == 0)
             {
-                GeneratorDiagnostics.ReportGenerationContextTreeError();
+                ReportGenerationContextTreeError();
             }
             return SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(host.Offset!.Value)), sections);
         }
@@ -175,7 +174,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var operations = host.InnerOperations;
             if (operations.Count > 0 && member is not null)
             {
-                GeneratorDiagnostics.ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
+                ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
             }
             if (operations.Count == 0)
             {
@@ -193,7 +192,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     goto RETURN;
                 }
-                GeneratorDiagnostics.ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
+                ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
             }
             else
             {
@@ -209,7 +208,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                             builder.Add(GenerateSwitch(ctx, operation, bsonType, bsonName));
                             break;
                         default:
-                            GeneratorDiagnostics.ReportGenerationContextTreeError();
+                            ReportGenerationContextTreeError();
                             break;
                     }
                 }
@@ -236,14 +235,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return builder.ToArray();
             }
-            GeneratorDiagnostics.ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
+            ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
             return default;
         }
         private static StatementSyntax[] GenerateRoot(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
         {
             if (host.InnerOperations.FirstOrDefault(op => op.Type == OpCtxType.Condition) != default)
             {
-                GeneratorDiagnostics.ReportGenerationContextTreeError(nameof(GenerateRoot));
+                ReportGenerationContextTreeError(nameof(GenerateRoot));
             }
             var sections = ImmutableList.CreateBuilder<SwitchSectionSyntax>();
             foreach (var operation in host.InnerOperations.Where(op => op.Type == OpCtxType.Case))

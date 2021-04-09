@@ -3,204 +3,104 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        private static SyntaxToken WriteDictionaryMethodName(MemberContext ctx, ITypeSymbol typeSymbol)
-        {
-            var name = $"Write{ctx.NameSym.Name}{typeSymbol.Name}";
-            var type = typeSymbol as INamedTypeSymbol;
+        public static readonly CollectionReadContext DictionaryReadContext = new CollectionReadContext(
+            Identifier("dictionaryDocLength"),
+            Identifier("dictionaryUnreaded"),
+            Identifier("dictionaryEndMarker"),
+            Identifier("dictionaryBsonType"),
+            Identifier("dictionaryBsonName"),
+            Identifier("dictionary"),
+            Identifier("temp"),
+            Identifier("internalDictionary"),
+            new[]{ Argument(Identifier("dictionaryBsonName")), Argument(Identifier("temp")) });
 
-            while (true)
+        public static void ExtractDictionaryTypeArgs(INamedTypeSymbol type, out ITypeSymbol keyTypeArg, out ITypeSymbol valueTypeArg, out bool isICollectionOfValueTuple)
+        {
+            keyTypeArg = default;
+            valueTypeArg = default;
+            isICollectionOfValueTuple = false;
+            if (IsCollectionOfValueTupleOrKeyValuePair(type))
             {
-                name = $"{name}";
-                foreach(var arg in type.TypeArguments)
+                var tupleOrPair = type!.TypeArguments[0] as INamedTypeSymbol;
+                if (tupleOrPair!.IsTupleType && tupleOrPair!.TupleElements.Length != 2)
                 {
-                    name += arg.Name;
+                    ReportDictionaryKeyTypeError(type);
                 }
-                if (type.NullableAnnotation == NullableAnnotation.Annotated && type.IsValueType)
+                else if (tupleOrPair.IsTupleType && tupleOrPair!.TupleElements.Length == 2)
                 {
-                    type = type.TypeArguments[0] as INamedTypeSymbol;
+                    isICollectionOfValueTuple = true;
+                    keyTypeArg = tupleOrPair.TupleElements[0].Type;
+                    valueTypeArg = tupleOrPair.TupleElements[1].Type;
+                }else if (tupleOrPair.OriginalDefinition.Equals(System_Collections_Generic_KeyValuePair, SymbolEqualityComparer.Default))
+                {
+                    var pair = type.TypeArguments[0] as INamedTypeSymbol;
+                    keyTypeArg = pair.TypeArguments[0];
+                    valueTypeArg = pair.TypeArguments[1];
                 }
                 else
                 {
-                    type = type.TypeArguments[1] as INamedTypeSymbol;
-                }
-                if (type is null || type.TypeArguments.IsEmpty)
-                {
-                    break;
-                }
-            }
-            return Identifier(name);
-        }
-        private static SyntaxToken ReadDictionaryMethodName(ISymbol nameSym, ITypeSymbol typeSymbol)
-        {
-            var name = $"TryParse{nameSym.Name}{typeSymbol.Name}";
-            var type = typeSymbol as INamedTypeSymbol;
-
-            while (true)
-            {
-                //TODO: fix it normal
-                name = $"{name}";
-                foreach(var arg in type.TypeArguments)
-                {
-                    name += arg.Name;
-                }
-                if (type.NullableAnnotation == NullableAnnotation.Annotated && type.IsValueType)
-                {
-                    type = type.TypeArguments[0] as INamedTypeSymbol;
-                }
-                else
-                {
-                    type = type.TypeArguments[1] as INamedTypeSymbol;
+                    ReportDictionaryKeyTypeError(type);
                 }
                 
-
-                if (type is null || type.TypeArguments.IsEmpty)
-                {
-                    break;
-                }
             }
-            return Identifier(name);
+            else
+            {
+                keyTypeArg =  type!.TypeArguments[0];
+                valueTypeArg = type.TypeArguments[1];
+            }
         }
-        private static MethodDeclarationSyntax[] GenerateDictionaryArrayMethods(ContextCore ctx)
+        private static MethodDeclarationSyntax TryParseDictionaryMethod(MemberContext ctx, ITypeSymbol type)
         {
-            List<MethodDeclarationSyntax> methods = new();
+            ITypeSymbol keyArg = default;
+            ITypeSymbol typeArg = default;
+            var named = (type as INamedTypeSymbol);
+            StatementSyntax assigmentExpr = default;
+            ExtractDictionaryTypeArgs(named, out keyArg, out typeArg, out var isICollectionOfValueTuple);
 
-            foreach (var member in ctx.Members)
+            if (keyArg!.Equals(System_String, SymbolEqualityComparer.Default) == false)
             {
-                if (IsDictionaryCollection(member.TypeSym))
-                {
-                    var type = member.TypeSym as INamedTypeSymbol;
-                    if (type is null)
-                    {
-                        methods.Add(ReadDictionaryMethod(member, member.TypeSym));
-                        break;
-                    }
-                    type = member.TypeSym as INamedTypeSymbol;
-                    while (true)
-                    {
-                        methods.Add(ReadDictionaryMethod(member, type));
-                        type = type.TypeArguments[0] as INamedTypeSymbol;
-                        //if (type is null || type.TypeArguments.IsEmpty)
-                        if (type is null || (IsListCollection(type) == false))
-                        {
-                            break;
-                        }
-                    }
-                }
+                ReportDictionaryKeyTypeError(type);
             }
 
-            return methods.ToArray();
-        }
-        private static MethodDeclarationSyntax[] GenerateWriteDictionaryMethods(ContextCore ctx)
-        {
-            List<MethodDeclarationSyntax> methods = new();
-            foreach (var member in ctx.Members)
+            if (isICollectionOfValueTuple)
             {
-                if (IsDictionaryCollection(member.TypeSym))
-                {
-                    var type = member.TypeSym as INamedTypeSymbol;
-                    if (type is null)
-                    {
-                        methods.Add(WriteDictionaryMethod(member, member.TypeSym));
-                        break;
-                    }
-                    type = member.TypeSym as INamedTypeSymbol;
-                    while (true)
-                    {
-                        methods.Add(WriteDictionaryMethod(member, type));
-                        type = type.TypeArguments[0] as INamedTypeSymbol;
-                        if (type is null || (IsDictionaryCollection(type) == false))
-                        {
-                            break;
-                        }
-                    }
-                }
+                assigmentExpr = SimpleAssignExprStatement(DictionaryReadContext.OutMessageToken, Cast(type, DictionaryReadContext.TempCollectionToken));
             }
-
-            return methods.ToArray();
-        }
-        private static bool TryGenerateSimpleReadOpereation1(MemberContext ctx, ITypeSymbol type, SyntaxToken readTarget, SyntaxToken bsonType, SyntaxToken outMessage, ImmutableList<StatementSyntax>.Builder builder)
-        {
-            var (operation, tempVar) = ReadOperation(ctx.Root, ctx.NameSym, type, BsonReaderToken, TypedVariableDeclarationExpr(TypeFullName(type), readTarget), bsonType);
-            if (operation == default)
+            else
             {
-                return false;
+                assigmentExpr = SimpleAssignExprStatement(DictionaryReadContext.OutMessageToken, DictionaryReadContext.TempCollectionToken);
             }
-            builder.IfNotReturnFalseElse(condition: operation,
-                                         @else:
-                                            Block(
-                                                InvocationExprStatement(outMessage, CollectionAddToken, Argument(Identifier("arrayBsonName")),  Argument(tempVar != null ? tempVar : IdentifierName(readTarget))),
-                                                ContinueStatement));
-            return true;
-        }
-        private static bool TryGenerateTryParseBsonArrayOperation1(ITypeSymbol typeSym, ISymbol nameSym, SyntaxToken readTarget, SyntaxToken outMessage, ImmutableList<StatementSyntax>.Builder builder)
-        {
-            ITypeSymbol callType = default;
-            ITypeSymbol outArgType = default;
-            if (IsBsonSerializable(typeSym))
-            {
-                callType = typeSym;
-                outArgType = typeSym;
-            }
-
-            if (IsBsonExtensionSerializable(nameSym, typeSym, out var extSym))
-            {
-                callType = extSym;
-                outArgType = typeSym;
-            }
-
-            if (callType is null || outArgType is null)
-            {
-                return false;
-            }
-            var operation = InvocationExpr(IdentifierName(callType.ToString()), TryParseBsonToken, RefArgument(BsonReaderToken), OutArgument(TypedVariableDeclarationExpr(TypeFullName(outArgType), readTarget)));
-            builder.IfNotReturnFalseElse(condition: operation,
-                                         @else: Block(InvocationExprStatement(outMessage, CollectionAddToken, Argument(Identifier("arrayBsonName")), Argument(readTarget)), ContinueStatement));
-            return true;
-        }
-        private static MethodDeclarationSyntax ReadDictionaryMethod(MemberContext ctx, ITypeSymbol type)
-        {
-            var docLenToken = Identifier("arrayDocLength");
-            var unreadedToken = Identifier("arrayUnreaded");
-            var endMarkerToken = Identifier("arrayEndMarker");
-            var bsonTypeToken = Identifier("arrayBsonType");
-            var bsonNameToken = Identifier("arrayBsonName");
-            var outMessage = Identifier("array");
-            var tempArrayRead = Identifier("temp");
-            var tempArray = Identifier("internalArray");
-            var typeArg = (type as INamedTypeSymbol).TypeArguments[1];
             var trueTypeArg = ExtractTypeFromNullableIfNeed(typeArg);
-
-            //ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
-            if (TryGenerateSimpleReadOpereation1(ctx, trueTypeArg, tempArrayRead, bsonTypeToken, tempArray, builder))
+            if (TryGenerateCollectionSimpleRead(ctx, trueTypeArg, DictionaryReadContext, builder))
             {
                 goto RETURN;
             }
-            if (TryGenerateTryParseBsonArrayOperation1(trueTypeArg, ctx.NameSym, tempArrayRead, tempArray, builder))
+            if (TryGenerateCollectionTryParseBson(trueTypeArg, ctx.NameSym, DictionaryReadContext, builder))
             {
                 goto RETURN;
             }
-            if (TryGetEnumReadOperation(tempArrayRead, ctx.NameSym, trueTypeArg, true, out var enumOp))
+            if (TryGetEnumReadOperation(DictionaryReadContext.TempCollectionReadTargetToken, ctx.NameSym, trueTypeArg, true, out var enumOp))
             {
-                builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(tempArray, CollectionAddToken, Argument(Identifier("arrayBsonName")),  Argument(enumOp.TempExpr))));
+                builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(DictionaryReadContext.TempCollectionToken, CollectionAddToken, 
+                                                                               Argument(DictionaryReadContext.BsonNameToken),  Argument(enumOp.TempExpr))));
                 goto RETURN;
             }
-            GeneratorDiagnostics.ReportUnsuporterTypeError(ctx.NameSym, trueTypeArg);
+            ReportUnsuporterTypeError(ctx.NameSym, trueTypeArg);
         RETURN:
             return SF.MethodDeclaration(
                     attributeLists: default,
                     modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()),
                     explicitInterfaceSpecifier: default,
                     returnType: BoolPredefinedType(),
-                    identifier: ReadDictionaryMethodName(ctx.NameSym, type),
+                    identifier: CollectionTryParseMethodName(type),
                     parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken),
-                                                 OutParameter(IdentifierName(type.ToString()), outMessage)),
+                                                 OutParameter(IdentifierName(type.ToString()), DictionaryReadContext.OutMessageToken)),
                     body: default,
                     constraintClauses: default,
                     expressionBody: default,
@@ -208,47 +108,48 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     semicolonToken: default)
                 .WithBody(
                    Block(
-                       SimpleAssignExprStatement(outMessage, DefaultLiteralExpr()),
-                       VarLocalDeclarationStatement(tempArray, ObjectCreation(TypeFullName(System_Collections_Generic_Dictionary_K_V.Construct(System_String, typeArg)))),
-                       IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(docLenToken))),
-                       VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemainingExpr, SizeOfInt32Expr)),
+                       SimpleAssignExprStatement(DictionaryReadContext.OutMessageToken, DefaultLiteralExpr()),
+                       VarLocalDeclarationStatement(DictionaryReadContext.TempCollectionToken, ObjectCreation(ConstructCollectionType(type))),
+                       IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(DictionaryReadContext.DocLenToken))),
+                       VarLocalDeclarationStatement(DictionaryReadContext.UnreadedToken, BinaryExprPlus(ReaderRemainingExpr, SizeOfInt32Expr)),
                        SF.WhileStatement(
                            condition:
                                BinaryExprLessThan(
-                                   BinaryExprMinus(IdentifierName(unreadedToken), ReaderRemainingExpr),
-                                   BinaryExprMinus(IdentifierName(docLenToken), NumericLiteralExpr(1))),
+                                   BinaryExprMinus(DictionaryReadContext.UnreadedToken, ReaderRemainingExpr),
+                                   BinaryExprMinus(DictionaryReadContext.DocLenToken, NumericLiteralExpr(1))),
                            statement:
                                Block(
-                                   IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(bsonTypeToken))),
-                                   IfNotReturnFalse(TryGetCString(VarVariableDeclarationExpr(bsonNameToken))),
+                                   IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(DictionaryReadContext.BsonTypeToken))),
+                                   IfNotReturnFalse(TryGetCString(VarVariableDeclarationExpr(DictionaryReadContext.BsonNameToken))),
                                    IfStatement(
-                                       condition: BinaryExprEqualsEquals(bsonTypeToken, NumericLiteralExpr(10)),
+                                       condition: BinaryExprEqualsEquals(DictionaryReadContext.BsonTypeToken, NumericLiteralExpr(10)),
                                        statement: Block(
-                                           InvocationExprStatement(tempArray, CollectionAddToken, Argument(bsonNameToken), Argument(DefaultLiteralExpr())),
+                                           InvocationExprStatement(DictionaryReadContext.TempCollectionToken, CollectionAddToken, 
+                                                                   Argument(DictionaryReadContext.BsonNameToken), Argument(DefaultLiteralExpr())),
                                            ContinueStatement
                                            )),
                                    builder.ToArray()
                                    )),
-                       IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
+                       IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(DictionaryReadContext.EndMarkerToken))),
                        IfStatement(
-                           BinaryExprNotEquals(endMarkerToken, NumericLiteralExpr((byte)'\x00')),
-                           Block(Statement(SerializerEndMarkerException(ctx.Root.Declaration, IdentifierName(endMarkerToken))))),
-                       SimpleAssignExprStatement(IdentifierName(outMessage), tempArray),
+                           BinaryExprNotEquals(DictionaryReadContext.EndMarkerToken, NumericLiteralExpr((byte)'\x00')),
+                           Block(Statement(SerializerEndMarkerException(ctx.Root.Declaration, IdentifierName(DictionaryReadContext.EndMarkerToken))))),
+                       //SimpleAssignExprStatement(DictionaryReadContext.OutMessageToken, DictionaryReadContext.TempCollectionToken),
+                       assigmentExpr,
                        ReturnTrueStatement
                        ));
         }
 
         private static MethodDeclarationSyntax WriteDictionaryMethod(MemberContext ctx, ITypeSymbol type)
         {
-            ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
             var checkpoint = Identifier("checkpoint");
             var reserved = Identifier("reserved");
             var docLength = Identifier("docLength");
             var collection = Identifier("collection");
             var keyToken = Identifier("key");
             var valueToken = Identifier("value");
-            var typeArg = (trueType as INamedTypeSymbol).TypeArguments[1];
-
+            ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
+            ExtractDictionaryTypeArgs(trueType as INamedTypeSymbol, out _, out var typeArg, out _);
             var writeOperation = ImmutableList.CreateBuilder<StatementSyntax>();
             
             if (typeArg.IsReferenceType)
@@ -275,7 +176,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()),
                     explicitInterfaceSpecifier: default,
                     returnType: VoidPredefinedType(),
-                    identifier: WriteDictionaryMethodName(ctx, trueType),
+                    identifier: CollectionWriteMethodName(trueType),
                     parameterList: ParameterList(
                         RefParameter(BsonWriterType, BsonWriterToken),
                         Parameter(TypeFullName(trueType), collection)),

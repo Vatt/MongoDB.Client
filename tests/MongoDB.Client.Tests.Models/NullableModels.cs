@@ -112,7 +112,7 @@ namespace MongoDB.Client.Tests.Models
         public DoubleNullable? Prop11 { get; set; }
         public IntNullable? Prop12 { get; set; }
         public GenericNullable? Prop13 { get; set; }
-        public GenericWithNulalbleListTest<GenericNullable, RecordNullable>? Prop14 { get; set; }
+        public GenericWithNullableListTest<GenericNullable, RecordNullable>? Prop14 { get; set; }
 
         public static OtherModelsNullable Create()
         {
@@ -131,7 +131,7 @@ namespace MongoDB.Client.Tests.Models
                 Prop11 = DoubleNullable.Create(),
                 Prop12 = IntNullable.Create(),
                 Prop13 = GenericNullable.Create(),
-                Prop14 = GenericWithNulalbleListTest<GenericNullable, RecordNullable>.Create(
+                Prop14 = GenericWithNullableListTest<GenericNullable, RecordNullable>.Create(
                     GenericNullable.Create(), null!, GenericNullable.Create(),
                     RecordNullable.Create(), null!, RecordNullable.Create()),
 
@@ -291,7 +291,7 @@ namespace MongoDB.Client.Tests.Models
     }
 
     [BsonSerializable]
-    public partial class GenericWithNulalbleListTest<T, TT> : IEquatable<GenericWithNulalbleListTest<T, TT>>
+    public partial class GenericWithNullableListTest<T, TT> : IEquatable<GenericWithNullableListTest<T, TT>>
     {
         [BsonSerializable]
         public partial struct InnerGenericStruct<TTT>
@@ -306,7 +306,7 @@ namespace MongoDB.Client.Tests.Models
         public List<TT>? List2 { get; set; }
         public List<InnerGenericStruct<T>?>? List3 { get; set; }
         public List<InnerGenericStruct<T>>? List4 { get; set; }
-        public static GenericWithNulalbleListTest<T, TT> Create(T le1, T le2, T le3, TT le4, TT le5, TT le6)
+        public static GenericWithNullableListTest<T, TT> Create(T le1, T le2, T le3, TT le4, TT le5, TT le6)
         {
             return new()
             {
@@ -317,7 +317,7 @@ namespace MongoDB.Client.Tests.Models
             };
         }
 
-        public bool Equals(GenericWithNulalbleListTest<T, TT>? other)
+        public bool Equals(GenericWithNullableListTest<T, TT>? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -349,7 +349,7 @@ namespace MongoDB.Client.Tests.Models
                 return false;
             }
 
-            return Equals((GenericWithNulalbleListTest<T, TT>)obj);
+            return Equals((GenericWithNullableListTest<T, TT>)obj);
         }
 
         public override int GetHashCode()
