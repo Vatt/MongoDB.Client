@@ -4,7 +4,7 @@ using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization
 {
-    public class GeneratedCustomModelTest : BaseSerialization
+    public class GeneratedCustomModelTest : SerializationTestBase
     {
         [Fact]
         public async Task CustomModelTest()

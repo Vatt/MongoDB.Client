@@ -56,7 +56,7 @@ namespace MongoDB.Client.Tests.Serialization
             return true;
         }
     }
-    public abstract class BaseSerialization
+    public abstract class SerializationTestBase
     {
         public static async Task<T> RoundTripAsync<T>(T message)
         {

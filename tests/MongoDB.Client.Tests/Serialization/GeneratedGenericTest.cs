@@ -4,7 +4,7 @@ using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization
 {
-    public class GeneratedGenericTest : BaseSerialization
+    public class GeneratedGenericTest : SerializationTestBase
     {
         [Fact]
         public async Task GenericTest()

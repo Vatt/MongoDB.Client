@@ -7,7 +7,7 @@ using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization
 {
-    public class GeneratedSerializerTests : BaseSerialization
+    public class GeneratedSerializerTests : SerializationTestBase
     {
         [Fact]
         public async Task WriteIgnoreIfTest()

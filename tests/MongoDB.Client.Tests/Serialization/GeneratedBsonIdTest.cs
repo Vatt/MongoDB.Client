@@ -5,7 +5,7 @@ using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization
 {
-    public class GeneratedBsonIdTest : BaseSerialization
+    public class GeneratedBsonIdTest : SerializationTestBase
     {
         [Fact]
         public async Task BsonIdTest()

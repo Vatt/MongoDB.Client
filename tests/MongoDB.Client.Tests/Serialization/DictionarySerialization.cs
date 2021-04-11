@@ -9,7 +9,7 @@ using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization
 {
-    public class DictionarySerialization : BaseSerialization
+    public class DictionarySerialization : SerializationTestBase
     {
         [Fact]
         public async Task DictionarySerializationTest()

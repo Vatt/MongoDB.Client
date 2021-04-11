@@ -4,7 +4,7 @@ using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization
 {
-    public class GeneratedEnumTest : BaseSerialization
+    public class GeneratedEnumTest : SerializationTestBase
     {
         [Fact]
         public async Task EnumSerializationDeserialization()

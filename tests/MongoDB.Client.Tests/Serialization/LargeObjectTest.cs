@@ -5,7 +5,7 @@ using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization
 {
-    public class LargeObjectTest : BaseSerialization
+    public class LargeObjectTest : SerializationTestBase
     {
 
         [Fact]

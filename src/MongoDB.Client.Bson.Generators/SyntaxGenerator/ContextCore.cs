@@ -112,7 +112,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                 {
                     SerializerGenerator.ReportMatchConstructorParametersError(Declaration);
                 }
-                binds.Add(member, param.Name);
+                else
+                {
+                    binds.Add(member, param.Name);
+                }
+                
             }
 
             return binds;

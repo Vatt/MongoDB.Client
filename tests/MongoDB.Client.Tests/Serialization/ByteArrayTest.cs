@@ -4,7 +4,7 @@ using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization
 {
-    public class ByteArrayTest : BaseSerialization
+    public class ByteArrayTest : SerializationTestBase
     {
         [Fact]
         public async Task ByteArrayAndMemoryByteTest()

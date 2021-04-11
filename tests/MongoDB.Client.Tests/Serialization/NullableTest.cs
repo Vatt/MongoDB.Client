@@ -6,7 +6,7 @@ using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization
 {
-    public class NullableTest : BaseSerialization
+    public class NullableTest : SerializationTestBase
     {
         [Fact]
         public async Task IntNullableTest()

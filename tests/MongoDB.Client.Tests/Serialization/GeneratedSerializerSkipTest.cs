@@ -6,7 +6,7 @@ using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization
 {
-    public class GeneratedSerializerSkipTest : BaseSerialization
+    public class GeneratedSerializerSkipTest : SerializationTestBase
     {
 
         [Fact]
