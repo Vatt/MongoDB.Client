@@ -25,10 +25,10 @@ namespace MongoDB.Client.Tests.Serialization
                 },
                 NullableData = new Dictionary<string, int?>
                 {
-                ["key1"] = 1,
-                ["key2"] = 2,
-                ["key3"] = 3,
-            }
+                    ["key1"] = 1,
+                    ["key2"] = 2,
+                    ["key3"] = 3,
+                }
             };
             var result = await RoundTripAsync(model);
 

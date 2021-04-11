@@ -111,6 +111,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     Statement(WriteGeneric(writeTarget, IdentifierName(identifierName)))
                 );
             }
+
+            if (typeSym.SpecialType == SpecialType.System_Object)
+            {
+                var identifierName = $"{name}objectReserved";
+                return Statements
+                (
+                    VarLocalDeclarationStatement(Identifier(identifierName), WriterReserve(1)),
+                    Statement(WriteCString(ctx.StaticSpanNameToken)),
+                    Statement(WriteObject(writeTarget, IdentifierName(identifierName)))
+                );
+            }
             if (trueType is INamedTypeSymbol namedType)
             {
                 if (IsListCollection(namedType))
@@ -132,8 +143,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         InvocationExprStatement(CollectionWriteMethodName(trueType), RefArgument(writerId), Argument(writeTarget))
                     );
                 }
-                
-                
+
+
             }
             if (TryGenerateBsonWrite(name, nameSym, typeSym, writeTarget, out var bsonWriteExpr))
             {
@@ -259,10 +270,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 expr = Write_Type_Name_Value(bsonName, writeTarget);
                 return true;
             }
-            if (typeSymbol.SpecialType != SpecialType.None)
-            {
-                ReportUnsuporterTypeError(nameSym, typeSymbol);
-            }
+            //if (typeSymbol.SpecialType != SpecialType.None)
+            //{
+            //    ReportUnsuporterTypeError(nameSym, typeSymbol);
+            //}
             return false;
         }
     }

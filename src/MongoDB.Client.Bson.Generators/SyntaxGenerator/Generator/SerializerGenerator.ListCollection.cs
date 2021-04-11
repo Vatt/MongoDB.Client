@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
+﻿using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -10,13 +8,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
     internal static partial class SerializerGenerator
     {
         public static readonly CollectionReadContext ListReadContext = new CollectionReadContext(
-            Identifier("listDocLength"), 
-            Identifier("listUnreaded"), 
+            Identifier("listDocLength"),
+            Identifier("listUnreaded"),
             Identifier("listEndMarker"),
             Identifier("listBsonType"),
             Identifier("listBsonName"),
-            Identifier("list"), 
-            Identifier("temp"), 
+            Identifier("list"),
+            Identifier("temp"),
             Identifier("internalList"),
             new[] { Argument(Identifier("temp")) });
         private static MethodDeclarationSyntax TryParseListCollectionMethod(MemberContext ctx, ITypeSymbol type)

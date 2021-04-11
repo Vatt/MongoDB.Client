@@ -17,7 +17,12 @@ namespace MongoDB.Client.Bson.Writer
         {
             throw new SerializerNotFoundException(typeName);
         }
-
+        [DoesNotReturn]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowUnsupportedTypeType(string typeName)
+        {
+            throw new UnsupportedTypeException(typeName);
+        }
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowSerializerIsNull(string typeName)
@@ -25,19 +30,17 @@ namespace MongoDB.Client.Bson.Writer
             throw new SerializerIsNullException(typeName);
         }
 
+        //TODO: support byte[] as BinaryData with check attribute representation
 
-        public unsafe void WriteGeneric<T>(T genericValue, ref Reserved typeReserved)
+
+        public unsafe void WriteObject(object objectValue, ref Reserved typeReserved)
         {
-            if (genericValue == null)
+            if (objectValue == null)
             {
                 typeReserved.WriteByte(10);
                 return;
             }
-            //if (SerializerFnPtrProvider<T>.IsSerializable)
-            //{
-            //    goto SERIALIZABLE;
-            //}
-            switch (genericValue)
+            switch (objectValue)
             {
                 case double value:
                     WriteDouble(value);
@@ -71,6 +74,77 @@ namespace MongoDB.Client.Bson.Writer
                     WriteUtcDateTime(value);
                     typeReserved.WriteByte(9);
                     return;
+                case BsonTimestamp value:
+                    WriteTimestamp(value);
+                    typeReserved.WriteByte(9);
+                    return;
+                case int value:
+                    WriteInt32(value);
+                    typeReserved.WriteByte(16);
+                    return;
+                case long value:
+                    WriteInt64(value);
+                    typeReserved.WriteByte(18);
+                    return;
+                    //default:
+                    //    System.Diagnostics.Debugger.Break();
+                    //    break; 
+            }
+            if (ReflectionHelper.TryGetSerializerMethods(objectValue, out var methods))
+            {
+                typeReserved.WriteByte(3);
+                methods.WriteFnPtr(ref this, objectValue);
+            }
+            else
+            {
+                ThrowUnsupportedTypeType(objectValue.GetType().Name);
+            }
+        }
+        public unsafe void WriteGeneric<T>(T genericValue, ref Reserved typeReserved)
+        {
+            if (genericValue == null)
+            {
+                typeReserved.WriteByte(10);
+                return;
+            }
+            switch (genericValue)
+            {
+                case double value:
+                    WriteDouble(value);
+                    typeReserved.WriteByte(1);
+                    return;
+                case string value:
+                    WriteString(value);
+                    typeReserved.WriteByte(2);
+                    return;
+                case BsonArray value:
+                    WriteDocument(value);
+                    typeReserved.WriteByte(4);
+                    return;
+                case BsonDocument value:
+                    WriteDocument(value);
+                    typeReserved.WriteByte(3);
+                    return;
+                case Guid value:
+                    WriteGuidAsBinaryData(value);
+                    typeReserved.WriteByte(5);
+                    return;
+                case BsonObjectId value:
+                    WriteObjectId(value);
+                    typeReserved.WriteByte(7);
+                    return;
+                case BsonTimestamp value:
+                    WriteTimestamp(value);
+                    typeReserved.WriteByte(9);
+                    return;
+                case bool value:
+                    WriteBoolean(value);
+                    typeReserved.WriteByte(8);
+                    return;
+                case DateTimeOffset value:
+                    WriteUtcDateTime(value);
+                    typeReserved.WriteByte(9);
+                    return;
                 case int value:
                     WriteInt32(value);
                     typeReserved.WriteByte(16);
@@ -83,8 +157,6 @@ namespace MongoDB.Client.Bson.Writer
                     //    System.Diagnostics.Debugger.Break();
                     //    break;
             }
-
-            //SERIALIZABLE:
             var writer = SerializerFnPtrProvider<T>.WriteFnPtr;
             if (writer != default)
             {
@@ -466,7 +538,7 @@ namespace MongoDB.Client.Bson.Writer
             WriteCString(name);
             WriteTimestamp(value);
         }
-        public void Write_Type_Name_Value(string  name, BsonTimestamp value)
+        public void Write_Type_Name_Value(string name, BsonTimestamp value)
         {
             WriteByte(17);
             WriteCString(name);

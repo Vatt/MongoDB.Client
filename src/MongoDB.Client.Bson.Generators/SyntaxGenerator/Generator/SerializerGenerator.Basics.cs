@@ -363,12 +363,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static BlockSyntax Block(IfStatementSyntax if1, IfStatementSyntax if2, IfStatementSyntax if3, StatementSyntax[] statements1, params StatementSyntax[] statements2)
         {
             return SF.Block(if1, if2, if3).AddStatements(statements1).AddStatements(statements2);
-        }     
-        public static BlockSyntax Block(IfStatementSyntax if1, IfStatementSyntax if2, IfStatementSyntax if3,  ImmutableList<StatementSyntax>.Builder builder)
+        }
+        public static BlockSyntax Block(IfStatementSyntax if1, IfStatementSyntax if2, IfStatementSyntax if3, ImmutableList<StatementSyntax>.Builder builder)
         {
             return SF.Block(if1, if2, if3).AddStatements(builder.ToArray());
         }
-        
+
         public static BlockSyntax Block(params ExpressionSyntax[] expressions)
         {
             return SF.Block(expressions.Select(e => Statement(e)));

@@ -5,6 +5,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        public static INamedTypeSymbol System_Object => Compilation.GetSpecialType(SpecialType.System_Object);
         public static INamedTypeSymbol System_Byte => Compilation.GetSpecialType(SpecialType.System_Byte);
         public static INamedTypeSymbol System_Int32 => Compilation.GetSpecialType(SpecialType.System_Int32);
         public static INamedTypeSymbol System_String => Compilation.GetSpecialType(SpecialType.System_String);
@@ -99,7 +100,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 if (typeArgument.IsTupleType)
                 {
                     return false;
-                }else if (typeArgument.OriginalDefinition.Equals(System_Collections_Generic_KeyValuePair, SymbolEqualityComparer.Default))
+                }
+                else if (typeArgument.OriginalDefinition.Equals(System_Collections_Generic_KeyValuePair, SymbolEqualityComparer.Default))
                 {
                     return false;
                 }
@@ -107,7 +109,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     return true;
                 }
-            } 
+            }
             return false;
         }
 
@@ -142,7 +144,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return true;
             }
-            if (symbol.OriginalDefinition.Equals(System_Collections_Generic_ICollection_T, SymbolEqualityComparer.Default)||
+            if (symbol.OriginalDefinition.Equals(System_Collections_Generic_ICollection_T, SymbolEqualityComparer.Default) ||
                 symbol.OriginalDefinition.Equals(System_Collections_Generic_IReadOnlyCollection_T, SymbolEqualityComparer.Default))
             {
                 var named = symbol as INamedTypeSymbol;
@@ -151,7 +153,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     return true;
                 }
-                if(ta.OriginalDefinition.Equals(System_Collections_Generic_KeyValuePair, SymbolEqualityComparer.Default))
+                if (ta.OriginalDefinition.Equals(System_Collections_Generic_KeyValuePair, SymbolEqualityComparer.Default))
                 {
                     return true;
                 }

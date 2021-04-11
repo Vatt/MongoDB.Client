@@ -1,6 +1,5 @@
-﻿using System.Text;
+﻿using System;
 using Microsoft.CodeAnalysis;
-using System;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator

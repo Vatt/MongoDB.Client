@@ -16,7 +16,12 @@ namespace MongoDB.Client.Bson.Reader
         {
             throw new SerializerNotFoundException(typeName);
         }
-
+        [DoesNotReturn]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowUnsupportedTypeType(string typeName)
+        {
+            throw new UnsupportedTypeException(typeName);
+        }
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowSerializerIsNull(string typeName)
@@ -27,12 +32,94 @@ namespace MongoDB.Client.Bson.Reader
         public unsafe bool TryReadGenericNullable<T>(int bsonType, [MaybeNullWhen(false)] out T? genericValue)
         {
             genericValue = default;
-            if(TryReadGeneric<T>(bsonType, out var temp))
+            if (TryReadGeneric<T>(bsonType, out var temp))
             {
                 genericValue = temp;
                 return true;
             }
             return false;
+        }
+        public bool TryReadObject(int bsonType, [MaybeNullWhen(false)] out object objectValue)
+        {
+            objectValue = default;
+            switch (bsonType)
+            {
+                case 1:
+                    {
+                        if (!TryGetDouble(out double doubleValue)) { return false; }
+                        objectValue = doubleValue;
+                        return true;
+                    }
+                case 2:
+                    {
+                        if (!TryGetString(out var stringValue)) { return false; }
+                        objectValue = stringValue;
+                        return true;
+                    }
+                case 3:
+                    {
+                        if (!TryParseDocument(null, out var docValue)) { return false; }
+                        objectValue = docValue;
+                        return true;
+                    }
+                case 4:
+                    {
+                        if (!TryGetArray(out var arrayDoc)) { return false; }
+                        objectValue = arrayDoc;
+                        return true;
+                    }
+                case 5:
+                    {
+                        if (!TryGetBinaryData(out BsonBinaryData binary)) { return false; }
+                        objectValue = binary;
+                        return true;
+                    }
+                case 7:
+                    {
+                        if (!TryGetObjectId(out BsonObjectId objectId)) { return false; }
+                        objectValue = objectId;
+                        return true;
+                    }
+                case 8:
+                    {
+                        if (!TryGetBoolean(out bool boolValue)) { return false; }
+                        objectValue = boolValue;
+                        return true;
+                    }
+                case 9:
+                    {
+                        if (!TryGetUtcDatetime(out DateTimeOffset datetime)) { return false; }
+                        objectValue = datetime;
+                        return true;
+                    }
+                case 10:
+                    {
+                        objectValue = null;
+                        return true;
+                    }
+                case 16:
+                    {
+                        if (!TryGetInt32(out int intValue)) { return false; }
+                        objectValue = intValue;
+                        return true;
+                    }
+                case 17:
+                    {
+                        if (!TryGetInt64(out long timestampValue)) { return false; }
+                        objectValue = timestampValue;
+                        return true;
+                    }
+                case 18:
+                    {
+                        if (!TryGetInt64(out long longValue)) { return false; }
+                        objectValue = longValue;
+                        return true;
+                    }
+                default:
+                    {
+                        return ThrowHelper.UnknownTypeException<bool>(bsonType);
+                    }
+            }
         }
         public unsafe bool TryReadGeneric<T>(int bsonType, [MaybeNullWhen(false)] out T genericValue)
         {

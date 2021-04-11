@@ -31,7 +31,10 @@ namespace MongoDB.Client.Bson.Document
         {
             return new BsonBinaryData(BsonBinaryDataType.Generic, data);
         }
-
+        public static BsonBinaryData Create(BsonBinaryDataType type, byte[] data)
+        {
+            return new BsonBinaryData(type, data);
+        }
         public bool Equals(BsonBinaryData other)
         {
             return Type == other.Type && Value.Equals(other.Value);

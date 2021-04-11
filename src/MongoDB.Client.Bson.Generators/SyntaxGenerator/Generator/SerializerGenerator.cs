@@ -9,7 +9,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
     {
         private static GeneratorExecutionContext ExecutionContext => BsonSerializerGenerator.Context;
         private static Compilation Compilation => BsonSerializerGenerator.Compilation;
-        
+
         public static readonly LiteralExpressionSyntax TrueLiteralExpr = SF.LiteralExpression(SyntaxKind.TrueLiteralExpression);
         public static readonly LiteralExpressionSyntax FalseLiteralExpr = SF.LiteralExpression(SyntaxKind.FalseLiteralExpression);
         public static StatementSyntax[] Statements(params ExpressionSyntax[] expressions)

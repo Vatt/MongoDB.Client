@@ -258,12 +258,13 @@ namespace MongoDB.Client.Bson.Reader
 
             switch (subtype)
             {
-                case 0:
+                //Generic or MD5 binary data 
+                case 0 or 5:
                     {
                         var data = new byte[len];
                         if (_input.TryCopyTo(data))
                         {
-                            value = BsonBinaryData.Create(data);
+                            value = BsonBinaryData.Create((BsonBinaryDataType)subtype, data);
                             _input.Advance(len);
                             return true;
                         }
