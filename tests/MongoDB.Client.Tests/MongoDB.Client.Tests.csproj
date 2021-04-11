@@ -27,8 +27,4 @@
     <ProjectReference Include="..\MongoDB.Client.Tests.Models\MongoDB.Client.Tests.Models.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Serialization\Generator\" />
-  </ItemGroup>
-
 </Project>
