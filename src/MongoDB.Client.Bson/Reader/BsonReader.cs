@@ -377,6 +377,18 @@ namespace MongoDB.Client.Bson.Reader
             return false;
         }
 
+        public bool TryGetTimestamp([MaybeNullWhen(false)] out BsonTimestamp? value)
+        {
+            if (TryGetInt64(out long data))
+            {
+                value = new BsonTimestamp(data);
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
+
 
         public bool TryGetBoolean(out bool value)
         {
