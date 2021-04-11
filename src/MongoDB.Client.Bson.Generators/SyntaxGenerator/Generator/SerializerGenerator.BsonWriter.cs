@@ -64,6 +64,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return InvocationExpr(BsonWriterToken, IdentifierName("WriteGeneric"), Argument(name), RefArgument(reserved));
         }
+        public static ExpressionSyntax WriteObject(ExpressionSyntax name, ExpressionSyntax reserved)
+        {
+            return InvocationExpr(BsonWriterToken, IdentifierName("WriteObject"), Argument(name), RefArgument(reserved));
+        }
         public static ExpressionSyntax WriterReserve(int size)
         {
             return InvocationExpr(BsonWriterToken, IdentifierName("Reserve"), Argument(NumericLiteralExpr(size)));

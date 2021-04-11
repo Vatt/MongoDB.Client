@@ -281,6 +281,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 case SpecialType.System_Int64:
                     expr = TryGetInt64(variable);
                     return true;
+                case SpecialType.System_Object:
+                    expr = TryReadObject(bsonType, variable);
+                    return true;
                     //case SpecialType.System_DateTime:
                     //    expr = TryGetDateTimeWithBsonType(bsonType, variable);
                     //    return true;

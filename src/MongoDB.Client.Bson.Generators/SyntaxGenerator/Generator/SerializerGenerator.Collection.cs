@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
@@ -24,7 +23,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             public CollectionReadContext(
                 SyntaxToken docLenToken, SyntaxToken unreadedToken, SyntaxToken endMarkerToken,
                 SyntaxToken bsonTypeToken, SyntaxToken bsonNameToken, SyntaxToken outMessageTokenToken,
-                SyntaxToken tempCollectionReadTargetToken, SyntaxToken tempCollectionToken, 
+                SyntaxToken tempCollectionReadTargetToken, SyntaxToken tempCollectionToken,
                 ArgumentSyntax[] collectionAddArguments)
             {
                 DocLenToken = docLenToken;
@@ -124,7 +123,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             List<MethodDeclarationSyntax> methods = new();
             HashSet<ITypeSymbol> declared = new();
-            foreach(var member in ctx.Members.Where( x => IsCollection(x.TypeSym)))
+            foreach (var member in ctx.Members.Where(x => IsCollection(x.TypeSym)))
             {
                 var type = member.TypeSym as INamedTypeSymbol;
                 if (type is null && declared.Contains(type, SymbolEqualityComparer.Default) is false)
@@ -146,7 +145,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     }
                     else if (IsDictionaryCollection(type))
                     {
-                        ExtractDictionaryTypeArgs(type, out _, out var tempType ,out _);
+                        ExtractDictionaryTypeArgs(type, out _, out var tempType, out _);
                         type = tempType as INamedTypeSymbol;
                     }
                     else

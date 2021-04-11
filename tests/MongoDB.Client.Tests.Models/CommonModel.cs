@@ -109,7 +109,7 @@ namespace MongoDB.Client.Tests.Models
                    StringCollection.SequenceEqual(other.StringCollection) &&
                    StringReadOnlyCollection.SequenceEqual(other.StringReadOnlyCollection) &&
                    StringReadOnlyList.SequenceEqual(other.StringReadOnlyList);// &&
-                   //StringDictionary.SequenceEqual(other.StringDictionary);
+                                                                              //StringDictionary.SequenceEqual(other.StringDictionary);
         }
 
         public override bool Equals(object? obj)

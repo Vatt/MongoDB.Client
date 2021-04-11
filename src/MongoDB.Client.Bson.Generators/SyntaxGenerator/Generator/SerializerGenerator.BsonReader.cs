@@ -75,6 +75,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return InvocationExpr(IdentifierName(BsonReaderToken), Identifier("TryReadGenericNullable"), Argument(bsonType), OutArgument(assignOrDecl));
         }
+        public static ExpressionSyntax TryReadObject(ExpressionSyntax bsonType, ExpressionSyntax assignOrDecl)
+        {
+            return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryReadObject"), Argument(bsonType), OutArgument(assignOrDecl));
+        }
         public static ExpressionSyntax TrySkip(ExpressionSyntax bsonType)
         {
             return InvocationExpr(BsonReaderToken, SF.IdentifierName("TrySkip"), SF.Argument(bsonType));

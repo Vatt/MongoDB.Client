@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -17,7 +16,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             Identifier("dictionary"),
             Identifier("temp"),
             Identifier("internalDictionary"),
-            new[]{ Argument(Identifier("dictionaryBsonName")), Argument(Identifier("temp")) });
+            new[] { Argument(Identifier("dictionaryBsonName")), Argument(Identifier("temp")) });
 
         public static void ExtractDictionaryTypeArgs(INamedTypeSymbol type, out ITypeSymbol keyTypeArg, out ITypeSymbol valueTypeArg, out bool isICollectionOfValueTuple)
         {
@@ -36,7 +35,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     isICollectionOfValueTuple = true;
                     keyTypeArg = tupleOrPair.TupleElements[0].Type;
                     valueTypeArg = tupleOrPair.TupleElements[1].Type;
-                }else if (tupleOrPair.OriginalDefinition.Equals(System_Collections_Generic_KeyValuePair, SymbolEqualityComparer.Default))
+                }
+                else if (tupleOrPair.OriginalDefinition.Equals(System_Collections_Generic_KeyValuePair, SymbolEqualityComparer.Default))
                 {
                     var pair = type.TypeArguments[0] as INamedTypeSymbol;
                     keyTypeArg = pair.TypeArguments[0];
@@ -46,11 +46,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     ReportDictionaryKeyTypeError(type);
                 }
-                
+
             }
             else
             {
-                keyTypeArg =  type!.TypeArguments[0];
+                keyTypeArg = type!.TypeArguments[0];
                 valueTypeArg = type.TypeArguments[1];
             }
         }
@@ -87,8 +87,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             if (TryGetEnumReadOperation(DictionaryReadContext.TempCollectionReadTargetToken, ctx.NameSym, trueTypeArg, true, out var enumOp))
             {
-                builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(DictionaryReadContext.TempCollectionToken, CollectionAddToken, 
-                                                                               Argument(DictionaryReadContext.BsonNameToken),  Argument(enumOp.TempExpr))));
+                builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(DictionaryReadContext.TempCollectionToken, CollectionAddToken,
+                                                                               Argument(DictionaryReadContext.BsonNameToken), Argument(enumOp.TempExpr))));
                 goto RETURN;
             }
             ReportUnsuporterTypeError(ctx.NameSym, trueTypeArg);
@@ -124,7 +124,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                    IfStatement(
                                        condition: BinaryExprEqualsEquals(DictionaryReadContext.BsonTypeToken, NumericLiteralExpr(10)),
                                        statement: Block(
-                                           InvocationExprStatement(DictionaryReadContext.TempCollectionToken, CollectionAddToken, 
+                                           InvocationExprStatement(DictionaryReadContext.TempCollectionToken, CollectionAddToken,
                                                                    Argument(DictionaryReadContext.BsonNameToken), Argument(DefaultLiteralExpr())),
                                            ContinueStatement
                                            )),
@@ -151,7 +151,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
             ExtractDictionaryTypeArgs(trueType as INamedTypeSymbol, out _, out var typeArg, out _);
             var writeOperation = ImmutableList.CreateBuilder<StatementSyntax>();
-            
+
             if (typeArg.IsReferenceType)
             {
                 writeOperation.IfStatement(
