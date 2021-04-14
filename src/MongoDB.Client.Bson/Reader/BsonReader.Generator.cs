@@ -197,6 +197,12 @@ namespace MongoDB.Client.Bson.Reader
                 genericValue = (T)(object)value;
                 return true;
             }
+            if (typeof(T) == typeof(BsonTimestamp))
+            {
+                if (!TryGetTimestamp(out BsonTimestamp value)) { return false; }
+                genericValue = (T)(object)value;
+                return true;
+            }
         SERIALIZABLE:
             var reader = SerializerFnPtrProvider<T>.TryParseFnPtr;
             if (reader != default)
