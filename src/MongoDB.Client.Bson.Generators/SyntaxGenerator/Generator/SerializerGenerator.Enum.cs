@@ -145,7 +145,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var (_, alias) = GetMemberAlias(member);
                 var label = IdentifierName(member.ToString());
                 sections.SwitchSection(label, Block(
-                            Write_Type_Name(2, spanNameArg),
+                            //Write_Type_Name(2, spanNameArg),
                             WriteString(StaticEnumFieldNameToken(trueType, alias)),
                             ReturnNothingStatement
                     ));
@@ -158,7 +158,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     returnType: VoidPredefinedType(),
                     identifier: WriteStringReprEnumMethodName(trueType, ctx.NameSym),
                     parameterList: ParameterList(RefParameter(BsonWriterType, BsonWriterToken),
-                                                 Parameter(ReadOnlySpanByteName, spanNameArg),
+                                                 //Parameter(ReadOnlySpanByteName, spanNameArg),
                                                  Parameter(TypeFullName(trueType), WriterInputVarToken)),
 
                     body: Block(SwitchStatement(IdentifierName(WriterInputVarToken), sections)),

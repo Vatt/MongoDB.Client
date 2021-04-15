@@ -343,6 +343,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
     }
 
     //TODO: для стринг енума и нулабл стринг енума генерируется два разных метода
+    //TODO: Словарь коряво генерит вриты
     public class GeneratorEnumsTest : SerializationTestBase
     {
         [Fact]
