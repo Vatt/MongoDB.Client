@@ -107,7 +107,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 return Statements
                 (
                     VarLocalDeclarationStatement(Identifier(identifierName), WriterReserve(1)),
-                    Statement(WriteCString(ctx.StaticSpanNameToken)),
+                    Statement(WriteName(name)),
                     Statement(WriteGeneric(writeTarget, IdentifierName(identifierName)))
                 );
             }
@@ -118,7 +118,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 return Statements
                 (
                     VarLocalDeclarationStatement(Identifier(identifierName), WriterReserve(1)),
-                    Statement(WriteCString(ctx.StaticSpanNameToken)),
+                    Statement(WriteName(name)),
                     Statement(WriteObject(writeTarget, IdentifierName(identifierName)))
                 );
             }
