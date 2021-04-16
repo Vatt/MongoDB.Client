@@ -97,6 +97,11 @@ namespace MongoDB.Client.Tests.Serialization.Types
             hash.Add(AlwaysNullDictionaryWithNullableTypeArgument);
             return hash.ToHashCode();
         }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as GeneratorBsonTimestampModel);
+        }
     }
 
 

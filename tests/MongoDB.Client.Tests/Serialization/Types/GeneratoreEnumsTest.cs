@@ -122,6 +122,11 @@ namespace MongoDB.Client.Tests.Serialization.Types
                    NullableDictionaryWithNullableTypeArgument.SequenceEqual(other.NullableDictionaryWithNullableTypeArgument) &&
                    AlwaysNullDictionaryWithNullableTypeArgument is null && other.AlwaysNullDictionaryWithNullableTypeArgument is null;
         }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as GeneratorStringEnumModel);
+        }
     }
     [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
     public partial class GeneratorInt64EnumModel : IEquatable<GeneratorInt64EnumModel>
