@@ -44,18 +44,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 foreach (var arg in namedType.TypeArguments)
                 {
-                    switch (arg)
+                    name += arg switch
                     {
-                        case INamedTypeSymbol argNamedType:
-                            name += UnwrapTypeName(argNamedType);
-                            break;
-                        case IArrayTypeSymbol argArrayType:
-                            name += $"Array{UnwrapTypeName(argArrayType.ElementType)}";
-                            break;
-                        default:
-                            name += arg.Name;
-                            break;
-                    }
+                        INamedTypeSymbol argNamedType => UnwrapTypeName(argNamedType),
+                        IArrayTypeSymbol argArrayType => $"Array{UnwrapTypeName(argArrayType.ElementType)}",
+                        _ => arg.Name,
+                    };
                 }
             }
 

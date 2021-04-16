@@ -176,11 +176,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return true;
         }
+        public static int reservedCnt = 0;
+        public static int bsonTypeCnt = 0;
         public static bool TryGenerateBsonWrite(SyntaxToken nameToken, ISymbol nameSym, ITypeSymbol typeSym, ExpressionSyntax writeTarget, out ImmutableList<StatementSyntax> expressions)
         {
             expressions = default;
-            var bsonTypeToken = Identifier("bsonTypeTemp");
-            var bsonReserved = Identifier("bsonTypeResereved");
+            var bsonTypeToken = Identifier($"bsonTypeTemp{bsonTypeCnt++}");
+            var bsonReserved = Identifier($"bsonTypeResereved{reservedCnt++}");
             ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(typeSym);
             if (IsBsonSerializable(trueType))
             {

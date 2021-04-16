@@ -343,11 +343,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static TypeSyntax TypeFullName(ISymbol sym)
         {
+            //TODO: FIX THIS SHIT
             ISymbol trueType = sym.Name.Equals("Nullable") ? ((INamedTypeSymbol)sym).TypeParameters[0] : sym;
             return SF.ParseTypeName(trueType.ToString());
         }
         public static TypeSyntax TypeName(ITypeSymbol sym)
         {
+            //TODO: FIX THIS SHIT
             ITypeSymbol trueType = sym.Name.Equals("Nullable") ? ((INamedTypeSymbol)sym).TypeParameters[0] : sym;
             return SF.ParseTypeName(trueType.Name);
         }

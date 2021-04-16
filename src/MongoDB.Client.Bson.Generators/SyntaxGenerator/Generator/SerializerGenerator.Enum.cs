@@ -34,7 +34,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 if (forceUseTempVar)
                 {
                     //result = new(InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(VarVariableDeclarationExpr(readTarget))), IdentifierName(readTarget));
-                    result = new(InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(TypedVariableDeclarationExpr(TypeFullName(trueType), readTarget))), IdentifierName(readTarget));
+                    //result = new(InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(TypedVariableDeclarationExpr(TypeFullName(trueType), readTarget))), IdentifierName(readTarget));
+                    result = new(InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(TypedVariableDeclarationExpr(SF.ParseTypeName(typeSym.ToString()), readTarget))), IdentifierName(readTarget));
                 }
                 else
                 {
