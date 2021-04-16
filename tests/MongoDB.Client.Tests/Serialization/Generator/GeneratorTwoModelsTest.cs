@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using Xunit;
 
-namespace MongoDB.Client.Tests.Serialization
+namespace MongoDB.Client.Tests.Serialization.Generator
 {
-    public class GeneratedTwoModelsTest : SerializationTestBase
+    public class GeneratorTwoModelsTest : SerializationTestBase
     {
         [Fact]
         public async Task TwoModelsTest()
