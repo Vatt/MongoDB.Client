@@ -11,7 +11,7 @@ using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace MongoDB.Client.Bson.Generators
 {
-    //object - отдельная ветка генератора 
+
     [Generator]
     class BsonSerializerGenerator : ISourceGenerator
     {
