@@ -9,6 +9,7 @@ using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization.Attributes
 {
+    //TODO: in параметр со структурой выдает ошибку, в генераторе прописанно message.Id = BsonObjectId.NewObjectId()
     //[BsonSerializable]
     //public partial struct StructBsonIdModel : IEquatable<BsonIdModel>
     //{
