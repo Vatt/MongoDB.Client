@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
@@ -11,26 +10,26 @@ using Xunit;
 namespace MongoDB.Client.Tests.Serialization.Types
 {
     [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
-    public partial class GeneratorDateTimeOffsetModel : GeneratorTypeTestModelBase<DateTimeOffset, DateTimeOffset?>, IEquatable<GeneratorDateTimeOffsetModel>
+    public partial class DateTimeOffsetModel : GeneratorTypeTestModelBase<DateTimeOffset, DateTimeOffset?>, IEquatable<DateTimeOffsetModel>
     {
-        public GeneratorDateTimeOffsetModel(
-            DateTimeOffset property, 
-            DateTimeOffset? nullableProperty, 
-            DateTimeOffset? alwaysNullProperty, 
-            List<DateTimeOffset> listProperty, 
-            List<DateTimeOffset>? nullableListProperty, 
-            List<DateTimeOffset>? alwaysNullListProperty, 
+        public DateTimeOffsetModel(
+            DateTimeOffset property,
+            DateTimeOffset? nullableProperty,
+            DateTimeOffset? alwaysNullProperty,
+            List<DateTimeOffset> listProperty,
+            List<DateTimeOffset>? nullableListProperty,
+            List<DateTimeOffset>? alwaysNullListProperty,
             List<DateTimeOffset?> listWithNullableTypeArgumentProperty,
-            List<DateTimeOffset?>? nullableListWithNullableTypeArgumentProperty, 
-            List<DateTimeOffset?>? alwaysNullListWithNullableTypeArgumentProperty, 
-            Dictionary<string, DateTimeOffset> dictionaryProperty, 
-            Dictionary<string, DateTimeOffset>? nullableDictionaryProperty, 
-            Dictionary<string, DateTimeOffset>? alwaysNullDictionaryProperty, 
-            Dictionary<string, DateTimeOffset?> dictionaryWithNullableTypeArgument, 
+            List<DateTimeOffset?>? nullableListWithNullableTypeArgumentProperty,
+            List<DateTimeOffset?>? alwaysNullListWithNullableTypeArgumentProperty,
+            Dictionary<string, DateTimeOffset> dictionaryProperty,
+            Dictionary<string, DateTimeOffset>? nullableDictionaryProperty,
+            Dictionary<string, DateTimeOffset>? alwaysNullDictionaryProperty,
+            Dictionary<string, DateTimeOffset?> dictionaryWithNullableTypeArgument,
             Dictionary<string, DateTimeOffset?>? nullableDictionaryWithNullableTypeArgument,
-            Dictionary<string, DateTimeOffset?>? alwaysNullDictionaryWithNullableTypeArgument) 
-            : base (property, nullableProperty, alwaysNullProperty, 
-                    listProperty, nullableListProperty, alwaysNullListProperty, 
+            Dictionary<string, DateTimeOffset?>? alwaysNullDictionaryWithNullableTypeArgument)
+            : base(property, nullableProperty, alwaysNullProperty,
+                    listProperty, nullableListProperty, alwaysNullListProperty,
                     listWithNullableTypeArgumentProperty, nullableListWithNullableTypeArgumentProperty, alwaysNullListWithNullableTypeArgumentProperty,
                     dictionaryProperty, nullableDictionaryProperty, alwaysNullDictionaryProperty,
                     dictionaryWithNullableTypeArgument, nullableDictionaryWithNullableTypeArgument, alwaysNullDictionaryWithNullableTypeArgument)
@@ -42,18 +41,18 @@ namespace MongoDB.Client.Tests.Serialization.Types
         {
             return base.Equals(doc);
         }
-        public static GeneratorDateTimeOffsetModel Create()
+        public static DateTimeOffsetModel Create()
         {
             var value = new DateTimeOffset(2021, 04, 11, 5, 30, 42, TimeSpan.Zero);
-            return new GeneratorDateTimeOffsetModel(
-                value, value, null, 
-                new() { value, value }, new() { value, value }, null, 
-                new() { value, null}, new() { value, null}, null,
-                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", value } }, null, 
-                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", null }  }, null);
+            return new DateTimeOffsetModel(
+                value, value, null,
+                new() { value, value }, new() { value, value }, null,
+                new() { value, null }, new() { value, null }, null,
+                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", value } }, null,
+                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", null } }, null);
         }
 
-        public bool Equals(GeneratorDateTimeOffsetModel other)
+        public bool Equals(DateTimeOffsetModel other)
         {
             return other != null &&
                    BsonType == other.BsonType &&
@@ -100,7 +99,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as GeneratorDateTimeOffsetModel);
+            return Equals(obj as DateTimeOffsetModel);
         }
     }
 
@@ -110,9 +109,9 @@ namespace MongoDB.Client.Tests.Serialization.Types
         [Fact]
         public async Task DateTimeOffsetTest()
         {
-            var model = GeneratorDateTimeOffsetModel.Create();
+            var model = DateTimeOffsetModel.Create();
             var result = await RoundTripAsync(model);
-            var bson = await RoundTripWithBsonAsync(GeneratorDateTimeOffsetModel.Create());
+            var bson = await RoundTripWithBsonAsync(DateTimeOffsetModel.Create());
             Assert.Equal(model, result);
             model.Equals(bson);
         }

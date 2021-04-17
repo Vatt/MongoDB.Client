@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
@@ -11,26 +10,26 @@ using Xunit;
 namespace MongoDB.Client.Tests.Serialization.Types
 {
     [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
-    public partial class GeneratorInt64Model : GeneratorTypeTestModelBase<long, long?>, IEquatable<GeneratorInt64Model>
+    public partial class Int64Model : GeneratorTypeTestModelBase<long, long?>, IEquatable<Int64Model>
     {
-        public GeneratorInt64Model(
+        public Int64Model(
             long property,
             long? nullableProperty,
-            long? alwaysNullProperty, 
-            List<long> listProperty, 
-            List<long>? nullableListProperty, 
-            List<long>? alwaysNullListProperty, 
+            long? alwaysNullProperty,
+            List<long> listProperty,
+            List<long>? nullableListProperty,
+            List<long>? alwaysNullListProperty,
             List<long?> listWithNullableTypeArgumentProperty,
-            List<long?>? nullableListWithNullableTypeArgumentProperty, 
-            List<long?>? alwaysNullListWithNullableTypeArgumentProperty, 
-            Dictionary<string, long> dictionaryProperty, 
-            Dictionary<string, long>? nullableDictionaryProperty, 
-            Dictionary<string, long>? alwaysNullDictionaryProperty, 
-            Dictionary<string, long?> dictionaryWithNullableTypeArgument, 
+            List<long?>? nullableListWithNullableTypeArgumentProperty,
+            List<long?>? alwaysNullListWithNullableTypeArgumentProperty,
+            Dictionary<string, long> dictionaryProperty,
+            Dictionary<string, long>? nullableDictionaryProperty,
+            Dictionary<string, long>? alwaysNullDictionaryProperty,
+            Dictionary<string, long?> dictionaryWithNullableTypeArgument,
             Dictionary<string, long?>? nullableDictionaryWithNullableTypeArgument,
-            Dictionary<string, long?>? alwaysNullDictionaryWithNullableTypeArgument) 
-            : base (property, nullableProperty, alwaysNullProperty, 
-                    listProperty, nullableListProperty, alwaysNullListProperty, 
+            Dictionary<string, long?>? alwaysNullDictionaryWithNullableTypeArgument)
+            : base(property, nullableProperty, alwaysNullProperty,
+                    listProperty, nullableListProperty, alwaysNullListProperty,
                     listWithNullableTypeArgumentProperty, nullableListWithNullableTypeArgumentProperty, alwaysNullListWithNullableTypeArgumentProperty,
                     dictionaryProperty, nullableDictionaryProperty, alwaysNullDictionaryProperty,
                     dictionaryWithNullableTypeArgument, nullableDictionaryWithNullableTypeArgument, alwaysNullDictionaryWithNullableTypeArgument)
@@ -42,17 +41,17 @@ namespace MongoDB.Client.Tests.Serialization.Types
         {
             return base.Equals(doc);
         }
-        public static GeneratorInt64Model Create()
+        public static Int64Model Create()
         {
-            return new GeneratorInt64Model(
-                42, 42, null, 
-                new() { 42, 42}, new() { 42, 42}, null, 
-                new() { 42, null}, new() { 42, null}, null,
-                new() { { "42", 42 }, { "24", 24 } }, new() { { "42", 42 }, { "24", 24 } }, null, 
-                new() { { "42", 42 }, { "24", 24 } }, new() { { "42", 42 }, { "24", null }  }, null);
+            return new Int64Model(
+                42, 42, null,
+                new() { 42, 42 }, new() { 42, 42 }, null,
+                new() { 42, null }, new() { 42, null }, null,
+                new() { { "42", 42 }, { "24", 24 } }, new() { { "42", 42 }, { "24", 24 } }, null,
+                new() { { "42", 42 }, { "24", 24 } }, new() { { "42", 42 }, { "24", null } }, null);
         }
 
-        public bool Equals(GeneratorInt64Model other)
+        public bool Equals(Int64Model other)
         {
             return other != null &&
                    BsonType == other.BsonType &&
@@ -99,7 +98,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as GeneratorInt64Model);
+            return Equals(obj as Int64Model);
         }
     }
 
@@ -109,7 +108,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
         [Fact]
         public async Task Int64Test()
         {
-            var model = GeneratorInt64Model.Create();
+            var model = Int64Model.Create();
             var result = await RoundTripAsync(model);
             var bson = await RoundTripWithBsonAsync(model);
             Assert.Equal(model, result);

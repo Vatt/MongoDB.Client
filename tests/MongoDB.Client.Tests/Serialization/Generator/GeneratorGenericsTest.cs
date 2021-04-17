@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
@@ -64,14 +63,14 @@ namespace MongoDB.Client.Tests.Serialization.Generator
             NullableDictionaryWithNullableTypeArgument = nullableDictionaryWithNullableTypeArgument;
             AlwaysNullDictionaryWithNullableTypeArgument = alwaysNullDictionaryWithNullableTypeArgument;
         }
-        public static GeneratorGenericModel<string, int, double, bool, BsonDocument, BsonObjectId, BsonTimestamp, Guid, DateTimeOffset, long, GeneratorBsonObjectIdModel, GeneratorGuidModel, GeneratorBooleanModel, GeneratorDoubleModel, GeneratorBsonTimestampModel> Create()
+        public static GeneratorGenericModel<string, int, double, bool, BsonDocument, BsonObjectId, BsonTimestamp, Guid, DateTimeOffset, long, BsonObjectIdModel, GuidModel, BooleanModel, DoubleModel, BsonTimestampModel> Create()
         {
-            return new GeneratorGenericModel<string, int, double, bool, BsonDocument, BsonObjectId, BsonTimestamp, Guid, DateTimeOffset, long, GeneratorBsonObjectIdModel, GeneratorGuidModel, GeneratorBooleanModel, GeneratorDoubleModel, GeneratorBsonTimestampModel>(
+            return new GeneratorGenericModel<string, int, double, bool, BsonDocument, BsonObjectId, BsonTimestamp, Guid, DateTimeOffset, long, BsonObjectIdModel, GuidModel, BooleanModel, DoubleModel, BsonTimestampModel>(
                 "42", 42, 42,
                 new() { true, false }, new() { new BsonDocument("42", "42"), new BsonDocument("42", "42") }, null,
                 new() { new BsonTimestamp(1232312), new BsonTimestamp(1232312) }, new() { Guid.NewGuid(), Guid.NewGuid() }, null,
-                new() { { "0", 42 }, { "1", 42 } }, new() { { "2", GeneratorBsonObjectIdModel.Create() }, { "3", GeneratorBsonObjectIdModel.Create() } }, null,
-                new() { { "4", GeneratorBooleanModel.Create() }, { "5", GeneratorBooleanModel.Create() } }, new() { { "6", GeneratorDoubleModel.Create() }, { "7", null } }, null);
+                new() { { "0", 42 }, { "1", 42 } }, new() { { "2", BsonObjectIdModel.Create() }, { "3", BsonObjectIdModel.Create() } }, null,
+                new() { { "4", BooleanModel.Create() }, { "5", BooleanModel.Create() } }, new() { { "6", DoubleModel.Create() }, { "7", null } }, null);
         }
 
         public bool Equals(GeneratorGenericModel<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> other)
@@ -101,7 +100,7 @@ namespace MongoDB.Client.Tests.Serialization.Generator
         [Fact]
         public async Task GenericsTest()
         {
-            var model = GeneratorGenericModel<string, int, double, bool, BsonDocument, BsonObjectId, BsonTimestamp, Guid, DateTimeOffset, long, GeneratorBsonObjectIdModel, GeneratorGuidModel, GeneratorBooleanModel, GeneratorDoubleModel, GeneratorBsonTimestampModel>.Create();
+            var model = GeneratorGenericModel<string, int, double, bool, BsonDocument, BsonObjectId, BsonTimestamp, Guid, DateTimeOffset, long, BsonObjectIdModel, GuidModel, BooleanModel, DoubleModel, BsonTimestampModel>.Create();
             var result = await RoundTripAsync(model);
             var bson = await RoundTripWithBsonAsync(model);
             Assert.Equal(model, result);

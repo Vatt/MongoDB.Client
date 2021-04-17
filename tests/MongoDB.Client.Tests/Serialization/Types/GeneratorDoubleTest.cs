@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
@@ -11,26 +10,26 @@ using Xunit;
 namespace MongoDB.Client.Tests.Serialization.Types
 {
     [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
-    public partial class GeneratorDoubleModel : GeneratorTypeTestModelBase<double, double?>, IEquatable<GeneratorDoubleModel>
+    public partial class DoubleModel : GeneratorTypeTestModelBase<double, double?>, IEquatable<DoubleModel>
     {
-        public GeneratorDoubleModel(
+        public DoubleModel(
             double property,
             double? nullableProperty,
-            double? alwaysNullProperty, 
-            List<double> listProperty, 
-            List<double>? nullableListProperty, 
-            List<double>? alwaysNullListProperty, 
+            double? alwaysNullProperty,
+            List<double> listProperty,
+            List<double>? nullableListProperty,
+            List<double>? alwaysNullListProperty,
             List<double?> listWithNullableTypeArgumentProperty,
-            List<double?>? nullableListWithNullableTypeArgumentProperty, 
-            List<double?>? alwaysNullListWithNullableTypeArgumentProperty, 
-            Dictionary<string, double> dictionaryProperty, 
-            Dictionary<string, double>? nullableDictionaryProperty, 
-            Dictionary<string, double>? alwaysNullDictionaryProperty, 
-            Dictionary<string, double?> dictionaryWithNullableTypeArgument, 
+            List<double?>? nullableListWithNullableTypeArgumentProperty,
+            List<double?>? alwaysNullListWithNullableTypeArgumentProperty,
+            Dictionary<string, double> dictionaryProperty,
+            Dictionary<string, double>? nullableDictionaryProperty,
+            Dictionary<string, double>? alwaysNullDictionaryProperty,
+            Dictionary<string, double?> dictionaryWithNullableTypeArgument,
             Dictionary<string, double?>? nullableDictionaryWithNullableTypeArgument,
-            Dictionary<string, double?>? alwaysNullDictionaryWithNullableTypeArgument) 
-            : base (property, nullableProperty, alwaysNullProperty, 
-                    listProperty, nullableListProperty, alwaysNullListProperty, 
+            Dictionary<string, double?>? alwaysNullDictionaryWithNullableTypeArgument)
+            : base(property, nullableProperty, alwaysNullProperty,
+                    listProperty, nullableListProperty, alwaysNullListProperty,
                     listWithNullableTypeArgumentProperty, nullableListWithNullableTypeArgumentProperty, alwaysNullListWithNullableTypeArgumentProperty,
                     dictionaryProperty, nullableDictionaryProperty, alwaysNullDictionaryProperty,
                     dictionaryWithNullableTypeArgument, nullableDictionaryWithNullableTypeArgument, alwaysNullDictionaryWithNullableTypeArgument)
@@ -42,17 +41,17 @@ namespace MongoDB.Client.Tests.Serialization.Types
         {
             return base.Equals(doc);
         }
-        public static GeneratorDoubleModel Create()
+        public static DoubleModel Create()
         {
-            return new GeneratorDoubleModel(
-                42.42, 42.42, null, 
-                new() { 42.42, 42.42 }, new() { 42.42, 42.42 }, null, 
-                new() { 42.42, null}, new() { 42.42, null}, null,
-                new() { { "42", 24.24 }, { "24", 24.24 } }, new() { { "42", 42.42 }, { "24", 24.24 } }, null, 
-                new() { { "42", 24.24 }, { "24", 24.24 } }, new() { { "42", 42.42 }, { "24", null }  }, null);
+            return new DoubleModel(
+                42.42, 42.42, null,
+                new() { 42.42, 42.42 }, new() { 42.42, 42.42 }, null,
+                new() { 42.42, null }, new() { 42.42, null }, null,
+                new() { { "42", 24.24 }, { "24", 24.24 } }, new() { { "42", 42.42 }, { "24", 24.24 } }, null,
+                new() { { "42", 24.24 }, { "24", 24.24 } }, new() { { "42", 42.42 }, { "24", null } }, null);
         }
 
-        public bool Equals(GeneratorDoubleModel other)
+        public bool Equals(DoubleModel other)
         {
             return other != null &&
                    BsonType == other.BsonType &&
@@ -99,7 +98,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as GeneratorDoubleModel);
+            return Equals(obj as DoubleModel);
         }
     }
 
@@ -109,7 +108,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
         [Fact]
         public async Task DoubleTest()
         {
-            var model = GeneratorDoubleModel.Create();
+            var model = DoubleModel.Create();
             var result = await RoundTripAsync(model);
             var bson = await RoundTripWithBsonAsync(model);
             Assert.Equal(model, result);

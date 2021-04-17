@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
@@ -11,26 +10,26 @@ using Xunit;
 namespace MongoDB.Client.Tests.Serialization.Types
 {
     [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
-    public partial class GeneratorStringModel : GeneratorTypeTestModelBase<string, string?>, IEquatable<GeneratorStringModel>
+    public partial class StringModel : GeneratorTypeTestModelBase<string, string?>, IEquatable<StringModel>
     {
-        public GeneratorStringModel(
+        public StringModel(
             string property,
             string? nullableProperty,
-            string? alwaysNullProperty, 
-            List<string> listProperty, 
-            List<string>? nullableListProperty, 
-            List<string>? alwaysNullListProperty, 
+            string? alwaysNullProperty,
+            List<string> listProperty,
+            List<string>? nullableListProperty,
+            List<string>? alwaysNullListProperty,
             List<string?> listWithNullableTypeArgumentProperty,
-            List<string?>? nullableListWithNullableTypeArgumentProperty, 
-            List<string?>? alwaysNullListWithNullableTypeArgumentProperty, 
-            Dictionary<string, string> dictionaryProperty, 
-            Dictionary<string, string>? nullableDictionaryProperty, 
-            Dictionary<string, string>? alwaysNullDictionaryProperty, 
-            Dictionary<string, string?> dictionaryWithNullableTypeArgument, 
+            List<string?>? nullableListWithNullableTypeArgumentProperty,
+            List<string?>? alwaysNullListWithNullableTypeArgumentProperty,
+            Dictionary<string, string> dictionaryProperty,
+            Dictionary<string, string>? nullableDictionaryProperty,
+            Dictionary<string, string>? alwaysNullDictionaryProperty,
+            Dictionary<string, string?> dictionaryWithNullableTypeArgument,
             Dictionary<string, string?>? nullableDictionaryWithNullableTypeArgument,
-            Dictionary<string, string?>? alwaysNullDictionaryWithNullableTypeArgument) 
-            : base (property, nullableProperty, alwaysNullProperty, 
-                    listProperty, nullableListProperty, alwaysNullListProperty, 
+            Dictionary<string, string?>? alwaysNullDictionaryWithNullableTypeArgument)
+            : base(property, nullableProperty, alwaysNullProperty,
+                    listProperty, nullableListProperty, alwaysNullListProperty,
                     listWithNullableTypeArgumentProperty, nullableListWithNullableTypeArgumentProperty, alwaysNullListWithNullableTypeArgumentProperty,
                     dictionaryProperty, nullableDictionaryProperty, alwaysNullDictionaryProperty,
                     dictionaryWithNullableTypeArgument, nullableDictionaryWithNullableTypeArgument, alwaysNullDictionaryWithNullableTypeArgument)
@@ -42,17 +41,17 @@ namespace MongoDB.Client.Tests.Serialization.Types
         {
             return base.Equals(doc);
         }
-        public static GeneratorStringModel Create()
+        public static StringModel Create()
         {
-            return new GeneratorStringModel(
-                "42", "42", null, 
-                new() { "42", "42" }, new() { "42", "42" }, null, 
-                new() { "42", null}, new() { "42", null}, null,
-                new() { { "42", "42" }, { "24", "24" } }, new() { { "42", "42" }, { "24", "24" } }, null, 
-                new() { { "42", "42" }, { "24", "24" } }, new() { { "42", "42" }, { "24", null }  }, null);
+            return new StringModel(
+                "42", "42", null,
+                new() { "42", "42" }, new() { "42", "42" }, null,
+                new() { "42", null }, new() { "42", null }, null,
+                new() { { "42", "42" }, { "24", "24" } }, new() { { "42", "42" }, { "24", "24" } }, null,
+                new() { { "42", "42" }, { "24", "24" } }, new() { { "42", "42" }, { "24", null } }, null);
         }
 
-        public bool Equals(GeneratorStringModel other)
+        public bool Equals(StringModel other)
         {
             return other != null &&
                    BsonType == other.BsonType &&
@@ -99,7 +98,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as GeneratorStringModel);
+            return Equals(obj as StringModel);
         }
     }
 
@@ -109,7 +108,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
         [Fact]
         public async Task StringTest()
         {
-            var model = GeneratorStringModel.Create();
+            var model = StringModel.Create();
             var result = await RoundTripAsync(model);
             var bson = await RoundTripWithBsonAsync(model);
             Assert.Equal(model, result);

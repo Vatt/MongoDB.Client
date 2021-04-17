@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
@@ -11,26 +10,26 @@ using Xunit;
 namespace MongoDB.Client.Tests.Serialization.Types
 {
     [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
-    public partial class GeneratorGuidModel : GeneratorTypeTestModelBase<Guid, Guid?>, IEquatable<GeneratorGuidModel>
+    public partial class GuidModel : GeneratorTypeTestModelBase<Guid, Guid?>, IEquatable<GuidModel>
     {
-        public GeneratorGuidModel(
-            Guid property, 
-            Guid? nullableProperty, 
-            Guid? alwaysNullProperty, 
-            List<Guid> listProperty, 
-            List<Guid>? nullableListProperty, 
-            List<Guid>? alwaysNullListProperty, 
+        public GuidModel(
+            Guid property,
+            Guid? nullableProperty,
+            Guid? alwaysNullProperty,
+            List<Guid> listProperty,
+            List<Guid>? nullableListProperty,
+            List<Guid>? alwaysNullListProperty,
             List<Guid?> listWithNullableTypeArgumentProperty,
-            List<Guid?>? nullableListWithNullableTypeArgumentProperty, 
-            List<Guid?>? alwaysNullListWithNullableTypeArgumentProperty, 
-            Dictionary<string, Guid> dictionaryProperty, 
-            Dictionary<string, Guid>? nullableDictionaryProperty, 
-            Dictionary<string, Guid>? alwaysNullDictionaryProperty, 
-            Dictionary<string, Guid?> dictionaryWithNullableTypeArgument, 
+            List<Guid?>? nullableListWithNullableTypeArgumentProperty,
+            List<Guid?>? alwaysNullListWithNullableTypeArgumentProperty,
+            Dictionary<string, Guid> dictionaryProperty,
+            Dictionary<string, Guid>? nullableDictionaryProperty,
+            Dictionary<string, Guid>? alwaysNullDictionaryProperty,
+            Dictionary<string, Guid?> dictionaryWithNullableTypeArgument,
             Dictionary<string, Guid?>? nullableDictionaryWithNullableTypeArgument,
-            Dictionary<string, Guid?>? alwaysNullDictionaryWithNullableTypeArgument) 
-            : base (property, nullableProperty, alwaysNullProperty, 
-                    listProperty, nullableListProperty, alwaysNullListProperty, 
+            Dictionary<string, Guid?>? alwaysNullDictionaryWithNullableTypeArgument)
+            : base(property, nullableProperty, alwaysNullProperty,
+                    listProperty, nullableListProperty, alwaysNullListProperty,
                     listWithNullableTypeArgumentProperty, nullableListWithNullableTypeArgumentProperty, alwaysNullListWithNullableTypeArgumentProperty,
                     dictionaryProperty, nullableDictionaryProperty, alwaysNullDictionaryProperty,
                     dictionaryWithNullableTypeArgument, nullableDictionaryWithNullableTypeArgument, alwaysNullDictionaryWithNullableTypeArgument)
@@ -42,18 +41,18 @@ namespace MongoDB.Client.Tests.Serialization.Types
         {
             return base.Equals(doc);
         }
-        public static GeneratorGuidModel Create()
+        public static GuidModel Create()
         {
             var value = Guid.NewGuid();
-            return new GeneratorGuidModel(
-                value, value, null, 
-                new() { value, value }, new() { value, value }, null, 
-                new() { value, null}, new() { value, null}, null,
-                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", value } }, null, 
-                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", null }  }, null);
+            return new GuidModel(
+                value, value, null,
+                new() { value, value }, new() { value, value }, null,
+                new() { value, null }, new() { value, null }, null,
+                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", value } }, null,
+                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", null } }, null);
         }
 
-        public bool Equals(GeneratorGuidModel other)
+        public bool Equals(GuidModel other)
         {
             return other != null &&
                    BsonType == other.BsonType &&
@@ -100,7 +99,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as GeneratorGuidModel);
+            return Equals(obj as GuidModel);
         }
     }
 
@@ -110,9 +109,9 @@ namespace MongoDB.Client.Tests.Serialization.Types
         [Fact]
         public async Task GuidTest()
         {
-            var model = GeneratorGuidModel.Create();
+            var model = GuidModel.Create();
             var result = await RoundTripAsync(model);
-            var bson = await RoundTripWithBsonAsync(GeneratorGuidModel.Create());
+            var bson = await RoundTripWithBsonAsync(GuidModel.Create());
             Assert.Equal(model, result);
             model.Equals(bson);
         }

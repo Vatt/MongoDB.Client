@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization.Attributes;
@@ -10,12 +9,12 @@ using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization.Serializers
 {
-    public readonly struct GeneratorStructForExtension : IEquatable<GeneratorStructForExtension>
+    public readonly struct StructForExtension : IEquatable<StructForExtension>
     {
         public readonly int A;
         public readonly int B;
         public readonly int C;
-        public GeneratorStructForExtension(int a, int b, int c)
+        public StructForExtension(int a, int b, int c)
         {
             A = a;
             B = b;
@@ -24,10 +23,10 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
 
         public override bool Equals(object obj)
         {
-            return obj is GeneratorStructForExtension extension && Equals(extension);
+            return obj is StructForExtension extension && Equals(extension);
         }
 
-        public bool Equals(GeneratorStructForExtension other)
+        public bool Equals(StructForExtension other)
         {
             return A == other.A &&
                    B == other.B &&
@@ -39,20 +38,20 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
             return HashCode.Combine(A, B, C);
         }
     }
-    public static class GeneratorStructForExtensionSerializer
+    public static class StructForExtensionSerializer
     {
-        public static bool TryParseBson(ref BsonReader reader, out GeneratorStructForExtension message)
+        public static bool TryParseBson(ref BsonReader reader, out StructForExtension message)
         {
             message = default;
-            if(reader.TryGetString(out var value) == false)
+            if (reader.TryGetString(out var value) == false)
             {
                 return false;
             }
             var splitted = value.Split(';', StringSplitOptions.RemoveEmptyEntries);
-            message = new GeneratorStructForExtension(int.Parse(splitted[0]), int.Parse(splitted[1]), int.Parse(splitted[2]));
+            message = new StructForExtension(int.Parse(splitted[0]), int.Parse(splitted[1]), int.Parse(splitted[2]));
             return true;
         }
-        public static void WriteBson(ref BsonWriter writer, in GeneratorStructForExtension message, out byte bsonType)
+        public static void WriteBson(ref BsonWriter writer, in StructForExtension message, out byte bsonType)
         {
             bsonType = 2;
             writer.WriteString($"{message.A};{message.B};{message.C}");
@@ -60,12 +59,12 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
     }
 
     [BsonSerializable]
-    public partial class GeneratorModelWithExtension : IEquatable<GeneratorModelWithExtension>
+    public partial class ModelWithExtension : IEquatable<ModelWithExtension>
     {
         public string StringProp { get; }
-        [BsonSerializer(typeof(GeneratorStructForExtensionSerializer))]
-        public GeneratorStructForExtension ExtensionProp { get; }
-        public GeneratorModelWithExtension(string stringProp, GeneratorStructForExtension extensionProp)
+        [BsonSerializer(typeof(StructForExtensionSerializer))]
+        public StructForExtension ExtensionProp { get; }
+        public ModelWithExtension(string stringProp, StructForExtension extensionProp)
         {
             StringProp = stringProp;
             ExtensionProp = extensionProp;
@@ -73,10 +72,10 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as GeneratorModelWithExtension);
+            return Equals(obj as ModelWithExtension);
         }
 
-        public bool Equals(GeneratorModelWithExtension other)
+        public bool Equals(ModelWithExtension other)
         {
             return other != null &&
                    StringProp == other.StringProp &&
@@ -241,62 +240,62 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
         }
     }
     [BsonSerializable]
-    public partial class GeneratorModelWithExtensionAndCustom
+    public partial class ModelWithExtensionAndCustom
     {
-        [BsonSerializer(typeof(GeneratorStructForExtensionSerializer))]
-        public GeneratorStructForExtension Property { get; }
+        [BsonSerializer(typeof(StructForExtensionSerializer))]
+        public StructForExtension Property { get; }
 
-        [BsonSerializer(typeof(GeneratorStructForExtensionSerializer))]
-        public GeneratorStructForExtension? NullableProperty { get; }
+        [BsonSerializer(typeof(StructForExtensionSerializer))]
+        public StructForExtension? NullableProperty { get; }
 
         public GeneratorCustomModel? AlwaysNullProperty { get; }
 
-        [BsonSerializer(typeof(GeneratorStructForExtensionSerializer))]
-        public List<GeneratorStructForExtension> ListProperty { get; }
+        [BsonSerializer(typeof(StructForExtensionSerializer))]
+        public List<StructForExtension> ListProperty { get; }
 
         public List<GeneratorCustomModel>? NullableListProperty { get; }
 
-        [BsonSerializer(typeof(GeneratorStructForExtensionSerializer))]
-        public List<GeneratorStructForExtension>? AlwaysNullListProperty { get; }
+        [BsonSerializer(typeof(StructForExtensionSerializer))]
+        public List<StructForExtension>? AlwaysNullListProperty { get; }
 
-        [BsonSerializer(typeof(GeneratorStructForExtensionSerializer))]
-        public List<GeneratorStructForExtension?> ListWithNullableTypeArgumentProperty { get; }
+        [BsonSerializer(typeof(StructForExtensionSerializer))]
+        public List<StructForExtension?> ListWithNullableTypeArgumentProperty { get; }
 
         public List<GeneratorCustomModel?>? NullableListWithNullableTypeArgumentProperty { get; }
 
         public List<GeneratorCustomModel?>? AlwaysNullListWithNullableTypeArgumentProperty { get; }
-        
+
         public Dictionary<string, GeneratorCustomModel> DictionaryProperty { get; }
 
-        [BsonSerializer(typeof(GeneratorStructForExtensionSerializer))]
-        public Dictionary<string, GeneratorStructForExtension>? NullableDictionaryProperty { get; }
-        
+        [BsonSerializer(typeof(StructForExtensionSerializer))]
+        public Dictionary<string, StructForExtension>? NullableDictionaryProperty { get; }
+
         public Dictionary<string, GeneratorCustomModel>? AlwaysNullDictionaryProperty { get; }
 
-        [BsonSerializer(typeof(GeneratorStructForExtensionSerializer))]
-        public Dictionary<string, GeneratorStructForExtension?> DictionaryWithNullableTypeArgument { get; }
+        [BsonSerializer(typeof(StructForExtensionSerializer))]
+        public Dictionary<string, StructForExtension?> DictionaryWithNullableTypeArgument { get; }
 
         public Dictionary<string, GeneratorCustomModel>? NullableDictionaryWithNullableTypeArgument { get; }
 
-        [BsonSerializer(typeof(GeneratorStructForExtensionSerializer))]
-        public Dictionary<string, GeneratorStructForExtension?>? AlwaysNullDictionaryWithNullableTypeArgument { get; }
+        [BsonSerializer(typeof(StructForExtensionSerializer))]
+        public Dictionary<string, StructForExtension?>? AlwaysNullDictionaryWithNullableTypeArgument { get; }
 
-        public GeneratorModelWithExtensionAndCustom(
-             GeneratorStructForExtension property,
-             GeneratorStructForExtension? nullableProperty,
+        public ModelWithExtensionAndCustom(
+             StructForExtension property,
+             StructForExtension? nullableProperty,
              GeneratorCustomModel? alwaysNullProperty,
-             List<GeneratorStructForExtension> listProperty,
+             List<StructForExtension> listProperty,
              List<GeneratorCustomModel>? nullableListProperty,
-             List<GeneratorStructForExtension>? alwaysNullListProperty,
-             List<GeneratorStructForExtension?> listWithNullableTypeArgumentProperty,
+             List<StructForExtension>? alwaysNullListProperty,
+             List<StructForExtension?> listWithNullableTypeArgumentProperty,
              List<GeneratorCustomModel?>? nullableListWithNullableTypeArgumentProperty,
              List<GeneratorCustomModel?>? alwaysNullListWithNullableTypeArgumentProperty,
              Dictionary<string, GeneratorCustomModel> dictionaryProperty,
-             Dictionary<string, GeneratorStructForExtension>? nullableDictionaryProperty,
+             Dictionary<string, StructForExtension>? nullableDictionaryProperty,
              Dictionary<string, GeneratorCustomModel>? alwaysNullDictionaryProperty,
-             Dictionary<string, GeneratorStructForExtension?> dictionaryWithNullableTypeArgument,
+             Dictionary<string, StructForExtension?> dictionaryWithNullableTypeArgument,
              Dictionary<string, GeneratorCustomModel?>? nullableDictionaryWithNullableTypeArgument,
-             Dictionary<string, GeneratorStructForExtension?>? alwaysNullDictionaryWithNullableTypeArgument)
+             Dictionary<string, StructForExtension?>? alwaysNullDictionaryWithNullableTypeArgument)
         {
             Property = property;
             NullableProperty = nullableProperty;
@@ -314,11 +313,11 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
             NullableDictionaryWithNullableTypeArgument = nullableDictionaryWithNullableTypeArgument;
             AlwaysNullDictionaryWithNullableTypeArgument = alwaysNullDictionaryWithNullableTypeArgument;
         }
-        public static GeneratorModelWithExtensionAndCustom Create()
+        public static ModelWithExtensionAndCustom Create()
         {
-            var extension = new GeneratorStructForExtension(1, 2, 3);
+            var extension = new StructForExtension(1, 2, 3);
             var custom = new GeneratorCustomModel(1, 2, 3);
-            return new GeneratorModelWithExtensionAndCustom(
+            return new ModelWithExtensionAndCustom(
                 extension, extension, null,
                 new() { extension, extension }, new() { custom, custom }, null,
                 new() { extension, null }, new() { custom, null }, null,
@@ -326,8 +325,8 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
                 new() { { "42", extension }, { "24", extension } }, new() { { "42", custom }, { "24", null } }, null);
         }
 
-        public bool Equals(GeneratorModelWithExtensionAndCustom other)
-        { 
+        public bool Equals(ModelWithExtensionAndCustom other)
+        {
             return other != null &&
                    Property.Equals(other.Property) &&
                    NullableProperty.Equals(other.NullableProperty) &&
@@ -369,7 +368,7 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as GeneratorModelWithExtensionAndCustom);
+            return Equals(obj as ModelWithExtensionAndCustom);
         }
     }
     public class GeneratorCustomsTest : SerializationTestBase
@@ -377,7 +376,7 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
         [Fact]
         public async Task ExtensionTest()
         {
-            var model = new GeneratorModelWithExtension("Extension", new GeneratorStructForExtension(1, 2, 3));
+            var model = new ModelWithExtension("Extension", new StructForExtension(1, 2, 3));
             var result = await RoundTripAsync(model);
             var bson = await RoundTripWithBsonAsync(model);
             Assert.Equal(model, result);
@@ -393,7 +392,7 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
         [Fact]
         public async Task CustomAndExtensionTest()
         {
-            var model = GeneratorModelWithExtensionAndCustom.Create();
+            var model = ModelWithExtensionAndCustom.Create();
             var result = await RoundTripAsync(model);
             var bson = await RoundTripWithBsonAsync(model);
             Assert.Equal(model, result);

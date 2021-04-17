@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using MongoDB.Client.Bson.Document;
 
 namespace MongoDB.Client.Tests.Serialization.Generator
@@ -11,7 +7,7 @@ namespace MongoDB.Client.Tests.Serialization.Generator
     {
         protected BsonElementType BsonType;
         protected BsonElementType DictionaryBsonType;
-        
+
         public T Property { get; }
         public TNulalble NullableProperty { get; }
         public TNulalble AlwaysNullProperty { get; }
@@ -28,19 +24,19 @@ namespace MongoDB.Client.Tests.Serialization.Generator
         public Dictionary<string, TNulalble>? NullableDictionaryWithNullableTypeArgument { get; }
         public Dictionary<string, TNulalble>? AlwaysNullDictionaryWithNullableTypeArgument { get; }
         public GeneratorTypeTestModelBase(
-            T property, 
-            TNulalble nullableProperty, 
-            TNulalble alwaysNullProperty, 
+            T property,
+            TNulalble nullableProperty,
+            TNulalble alwaysNullProperty,
             List<T> listProperty,
             List<T>? nullableListProperty,
             List<T>? alwaysNullListProperty,
-            List<TNulalble> listWithNullableTypeArgumentProperty, 
-            List<TNulalble>? nullableListWithNullableTypeArgumentProperty, 
-            List<TNulalble>? alwaysNullListWithNullableTypeArgumentProperty, 
-            Dictionary<string, T> dictionaryProperty, 
-            Dictionary<string, T>? nullableDictionaryProperty, 
-            Dictionary<string, T>? alwaysNullDictionaryProperty, 
-            Dictionary<string, TNulalble> dictionaryWithNullableTypeArgument, 
+            List<TNulalble> listWithNullableTypeArgumentProperty,
+            List<TNulalble>? nullableListWithNullableTypeArgumentProperty,
+            List<TNulalble>? alwaysNullListWithNullableTypeArgumentProperty,
+            Dictionary<string, T> dictionaryProperty,
+            Dictionary<string, T>? nullableDictionaryProperty,
+            Dictionary<string, T>? alwaysNullDictionaryProperty,
+            Dictionary<string, TNulalble> dictionaryWithNullableTypeArgument,
             Dictionary<string, TNulalble>? nullableDictionaryWithNullableTypeArgument,
             Dictionary<string, TNulalble>? alwaysNullDictionaryWithNullableTypeArgument)
         {
@@ -63,7 +59,7 @@ namespace MongoDB.Client.Tests.Serialization.Generator
 
         public virtual bool Equals(BsonDocument doc)
         {
-            foreach(var elem in doc)
+            foreach (var elem in doc)
             {
                 switch (elem.Name)
                 {

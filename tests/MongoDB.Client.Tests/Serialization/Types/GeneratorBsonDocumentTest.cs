@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
@@ -11,26 +10,26 @@ using Xunit;
 namespace MongoDB.Client.Tests.Serialization.Types
 {
     [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
-    public partial class GeneratorBsonDocumentModel : GeneratorTypeTestModelBase<BsonDocument, BsonDocument?>, IEquatable<GeneratorBsonDocumentModel>
+    public partial class BsonDocumentModel : GeneratorTypeTestModelBase<BsonDocument, BsonDocument?>, IEquatable<BsonDocumentModel>
     {
-        public GeneratorBsonDocumentModel(
-            BsonDocument property, 
-            BsonDocument? nullableProperty, 
-            BsonDocument? alwaysNullProperty, 
-            List<BsonDocument> listProperty, 
-            List<BsonDocument>? nullableListProperty, 
-            List<BsonDocument>? alwaysNullListProperty, 
+        public BsonDocumentModel(
+            BsonDocument property,
+            BsonDocument? nullableProperty,
+            BsonDocument? alwaysNullProperty,
+            List<BsonDocument> listProperty,
+            List<BsonDocument>? nullableListProperty,
+            List<BsonDocument>? alwaysNullListProperty,
             List<BsonDocument?> listWithNullableTypeArgumentProperty,
-            List<BsonDocument?>? nullableListWithNullableTypeArgumentProperty, 
-            List<BsonDocument?>? alwaysNullListWithNullableTypeArgumentProperty, 
-            Dictionary<string, BsonDocument> dictionaryProperty, 
-            Dictionary<string, BsonDocument>? nullableDictionaryProperty, 
-            Dictionary<string, BsonDocument>? alwaysNullDictionaryProperty, 
-            Dictionary<string, BsonDocument?> dictionaryWithNullableTypeArgument, 
+            List<BsonDocument?>? nullableListWithNullableTypeArgumentProperty,
+            List<BsonDocument?>? alwaysNullListWithNullableTypeArgumentProperty,
+            Dictionary<string, BsonDocument> dictionaryProperty,
+            Dictionary<string, BsonDocument>? nullableDictionaryProperty,
+            Dictionary<string, BsonDocument>? alwaysNullDictionaryProperty,
+            Dictionary<string, BsonDocument?> dictionaryWithNullableTypeArgument,
             Dictionary<string, BsonDocument?>? nullableDictionaryWithNullableTypeArgument,
-            Dictionary<string, BsonDocument?>? alwaysNullDictionaryWithNullableTypeArgument) 
-            : base (property, nullableProperty, alwaysNullProperty, 
-                    listProperty, nullableListProperty, alwaysNullListProperty, 
+            Dictionary<string, BsonDocument?>? alwaysNullDictionaryWithNullableTypeArgument)
+            : base(property, nullableProperty, alwaysNullProperty,
+                    listProperty, nullableListProperty, alwaysNullListProperty,
                     listWithNullableTypeArgumentProperty, nullableListWithNullableTypeArgumentProperty, alwaysNullListWithNullableTypeArgumentProperty,
                     dictionaryProperty, nullableDictionaryProperty, alwaysNullDictionaryProperty,
                     dictionaryWithNullableTypeArgument, nullableDictionaryWithNullableTypeArgument, alwaysNullDictionaryWithNullableTypeArgument)
@@ -42,18 +41,18 @@ namespace MongoDB.Client.Tests.Serialization.Types
         {
             return base.Equals(doc);
         }
-        public static GeneratorBsonDocumentModel Create()
+        public static BsonDocumentModel Create()
         {
             var value = new BsonDocument("BsonDocument", BsonObjectId.NewObjectId());
-            return new GeneratorBsonDocumentModel(
-                value, value, null, 
-                new() { value, value }, new() { value, value }, null, 
-                new() { value, null}, new() { value, null}, null,
-                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", value } }, null, 
-                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", null }  }, null);
+            return new BsonDocumentModel(
+                value, value, null,
+                new() { value, value }, new() { value, value }, null,
+                new() { value, null }, new() { value, null }, null,
+                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", value } }, null,
+                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", null } }, null);
         }
 
-        public bool Equals(GeneratorBsonDocumentModel other)
+        public bool Equals(BsonDocumentModel other)
         {
             return other != null &&
                    BsonType.Equals(other.BsonType) &&
@@ -100,7 +99,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as GeneratorBsonDocumentModel);
+            return Equals(obj as BsonDocumentModel);
         }
     }
 
@@ -110,9 +109,9 @@ namespace MongoDB.Client.Tests.Serialization.Types
         [Fact]
         public async Task BsonDocumentTest()
         {
-            var model = GeneratorBsonDocumentModel.Create();
+            var model = BsonDocumentModel.Create();
             var result = await RoundTripAsync(model);
-            var bson = await RoundTripWithBsonAsync(GeneratorBsonDocumentModel.Create());
+            var bson = await RoundTripWithBsonAsync(BsonDocumentModel.Create());
             Assert.Equal(model, result);
             model.Equals(bson);
         }

@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using Xunit;
@@ -9,25 +6,25 @@ using Xunit;
 namespace MongoDB.Client.Tests.Serialization.Serializers
 {
     [BsonSerializable]
-    public partial struct GeneratorStructWithManyCtorsTestModel : IEquatable<GeneratorStructWithManyCtorsTestModel>
+    public partial struct StructWithManyCtorsTestModel : IEquatable<StructWithManyCtorsTestModel>
     {
         public int Value;
 
         [BsonConstructor]
-        public GeneratorStructWithManyCtorsTestModel(int value)
+        public StructWithManyCtorsTestModel(int value)
         {
             Value = value;
         }
-        public GeneratorStructWithManyCtorsTestModel(string value)
+        public StructWithManyCtorsTestModel(string value)
         {
             Value = int.Parse(value);
         }
         public override bool Equals(object obj)
         {
-            return obj is GeneratorStructWithManyCtorsTestModel model && Equals(model);
+            return obj is StructWithManyCtorsTestModel model && Equals(model);
         }
 
-        public bool Equals(GeneratorStructWithManyCtorsTestModel other)
+        public bool Equals(StructWithManyCtorsTestModel other)
         {
             return Value == other.Value;
         }
@@ -38,20 +35,20 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
         }
     }
     [BsonSerializable]
-    public partial struct GeneratorStructTestModel : IEquatable<GeneratorStructTestModel>
+    public partial struct StructTestModel : IEquatable<StructTestModel>
     {
         public int Value;
 
-        public GeneratorStructTestModel(int value)
+        public StructTestModel(int value)
         {
             Value = value;
         }
         public override bool Equals(object obj)
         {
-            return obj is GeneratorStructTestModel model && Equals(model);
+            return obj is StructTestModel model && Equals(model);
         }
 
-        public bool Equals(GeneratorStructTestModel other)
+        public bool Equals(StructTestModel other)
         {
             return Value == other.Value;
         }
@@ -62,23 +59,23 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
         }
     }
     [BsonSerializable]
-    public partial struct GeneratorStructWithFreeFieldTestModel : IEquatable<GeneratorStructWithFreeFieldTestModel>
+    public partial struct StructWithFreeFieldTestModel : IEquatable<StructWithFreeFieldTestModel>
     {
         public readonly int Value;
         public int Value1;
         //TODO: без атрибута констурктор не мапится
         [BsonConstructor]
-        public GeneratorStructWithFreeFieldTestModel(int value)
+        public StructWithFreeFieldTestModel(int value)
         {
             Value = value;
             Value1 = default;
         }
         public override bool Equals(object obj)
         {
-            return obj is GeneratorStructWithFreeFieldTestModel model && Equals(model);
+            return obj is StructWithFreeFieldTestModel model && Equals(model);
         }
 
-        public bool Equals(GeneratorStructWithFreeFieldTestModel other)
+        public bool Equals(StructWithFreeFieldTestModel other)
         {
             return Value == other.Value;
         }
@@ -89,20 +86,20 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
         }
     }
     [BsonSerializable]
-    public readonly partial struct GeneratorReadonlyStructTestModel : IEquatable<GeneratorReadonlyStructTestModel>
+    public readonly partial struct ReadonlyStructTestModel : IEquatable<ReadonlyStructTestModel>
     {
         public readonly int Value;
-        public GeneratorReadonlyStructTestModel(int value)
+        public ReadonlyStructTestModel(int value)
         {
             Value = value;
         }
 
         public override bool Equals(object obj)
         {
-            return obj is GeneratorReadonlyStructTestModel model && Equals(model);
+            return obj is ReadonlyStructTestModel model && Equals(model);
         }
 
-        public bool Equals(GeneratorReadonlyStructTestModel other)
+        public bool Equals(ReadonlyStructTestModel other)
         {
             return Value == other.Value;
         }
@@ -117,7 +114,7 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
         [Fact]
         public async Task StructWithManyCtorsTest()
         {
-            var model = new GeneratorStructWithManyCtorsTestModel(2);
+            var model = new StructWithManyCtorsTestModel(2);
             var result = await RoundTripAsync(model);
             var bson = await RoundTripWithBsonAsync(model);
             Assert.Equal(model, result);
@@ -125,7 +122,7 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
         [Fact]
         public async Task StrcutTest()
         {
-            var model = new GeneratorStructTestModel(2);
+            var model = new StructTestModel(2);
             var result = await RoundTripAsync(model);
             var bson = await RoundTripWithBsonAsync(model);
             Assert.Equal(model, result);
@@ -133,7 +130,7 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
         [Fact]
         public async Task StrcutWithFreeFieldTest()
         {
-            var model = new GeneratorStructWithFreeFieldTestModel(2){ Value1 = 1 };
+            var model = new StructWithFreeFieldTestModel(2) { Value1 = 1 };
             var result = await RoundTripAsync(model);
             var bson = await RoundTripWithBsonAsync(model);
             Assert.Equal(model, result);
@@ -141,7 +138,7 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
         [Fact]
         public async Task ReadonlyStrcutTest()
         {
-            var model = new GeneratorReadonlyStructTestModel(2);
+            var model = new ReadonlyStructTestModel(2);
             var result = await RoundTripAsync(model);
             var bson = await RoundTripWithBsonAsync(model);
             Assert.Equal(model, result);

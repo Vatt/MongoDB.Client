@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
@@ -17,7 +16,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
         Three
     }
     [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
-    public partial class GeneratorStringEnumModel : IEquatable<GeneratorStringEnumModel>
+    public partial class StringEnumModel : IEquatable<StringEnumModel>
     {
         protected BsonElementType BsonType;
         protected BsonElementType DictionaryBsonType;
@@ -51,7 +50,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
         public Dictionary<string, TestEnum?>? NullableDictionaryWithNullableTypeArgument { get; }
         [BsonEnum(EnumRepresentation.String)]
         public Dictionary<string, TestEnum?>? AlwaysNullDictionaryWithNullableTypeArgument { get; }
-        public GeneratorStringEnumModel(
+        public StringEnumModel(
             TestEnum property,
             TestEnum? nullableProperty,
             TestEnum? alwaysNullProperty,
@@ -90,10 +89,10 @@ namespace MongoDB.Client.Tests.Serialization.Types
         {
             return base.Equals(doc);
         }
-        public static GeneratorStringEnumModel Create()
+        public static StringEnumModel Create()
         {
             var value = TestEnum.Three;
-            return new GeneratorStringEnumModel(
+            return new StringEnumModel(
                 value, value, null,
                 new() { value, value }, new() { value, value }, null,
                 new() { value, null }, new() { value, null }, null,
@@ -101,7 +100,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
                 new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", null } }, null);
         }
 
-        public bool Equals(GeneratorStringEnumModel other)
+        public bool Equals(StringEnumModel other)
         {
             return other != null &&
                    BsonType == other.BsonType &&
@@ -125,11 +124,11 @@ namespace MongoDB.Client.Tests.Serialization.Types
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as GeneratorStringEnumModel);
+            return Equals(obj as StringEnumModel);
         }
     }
     [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
-    public partial class GeneratorInt64EnumModel : IEquatable<GeneratorInt64EnumModel>
+    public partial class Int64EnumModel : IEquatable<Int64EnumModel>
     {
         protected BsonElementType BsonType;
         protected BsonElementType DictionaryBsonType;
@@ -163,7 +162,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
         public Dictionary<string, TestEnum?>? NullableDictionaryWithNullableTypeArgument { get; }
         [BsonEnum(EnumRepresentation.Int64)]
         public Dictionary<string, TestEnum?>? AlwaysNullDictionaryWithNullableTypeArgument { get; }
-        public GeneratorInt64EnumModel(
+        public Int64EnumModel(
             TestEnum property,
             TestEnum? nullableProperty,
             TestEnum? alwaysNullProperty,
@@ -202,10 +201,10 @@ namespace MongoDB.Client.Tests.Serialization.Types
         {
             return base.Equals(doc);
         }
-        public static GeneratorInt64EnumModel Create()
+        public static Int64EnumModel Create()
         {
             var value = TestEnum.Two;
-            return new GeneratorInt64EnumModel(
+            return new Int64EnumModel(
                 value, value, null,
                 new() { value, value }, new() { value, value }, null,
                 new() { value, null }, new() { value, null }, null,
@@ -213,7 +212,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
                 new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", null } }, null);
         }
 
-        public bool Equals(GeneratorInt64EnumModel other)
+        public bool Equals(Int64EnumModel other)
         {
             return other != null &&
                    BsonType == other.BsonType &&
@@ -257,28 +256,33 @@ namespace MongoDB.Client.Tests.Serialization.Types
             hash.Add(AlwaysNullDictionaryWithNullableTypeArgument);
             return hash.ToHashCode();
         }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as Int64EnumModel);
+        }
     }
     [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
-    public partial class GeneratorInt32EnumModel : GeneratorTypeTestModelBase<TestEnum, TestEnum?>, IEquatable<GeneratorInt32EnumModel>
+    public partial class Int32EnumModel : GeneratorTypeTestModelBase<TestEnum, TestEnum?>, IEquatable<Int32EnumModel>
     {
-        public GeneratorInt32EnumModel(
+        public Int32EnumModel(
             TestEnum property,
             TestEnum? nullableProperty,
-            TestEnum? alwaysNullProperty, 
-            List<TestEnum> listProperty, 
-            List<TestEnum>? nullableListProperty, 
-            List<TestEnum>? alwaysNullListProperty, 
+            TestEnum? alwaysNullProperty,
+            List<TestEnum> listProperty,
+            List<TestEnum>? nullableListProperty,
+            List<TestEnum>? alwaysNullListProperty,
             List<TestEnum?> listWithNullableTypeArgumentProperty,
-            List<TestEnum?>? nullableListWithNullableTypeArgumentProperty, 
-            List<TestEnum?>? alwaysNullListWithNullableTypeArgumentProperty, 
-            Dictionary<string, TestEnum> dictionaryProperty, 
-            Dictionary<string, TestEnum>? nullableDictionaryProperty, 
-            Dictionary<string, TestEnum>? alwaysNullDictionaryProperty, 
-            Dictionary<string, TestEnum?> dictionaryWithNullableTypeArgument, 
+            List<TestEnum?>? nullableListWithNullableTypeArgumentProperty,
+            List<TestEnum?>? alwaysNullListWithNullableTypeArgumentProperty,
+            Dictionary<string, TestEnum> dictionaryProperty,
+            Dictionary<string, TestEnum>? nullableDictionaryProperty,
+            Dictionary<string, TestEnum>? alwaysNullDictionaryProperty,
+            Dictionary<string, TestEnum?> dictionaryWithNullableTypeArgument,
             Dictionary<string, TestEnum?>? nullableDictionaryWithNullableTypeArgument,
-            Dictionary<string, TestEnum?>? alwaysNullDictionaryWithNullableTypeArgument) 
-            : base (property, nullableProperty, alwaysNullProperty, 
-                    listProperty, nullableListProperty, alwaysNullListProperty, 
+            Dictionary<string, TestEnum?>? alwaysNullDictionaryWithNullableTypeArgument)
+            : base(property, nullableProperty, alwaysNullProperty,
+                    listProperty, nullableListProperty, alwaysNullListProperty,
                     listWithNullableTypeArgumentProperty, nullableListWithNullableTypeArgumentProperty, alwaysNullListWithNullableTypeArgumentProperty,
                     dictionaryProperty, nullableDictionaryProperty, alwaysNullDictionaryProperty,
                     dictionaryWithNullableTypeArgument, nullableDictionaryWithNullableTypeArgument, alwaysNullDictionaryWithNullableTypeArgument)
@@ -290,18 +294,18 @@ namespace MongoDB.Client.Tests.Serialization.Types
         {
             return base.Equals(doc);
         }
-        public static GeneratorInt32EnumModel Create()
+        public static Int32EnumModel Create()
         {
             var value = TestEnum.One;
-            return new GeneratorInt32EnumModel(
-                value, value, null, 
-                new() { value, value }, new() { value, value }, null, 
-                new() { value, null}, new() { value, null}, null,
-                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", value } }, null, 
-                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", null }  }, null);
+            return new Int32EnumModel(
+                value, value, null,
+                new() { value, value }, new() { value, value }, null,
+                new() { value, null }, new() { value, null }, null,
+                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", value } }, null,
+                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", null } }, null);
         }
 
-        public bool Equals(GeneratorInt32EnumModel other)
+        public bool Equals(Int32EnumModel other)
         {
             return other != null &&
                    BsonType == other.BsonType &&
@@ -345,6 +349,11 @@ namespace MongoDB.Client.Tests.Serialization.Types
             hash.Add(AlwaysNullDictionaryWithNullableTypeArgument);
             return hash.ToHashCode();
         }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as Int32EnumModel);
+        }
     }
 
     //TODO: для стринг енума и нулабл стринг енума генерируется два разных метода
@@ -354,27 +363,27 @@ namespace MongoDB.Client.Tests.Serialization.Types
         [Fact]
         public async Task Int32EnumTest()
         {
-            var model = GeneratorInt32EnumModel.Create();
+            var model = Int32EnumModel.Create();
             var result = await RoundTripAsync(model);
-            var bson = await RoundTripWithBsonAsync(GeneratorInt32EnumModel.Create());
+            var bson = await RoundTripWithBsonAsync(Int32EnumModel.Create());
             Assert.Equal(model, result);
             model.Equals(bson);
         }
         [Fact]
         public async Task Int64EnumTest()
         {
-            var model = GeneratorInt64EnumModel.Create();
+            var model = Int64EnumModel.Create();
             var result = await RoundTripAsync(model);
-            var bson = await RoundTripWithBsonAsync(GeneratorInt64EnumModel.Create());
+            var bson = await RoundTripWithBsonAsync(Int64EnumModel.Create());
             Assert.Equal(model, result);
             model.Equals(bson);
         }
         [Fact]
         public async Task StringEnumTest()
         {
-            var model = GeneratorStringEnumModel.Create();
+            var model = StringEnumModel.Create();
             var result = await RoundTripAsync(model);
-            var bson = await RoundTripWithBsonAsync(GeneratorStringEnumModel.Create());
+            var bson = await RoundTripWithBsonAsync(StringEnumModel.Create());
             Assert.Equal(model, result);
             model.Equals(bson);
         }

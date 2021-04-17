@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
@@ -103,26 +102,26 @@ namespace MongoDB.Client.Tests.Serialization.Types
         }
     }
     [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
-    public partial class GeneratorMemoryByteAsGenericModel : GeneratorTypeTestModelBase<Memory<byte>, Memory<byte>?>, IEquatable<GeneratorMemoryByteAsGenericModel>
+    public partial class MemoryByteAsGenericModel : GeneratorTypeTestModelBase<Memory<byte>, Memory<byte>?>, IEquatable<MemoryByteAsGenericModel>
     {
-        public GeneratorMemoryByteAsGenericModel(
+        public MemoryByteAsGenericModel(
             Memory<byte> property,
             Memory<byte>? nullableProperty,
-            Memory<byte>? alwaysNullProperty, 
-            List<Memory<byte>> listProperty, 
-            List<Memory<byte>>? nullableListProperty, 
-            List<Memory<byte>>? alwaysNullListProperty, 
+            Memory<byte>? alwaysNullProperty,
+            List<Memory<byte>> listProperty,
+            List<Memory<byte>>? nullableListProperty,
+            List<Memory<byte>>? alwaysNullListProperty,
             List<Memory<byte>?> listWithNullableTypeArgumentProperty,
-            List<Memory<byte>?>? nullableListWithNullableTypeArgumentProperty, 
-            List<Memory<byte>?>? alwaysNullListWithNullableTypeArgumentProperty, 
-            Dictionary<string, Memory<byte>> dictionaryProperty, 
-            Dictionary<string, Memory<byte>>? nullableDictionaryProperty, 
-            Dictionary<string, Memory<byte>>? alwaysNullDictionaryProperty, 
-            Dictionary<string, Memory<byte>?> dictionaryWithNullableTypeArgument, 
+            List<Memory<byte>?>? nullableListWithNullableTypeArgumentProperty,
+            List<Memory<byte>?>? alwaysNullListWithNullableTypeArgumentProperty,
+            Dictionary<string, Memory<byte>> dictionaryProperty,
+            Dictionary<string, Memory<byte>>? nullableDictionaryProperty,
+            Dictionary<string, Memory<byte>>? alwaysNullDictionaryProperty,
+            Dictionary<string, Memory<byte>?> dictionaryWithNullableTypeArgument,
             Dictionary<string, Memory<byte>?>? nullableDictionaryWithNullableTypeArgument,
-            Dictionary<string, Memory<byte>?>? alwaysNullDictionaryWithNullableTypeArgument) 
-            : base (property, nullableProperty, alwaysNullProperty, 
-                    listProperty, nullableListProperty, alwaysNullListProperty, 
+            Dictionary<string, Memory<byte>?>? alwaysNullDictionaryWithNullableTypeArgument)
+            : base(property, nullableProperty, alwaysNullProperty,
+                    listProperty, nullableListProperty, alwaysNullListProperty,
                     listWithNullableTypeArgumentProperty, nullableListWithNullableTypeArgumentProperty, alwaysNullListWithNullableTypeArgumentProperty,
                     dictionaryProperty, nullableDictionaryProperty, alwaysNullDictionaryProperty,
                     dictionaryWithNullableTypeArgument, nullableDictionaryWithNullableTypeArgument, alwaysNullDictionaryWithNullableTypeArgument)
@@ -134,21 +133,21 @@ namespace MongoDB.Client.Tests.Serialization.Types
         {
             return base.Equals(doc);
         }
-        public static GeneratorMemoryByteAsGenericModel Create()
+        public static MemoryByteAsGenericModel Create()
         {
-            var value = new byte[]{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-            return new GeneratorMemoryByteAsGenericModel(
-                value, value, null, 
-                new() { value, value }, new() { value, value }, null, 
-                new() { value, null}, new() { value, null}, null,
-                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", value } }, null, 
-                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", null }  }, null);
+            var value = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+            return new MemoryByteAsGenericModel(
+                value, value, null,
+                new() { value, value }, new() { value, value }, null,
+                new() { value, null }, new() { value, null }, null,
+                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", value } }, null,
+                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", null } }, null);
         }
 
-        public bool Equals(GeneratorMemoryByteAsGenericModel other)
+        public bool Equals(MemoryByteAsGenericModel other)
         {
             var listComparer = new ListOfMemoryByteEqualityComparer();
-            var dictionaryComparer = new DictionaryOfMemoryByteEqualityComparer();   
+            var dictionaryComparer = new DictionaryOfMemoryByteEqualityComparer();
             var nullableListComparer = new ListOfNullableMemoryByteEqualityComparer();
             var nullableDictionaryComparer = new DictionaryOfNullableMemoryByteEqualityComparer();
             return other != null &&
@@ -196,7 +195,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as GeneratorMemoryByteAsGenericModel);
+            return Equals(obj as MemoryByteAsGenericModel);
         }
     }
 
@@ -206,9 +205,9 @@ namespace MongoDB.Client.Tests.Serialization.Types
         [Fact]
         public async Task MemoryByteAsGenericTest()
         {
-            var model = GeneratorMemoryByteAsGenericModel.Create();
+            var model = MemoryByteAsGenericModel.Create();
             var result = await RoundTripAsync(model);
-            var bson = await RoundTripWithBsonAsync(GeneratorMemoryByteAsGenericModel.Create());
+            var bson = await RoundTripWithBsonAsync(MemoryByteAsGenericModel.Create());
             Assert.Equal(model, result);
             model.Equals(bson);
         }

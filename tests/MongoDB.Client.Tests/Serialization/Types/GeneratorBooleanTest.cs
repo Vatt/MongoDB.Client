@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
@@ -11,26 +10,26 @@ using Xunit;
 namespace MongoDB.Client.Tests.Serialization.Types
 {
     [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
-    public partial class GeneratorBooleanModel : GeneratorTypeTestModelBase<bool, bool?>, IEquatable<GeneratorBooleanModel>
+    public partial class BooleanModel : GeneratorTypeTestModelBase<bool, bool?>, IEquatable<BooleanModel>
     {
-        public GeneratorBooleanModel(
-            bool property, 
-            bool? nullableProperty, 
-            bool? alwaysNullProperty, 
-            List<bool> listProperty, 
-            List<bool>? nullableListProperty, 
-            List<bool>? alwaysNullListProperty, 
+        public BooleanModel(
+            bool property,
+            bool? nullableProperty,
+            bool? alwaysNullProperty,
+            List<bool> listProperty,
+            List<bool>? nullableListProperty,
+            List<bool>? alwaysNullListProperty,
             List<bool?> listWithNullableTypeArgumentProperty,
-            List<bool?>? nullableListWithNullableTypeArgumentProperty, 
-            List<bool?>? alwaysNullListWithNullableTypeArgumentProperty, 
-            Dictionary<string, bool> dictionaryProperty, 
-            Dictionary<string, bool>? nullableDictionaryProperty, 
-            Dictionary<string, bool>? alwaysNullDictionaryProperty, 
-            Dictionary<string, bool?> dictionaryWithNullableTypeArgument, 
+            List<bool?>? nullableListWithNullableTypeArgumentProperty,
+            List<bool?>? alwaysNullListWithNullableTypeArgumentProperty,
+            Dictionary<string, bool> dictionaryProperty,
+            Dictionary<string, bool>? nullableDictionaryProperty,
+            Dictionary<string, bool>? alwaysNullDictionaryProperty,
+            Dictionary<string, bool?> dictionaryWithNullableTypeArgument,
             Dictionary<string, bool?>? nullableDictionaryWithNullableTypeArgument,
-            Dictionary<string, bool?>? alwaysNullDictionaryWithNullableTypeArgument) 
-            : base (property, nullableProperty, alwaysNullProperty, 
-                    listProperty, nullableListProperty, alwaysNullListProperty, 
+            Dictionary<string, bool?>? alwaysNullDictionaryWithNullableTypeArgument)
+            : base(property, nullableProperty, alwaysNullProperty,
+                    listProperty, nullableListProperty, alwaysNullListProperty,
                     listWithNullableTypeArgumentProperty, nullableListWithNullableTypeArgumentProperty, alwaysNullListWithNullableTypeArgumentProperty,
                     dictionaryProperty, nullableDictionaryProperty, alwaysNullDictionaryProperty,
                     dictionaryWithNullableTypeArgument, nullableDictionaryWithNullableTypeArgument, alwaysNullDictionaryWithNullableTypeArgument)
@@ -42,17 +41,17 @@ namespace MongoDB.Client.Tests.Serialization.Types
         {
             return base.Equals(doc);
         }
-        public static GeneratorBooleanModel Create()
+        public static BooleanModel Create()
         {
-            return new GeneratorBooleanModel(
-                true, false, null, 
-                new() { true, false }, new() { true, false }, null, 
-                new() { true, null}, new() { false, null}, null,
-                new() { { "42", true }, { "24", false } }, new() { { "42", true }, { "24", false } }, null, 
-                new() { { "42", true }, { "24", false } }, new() { { "42", true }, { "24", null }  }, null);
+            return new BooleanModel(
+                true, false, null,
+                new() { true, false }, new() { true, false }, null,
+                new() { true, null }, new() { false, null }, null,
+                new() { { "42", true }, { "24", false } }, new() { { "42", true }, { "24", false } }, null,
+                new() { { "42", true }, { "24", false } }, new() { { "42", true }, { "24", null } }, null);
         }
 
-        public bool Equals(GeneratorBooleanModel other)
+        public bool Equals(BooleanModel other)
         {
             return other != null &&
                    BsonType == other.BsonType &&
@@ -99,7 +98,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as GeneratorBooleanModel);
+            return Equals(obj as BooleanModel);
         }
     }
 
@@ -109,9 +108,9 @@ namespace MongoDB.Client.Tests.Serialization.Types
         [Fact]
         public async Task BooleanTest()
         {
-            var model = GeneratorBooleanModel.Create();
+            var model = BooleanModel.Create();
             var result = await RoundTripAsync(model);
-            var bson = await RoundTripWithBsonAsync(GeneratorBooleanModel.Create());
+            var bson = await RoundTripWithBsonAsync(BooleanModel.Create());
             Assert.Equal(model, result);
             model.Equals(bson);
         }

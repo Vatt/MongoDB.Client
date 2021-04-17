@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
-using MongoDB.Client.Tests.Serialization.Generator;
 using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization.Types
@@ -66,7 +63,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
              Dictionary<string, Memory<byte>>? alwaysNullDictionaryProperty,
              Dictionary<string, Memory<byte>?> dictionaryWithNullableTypeArgument,
              Dictionary<string, Memory<byte>?>? nullableDictionaryWithNullableTypeArgument,
-             Dictionary<string, Memory<byte>?>? alwaysNullDictionaryWithNullableTypeArgument) 
+             Dictionary<string, Memory<byte>?>? alwaysNullDictionaryWithNullableTypeArgument)
         {
             BsonType = BsonElementType.BinaryData;
             DictionaryBsonType = BsonElementType.BinaryData;
@@ -90,15 +87,15 @@ namespace MongoDB.Client.Tests.Serialization.Types
         {
             return base.Equals(doc);
         }
-        public static GeneratorMemoryByteAsGenericModel Create()
+        public static MemoryByteAsGenericModel Create()
         {
             var value = MD5.HashData(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 });
-            return new GeneratorMemoryByteAsGenericModel(
-                value, value, null, 
-                new() { value, value }, new() { value, value }, null, 
-                new() { value, null}, new() { value, null}, null,
-                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", value } }, null, 
-                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", null }  }, null);
+            return new MemoryByteAsGenericModel(
+                value, value, null,
+                new() { value, value }, new() { value, value }, null,
+                new() { value, null }, new() { value, null }, null,
+                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", value } }, null,
+                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", null } }, null);
         }
 
         public bool Equals(GeneratorMemoryByteAsMD5Model other)
@@ -164,7 +161,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
         {
             var model = GeneratorMemoryByteAsMD5Model.Create();
             var result = await RoundTripAsync(model);
-            var bson = await RoundTripWithBsonAsync(GeneratorMemoryByteAsGenericModel.Create());
+            var bson = await RoundTripWithBsonAsync(MemoryByteAsGenericModel.Create());
             Assert.Equal(model, result);
             model.Equals(bson);
         }

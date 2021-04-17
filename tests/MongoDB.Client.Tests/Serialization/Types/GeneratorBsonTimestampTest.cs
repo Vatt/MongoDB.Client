@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
@@ -11,26 +10,26 @@ using Xunit;
 namespace MongoDB.Client.Tests.Serialization.Types
 {
     [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
-    public partial class GeneratorBsonTimestampModel : GeneratorTypeTestModelBase<BsonTimestamp, BsonTimestamp?>, IEquatable<GeneratorBsonTimestampModel>
+    public partial class BsonTimestampModel : GeneratorTypeTestModelBase<BsonTimestamp, BsonTimestamp?>, IEquatable<BsonTimestampModel>
     {
-        public GeneratorBsonTimestampModel(
-            BsonTimestamp property, 
-            BsonTimestamp? nullableProperty, 
-            BsonTimestamp? alwaysNullProperty, 
-            List<BsonTimestamp> listProperty, 
-            List<BsonTimestamp>? nullableListProperty, 
-            List<BsonTimestamp>? alwaysNullListProperty, 
+        public BsonTimestampModel(
+            BsonTimestamp property,
+            BsonTimestamp? nullableProperty,
+            BsonTimestamp? alwaysNullProperty,
+            List<BsonTimestamp> listProperty,
+            List<BsonTimestamp>? nullableListProperty,
+            List<BsonTimestamp>? alwaysNullListProperty,
             List<BsonTimestamp?> listWithNullableTypeArgumentProperty,
-            List<BsonTimestamp?>? nullableListWithNullableTypeArgumentProperty, 
-            List<BsonTimestamp?>? alwaysNullListWithNullableTypeArgumentProperty, 
-            Dictionary<string, BsonTimestamp> dictionaryProperty, 
-            Dictionary<string, BsonTimestamp>? nullableDictionaryProperty, 
-            Dictionary<string, BsonTimestamp>? alwaysNullDictionaryProperty, 
-            Dictionary<string, BsonTimestamp?> dictionaryWithNullableTypeArgument, 
+            List<BsonTimestamp?>? nullableListWithNullableTypeArgumentProperty,
+            List<BsonTimestamp?>? alwaysNullListWithNullableTypeArgumentProperty,
+            Dictionary<string, BsonTimestamp> dictionaryProperty,
+            Dictionary<string, BsonTimestamp>? nullableDictionaryProperty,
+            Dictionary<string, BsonTimestamp>? alwaysNullDictionaryProperty,
+            Dictionary<string, BsonTimestamp?> dictionaryWithNullableTypeArgument,
             Dictionary<string, BsonTimestamp?>? nullableDictionaryWithNullableTypeArgument,
-            Dictionary<string, BsonTimestamp?>? alwaysNullDictionaryWithNullableTypeArgument) 
-            : base (property, nullableProperty, alwaysNullProperty, 
-                    listProperty, nullableListProperty, alwaysNullListProperty, 
+            Dictionary<string, BsonTimestamp?>? alwaysNullDictionaryWithNullableTypeArgument)
+            : base(property, nullableProperty, alwaysNullProperty,
+                    listProperty, nullableListProperty, alwaysNullListProperty,
                     listWithNullableTypeArgumentProperty, nullableListWithNullableTypeArgumentProperty, alwaysNullListWithNullableTypeArgumentProperty,
                     dictionaryProperty, nullableDictionaryProperty, alwaysNullDictionaryProperty,
                     dictionaryWithNullableTypeArgument, nullableDictionaryWithNullableTypeArgument, alwaysNullDictionaryWithNullableTypeArgument)
@@ -42,18 +41,18 @@ namespace MongoDB.Client.Tests.Serialization.Types
         {
             return base.Equals(doc);
         }
-        public static GeneratorBsonTimestampModel Create()
+        public static BsonTimestampModel Create()
         {
             var value = new BsonTimestamp(0123456789);
-            return new GeneratorBsonTimestampModel(
-                value, value, null, 
-                new() { value, value }, new() { value, value }, null, 
-                new() { value, null}, new() { value, null}, null,
-                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", value } }, null, 
-                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", null }  }, null);
+            return new BsonTimestampModel(
+                value, value, null,
+                new() { value, value }, new() { value, value }, null,
+                new() { value, null }, new() { value, null }, null,
+                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", value } }, null,
+                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", null } }, null);
         }
 
-        public bool Equals(GeneratorBsonTimestampModel other)
+        public bool Equals(BsonTimestampModel other)
         {
             return other != null &&
                    BsonType == other.BsonType &&
@@ -100,7 +99,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as GeneratorBsonTimestampModel);
+            return Equals(obj as BsonTimestampModel);
         }
     }
 
@@ -110,9 +109,9 @@ namespace MongoDB.Client.Tests.Serialization.Types
         [Fact]
         public async Task BsonTimestampTest()
         {
-            var model = GeneratorBsonTimestampModel.Create();
+            var model = BsonTimestampModel.Create();
             var result = await RoundTripAsync(model);
-            var bson = await RoundTripWithBsonAsync(GeneratorBsonTimestampModel.Create());
+            var bson = await RoundTripWithBsonAsync(BsonTimestampModel.Create());
             Assert.Equal(model, result);
             model.Equals(bson);
         }
