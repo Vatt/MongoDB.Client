@@ -371,6 +371,7 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
             return Equals(obj as ModelWithExtensionAndCustom);
         }
     }
+    //TODO: Есть проблема с bsonTypeReserved для экстеншен сериализаторов
     public class GeneratorCustomsTest : SerializationTestBase
     {
         [Fact]

@@ -109,6 +109,58 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
             return HashCode.Combine(Value);
         }
     }
+    [BsonSerializable]
+    public readonly partial struct ReadonlyGetOnlyStructTestModel : IEquatable<ReadonlyGetOnlyStructTestModel>
+    {
+        public readonly int Value { get; }
+        public ReadonlyGetOnlyStructTestModel(int value)
+        {
+            Value = value;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is ReadonlyGetOnlyStructTestModel model && Equals(model);
+        }
+
+        public bool Equals(ReadonlyGetOnlyStructTestModel other)
+        {
+            return Value == other.Value;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Value);
+        }
+    }
+    [BsonSerializable]
+    public partial struct ReadonlyGetOnlyWithFreeFieldStructTestModel : IEquatable<ReadonlyGetOnlyWithFreeFieldStructTestModel>
+    {
+        public readonly int Value { get; }
+        public int Value0;
+        //TODO: без атрибута констурктор не мапится
+        [BsonConstructor]
+        public ReadonlyGetOnlyWithFreeFieldStructTestModel(int value)
+        {
+            Value = value;
+            Value0 = 0;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is ReadonlyGetOnlyWithFreeFieldStructTestModel model && Equals(model);
+        }
+
+        public bool Equals(ReadonlyGetOnlyWithFreeFieldStructTestModel other)
+        {
+            return Value == other.Value;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Value);
+        }
+    }
     public class GeneratorStructTests : SerializationTestBase
     {
         [Fact]
@@ -142,7 +194,23 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
             var result = await RoundTripAsync(model);
             var bson = await RoundTripWithBsonAsync(model);
             Assert.Equal(model, result);
-
+        }
+        [Fact]
+        public async Task ReadonlyGetOnlyStrcutTest()
+        {
+            var model = new ReadonlyGetOnlyStructTestModel(2);
+            var result = await RoundTripAsync(model);
+            var bson = await RoundTripWithBsonAsync(model);
+            Assert.Equal(model, result);
+        }
+        [Fact]
+        public async Task ReadonlyGetOnlyWithFreeFieldStructTest()
+        {
+            var model = new ReadonlyGetOnlyWithFreeFieldStructTestModel(2);
+            model.Value0 = 42;
+            var result = await RoundTripAsync(model);
+            var bson = await RoundTripWithBsonAsync(model);
+            Assert.Equal(model, result);
         }
     }
 
