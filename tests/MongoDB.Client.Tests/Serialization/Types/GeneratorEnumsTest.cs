@@ -15,6 +15,85 @@ namespace MongoDB.Client.Tests.Serialization.Types
         Two,
         Three
     }
+
+    [BsonSerializable]
+    public partial class NullableInt32EnumOnlyTestModel : IEquatable<NullableInt32EnumOnlyTestModel>
+    {
+        public TestEnum? Enum;
+        public List<TestEnum?> EnumList;
+        public static NullableInt32EnumOnlyTestModel Create() => new() { Enum = TestEnum.One, EnumList  = new() { TestEnum.One, null} };
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as NullableInt32EnumOnlyTestModel);
+        }
+
+        public bool Equals(NullableInt32EnumOnlyTestModel other)
+        {
+            return other != null &&
+                   Enum == other.Enum &&
+                   EnumList is not null && other.EnumList is not null && EnumList.SequenceEqual(other.EnumList);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Enum, EnumList);
+        }
+    }
+
+    [BsonSerializable]
+    public partial class NullableInt64EnumOnlyTestModel : IEquatable<NullableInt64EnumOnlyTestModel>
+    {
+        [BsonEnum(EnumRepresentation.Int64)]
+        public TestEnum? Enum;
+        [BsonEnum(EnumRepresentation.Int64)]
+        public List<TestEnum?> EnumList;
+        public static NullableInt64EnumOnlyTestModel Create() => new() { Enum = TestEnum.Two, EnumList = new() { TestEnum.Two, null} };
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as NullableInt64EnumOnlyTestModel);
+        }
+
+        public bool Equals(NullableInt64EnumOnlyTestModel other)
+        {
+            return other != null &&
+                   Enum == other.Enum &&
+                   EnumList is not null && other.EnumList is not null && EnumList.SequenceEqual(other.EnumList);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Enum, EnumList);
+        }
+    }
+
+    [BsonSerializable]
+    public partial class NullableStringEnumOnlyTestModel : IEquatable<NullableStringEnumOnlyTestModel>
+    {
+        [BsonEnum(EnumRepresentation.String)]
+        public TestEnum? Enum;
+        [BsonEnum(EnumRepresentation.String)]
+        public List<TestEnum?> EnumList;
+        public static NullableStringEnumOnlyTestModel Create() => new() { Enum = TestEnum.Three, EnumList = new() { TestEnum.Three, null } };
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as NullableStringEnumOnlyTestModel);
+        }
+
+        public bool Equals(NullableStringEnumOnlyTestModel other)
+        {
+            return other != null &&
+                   Enum == other.Enum &&
+                   EnumList is not null && other.EnumList is not null && EnumList.SequenceEqual(other.EnumList);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Enum, EnumList);
+        }
+    }
     [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
     public partial class StringEnumModel : IEquatable<StringEnumModel>
     {
@@ -125,6 +204,11 @@ namespace MongoDB.Client.Tests.Serialization.Types
         public override bool Equals(object obj)
         {
             return Equals(obj as StringEnumModel);
+        }
+
+        public override int GetHashCode()
+        {
+            throw new NotImplementedException();
         }
     }
     [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
@@ -384,6 +468,33 @@ namespace MongoDB.Client.Tests.Serialization.Types
             var model = StringEnumModel.Create();
             var result = await RoundTripAsync(model);
             var bson = await RoundTripWithBsonAsync(StringEnumModel.Create());
+            Assert.Equal(model, result);
+            model.Equals(bson);
+        }
+        [Fact]
+        public async Task NullableInt32OnlyEnumTest()
+        {
+            var model = NullableInt32EnumOnlyTestModel.Create();
+            var result = await RoundTripAsync(model);
+            var bson = await RoundTripWithBsonAsync(model);
+            Assert.Equal(model, result);
+            model.Equals(bson);
+        }
+        [Fact]
+        public async Task NullableInt64OnlyEnumTest()
+        {
+            var model = NullableInt64EnumOnlyTestModel.Create();
+            var result = await RoundTripAsync(model);
+            var bson = await RoundTripWithBsonAsync(model);
+            Assert.Equal(model, result);
+            model.Equals(bson);
+        }
+        [Fact]
+        public async Task NullableStringOnlyEnumTest()
+        {
+            var model = NullableStringEnumOnlyTestModel.Create();
+            var result = await RoundTripAsync(model);
+            var bson = await RoundTripWithBsonAsync(model);
             Assert.Equal(model, result);
             model.Equals(bson);
         }

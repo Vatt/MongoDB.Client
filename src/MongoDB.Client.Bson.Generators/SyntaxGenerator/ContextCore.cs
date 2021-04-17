@@ -229,7 +229,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         {
             if (ConstructorParams.HasValue)
             {
-                var param = ConstructorParams.Value.FirstOrDefault(type => NameEquals(type.Name, name));
+                var param = ConstructorParams.Value.FirstOrDefault(param => NameEquals(name, param.Name));
                 return param != null;
             }
 
