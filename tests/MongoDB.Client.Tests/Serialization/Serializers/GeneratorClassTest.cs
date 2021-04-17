@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using Xunit;
@@ -15,7 +12,7 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
         public int B;
         public int C;
         public int D;
-        public ClassWithPrimaryCtor(int a , int b, int c, int d)
+        public ClassWithPrimaryCtor(int a, int b, int c, int d)
         {
             A = d;
             B = b;
@@ -29,6 +26,47 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
         }
 
         public bool Equals(ClassWithPrimaryCtor other)
+        {
+            return other != null &&
+                   A == other.A &&
+                   B == other.B &&
+                   C == other.C &&
+                   D == other.D;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(A, B, C, D);
+        }
+    }
+    [BsonSerializable]
+    public partial class ClassWithManyCtors : IEquatable<ClassWithManyCtors>
+    {
+        public int A;
+        public int B;
+        public int C;
+        public int D;
+        [BsonConstructor]
+        public ClassWithManyCtors(int a, int b, int c, int d)
+        {
+            A = d;
+            B = b;
+            C = c;
+            D = d;
+        }
+        public ClassWithManyCtors(string a, string b, string c, string d)
+        {
+            A = int.Parse(d);
+            B = int.Parse(b);
+            C = int.Parse(c);
+            D = int.Parse(d);
+        }
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as ClassWithManyCtors);
+        }
+
+        public bool Equals(ClassWithManyCtors other)
         {
             return other != null &&
                    A == other.A &&
@@ -84,7 +122,7 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
         public readonly int A;
         public readonly int B;
         public readonly int C;
-        [BsonConstructor]
+
         public ReadonlyClass(int a, int b, int c)
         {
             A = a;
@@ -149,7 +187,7 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
         public int A { get; }
         public int B { get; }
         public int C { get; }
-        [BsonConstructor]
+
         public GetOnlyClass(int a, int b, int c)
         {
             A = a;
@@ -182,7 +220,7 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
         public int B { get; }
         public int C { get; }
         public int D { get; set; }
-        [BsonConstructor]
+
         public GetOnlyClassWithFreeField(int a, int b, int c)
         {
             A = a;
@@ -216,6 +254,14 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
         public async Task ClassWithPrimaryCtorTest()
         {
             var model = new ClassWithPrimaryCtor(1, 2, 3, 4);
+            var result = await RoundTripAsync(model);
+            var bson = await RoundTripWithBsonAsync(model);
+            Assert.Equal(model, result);
+        }
+        [Fact]
+        public async Task ClassWithManyCtorsTest()
+        {
+            var model = new ClassWithManyCtors(1, 2, 3, 4);
             var result = await RoundTripAsync(model);
             var bson = await RoundTripWithBsonAsync(model);
             Assert.Equal(model, result);

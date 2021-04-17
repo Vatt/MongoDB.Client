@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using Xunit;
 
@@ -35,7 +31,7 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
         public int C;
         public int D;
         [BsonConstructor]
-        public RecordWithPrimaryCtor(int a , int b, int c, int d)
+        public RecordWithPrimaryCtor(int a, int b, int c, int d)
         {
             A = d;
             B = b;

@@ -1,15 +1,80 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using MongoDB.Client.Tests.Serialization.TestModels;
+using MongoDB.Client.Bson.Serialization.Attributes;
 using Xunit;
 namespace MongoDB.Client.Tests.Serialization
 {
-    public class GeneratedManyListTest : SerializationTestBase
+    [BsonSerializable]
+    public partial class ManyListModel
     {
-        [Fact]
-        public async Task ManyListTest()
+        public string Name;
+        public List<List<List<List<List<List<long>>>>>> Longs;
+
+        public override bool Equals(object obj)
         {
-            var model = new ManyListModel()
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+
+            return obj is ManyListModel other && Equals(Longs, other.Longs);
+        }
+
+        public static bool Equals(List<List<List<List<List<List<long>>>>>> list0, List<List<List<List<List<List<long>>>>>> list1)
+        {
+            if (list0 is null)
+            {
+                throw new ArgumentNullException(nameof(list0));
+            }
+            if (list1 is null)
+            {
+                throw new ArgumentNullException(nameof(list0));
+            }
+
+            for (int i0 = 0; i0 < list0.Count; i0++)
+            {
+                for (int i1 = 0; i1 < list0.Count; i1++)
+                {
+                    for (int i2 = 0; i2 < list0.Count; i2++)
+                    {
+                        for (int i3 = 0; i3 < list0.Count; i3++)
+                        {
+                            for (int i4 = 0; i4 < list0.Count; i4++)
+                            {
+                                for (int i5 = 0; i5 < list0.Count; i5++)
+                                {
+                                    if (!list0[i0][i1][i2][i3][i4][i5].Equals(list1[i0][i1][i2][i3][i4][i5]))
+                                    {
+                                        return false;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Name, Longs);
+        }
+        public static ManyListModel Create()
+        {
+            return new ManyListModel()
             {
                 Name = "ManyListTest",
                 Longs = new List<List<List<List<List<List<long>>>>>>()
@@ -87,7 +152,16 @@ namespace MongoDB.Client.Tests.Serialization
                     }
                 }
             };
+        }
+    }
+    public class GeneratorManyListTest : SerializationTestBase
+    {
+        [Fact]
+        public async Task ManyListTest()
+        {
+            var model = ManyListModel.Create();
             var result = await RoundTripAsync(model);
+            var bson = await RoundTripWithBsonAsync(model);
             Assert.Equal(model, result);
         }
     }
