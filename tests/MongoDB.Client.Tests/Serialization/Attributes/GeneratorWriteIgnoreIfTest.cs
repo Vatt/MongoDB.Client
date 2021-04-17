@@ -22,7 +22,7 @@ namespace MongoDB.Client.Tests.Serialization
             get; set;
         }
     }
-    public class GeneratorWriteIgnoreIfTests : SerializationTestBase
+    public class GeneratorWriteIgnoreIfTest : SerializationTestBase
     {
         [Fact]
         public async Task WriteIgnoreIfTest()
