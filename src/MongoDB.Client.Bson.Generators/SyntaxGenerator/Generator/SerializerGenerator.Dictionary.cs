@@ -18,25 +18,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             Identifier("internalDictionary"),
             new[] { Argument(Identifier("dictionaryBsonName")), Argument(Identifier("temp")) });
 
-        public static void ExtractDictionaryTypeArgs(INamedTypeSymbol type, out ITypeSymbol keyTypeArg, out ITypeSymbol valueTypeArg, out bool isICollectionOfValueTuple)
+        public static void ExtractDictionaryTypeArgs(INamedTypeSymbol type, out ITypeSymbol keyTypeArg, out ITypeSymbol valueTypeArg)
         {
             keyTypeArg = default;
             valueTypeArg = default;
-            isICollectionOfValueTuple = false;
-            if (IsCollectionOfValueTupleOrKeyValuePair(type))
+            if (IsCollectionOfKeyValuePair(type))
             {
-                var tupleOrPair = type!.TypeArguments[0] as INamedTypeSymbol;
-                if (tupleOrPair!.IsTupleType && tupleOrPair!.TupleElements.Length != 2)
-                {
-                    ReportDictionaryKeyTypeError(type);
-                }
-                else if (tupleOrPair.IsTupleType && tupleOrPair!.TupleElements.Length == 2)
-                {
-                    isICollectionOfValueTuple = true;
-                    keyTypeArg = tupleOrPair.TupleElements[0].Type;
-                    valueTypeArg = tupleOrPair.TupleElements[1].Type;
-                }
-                else if (tupleOrPair.OriginalDefinition.Equals(System_Collections_Generic_KeyValuePair, SymbolEqualityComparer.Default))
+                var kvPair = type!.TypeArguments[0] as INamedTypeSymbol;
+                if (kvPair.OriginalDefinition.Equals(System_Collections_Generic_KeyValuePair, SymbolEqualityComparer.Default))
                 {
                     var pair = type.TypeArguments[0] as INamedTypeSymbol;
                     keyTypeArg = pair.TypeArguments[0];
@@ -59,21 +48,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             ITypeSymbol keyArg = default;
             ITypeSymbol typeArg = default;
             var named = (type as INamedTypeSymbol);
-            StatementSyntax assigmentExpr = default;
-            ExtractDictionaryTypeArgs(named, out keyArg, out typeArg, out var isICollectionOfValueTuple);
 
+            ExtractDictionaryTypeArgs(named, out keyArg, out typeArg);
             if (keyArg!.Equals(System_String, SymbolEqualityComparer.Default) == false)
             {
                 ReportDictionaryKeyTypeError(type);
-            }
-
-            if (isICollectionOfValueTuple)
-            {
-                assigmentExpr = SimpleAssignExprStatement(DictionaryReadContext.OutMessageToken, Cast(type, DictionaryReadContext.TempCollectionToken));
-            }
-            else
-            {
-                assigmentExpr = SimpleAssignExprStatement(DictionaryReadContext.OutMessageToken, DictionaryReadContext.TempCollectionToken);
             }
             var trueTypeArg = ExtractTypeFromNullableIfNeed(typeArg);
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
@@ -135,8 +114,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                        IfStatement(
                            BinaryExprNotEquals(DictionaryReadContext.EndMarkerToken, NumericLiteralExpr((byte)'\x00')),
                            Block(Statement(SerializerEndMarkerException(ctx.Root.Declaration, IdentifierName(DictionaryReadContext.EndMarkerToken))))),
-                       //SimpleAssignExprStatement(DictionaryReadContext.OutMessageToken, DictionaryReadContext.TempCollectionToken),
-                       assigmentExpr,
+                       SimpleAssignExprStatement(DictionaryReadContext.OutMessageToken, DictionaryReadContext.TempCollectionToken),
                        ReturnTrueStatement
                        ));
         }
@@ -150,7 +128,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var keyToken = Identifier("key");
             var valueToken = Identifier("value");
             ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
-            ExtractDictionaryTypeArgs(trueType as INamedTypeSymbol, out _, out var typeArg, out _);
+            ExtractDictionaryTypeArgs(trueType as INamedTypeSymbol, out _, out var typeArg);
             var writeOperation = ImmutableList.CreateBuilder<StatementSyntax>();
 
             if (typeArg.IsReferenceType)

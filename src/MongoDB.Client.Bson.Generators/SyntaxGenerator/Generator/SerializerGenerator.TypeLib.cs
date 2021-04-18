@@ -97,11 +97,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 var named = symbol as INamedTypeSymbol;
                 var typeArgument = named!.TypeArguments[0];
-                if (typeArgument.IsTupleType)
-                {
-                    return false;
-                }
-                else if (typeArgument.OriginalDefinition.Equals(System_Collections_Generic_KeyValuePair, SymbolEqualityComparer.Default))
+                if (typeArgument.OriginalDefinition.Equals(System_Collections_Generic_KeyValuePair, SymbolEqualityComparer.Default))
                 {
                     return false;
                 }
@@ -113,7 +109,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return false;
         }
 
-        public static bool IsCollectionOfValueTupleOrKeyValuePair(ISymbol symbol)
+        public static bool IsCollectionOfKeyValuePair(ISymbol symbol)
         {
             if (symbol.OriginalDefinition.Equals(System_Collections_Generic_ICollection_T, SymbolEqualityComparer.Default) == false &&
                 symbol.OriginalDefinition.Equals(System_Collections_Generic_IReadOnlyCollection_T, SymbolEqualityComparer.Default) == false)
@@ -125,11 +121,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return false;
             }
-            if (named.TypeArguments[0].IsTupleType)
-            {
-                return true;
-            }
-
             if (named.TypeArguments[0].OriginalDefinition.Equals(System_Collections_Generic_KeyValuePair, SymbolEqualityComparer.Default))
             {
                 return true;
@@ -149,10 +140,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 var named = symbol as INamedTypeSymbol;
                 var ta = named!.TypeArguments[0];
-                if (ta.IsTupleType)
-                {
-                    return true;
-                }
                 if (ta.OriginalDefinition.Equals(System_Collections_Generic_KeyValuePair, SymbolEqualityComparer.Default))
                 {
                     return true;
