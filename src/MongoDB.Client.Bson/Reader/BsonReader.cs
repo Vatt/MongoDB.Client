@@ -273,7 +273,7 @@ namespace MongoDB.Client.Bson.Reader
                     }
                 case 4:
                     {
-                        if (_input.UnreadSpan.Length < len)
+                        if (_input.UnreadSpan.Length >= len)
                         {
                             value = BsonBinaryData.Create(new Guid(_input.UnreadSpan.Slice(0, len)));
                             _input.Advance(len);

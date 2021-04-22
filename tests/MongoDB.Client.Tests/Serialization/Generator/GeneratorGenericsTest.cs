@@ -6,6 +6,12 @@ using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Tests.Serialization.Types;
 using Xunit;
+using GenericTypedef = MongoDB.Client.Tests.Serialization.Generator.GeneratorGenericModel<
+    string, int, double, bool, MongoDB.Client.Bson.Document.BsonDocument, 
+    MongoDB.Client.Bson.Document.BsonObjectId, MongoDB.Client.Bson.Document.BsonTimestamp, System.Guid, System.DateTimeOffset, long, 
+    MongoDB.Client.Tests.Serialization.Types.BsonObjectIdModel, MongoDB.Client.Tests.Serialization.Types.GuidModel, 
+    MongoDB.Client.Tests.Serialization.Types.BooleanModel, MongoDB.Client.Tests.Serialization.Types.DoubleModel, 
+    MongoDB.Client.Tests.Serialization.Types.BsonTimestampModel>;
 
 namespace MongoDB.Client.Tests.Serialization.Generator
 {
@@ -63,9 +69,9 @@ namespace MongoDB.Client.Tests.Serialization.Generator
             NullableDictionaryWithNullableTypeArgument = nullableDictionaryWithNullableTypeArgument;
             AlwaysNullDictionaryWithNullableTypeArgument = alwaysNullDictionaryWithNullableTypeArgument;
         }
-        public static GeneratorGenericModel<string, int, double, bool, BsonDocument, BsonObjectId, BsonTimestamp, Guid, DateTimeOffset, long, BsonObjectIdModel, GuidModel, BooleanModel, DoubleModel, BsonTimestampModel> Create()
+        public static GenericTypedef Create()
         {
-            return new GeneratorGenericModel<string, int, double, bool, BsonDocument, BsonObjectId, BsonTimestamp, Guid, DateTimeOffset, long, BsonObjectIdModel, GuidModel, BooleanModel, DoubleModel, BsonTimestampModel>(
+            return new GenericTypedef(
                 "42", 42, 42,
                 new() { true, false }, new() { new BsonDocument("42", "42"), new BsonDocument("42", "42") }, null,
                 new() { new BsonTimestamp(1232312), new BsonTimestamp(1232312) }, new() { Guid.NewGuid(), Guid.NewGuid() }, null,
@@ -95,12 +101,113 @@ namespace MongoDB.Client.Tests.Serialization.Generator
                    AlwaysNullDictionaryWithNullableTypeArgument is null && other.AlwaysNullDictionaryWithNullableTypeArgument is null;
         }
     }
+    [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
+    public partial class GenericTypeTestModel : GeneratorTypeTestModelBase<GenericTypedef, GenericTypedef?>, IEquatable<GenericTypeTestModel>
+    {
+        public GenericTypeTestModel(
+            GenericTypedef property,
+            GenericTypedef? nullableProperty,
+            GenericTypedef? alwaysNullProperty,
+            List<GenericTypedef> listProperty,
+            List<GenericTypedef>? nullableListProperty,
+            List<GenericTypedef>? alwaysNullListProperty,
+            List<GenericTypedef?> listWithNullableTypeArgumentProperty,
+            List<GenericTypedef?>? nullableListWithNullableTypeArgumentProperty,
+            List<GenericTypedef?>? alwaysNullListWithNullableTypeArgumentProperty,
+            Dictionary<string, GenericTypedef> dictionaryProperty,
+            Dictionary<string, GenericTypedef>? nullableDictionaryProperty,
+            Dictionary<string, GenericTypedef>? alwaysNullDictionaryProperty,
+            Dictionary<string, GenericTypedef?> dictionaryWithNullableTypeArgument,
+            Dictionary<string, GenericTypedef?>? nullableDictionaryWithNullableTypeArgument,
+            Dictionary<string, GenericTypedef?>? alwaysNullDictionaryWithNullableTypeArgument)
+            : base(property, nullableProperty, alwaysNullProperty,
+                    listProperty, nullableListProperty, alwaysNullListProperty,
+                    listWithNullableTypeArgumentProperty, nullableListWithNullableTypeArgumentProperty, alwaysNullListWithNullableTypeArgumentProperty,
+                    dictionaryProperty, nullableDictionaryProperty, alwaysNullDictionaryProperty,
+                    dictionaryWithNullableTypeArgument, nullableDictionaryWithNullableTypeArgument, alwaysNullDictionaryWithNullableTypeArgument)
+        {
+            BsonType = BsonElementType.BinaryData;
+            DictionaryBsonType = BsonElementType.BinaryData;
+        }
+        public override bool Equals(BsonDocument doc)
+        {
+            return base.Equals(doc);
+        }
+        public static GenericTypeTestModel Create()
+        {
+            var value = GenericTypedef.Create();
+            return new GenericTypeTestModel(
+                value, value, null,
+                new() { value, value }, new() { value, value }, null,
+                new() { value, null }, new() { value, null }, null,
+                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", value } }, null,
+                new() { { "42", value }, { "24", value } }, new() { { "42", value }, { "24", null } }, null);
+        }
+
+        public bool Equals(GenericTypeTestModel other)
+        {
+            return other != null &&
+                   BsonType == other.BsonType &&
+                   DictionaryBsonType == other.DictionaryBsonType &&
+                   Property == other.Property &&
+                   NullableProperty == other.NullableProperty &&
+                   AlwaysNullProperty == other.AlwaysNullProperty &&
+                   ListProperty.SequenceEqual(other.ListProperty) &&
+                   NullableListProperty.SequenceEqual(other.NullableListProperty) &&
+                   AlwaysNullListProperty is null && other.AlwaysNullListProperty is null &&
+                   ListWithNullableTypeArgumentProperty.SequenceEqual(other.ListWithNullableTypeArgumentProperty) &&
+                   NullableListWithNullableTypeArgumentProperty.SequenceEqual(other.NullableListWithNullableTypeArgumentProperty) &&
+                   AlwaysNullListWithNullableTypeArgumentProperty is null && other.AlwaysNullListWithNullableTypeArgumentProperty is null &&
+                   DictionaryProperty.SequenceEqual(other.DictionaryProperty) &&
+                   NullableDictionaryProperty.SequenceEqual(other.NullableDictionaryProperty) &&
+                   AlwaysNullDictionaryProperty is null && other.AlwaysNullDictionaryProperty is null &&
+                   DictionaryWithNullableTypeArgument.SequenceEqual(other.DictionaryWithNullableTypeArgument) &&
+                   NullableDictionaryWithNullableTypeArgument.SequenceEqual(other.NullableDictionaryWithNullableTypeArgument) &&
+                   AlwaysNullDictionaryWithNullableTypeArgument is null && other.AlwaysNullDictionaryWithNullableTypeArgument is null;
+        }
+
+        public override int GetHashCode()
+        {
+            var hash = new HashCode();
+            hash.Add(BsonType);
+            hash.Add(DictionaryBsonType);
+            hash.Add(Property);
+            hash.Add(NullableProperty);
+            hash.Add(AlwaysNullProperty);
+            hash.Add(ListProperty);
+            hash.Add(NullableListProperty);
+            hash.Add(AlwaysNullListProperty);
+            hash.Add(ListWithNullableTypeArgumentProperty);
+            hash.Add(NullableListWithNullableTypeArgumentProperty);
+            hash.Add(AlwaysNullListWithNullableTypeArgumentProperty);
+            hash.Add(DictionaryProperty);
+            hash.Add(NullableDictionaryProperty);
+            hash.Add(AlwaysNullDictionaryProperty);
+            hash.Add(DictionaryWithNullableTypeArgument);
+            hash.Add(NullableDictionaryWithNullableTypeArgument);
+            hash.Add(AlwaysNullDictionaryWithNullableTypeArgument);
+            return hash.ToHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as GuidModel);
+        }
+    }
     public class GeneratorGenericsTest : SerializationTestBase
     {
         [Fact]
         public async Task GenericsTest()
         {
-            var model = GeneratorGenericModel<string, int, double, bool, BsonDocument, BsonObjectId, BsonTimestamp, Guid, DateTimeOffset, long, BsonObjectIdModel, GuidModel, BooleanModel, DoubleModel, BsonTimestampModel>.Create();
+            var model = GenericTypedef.Create();
+            var result = await RoundTripAsync(model);
+            var bson = await RoundTripWithBsonAsync(model);
+            Assert.Equal(model, result);
+        }
+        [Fact]
+        public async Task GenericsTypeTest()
+        {
+            var model = GenericTypeTestModel.Create();
             var result = await RoundTripAsync(model);
             var bson = await RoundTripWithBsonAsync(model);
             Assert.Equal(model, result);

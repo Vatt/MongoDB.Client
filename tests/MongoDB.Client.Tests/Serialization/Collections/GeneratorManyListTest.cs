@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using Xunit;
-namespace MongoDB.Client.Tests.Serialization
+namespace MongoDB.Client.Tests.Serialization.Collections
 {
     [BsonSerializable]
     public partial class ManyListModel
