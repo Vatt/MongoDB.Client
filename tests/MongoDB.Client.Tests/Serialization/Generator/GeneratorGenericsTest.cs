@@ -100,6 +100,11 @@ namespace MongoDB.Client.Tests.Serialization.Generator
                    NullableDictionaryWithNullableTypeArgument.SequenceEqual(other.NullableDictionaryWithNullableTypeArgument) &&
                    AlwaysNullDictionaryWithNullableTypeArgument is null && other.AlwaysNullDictionaryWithNullableTypeArgument is null;
         }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as GeneratorGenericModel<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>);
+        }
     }
     [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
     public partial class GenericTypeTestModel : GeneratorTypeTestModelBase<GenericTypedef, GenericTypedef?>, IEquatable<GenericTypeTestModel>
@@ -149,9 +154,9 @@ namespace MongoDB.Client.Tests.Serialization.Generator
             return other != null &&
                    BsonType == other.BsonType &&
                    DictionaryBsonType == other.DictionaryBsonType &&
-                   Property == other.Property &&
-                   NullableProperty == other.NullableProperty &&
-                   AlwaysNullProperty == other.AlwaysNullProperty &&
+                   Property.Equals(other.Property) &&
+                   NullableProperty.Equals(other.NullableProperty) &&
+                   AlwaysNullProperty is null && other.AlwaysNullProperty is null &&
                    ListProperty.SequenceEqual(other.ListProperty) &&
                    NullableListProperty.SequenceEqual(other.NullableListProperty) &&
                    AlwaysNullListProperty is null && other.AlwaysNullListProperty is null &&
