@@ -87,23 +87,28 @@ namespace MongoDB.Client.Tests.Serialization.Generator
                    Property.Equals(other.Property) &&
                    NullableProperty.Equals(other.NullableProperty) &&
                    AlwaysNullProperty.Equals(other.AlwaysNullProperty) &&
-                   ListProperty.SequenceEqual(other.ListProperty) &&
-                   NullableListProperty.SequenceEqual(other.NullableListProperty) &&
+                   ListProperty!.SequenceEqual(other.ListProperty!) &&
+                   NullableListProperty!.SequenceEqual(other.NullableListProperty!) &&
                    AlwaysNullListProperty is null && other.AlwaysNullListProperty is null &&
-                   ListWithNullableTypeArgumentProperty.SequenceEqual(other.ListWithNullableTypeArgumentProperty) &&
-                   NullableListWithNullableTypeArgumentProperty.SequenceEqual(other.NullableListWithNullableTypeArgumentProperty) &&
+                   ListWithNullableTypeArgumentProperty!.SequenceEqual(other.ListWithNullableTypeArgumentProperty!) &&
+                   NullableListWithNullableTypeArgumentProperty!.SequenceEqual(other.NullableListWithNullableTypeArgumentProperty!) &&
                    AlwaysNullListWithNullableTypeArgumentProperty is null && other.AlwaysNullListWithNullableTypeArgumentProperty is null &&
-                   DictionaryProperty.SequenceEqual(other.DictionaryProperty) &&
-                   NullableDictionaryProperty.SequenceEqual(other.NullableDictionaryProperty) &&
+                   DictionaryProperty!.SequenceEqual(other.DictionaryProperty!) &&
+                   NullableDictionaryProperty!.SequenceEqual(other.NullableDictionaryProperty!) &&
                    AlwaysNullDictionaryProperty is null && other.AlwaysNullDictionaryProperty is null &&
-                   DictionaryWithNullableTypeArgument.SequenceEqual(other.DictionaryWithNullableTypeArgument) &&
-                   NullableDictionaryWithNullableTypeArgument.SequenceEqual(other.NullableDictionaryWithNullableTypeArgument) &&
+                   DictionaryWithNullableTypeArgument!.SequenceEqual(other.DictionaryWithNullableTypeArgument!) &&
+                   NullableDictionaryWithNullableTypeArgument!.SequenceEqual(other.NullableDictionaryWithNullableTypeArgument!) &&
                    AlwaysNullDictionaryWithNullableTypeArgument is null && other.AlwaysNullDictionaryWithNullableTypeArgument is null;
         }
 
         public override bool Equals(object obj)
         {
             return Equals(obj as GeneratorGenericModel<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>);
+        }
+
+        public override int GetHashCode()
+        {
+            throw new NotImplementedException();
         }
     }
     [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
@@ -157,17 +162,17 @@ namespace MongoDB.Client.Tests.Serialization.Generator
                    Property.Equals(other.Property) &&
                    NullableProperty.Equals(other.NullableProperty) &&
                    AlwaysNullProperty is null && other.AlwaysNullProperty is null &&
-                   ListProperty.SequenceEqual(other.ListProperty) &&
-                   NullableListProperty.SequenceEqual(other.NullableListProperty) &&
+                   ListProperty!.SequenceEqual(other.ListProperty!) &&
+                   NullableListProperty!.SequenceEqual(other.NullableListProperty!) &&
                    AlwaysNullListProperty is null && other.AlwaysNullListProperty is null &&
-                   ListWithNullableTypeArgumentProperty.SequenceEqual(other.ListWithNullableTypeArgumentProperty) &&
-                   NullableListWithNullableTypeArgumentProperty.SequenceEqual(other.NullableListWithNullableTypeArgumentProperty) &&
+                   ListWithNullableTypeArgumentProperty!.SequenceEqual(other.ListWithNullableTypeArgumentProperty!) &&
+                   NullableListWithNullableTypeArgumentProperty!.SequenceEqual(other.NullableListWithNullableTypeArgumentProperty!) &&
                    AlwaysNullListWithNullableTypeArgumentProperty is null && other.AlwaysNullListWithNullableTypeArgumentProperty is null &&
-                   DictionaryProperty.SequenceEqual(other.DictionaryProperty) &&
-                   NullableDictionaryProperty.SequenceEqual(other.NullableDictionaryProperty) &&
+                   DictionaryProperty!.SequenceEqual(other.DictionaryProperty!) &&
+                   NullableDictionaryProperty!.SequenceEqual(other.NullableDictionaryProperty!) &&
                    AlwaysNullDictionaryProperty is null && other.AlwaysNullDictionaryProperty is null &&
-                   DictionaryWithNullableTypeArgument.SequenceEqual(other.DictionaryWithNullableTypeArgument) &&
-                   NullableDictionaryWithNullableTypeArgument.SequenceEqual(other.NullableDictionaryWithNullableTypeArgument) &&
+                   DictionaryWithNullableTypeArgument!.SequenceEqual(other.DictionaryWithNullableTypeArgument!) &&
+                   NullableDictionaryWithNullableTypeArgument!.SequenceEqual(other.NullableDictionaryWithNullableTypeArgument!) &&
                    AlwaysNullDictionaryWithNullableTypeArgument is null && other.AlwaysNullDictionaryWithNullableTypeArgument is null;
         }
 
