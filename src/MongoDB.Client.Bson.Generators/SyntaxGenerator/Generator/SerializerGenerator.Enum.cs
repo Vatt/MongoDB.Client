@@ -33,7 +33,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var readMethod = IdentifierName(ReadStringReprEnumMethodName(trueType, nameSym));
                 if (forceUseTempVar)
                 {
-                    result = new(InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(VarVariableDeclarationExpr(readTarget))), IdentifierName(readTarget));
+                    //result = new(InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(VarVariableDeclarationExpr(readTarget))), IdentifierName(readTarget));
+                    //result = new(InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(TypedVariableDeclarationExpr(TypeFullName(trueType), readTarget))), IdentifierName(readTarget));
+                    result = new(InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(TypedVariableDeclarationExpr(SF.ParseTypeName(typeSym.ToString()), readTarget))), IdentifierName(readTarget));
                 }
                 else
                 {
@@ -76,6 +78,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             foreach (var member in ctx.Members.Where(member => ExtractTypeFromNullableIfNeed(member.TypeSym).TypeKind == TypeKind.Enum))
             {
                 var repr = GetEnumRepresentation(member.NameSym);
+                //var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
                 if (repr == 1 && alreadyCreated.Contains(member.TypeSym) == false)
                 {
                     methods.Add(ReadStringReprEnumMethod(member));
@@ -143,7 +146,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var (_, alias) = GetMemberAlias(member);
                 var label = IdentifierName(member.ToString());
                 sections.SwitchSection(label, Block(
-                            Write_Type_Name(2, spanNameArg),
+                            //Write_Type_Name(2, spanNameArg),
                             WriteString(StaticEnumFieldNameToken(trueType, alias)),
                             ReturnNothingStatement
                     ));
@@ -156,7 +159,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     returnType: VoidPredefinedType(),
                     identifier: WriteStringReprEnumMethodName(trueType, ctx.NameSym),
                     parameterList: ParameterList(RefParameter(BsonWriterType, BsonWriterToken),
-                                                 Parameter(ReadOnlySpanByteName, spanNameArg),
+                                                 //Parameter(ReadOnlySpanByteName, spanNameArg),
                                                  Parameter(TypeFullName(trueType), WriterInputVarToken)),
 
                     body: Block(SwitchStatement(IdentifierName(WriterInputVarToken), sections)),

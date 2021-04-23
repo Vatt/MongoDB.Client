@@ -273,7 +273,7 @@ namespace MongoDB.Client.Bson.Reader
                     }
                 case 4:
                     {
-                        if (_input.UnreadSpan.Length < len)
+                        if (_input.UnreadSpan.Length >= len)
                         {
                             value = BsonBinaryData.Create(new Guid(_input.UnreadSpan.Slice(0, len)));
                             _input.Advance(len);
@@ -366,6 +366,18 @@ namespace MongoDB.Client.Bson.Reader
 
 
         public bool TryGetTimestamp([MaybeNullWhen(false)] out BsonTimestamp value)
+        {
+            if (TryGetInt64(out long data))
+            {
+                value = new BsonTimestamp(data);
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
+
+        public bool TryGetTimestamp([MaybeNullWhen(false)] out BsonTimestamp? value)
         {
             if (TryGetInt64(out long data))
             {

@@ -44,18 +44,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 foreach (var arg in namedType.TypeArguments)
                 {
-                    switch (arg)
+                    name += arg switch
                     {
-                        case INamedTypeSymbol argNamedType:
-                            name += UnwrapTypeName(argNamedType);
-                            break;
-                        case IArrayTypeSymbol argArrayType:
-                            name += $"Array{UnwrapTypeName(argArrayType.ElementType)}";
-                            break;
-                        default:
-                            name += arg.Name;
-                            break;
-                    }
+                        INamedTypeSymbol argNamedType => UnwrapTypeName(argNamedType),
+                        IArrayTypeSymbol argArrayType => $"Array{UnwrapTypeName(argArrayType.ElementType)}",
+                        _ => arg.Name,
+                    };
                 }
             }
 
@@ -67,7 +61,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var typed = sym as INamedTypeSymbol;
             if (IsDictionaryCollection(sym))
             {
-                ExtractDictionaryTypeArgs(typed, out var keyArg, out var typeArg, out _);
+                ExtractDictionaryTypeArgs(typed, out var keyArg, out var typeArg);
                 var dictSym = System_Collections_Generic_Dictionary_K_V.Construct(keyArg, typeArg);
                 return IdentifierName(dictSym.ToString());
             }
@@ -145,7 +139,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     }
                     else if (IsDictionaryCollection(type))
                     {
-                        ExtractDictionaryTypeArgs(type, out _, out var tempType, out _);
+                        ExtractDictionaryTypeArgs(type, out _, out var tempType);
                         type = tempType as INamedTypeSymbol;
                     }
                     else

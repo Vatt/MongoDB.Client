@@ -97,7 +97,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
                 return Statements(expr);
             }
-            if (TryGenerateWriteEnum(ctx, typeSym, writeTarget, out var enumStatements))
+            if (TryGenerateWriteEnum(ctx, typeSym, name, writeTarget, out var enumStatements))
             {
                 return enumStatements.ToStatements().ToArray();
             }
@@ -107,7 +107,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 return Statements
                 (
                     VarLocalDeclarationStatement(Identifier(identifierName), WriterReserve(1)),
-                    Statement(WriteCString(ctx.StaticSpanNameToken)),
+                    Statement(WriteName(name)),
                     Statement(WriteGeneric(writeTarget, IdentifierName(identifierName)))
                 );
             }
@@ -118,7 +118,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 return Statements
                 (
                     VarLocalDeclarationStatement(Identifier(identifierName), WriterReserve(1)),
-                    Statement(WriteCString(ctx.StaticSpanNameToken)),
+                    Statement(WriteName(name)),
                     Statement(WriteObject(writeTarget, IdentifierName(identifierName)))
                 );
             }
@@ -153,7 +153,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             ReportUnsuporterTypeError(ctx.NameSym, ctx.TypeSym);
             return new StatementSyntax[0];
         }
-        public static bool TryGenerateWriteEnum(MemberContext member, ITypeSymbol typeSym, ExpressionSyntax writeTarget, out ImmutableList<ExpressionSyntax> statements)
+        public static bool TryGenerateWriteEnum(MemberContext member, ITypeSymbol typeSym, SyntaxToken bsonName, ExpressionSyntax writeTarget, out ImmutableList<ExpressionSyntax> statements)
         {
             statements = default;
             var trueType = ExtractTypeFromNullableIfNeed(typeSym);
@@ -165,20 +165,24 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             if (repr == -1) { repr = 2; }
             if (repr != 1)
             {
-                statements = ImmutableList.Create(Write_Type_Name_Value(member.StaticSpanNameToken, repr == 2 ? CastToInt(writeTarget) : CastToLong(writeTarget)));
+                statements = ImmutableList.Create(Write_Type_Name_Value(bsonName, repr == 2 ? CastToInt(writeTarget) : CastToLong(writeTarget)));
             }
             else
             {
                 var methodName = IdentifierName(WriteStringReprEnumMethodName(trueType, member.NameSym));
-                statements = ImmutableList.Create(InvocationExpr(methodName, RefArgument(BsonWriterToken), Argument(member.StaticSpanNameToken), Argument(writeTarget)));
+                statements = ImmutableList.Create(
+                    Write_Type_Name(2, bsonName),
+                    InvocationExpr(methodName, RefArgument(BsonWriterToken), /*Argument(bsonName),*/ Argument(writeTarget)));
             }
             return true;
         }
+        public static int reservedCnt = 0;
+        public static int bsonTypeCnt = 0;
         public static bool TryGenerateBsonWrite(SyntaxToken nameToken, ISymbol nameSym, ITypeSymbol typeSym, ExpressionSyntax writeTarget, out ImmutableList<StatementSyntax> expressions)
         {
             expressions = default;
-            var bsonTypeToken = Identifier("bsonTypeTemp");
-            var bsonReserved = Identifier("bsonTypeResereved");
+            var bsonTypeToken = Identifier($"bsonTypeTemp{bsonTypeCnt++}");
+            var bsonReserved = Identifier($"bsonTypeResereved{reservedCnt++}");
             ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(typeSym);
             if (IsBsonSerializable(trueType))
             {

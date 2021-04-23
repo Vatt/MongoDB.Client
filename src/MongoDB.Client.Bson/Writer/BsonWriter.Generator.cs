@@ -160,6 +160,7 @@ namespace MongoDB.Client.Bson.Writer
             var writer = SerializerFnPtrProvider<T>.WriteFnPtr;
             if (writer != default)
             {
+                typeReserved.WriteByte(3);
                 writer(ref this, genericValue);
             }
             else
@@ -296,6 +297,10 @@ namespace MongoDB.Client.Bson.Writer
             WriteIntIndex(intName);
         }
 
+        public void WriteName(string name)
+        {
+            WriteCString(name);
+        }
         public void WriteName(ReadOnlySpan<byte> name)
         {
             WriteCString(name);

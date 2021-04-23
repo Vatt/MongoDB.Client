@@ -4,7 +4,7 @@ using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization
 {
-    public class ConstrcutorOnlyTest : BaseSerialization
+    public class ConstrcutorOnlyTest : SerializationTestBase
     {
         [Fact]
         public async Task ConstructorOnly()

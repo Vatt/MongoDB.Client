@@ -7,7 +7,7 @@ using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization
 {
-    public class BsonSerialization : BaseSerialization
+    public class BsonSerialization : SerializationTestBase
     {
         [Fact]
         public async Task SerializationDeserialization()

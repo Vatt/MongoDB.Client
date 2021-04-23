@@ -168,7 +168,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         static MemberDeclarationSyntax[] GenerateEnumsStaticNamesSpansIfHave(ContextCore ctx)
         {
-            Dictionary<ISymbol, List<MemberDeclarationSyntax>> declarations = new();
+            var declarations = new List<MemberDeclarationSyntax>();
+            var declared = new HashSet<ISymbol>();
             foreach (var member in ctx.Members)
             {
                 var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
@@ -179,7 +180,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     {
                         continue;
                     }
-                    if (declarations.ContainsKey(member.TypeSym))
+                    if (declared.Contains(trueType))
                     {
                         continue;
                     }
@@ -188,13 +189,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     {
                         ReportUnhandledException(nameof(GenerateEnumsStaticNamesSpansIfHave), member.NameSym);
                     }
-                    declarations[member.TypeSym] = new();
                     foreach (var enumMember in typedMetadata.GetMembers().Where(sym => sym.Kind == SymbolKind.Field))
                     {
-                        var list = new List<MemberDeclarationSyntax>();
                         var (bsonValue, bsonAlias) = GetMemberAlias(enumMember);
                         var bytes = Encoding.UTF8.GetBytes(bsonValue);
-                        declarations[member.TypeSym].Add(
+                        declarations.Add(
                             SF.PropertyDeclaration(
                                 attributeLists: default,
                                 modifiers: new(PrivateKeyword(), StaticKeyword()),
@@ -206,14 +205,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                 initializer: default,
                                 semicolonToken: SemicolonToken()));
                     }
+                    declared.Add(trueType);
                 }
             }
-            var result = new List<MemberDeclarationSyntax>();
-            foreach (var value in declarations.Values)
-            {
-                result.AddRange(value);
-            }
-            return result.ToArray();
+            return declarations.ToArray();
         }
     }
 }

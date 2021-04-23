@@ -5,6 +5,7 @@
     <IsPackable>false</IsPackable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <NoWarn>$(NoWarn);CS8618;CS8632;CS8669</NoWarn>
     <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)Generated</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
 
@@ -26,5 +27,5 @@
     <ProjectReference Include="..\..\src\MongoDB.Client\MongoDB.Client.csproj" />
     <ProjectReference Include="..\MongoDB.Client.Tests.Models\MongoDB.Client.Tests.Models.csproj" />
   </ItemGroup>
-
+  
 </Project>
