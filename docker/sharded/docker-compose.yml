@@ -1,0 +1,118 @@
+version: '3'
+
+services:
+#routers
+  mongo-router01:
+    hostname: mongo-router01
+    container_name: mongo-router01
+    image: mongo:4.4
+    ports:
+    - "27029:27017"
+    entrypoint: [ "/usr/bin/mongos", "--bind_ip_all", "--configdb", "rs-cfg/mongo-cfg-a:27017,mongo-cfg-b:27017,mongo-cfg-c:27017"]
+  mongo-router02:
+    hostname: mongo-router02
+    container_name: mongo-router02
+    image: mongo:4.4
+    ports:
+    - "27030:27017"
+    entrypoint: [ "/usr/bin/mongos", "--bind_ip_all", "--configdb", "rs-cfg/mongo-cfg-a:27017,mongo-cfg-b:27017,mongo-cfg-c:27017"]
+  mongo-router03:
+      hostname: mongo-router03
+      container_name: mongo-router03
+      image: mongo:4.4
+      ports:
+      - "27031:27017"
+      entrypoint: [ "/usr/bin/mongos", "--bind_ip_all", "--configdb", "rs-cfg/mongo-cfg-a:27017,mongo-cfg-b:27017,mongo-cfg-c:27017"]
+#config  
+  mongo-cfg-a:
+    hostname: mongo-cfg-a
+    container_name: mongo-cfg-a
+    image: mongo:4.4
+    ports:
+    - "27026:27017"
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--configsvr", "--replSet", "rs-cfg" ]
+  mongo-cfg-b:
+    hostname: mongo-cfg-b
+    container_name: mongo-cfg-b
+    image: mongo:4.4
+    ports:
+    - "27027:27017"
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--configsvr", "--replSet", "rs-cfg" ]
+  mongo-cfg-c:
+    hostname: mongo-cfg-c
+    container_name: mongo-cfg-c
+    image: mongo:4.4
+    ports:
+    - "27028:27017"
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--configsvr", "--replSet", "rs-cfg" ]
+
+
+#shards
+  #shard01
+  mongo-shard01-a:
+    hostname: mongo-shard01-a
+    container_name: mongo-shard01-a
+    image: mongo:4.4
+    ports:
+    - "27017:27017"
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--shardsvr", "--replSet", "rs-shard01" ]
+  mongo-shard01-b:
+    hostname: mongo-shard01-b
+    container_name: mongo-shard01-b
+    image: mongo:4.4
+    ports:
+    - "27018:27017"
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--shardsvr", "--replSet", "rs-shard01" ]
+  mongo-shard01-c:
+    hostname: mongo-shard01-c
+    container_name: mongo-shard01-c
+    image: mongo:4.4
+    ports:
+    - "27019:27017"
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--shardsvr", "--replSet", "rs-shard01" ]
+
+  #shard02  
+  mongo-shard02-a:
+    hostname: mongo-shard02-a
+    container_name: mongo-shard02-a
+    image: mongo:4.4
+    ports:
+    - "27020:27017"
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--shardsvr", "--replSet", "rs-shard02" ]
+  mongo-shard02-b:
+    hostname: mongo-shard02-b
+    container_name: mongo-shard02-b
+    image: mongo:4.4
+    ports:
+    - "27021:27017"
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--shardsvr", "--replSet", "rs-shard02" ]
+  mongo-shard02-c:
+    hostname: mongo-shard02-c
+    container_name: mongo-shard02-c
+    image: mongo:4.4
+    ports:
+    - "27022:27017"
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--shardsvr", "--replSet", "rs-shard02" ]   
+  
+  #shard03
+  mongo-shard03-a:
+    hostname: mongo-shard03-a
+    container_name: mongo-shard03-a
+    image: mongo:4.4
+    ports:
+    - "27023:27017"
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--shardsvr", "--replSet", "rs-shard03" ]
+  mongo-shard03-b:
+    hostname: mongo-shard03-b
+    container_name: mongo-shard03-b
+    image: mongo:4.4
+    ports:
+    - "27024:27017"
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--shardsvr", "--replSet", "rs-shard03" ]
+  mongo-shard03-c:
+    hostname: mongo-shard03-c
+    container_name: mongo-shard03-c
+    image: mongo:4.4
+    ports:
+    - "27025:27017"
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--shardsvr", "--replSet", "rs-shard03" ]       
