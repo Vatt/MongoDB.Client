@@ -6,7 +6,7 @@ services:
     hostname: mongo-router01
     image: mongo:4.4
     container_name: mongo-router01
-    command: mongos --port 27017 --bind_ip_all --configdb rs-cfg/mongo-cfg-a:27017,mongo-cfg-b:27017,mongo-cfg-c:27017 
+    command: mongos --bind_ip_all --configdb rs-cfg/centos2.mshome.net:27026,centos2.mshome.net:27027,centos2.mshome.net:27028 --port 27017
     ports:
       - 27029:27017
 #config  
