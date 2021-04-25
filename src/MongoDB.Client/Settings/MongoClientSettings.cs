@@ -52,7 +52,7 @@ namespace MongoDB.Client.Settings
         public string? ReplicaSet { get; init; }
         public ReadPreference ReadPreference { get; init; }
         public ClientType ClientType { get; init; }
-        public int ConnectionPoolMaxSize { get; init; } = 16;
+        public int ConnectionPoolMaxSize { get; init; } = 3;
 
         public static MongoClientSettings FromConnectionString(string uriString)
         {

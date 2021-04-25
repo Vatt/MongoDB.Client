@@ -76,10 +76,14 @@ namespace MongoDB.Client.Messages
     {
         [BsonElement("hosts")]
         [BsonSerializer(typeof(DnsEndPointSerializer))]
-        public List<EndPoint> Hosts { get; }
+        public List<EndPoint>? Hosts { get; }
 
-        [BsonElement("setName")] public string SetName { get; }
+        [BsonElement("setName")] 
+        public string? SetName { get; }
 
+        [BsonElement("msg")]
+        public string? Message { get; }
+        
         [BsonElement("me")]
         [BsonSerializer(typeof(DnsEndPointSerializer))]
         public EndPoint Me { get; }
@@ -88,22 +92,26 @@ namespace MongoDB.Client.Messages
         [BsonSerializer(typeof(DnsEndPointSerializer))]
         public EndPoint? Primary { get; }
 
-        [BsonElement("$clusterTime")] public MongoClusterTime ClusterTime { get; }
+        [BsonElement("$clusterTime")] 
+        public MongoClusterTime ClusterTime { get; }
 
-        [BsonElement("ismaster")] public bool IsMaster { get; }
+        [BsonElement("ismaster")] 
+        public bool IsMaster { get; }
 
-        [BsonElement("secondary")] public bool IsSecondary { get; }
+        [BsonElement("secondary")] 
+        public bool IsSecondary { get; }
 
-        public MongoPingMessage(List<EndPoint> Hosts, string SetName, EndPoint Me, EndPoint Primary,
-            MongoClusterTime ClusterTime, bool IsMaster, bool IsSecondary)
+        public MongoPingMessage(List<EndPoint> hosts, string setName, string message, EndPoint me, EndPoint primary,
+            MongoClusterTime clusterTime, bool isMaster, bool isSecondary)
         {
-            this.Hosts = Hosts;
-            this.SetName = SetName;
-            this.Me = Me;
-            this.Primary = Primary;
-            this.ClusterTime = ClusterTime;
-            this.IsMaster = IsMaster;
-            this.IsSecondary = IsSecondary;
+            Hosts = hosts;
+            SetName = setName;
+            Me = me;
+            Primary = primary;
+            ClusterTime = clusterTime;
+            IsMaster = isMaster;
+            IsSecondary = isSecondary;
+            Message = message;
         }
     }
 }
