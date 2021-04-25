@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Connections;
@@ -19,13 +20,15 @@ namespace MongoDB.Client.Connection
     {
         private static MongoPingMesageReader MongoPingMessageReader = new MongoPingMesageReader();
         private static BsonDocument _pingDocument = new BsonDocument("isMaster", 1);
-        internal ConnectionInfo ConnectionInfo;
+        internal ConnectionInfo? ConnectionInfo;
         private ProtocolReader _protocolReader;
         private ProtocolWriter _protocolWriter;
         private CancellationTokenSource _shutdownCts = new CancellationTokenSource();
         private int _requestId = 0;
+        public EndPoint EndPoint { get; }
         public MongoServiceConnection(ConnectionContext connection)
         {
+            EndPoint = connection.RemoteEndPoint!;
             _protocolReader = connection.CreateReader();
             _protocolWriter = connection.CreateWriter();
         }

@@ -87,17 +87,18 @@ namespace MongoDB.Client
                 {
                     ThrowHelper.MongoInitExceptions<MongoClient>();
                 }
-            }else if (ping.Hosts is not null && ping.SetName is not null && ping.Message is null )  //Replica set
+                scheduler = new ShardedScheduler(settings, loggerFactory);
+            }
+            else if (ping.Hosts is not null && ping.SetName is not null && ping.Message is null )  //Replica set
             {
                 scheduler = new ReplicaSetScheduler(settings, loggerFactory);
             }
-            else
+            else //Standalone
             {
                 IMongoConnectionFactory factory = settings.ClientType switch
                 {
                     ClientType.Default => new MongoConnectionFactory(settings.Endpoints[0], loggerFactory),
-                    ClientType.Experimental => new ExperimentalMongoConnectionFactory(settings.Endpoints[0], loggerFactory),
-                    _ => throw new ArgumentOutOfRangeException()
+                    ClientType.Experimental => new ExperimentalMongoConnectionFactory(settings.Endpoints[0], loggerFactory)
                 };
                 scheduler = new StandaloneScheduler(settings, factory, loggerFactory);
             }

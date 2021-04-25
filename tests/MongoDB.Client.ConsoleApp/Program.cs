@@ -39,6 +39,7 @@ namespace MongoDB.Client.ConsoleApp
             var collection = db.GetCollection<T>("TestCollection");
             await collection.InsertAsync(item);
             await collection.Find(BsonDocument.Empty).FirstOrDefaultAsync();
+            await collection.DeleteOneAsync(BsonDocument.Empty);
         }
         static async Task TestTransaction()
         {
