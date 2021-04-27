@@ -40,8 +40,13 @@ namespace MongoDB.Client.Protocol.Readers
             var a = 1;
             if (a == 2)
             {
-                //bsonReader.TryParseDocument(out var doc);
-                CursorDTO<T>.TryParseBson(ref bsonReader, out var msg);
+                bsonReader.TryParseDocument(out var doc);
+            }
+            if (CursorResult<T>.TryParseBson(ref bsonReader, out message))
+            {
+                message.MongoCursor.Items ??= new();
+                message.MongoCursor.Items.AddRange(message.MongoCursor.FirstBatch);
+                return true;
             }
             if (_state == ParserState.Initial)
             {
