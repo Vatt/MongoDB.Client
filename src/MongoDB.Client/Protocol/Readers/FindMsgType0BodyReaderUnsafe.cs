@@ -37,7 +37,12 @@ namespace MongoDB.Client.Protocol.Readers
         {
             message = _cursorResult;
             var bsonReader = new BsonReader(input);
-
+            var a = 1;
+            if (a == 2)
+            {
+                //bsonReader.TryParseDocument(out var doc);
+                CursorDTO<T>.TryParseBson(ref bsonReader, out var msg);
+            }
             if (_state == ParserState.Initial)
             {
                 var checkpoint = bsonReader.BytesConsumed;

@@ -21,7 +21,7 @@ namespace MongoDB.Client.Scheduler
         private readonly ILogger<StandaloneScheduler> _logger;
         //TODO: fix this
         //private readonly List<MongoConnection> _connections; 
-        internal readonly List<MongoConnection> _connections;
+        private readonly List<MongoConnection> _connections;
         private readonly Channel<MongoRequest> _channel;
         private readonly Channel<MongoRequest> _findChannel;
         private readonly ChannelWriter<MongoRequest> _channelWriter;
@@ -31,7 +31,7 @@ namespace MongoDB.Client.Scheduler
         private static int _counter;
         private SemaphoreSlim _initLock = new SemaphoreSlim(1, 1);
 
-        public MongoClusterTime? ClusterTime { get; }
+        public MongoClusterTime? ClusterTime { get; protected set; }
 
         public MongoScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory, MongoClusterTime? clusterTime)
         {

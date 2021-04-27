@@ -19,24 +19,25 @@ using MongoDB.Client.Settings;
 
 namespace MongoDB.Client.Scheduler
 {
-    class MongoRouterInfo
+    sealed class RouterScheduler : MongoScheduler
     {
         private MongoServiceConnection _connection { get; }
         private MongoPingMessage? _lastPing;
         public MongoPingMessage? LastPing => _lastPing;
-        public int SchedulerId { get; set; }
-        public EndPoint EndPoint => _connection.EndPoint;
-        public MongoRouterInfo(MongoServiceConnection connection)
+        public EndPoint EndPoint { get; }
+        public RouterScheduler(MongoServiceConnection connection, MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
+            :base(settings, connectionFactory, loggerFactory, null)
         {
             _connection = connection;
-            SchedulerId = -1;
+            EndPoint = _connection.EndPoint;
             _lastPing = null;
         }
-        public async ValueTask UpdateAsync(CancellationToken token = default)
+        public async ValueTask MongoPing(CancellationToken token = default)
         {
             try
             {
                 _lastPing = await _connection.MongoPing(token).ConfigureAwait(false);
+                ClusterTime = _lastPing.ClusterTime;
             }
             catch (Exception)
             {
@@ -49,15 +50,15 @@ namespace MongoDB.Client.Scheduler
     {
         private readonly MongoClientSettings _settings;
         private readonly ILoggerFactory _loggerFactory;
-        private List<MongoRouterInfo> _routers;
-        private List<MongoScheduler> _schedulers;
+        private List<RouterScheduler> _schedulers;
+        private List<EndPoint> _badHosts;
         private int _schedulerCounter = 0;
         internal ShardedScheduler(MongoClientSettings settings, ILoggerFactory loggerFactory)
         {
             _settings = settings;
             _loggerFactory = loggerFactory;
-            _routers = new();
             _schedulers = new();
+            _badHosts = new();
         }
         public ValueTask AbortTransactionAsync(TransactionHandler transactionHandler, CancellationToken cancellationToken)
         {
@@ -81,9 +82,8 @@ namespace MongoDB.Client.Scheduler
 
         public ValueTask<DeleteResult> DeleteAsync(TransactionHandler transaction, BsonDocument filter, int limit, CollectionNamespace collectionNamespace, CancellationToken token)
         {
-            var info = GetRouter();
-            var lastPing = info.LastPing!;
-            var scheduler = _schedulers[info.SchedulerId];
+            var scheduler = GetScheduler();
+            var lastPing = scheduler.LastPing!;
             var requestNumber = scheduler.GetNextRequestNumber();
             var deleteHeader = CreateDeleteHeader(collectionNamespace, transaction, lastPing.ClusterTime);
 
@@ -123,9 +123,8 @@ namespace MongoDB.Client.Scheduler
 
         public async ValueTask<FindResult<T>> FindAsync<T>(BsonDocument filter, int limit, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)
         {
-            var info = GetRouter();
-            var lastPing = info.LastPing!;
-            var scheduler = _schedulers[info.SchedulerId];
+            var scheduler = GetScheduler();
+            var lastPing = scheduler.LastPing!;
             var requestNum = scheduler.GetNextRequestNumber();
             var requestDocument = CreateFindRequest(filter, limit, collectionNamespace, transaction, lastPing.ClusterTime);
 
@@ -154,7 +153,7 @@ namespace MongoDB.Client.Scheduler
         }
         public ValueTask<CursorResult<T>> GetMoreAsync<T>(MongoScheduler scheduler, long cursorId, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)
         {
-            var info = GetRouter();
+            var info = GetScheduler();
             var lastPing = info.LastPing!;
             var requestNum = scheduler.GetNextRequestNumber();
             var requestDocument = CreateGetMoreRequest(cursorId, collectionNamespace, transaction, lastPing!.ClusterTime);
@@ -182,9 +181,8 @@ namespace MongoDB.Client.Scheduler
         }
         public ValueTask InsertAsync<T>(TransactionHandler transaction, IEnumerable<T> items, CollectionNamespace collectionNamespace, CancellationToken token)
         {
-            var info = GetRouter();
-            var lastPing = info.LastPing!;
-            var scheduler = _schedulers[info.SchedulerId];
+            var scheduler = GetScheduler();
+            var lastPing = scheduler.LastPing!;
             var requestNumber = scheduler.GetNextRequestNumber();
             var insertHeader = CreateInsertHeader(collectionNamespace, transaction, lastPing.ClusterTime);
             var request = new InsertMessage<T>(requestNumber, insertHeader, items);
@@ -215,62 +213,56 @@ namespace MongoDB.Client.Scheduler
             var connectionfactory = new NetworkConnectionFactory(_loggerFactory);
             var endpoints = _settings.Endpoints;
             var maxConnections = _settings.ConnectionPoolMaxSize / endpoints.Length;
-            var schedulersCnt = 0;
             maxConnections = maxConnections == 0 ? 1 : maxConnections;
             for (int i = 0; i < _settings.Endpoints.Length; i++)
             {
                 try
                 {
+
                     var endpoint = _settings.Endpoints[i];
+                    IMongoConnectionFactory connectionFactory = _settings.ClientType switch
+                    {
+                        ClientType.Default => new MongoConnectionFactory(endpoint, _loggerFactory),
+                        ClientType.Experimental => new ExperimentalMongoConnectionFactory(endpoint, _loggerFactory)
+                    };
                     var ctx = await connectionfactory.ConnectAsync(endpoint, token).ConfigureAwait(false);
                     var serviceConnection = new MongoServiceConnection(ctx);
                     await serviceConnection.Connect(_settings, token).ConfigureAwait(false);
-                    var router = new MongoRouterInfo(serviceConnection);
-                    await router.UpdateAsync(token).ConfigureAwait(false);
-                    _routers.Add(router);
-                    if (router.LastPing is null)
+                    var scheduler = new RouterScheduler(serviceConnection, _settings with { ConnectionPoolMaxSize = maxConnections }, connectionFactory, _loggerFactory);
+                    await scheduler.MongoPing(token).ConfigureAwait(false);
+                    
+                    if (scheduler.LastPing is null)
                     {
+                        _badHosts.Add(endpoint);
                         continue;
                     }
-                    schedulersCnt += 1;
-
+                    else
+                    {
+                        await scheduler.StartAsync(token).ConfigureAwait(false);
+                        _schedulers.Add(scheduler);
+                    }
                 }
                 catch (Exception)
                 {
                     continue;
                 }
             }
-            _schedulers = new(schedulersCnt);
-            var index = 0;
-            foreach(var router in _routers)
-            {
-                var endpoint = router.EndPoint;
-                IMongoConnectionFactory factory = _settings.ClientType switch
-                {
-                    ClientType.Default => new MongoConnectionFactory(endpoint, _loggerFactory),
-                    ClientType.Experimental => new ExperimentalMongoConnectionFactory(endpoint, _loggerFactory)
-                };
-                var scheduler = new MongoScheduler(_settings with { ConnectionPoolMaxSize = maxConnections }, factory, _loggerFactory);
-                await scheduler.StartAsync(token).ConfigureAwait(false);
-                router.SchedulerId = index;
-                _schedulers.Add(scheduler);
-                index += 1;
-            }
         }
 
-        private async ValueTask UpdateShards(CancellationToken token)
+        private async ValueTask UpdateRouters(CancellationToken token)
         {
-            for (var i = 0; i < _routers.Count; i++)
+            var schedulers = _schedulers;
+            for (var i = 0; i < schedulers.Count; i++)
             {
-                await _routers[i].UpdateAsync(token).ConfigureAwait(false);
+                await schedulers[i].MongoPing(token).ConfigureAwait(false);
             }
         }
-        private MongoRouterInfo GetRouter()
+        private RouterScheduler GetScheduler()
         {
             var counter = Interlocked.Increment(ref _schedulerCounter);
-            var routers = _routers;
-            var schedulerId = counter % routers.Count;
-            var result = routers[schedulerId];
+            var schedulers = _schedulers;
+            var schedulerId = counter % schedulers.Count;
+            var result = schedulers[schedulerId];
             return result;
         }
 
