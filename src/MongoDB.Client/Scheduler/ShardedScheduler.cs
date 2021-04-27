@@ -170,7 +170,8 @@ namespace MongoDB.Client.Scheduler
                 case TransactionState.InProgress:
                     return new FindRequest(null, null, default, cursorId, null, collectionNamespace.DatabaseName, transaction.SessionId, clusterTime, transaction.TxNumber, false);
                 case TransactionState.Implicit:
-                    return new FindRequest(null, null, default, cursorId, null, collectionNamespace.DatabaseName, transaction.SessionId, transaction.TxNumber);
+                    //return new FindRequest(null, null, default, cursorId, null, collectionNamespace.DatabaseName, transaction.SessionId, transaction.TxNumber);
+                    return new FindRequest(null, null, default, cursorId, collectionNamespace.CollectionName, collectionNamespace.DatabaseName, transaction.SessionId);
                 case TransactionState.Committed:
                     return ThrowEx<FindRequest>("Transaction already commited");
                 case TransactionState.Aborted:

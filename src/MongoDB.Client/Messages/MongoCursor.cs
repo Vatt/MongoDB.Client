@@ -14,12 +14,16 @@ namespace MongoDB.Client.Messages
         {
             MongoCursor = mongoCursor;
         }
+        
         [BsonElement("ok")]
         public double Ok { get; set; }
+
         [BsonElement("errmsg")]
         public string? ErrorMessage { get; set; }
+        
         [BsonElement("code")]
         public int Code { get; set; }
+        
         [BsonElement("codeName")]
         public string? CodeName { get; set; }
 

@@ -20,7 +20,7 @@ namespace MongoDB.Client.ConsoleApp
         static async Task Main(string[] args)
         {
 
-            //await LoadTest<GeoIp>(1024*1024, new[] { 512 });
+            //await LoadTest<GeoIp>(1024*1024, new[] { 4 });
             //await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, false);
             await TestShardedCluster();
             //await TestTransaction();
@@ -38,11 +38,7 @@ namespace MongoDB.Client.ConsoleApp
             var client = await MongoClient.CreateClient("mongodb://centos2.mshome.net:27029, centos2.mshome.net:27030, centos2.mshome.net:27031/?maxPoolSize=9&appName=MongoDB.Client.ConsoleApp");
             //var client = await MongoClient.CreateClient(new DnsEndPoint("centos0.mshome.net", 27017), loggerFactory); ;
             var db = client.GetDatabase("TestDb");
-            var collection = db.GetCollection<GeoIp>("TestCollection");
-            //foreach (var item in items)
-            //{
-            //    await collection.InsertAsync(item);
-            //}
+            var collection = db.GetCollection<GeoIp>("TestCollection")
             var cursor = collection.Find(BsonDocument.Empty);
             var lst = await cursor.ToListAsync();
             await collection.DeleteOneAsync(BsonDocument.Empty);
