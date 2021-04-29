@@ -44,7 +44,7 @@ namespace MongoDB.Client
                 yield return item;
             }
 
-            ListsPool<T>.Pool.Return(items);
+            //ListsPool<T>.Pool.Return(items);
             long cursorId = findResult.CursorResult.MongoCursor.Id;
             while (cursorId != 0)
             {
@@ -63,7 +63,7 @@ namespace MongoDB.Client
                 {
                     yield return item;
                 }
-                ListsPool<T>.Pool.Return(getMoreItems);
+                //ListsPool<T>.Pool.Return(getMoreItems);
             }
         }
 
