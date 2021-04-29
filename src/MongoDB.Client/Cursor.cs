@@ -30,31 +30,40 @@ namespace MongoDB.Client
 
         public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken)
         {
-            var result = await _scheduler.FindAsync<T>(_filter, _limit, _collectionNamespace, _transaction, cancellationToken).ConfigureAwait(false);
-            if (result.CursorResult.ErrorMessage is not null)
+            var findResult = await _scheduler.FindAsync<T>(_filter, _limit, _collectionNamespace, _transaction, cancellationToken).ConfigureAwait(false);
+            var cursor = findResult.CursorResult.MongoCursor;
+            var first = cursor.FirstBatch;
+            var next = cursor.NextBatch;
+            var items = first is not null ? first : next;
+            if (findResult.CursorResult.ErrorMessage is not null)
             {
-                ThrowHelper.CursorException(result.CursorResult.ErrorMessage);
+                ThrowHelper.CursorException(findResult.CursorResult.ErrorMessage);
             }
-            foreach (var item in result.CursorResult.MongoCursor.Items)
+            foreach (var item in items!)
             {
                 yield return item;
             }
 
-            ListsPool<T>.Pool.Return(result.CursorResult.MongoCursor.Items);
-            long cursorId = result.CursorResult.MongoCursor.Id;
+            ListsPool<T>.Pool.Return(items);
+            long cursorId = findResult.CursorResult.MongoCursor.Id;
             while (cursorId != 0)
             {
-                var getMoreResult = await _scheduler.GetMoreAsync<T>(result.Scheduler, cursorId, _collectionNamespace, _transaction, cancellationToken).ConfigureAwait(false);
+                //TODO:Думую тут достаточно nextBatch форичить сразу
+                var getMoreResult = await _scheduler.GetMoreAsync<T>(findResult.Scheduler, cursorId, _collectionNamespace, _transaction, cancellationToken).ConfigureAwait(false);
+                var getMoreCursor = getMoreResult.MongoCursor;
+                var getMoreFirst = getMoreCursor.FirstBatch;
+                var getMoreNext = getMoreCursor.NextBatch;
+                var getMoreItems = getMoreFirst is not null ? first : getMoreNext;
                 if (getMoreResult.ErrorMessage is not null)
                 {
                     ThrowHelper.CursorException(getMoreResult.ErrorMessage);
                 }
                 cursorId = getMoreResult.MongoCursor.Id;
-                foreach (var item in getMoreResult.MongoCursor.Items)
+                foreach (var item in getMoreItems!)
                 {
                     yield return item;
                 }
-                ListsPool<T>.Pool.Return(getMoreResult.MongoCursor.Items);
+                ListsPool<T>.Pool.Return(getMoreItems);
             }
         }
 

@@ -44,7 +44,8 @@ namespace MongoDB.Client.Scheduler.Holders
                         }
                         else
                         {
-                            bodyReader = new FindMsgType0BodyReader<T>(_serializer!, msgMessage);
+                            throw new MongoException($"Serializer for type '{typeof(T)}' does not found");
+                            //bodyReader = new FindMsgType0BodyReader<T>(_serializer!, msgMessage);
                         }
                     }
 

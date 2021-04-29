@@ -26,26 +26,20 @@ namespace MongoDB.Client.Protocol.Readers
             ref SequencePosition examined,
             [MaybeNullWhen(false)] out CursorResult<T> message)
         {
-            message = _cursorResult;
             var bsonReader = new BsonReader(input);
-            var a = 1;
-            if (a == 2)
-            {
-                bsonReader.TryParseDocument(out var doc);
-            }
+            //var a = 1;
+            //if (a == 2)
+            //{
+            //    bsonReader.TryParseDocument(out var doc);
+            //}
             if (CursorResult<T>.TryParseBson(ref bsonReader, out message))
             {
-                message.MongoCursor.Items ??= new();
-                if (message.MongoCursor.FirstBatch is not null)
-                {
-                    message.MongoCursor.Items.AddRange(message.MongoCursor.FirstBatch);
-                }
-                if (message.MongoCursor.NextBatch is not null)
-                {
-                    message.MongoCursor.Items.AddRange(message.MongoCursor.NextBatch);
-                }
+                consumed = bsonReader.Position;
+                examined = consumed;       
                 return true;
+
             }
+            message = default;
             return false;
    
         }
