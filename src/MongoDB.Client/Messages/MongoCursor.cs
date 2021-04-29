@@ -1,9 +1,26 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Reader;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Attributes;
+using MongoDB.Client.Bson.Writer;
 
 namespace MongoDB.Client.Messages
 {
+    public unsafe static class CursorItemSerializer
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe bool TryParseBson<T>(ref BsonReader reader, out T item)
+        {
+            return SerializerFnPtrProvider<T>.TryParseFnPtr(ref reader, out item);
+        }
+        public static void WriteBson<T>(ref BsonWriter writer, in T message, out byte bsonType)
+        {
+            throw new NotImplementedException(nameof(CursorItemSerializer));
+        }
+    }
     [BsonSerializable]
     public partial class CursorResult<T> : IParserResult
     {
@@ -49,9 +66,11 @@ namespace MongoDB.Client.Messages
         public string? Namespace { get; }
 
         [BsonElement("firstBatch")]
+        [BsonSerializer(typeof(CursorItemSerializer))]
         public List<T>? FirstBatch { get; }
 
         [BsonElement("nextBatch")]
+        [BsonSerializer(typeof(CursorItemSerializer))]
         public List<T>? NextBatch { get; }
 
         public MongoCursor(long id, string? _namespace, List<T> firstBatch, List<T> nextBatch)

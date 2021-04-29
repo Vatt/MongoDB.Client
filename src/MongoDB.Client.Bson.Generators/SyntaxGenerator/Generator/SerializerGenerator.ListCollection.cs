@@ -24,14 +24,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             //ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
-            if (TryGenerateCollectionSimpleRead(ctx, trueTypeArg, ListReadContext, builder))
-            {
-                goto RETURN;
-            }
             if (TryGenerateCollectionTryParseBson(trueTypeArg, ctx.NameSym, ListReadContext, builder))
             {
                 goto RETURN;
             }
+            if (TryGenerateCollectionSimpleRead(ctx, trueTypeArg, ListReadContext, builder))
+            {
+                goto RETURN;
+            }
+       
             //if (TryGetEnumReadOperation(ListReadContext.TempCollectionReadTargetToken, ctx.NameSym, trueTypeArg, true, out var enumOp))
             if (TryGetEnumReadOperation(ListReadContext.TempCollectionReadTargetToken, ctx.NameSym, typeArg, true, out var enumOp))
             {

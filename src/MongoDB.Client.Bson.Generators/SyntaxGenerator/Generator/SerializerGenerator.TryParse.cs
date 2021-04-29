@@ -145,6 +145,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
             foreach (var member in ctx.Members)
             {
+                if (TryGenerateTryParseBson(member, bsonName, builder))
+                {
+                    continue;
+                }
                 if (TryGenerateParseEnum(member.ByteName.Length, member.StaticSpanNameToken, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))
                 {
                     continue;
@@ -153,10 +157,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     continue;
                 }
-                if (TryGenerateTryParseBson(member, bsonName, builder))
-                {
-                    continue;
-                }
+
                 ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
             }
             return builder.ToArray();

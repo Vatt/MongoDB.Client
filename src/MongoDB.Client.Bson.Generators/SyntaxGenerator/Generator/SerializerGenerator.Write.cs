@@ -92,6 +92,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static StatementSyntax[] WriteOperation(MemberContext ctx, SyntaxToken name, ISymbol nameSym, ITypeSymbol typeSym, SyntaxToken writerId, ExpressionSyntax writeTarget)
         {
             var trueType = ExtractTypeFromNullableIfNeed(typeSym);
+            if (TryGenerateBsonWrite(name, nameSym, typeSym, writeTarget, out var bsonWriteExpr))
+            {
+                return bsonWriteExpr.ToArray();
+            }
             if (TryGenerateSimpleWriteOperation(nameSym, trueType, name, writeTarget, out var expr))
             {
 
@@ -145,10 +149,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 }
 
 
-            }
-            if (TryGenerateBsonWrite(name, nameSym, typeSym, writeTarget, out var bsonWriteExpr))
-            {
-                return bsonWriteExpr.ToArray();
             }
             ReportUnsuporterTypeError(ctx.NameSym, ctx.TypeSym);
             return new StatementSyntax[0];
