@@ -68,15 +68,15 @@ namespace MongoDB.Client.Tests.Serialization.Collections
                                                             }
                                                         }
                                                     }
-                                                    
+
                                                 }
-                                                
+
                                             }
-                                            
+
                                         }
-                                        
+
                                     }
-                                    
+
                                 }
                             }
                         }
@@ -92,9 +92,9 @@ namespace MongoDB.Client.Tests.Serialization.Collections
 
         public bool Equals(CollectionsCombineTestModel other)
         {
-            foreach(var item0 in Collections)
+            foreach (var item0 in Collections)
             {
-                foreach(var otherItem0 in other.Collections)
+                foreach (var otherItem0 in other.Collections)
                 {
                     if (item0 is null || otherItem0 is null || item0.Count != otherItem0.Count)
                     {
@@ -140,33 +140,33 @@ namespace MongoDB.Client.Tests.Serialization.Collections
                                                             {
                                                                 return false;
                                                             }
-                                                            foreach(var item6 in item5)
+                                                            foreach (var item6 in item5)
                                                             {
-                                                                foreach(var otherItem6 in otherItem5)
+                                                                foreach (var otherItem6 in otherItem5)
                                                                 {
                                                                     if (item6.Key.Equals(otherItem6.Key) == false || item6.Value.Count != otherItem6.Value.Count)
                                                                     {
                                                                         return false;
                                                                     }
-                                                                    foreach(var item7 in item6.Value)
+                                                                    foreach (var item7 in item6.Value)
                                                                     {
-                                                                        foreach(var otherItem7 in otherItem6.Value)
+                                                                        foreach (var otherItem7 in otherItem6.Value)
                                                                         {
                                                                             if (item7 is null || otherItem7 is null || item7.Count != otherItem7.Count)
                                                                             {
                                                                                 return false;
                                                                             }
-                                                                            foreach(var item8 in item7)
+                                                                            foreach (var item8 in item7)
                                                                             {
-                                                                                foreach(var otherItem8 in otherItem7)
+                                                                                foreach (var otherItem8 in otherItem7)
                                                                                 {
                                                                                     if (item8.Key.Equals(otherItem8.Key) == false || item8.Value.Count != otherItem8.Value.Count)
                                                                                     {
                                                                                         return false;
                                                                                     }
-                                                                                    foreach(var item9 in item8.Value)
+                                                                                    foreach (var item9 in item8.Value)
                                                                                     {
-                                                                                        foreach(var otherItem9 in otherItem8.Value)
+                                                                                        foreach (var otherItem9 in otherItem8.Value)
                                                                                         {
                                                                                             if (item9.TryGetValue("42", out var itemKey) == false ||
                                                                                                 otherItem9.TryGetValue("42", out var otherItemKey) == false ||

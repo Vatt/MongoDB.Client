@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System;
+using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Connections;
 using MongoDB.Client.Bson.Document;
@@ -14,17 +16,19 @@ using MongoDB.Client.Settings;
 
 namespace MongoDB.Client.Connection
 {
-    internal class MongoServiceConnection
+    internal class MongoServiceConnection : IAsyncDisposable
     {
         private static MongoPingMesageReader MongoPingMessageReader = new MongoPingMesageReader();
         private static BsonDocument _pingDocument = new BsonDocument("isMaster", 1);
-        internal ConnectionInfo ConnectionInfo;
+        internal ConnectionInfo? ConnectionInfo;
         private ProtocolReader _protocolReader;
         private ProtocolWriter _protocolWriter;
         private CancellationTokenSource _shutdownCts = new CancellationTokenSource();
         private int _requestId = 0;
+        public EndPoint EndPoint { get; }
         public MongoServiceConnection(ConnectionContext connection)
         {
+            EndPoint = connection.RemoteEndPoint!;
             _protocolReader = connection.CreateReader();
             _protocolWriter = connection.CreateWriter();
         }
@@ -36,7 +40,7 @@ namespace MongoDB.Client.Connection
         public async ValueTask<MongoPingMessage> MongoPing(CancellationToken token)
         {
             var message = new QueryMessage(GetNextRequestNumber(), "admin.$cmd", _pingDocument);
-            //var test = await SendQueryAsync<BsonDocument>(message, _shutdownCts.Token).ConfigureAwait(false);
+            var test = await SendQueryAsync<BsonDocument>(message, _shutdownCts.Token).ConfigureAwait(false);
             if (_protocolWriter is null)
             {
                 ThrowHelper.ThrowNotInitialized();
@@ -127,6 +131,13 @@ namespace MongoDB.Client.Connection
                 //TODO: DO SOME
             }
             return result.Message;
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            _shutdownCts.Cancel();
+            await _protocolReader.DisposeAsync().ConfigureAwait(false);
+            await _protocolWriter.DisposeAsync().ConfigureAwait(false);
         }
     }
 }

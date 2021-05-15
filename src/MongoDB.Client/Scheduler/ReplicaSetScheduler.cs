@@ -23,7 +23,7 @@ namespace MongoDB.Client.Scheduler
         private readonly MongoClientSettings _settings;
         private readonly ILogger _logger;
         private ImmutableArray<MongoScheduler> _shedulers;
-        private ImmutableArray<MongoScheduler> _serondaries;
+        private ImmutableArray<MongoScheduler> _secondaries;
 
         private MongoServiceConnection? _serviceConnection;
 
@@ -40,14 +40,14 @@ namespace MongoDB.Client.Scheduler
             _loggerFactory = loggerFactory;
             _logger = loggerFactory.CreateLogger<ReplicaSetScheduler>();
             _shedulers = new();
-            _serondaries = new();
+            _secondaries = new();
         }
 
 
         private MongoScheduler GetSecondaryScheduler()
         {
             var counter = Interlocked.Increment(ref _schedulerCounter);
-            var secondary = _serondaries;
+            var secondary = _secondaries;
             var schedulerId = counter % secondary.Length;
             var result = secondary[schedulerId];
             return result;
@@ -98,18 +98,18 @@ namespace MongoDB.Client.Scheduler
 
             }
             _shedulers = schedulersBuilder.ToImmutable();
-            _serondaries = secondariesBuilder.ToImmutable();
+            _secondaries = secondariesBuilder.ToImmutable();
         }
 
         private async Task<MongoServiceConnection> CreateServiceConnection(CancellationToken token)
         {
-            var _connectionfactory = new NetworkConnectionFactory(_loggerFactory);
+            var connectionfactory = new NetworkConnectionFactory(_loggerFactory);
             for (int i = 0; i < _settings.Endpoints.Length; i++)
             {
                 try
                 {
                     var endpoint = _settings.Endpoints[i];
-                    var ctx = await _connectionfactory.ConnectAsync(endpoint, token);
+                    var ctx = await connectionfactory.ConnectAsync(endpoint, token);
                     var serviceConnection = new MongoServiceConnection(ctx);
                     await serviceConnection.Connect(_settings, token).ConfigureAwait(false);
                     return serviceConnection;

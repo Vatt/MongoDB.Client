@@ -10,15 +10,11 @@ namespace MongoDB.Client.Tests.Client
         protected string Host { get; init; } = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
         protected string DB { get; init; } = "TestDb";
         protected string Collection { get; init; } = "TestCollection";
-        protected MongoClient Client { get; init; }
-        public ClientTestBase()
-        {
-            Client = new MongoClient(new DnsEndPoint(Host, 27017));
-        }
+
         protected async Task<T> CreateCollectionInsertFindDeleteDropCollectionAsync<T>(T data)
         {
-            await Client.InitAsync(default);
-            var collection = Client.GetDatabase(DB).GetCollection<T>(Collection + Guid.NewGuid());
+            var client = await MongoClient.CreateClient(new DnsEndPoint(Host, 27017)).ConfigureAwait(false);
+            var collection = client.GetDatabase(DB).GetCollection<T>(Collection + Guid.NewGuid());
             await collection.CreateAsync();
             await collection.InsertAsync(data);
             var findResult = await collection.Find(BsonDocument.Empty).FirstOrDefaultAsync();

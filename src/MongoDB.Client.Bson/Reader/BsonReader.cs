@@ -132,6 +132,11 @@ namespace MongoDB.Client.Bson.Reader
         {
             if (TryGetInt32(out int length))
             {
+                value = default;
+                if (_input.Remaining < length)
+                {
+                    return false;
+                }
                 var stringLength = length - 1;
                 if (_input.UnreadSpan.Length >= stringLength)
                 {

@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization.Serializers
 {
-    
+
     [BsonSerializable]
     public partial class RootTestModel : IEquatable<RootTestModel>
     {
@@ -86,7 +84,7 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
 
         public static RootTestModel Create() => new RootTestModel(new() { A = 1 }, new() { B = 2 }, new(3));
     }
-    public class GeneratorInnerSerializersTest:SerializationTestBase
+    public class GeneratorInnerSerializersTest : SerializationTestBase
     {
         [Fact]
         public async Task GeneratorInnerClassStructRecordTest()
