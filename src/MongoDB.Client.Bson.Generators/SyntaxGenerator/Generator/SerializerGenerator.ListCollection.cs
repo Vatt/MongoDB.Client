@@ -32,7 +32,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 goto RETURN;
             }
-       
+
             //if (TryGetEnumReadOperation(ListReadContext.TempCollectionReadTargetToken, ctx.NameSym, trueTypeArg, true, out var enumOp))
             if (TryGetEnumReadOperation(ListReadContext.TempCollectionReadTargetToken, ctx.NameSym, typeArg, true, out var enumOp))
             {

@@ -21,7 +21,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
     {
         public TestEnum? Enum;
         public List<TestEnum?> EnumList;
-        public static NullableInt32EnumOnlyTestModel Create() => new() { Enum = TestEnum.One, EnumList  = new() { TestEnum.One, null} };
+        public static NullableInt32EnumOnlyTestModel Create() => new() { Enum = TestEnum.One, EnumList = new() { TestEnum.One, null } };
 
         public override bool Equals(object obj)
         {
@@ -48,7 +48,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
         public TestEnum? Enum;
         [BsonEnum(EnumRepresentation.Int64)]
         public List<TestEnum?> EnumList;
-        public static NullableInt64EnumOnlyTestModel Create() => new() { Enum = TestEnum.Two, EnumList = new() { TestEnum.Two, null} };
+        public static NullableInt64EnumOnlyTestModel Create() => new() { Enum = TestEnum.Two, EnumList = new() { TestEnum.Two, null } };
 
         public override bool Equals(object obj)
         {

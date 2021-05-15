@@ -10,7 +10,7 @@ namespace MongoDB.Client.Tests.Client
         protected string Host { get; init; } = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
         protected string DB { get; init; } = "TestDb";
         protected string Collection { get; init; } = "TestCollection";
- 
+
         protected async Task<T> CreateCollectionInsertFindDeleteDropCollectionAsync<T>(T data)
         {
             var client = await MongoClient.CreateClient(new DnsEndPoint(Host, 27017)).ConfigureAwait(false);

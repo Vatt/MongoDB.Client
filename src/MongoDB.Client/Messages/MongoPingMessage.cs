@@ -78,12 +78,12 @@ namespace MongoDB.Client.Messages
         [BsonSerializer(typeof(DnsEndPointSerializer))]
         public List<EndPoint>? Hosts { get; }
 
-        [BsonElement("setName")] 
+        [BsonElement("setName")]
         public string? SetName { get; }
 
         [BsonElement("msg")]
         public string? Message { get; }
-        
+
         [BsonElement("me")]
         [BsonSerializer(typeof(DnsEndPointSerializer))]
         public EndPoint Me { get; }
@@ -92,13 +92,13 @@ namespace MongoDB.Client.Messages
         [BsonSerializer(typeof(DnsEndPointSerializer))]
         public EndPoint? Primary { get; }
 
-        [BsonElement("$clusterTime")] 
+        [BsonElement("$clusterTime")]
         public MongoClusterTime ClusterTime { get; }
 
-        [BsonElement("ismaster")] 
+        [BsonElement("ismaster")]
         public bool IsMaster { get; }
 
-        [BsonElement("secondary")] 
+        [BsonElement("secondary")]
         public bool IsSecondary { get; }
 
         public MongoPingMessage(List<EndPoint> hosts, string setName, string message, EndPoint me, EndPoint primary,

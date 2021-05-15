@@ -3,10 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
@@ -20,9 +16,9 @@ namespace MongoDB.Client.ConsoleApp
         static async Task Main(string[] args)
         {
 
-            await LoadTest<GeoIp>(1024*1024, new[] { 4 });
+            //await LoadTest<GeoIp>(1024*1024, new[] { 4 });
             //await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, false);
-            //await TestShardedCluster();
+            await TestShardedCluster();
             //await TestTransaction();
             //await TestStandalone();
         }
@@ -39,10 +35,10 @@ namespace MongoDB.Client.ConsoleApp
             //var client = await MongoClient.CreateClient(new DnsEndPoint("centos0.mshome.net", 27017), loggerFactory); ;
             var db = client.GetDatabase("TestDb");
             var collection = db.GetCollection<GeoIp>("TestCollection");
-            //await collection.InsertAsync(items);
+            // await collection.InsertAsync(items);
             var cursor = collection.Find(BsonDocument.Empty);
             var lst = await cursor.ToListAsync();
-            await collection.DeleteOneAsync(BsonDocument.Empty);
+            //await collection.DeleteOneAsync(BsonDocument.Empty);
         }
         static async Task TestTransaction()
         {

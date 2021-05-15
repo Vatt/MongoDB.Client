@@ -21,30 +21,34 @@ namespace MongoDB.Client.Messages
             throw new NotImplementedException(nameof(CursorItemSerializer));
         }
     }
-    [BsonSerializable]
+    //[BsonSerializable]
     public partial class CursorResult<T> : IParserResult
     {
         [BsonElement("cursor")]
-        public MongoCursor<T> MongoCursor { get; }
-        
+        public MongoCursor<T> MongoCursor { get; set; }
+
         [BsonElement("ok")]
-        public double Ok { get; }
+        public double Ok { get; set; }
 
         [BsonElement("errmsg")]
-        public string? ErrorMessage { get; }
-        
+        public string? ErrorMessage { get; set; }
+
         [BsonElement("code")]
-        public int Code { get; }
-        
+        public int Code { get; set; }
+
         [BsonElement("codeName")]
-        public string? CodeName { get; }
+        public string? CodeName { get; set; }
 
         [BsonElement("$clusterTime")]
-        public MongoClusterTime? ClusterTime { get; }
+        public MongoClusterTime? ClusterTime { get; set; }
 
         [BsonElement("operationTime")]
-        public BsonTimestamp? OperationTime { get; }
-        
+        public BsonTimestamp? OperationTime { get; set; }
+
+        public CursorResult(MongoCursor<T> mongoCursor)
+        {
+            MongoCursor = mongoCursor;
+        }
         public CursorResult(MongoCursor<T> mongoCursor, double ok, string? errorMessage, int code, string? codeName, MongoClusterTime? clusterTime, BsonTimestamp? operationTime)
         {
             MongoCursor = mongoCursor;
@@ -56,23 +60,27 @@ namespace MongoDB.Client.Messages
             OperationTime = operationTime;
         }
     }
-    [BsonSerializable]
+    //[BsonSerializable]
     public partial class MongoCursor<T>
     {
         [BsonElement("id")]
-        public long Id { get; }
-        
+        public long Id { get; set; }
+
         [BsonElement("ns")]
-        public string? Namespace { get; }
+        public string? Namespace { get; set; }
 
         [BsonElement("firstBatch")]
         [BsonSerializer(typeof(CursorItemSerializer))]
-        public List<T>? FirstBatch { get; }
+        public List<T>? FirstBatch { get; set; }
 
         [BsonElement("nextBatch")]
         [BsonSerializer(typeof(CursorItemSerializer))]
-        public List<T>? NextBatch { get; }
-
+        public List<T>? NextBatch { get; set; }
+        public List<T> Items { get; set; }
+        public MongoCursor(List<T> items)
+        {
+            Items = items;
+        }
         public MongoCursor(long id, string? _namespace, List<T> firstBatch, List<T> nextBatch)
         {
             Id = id;

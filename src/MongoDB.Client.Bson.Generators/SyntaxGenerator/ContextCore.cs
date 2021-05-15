@@ -116,7 +116,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                 {
                     binds.Add(member, param.Name);
                 }
-                
+
             }
 
             return binds;

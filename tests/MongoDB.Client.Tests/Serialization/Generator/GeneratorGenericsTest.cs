@@ -7,10 +7,10 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Tests.Serialization.Types;
 using Xunit;
 using GenericTypedef = MongoDB.Client.Tests.Serialization.Generator.GeneratorGenericModel<
-    string, int, double, bool, MongoDB.Client.Bson.Document.BsonDocument, 
-    MongoDB.Client.Bson.Document.BsonObjectId, MongoDB.Client.Bson.Document.BsonTimestamp, System.Guid, System.DateTimeOffset, long, 
-    MongoDB.Client.Tests.Serialization.Types.BsonObjectIdModel, MongoDB.Client.Tests.Serialization.Types.GuidModel, 
-    MongoDB.Client.Tests.Serialization.Types.BooleanModel, MongoDB.Client.Tests.Serialization.Types.DoubleModel, 
+    string, int, double, bool, MongoDB.Client.Bson.Document.BsonDocument,
+    MongoDB.Client.Bson.Document.BsonObjectId, MongoDB.Client.Bson.Document.BsonTimestamp, System.Guid, System.DateTimeOffset, long,
+    MongoDB.Client.Tests.Serialization.Types.BsonObjectIdModel, MongoDB.Client.Tests.Serialization.Types.GuidModel,
+    MongoDB.Client.Tests.Serialization.Types.BooleanModel, MongoDB.Client.Tests.Serialization.Types.DoubleModel,
     MongoDB.Client.Tests.Serialization.Types.BsonTimestampModel>;
 
 namespace MongoDB.Client.Tests.Serialization.Generator

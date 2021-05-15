@@ -59,7 +59,7 @@ namespace MongoDB.Client
             var connectionFactory = new NetworkConnectionFactory(loggerFactory);
             IMongoScheduler? scheduler = null;
             MongoPingMessage? ping = null;
-            foreach(var endpoint in settings.Endpoints)
+            foreach (var endpoint in settings.Endpoints)
             {
 
                 try
@@ -81,7 +81,7 @@ namespace MongoDB.Client
                 ThrowHelper.MongoInitExceptions<MongoClient>();
             }
             //Sharded cluster
-            if (ping.Hosts is null && ping.SetName is null && ping.Primary is null &&ping.Message is not null)
+            if (ping.Hosts is null && ping.SetName is null && ping.Primary is null && ping.Message is not null)
             {
                 if (ping.Message.Equals("isdbgrid") == false)
                 {
@@ -89,7 +89,7 @@ namespace MongoDB.Client
                 }
                 scheduler = new ShardedScheduler(settings, loggerFactory);
             }
-            else if (ping.Hosts is not null && ping.SetName is not null && ping.Message is null )  //Replica set
+            else if (ping.Hosts is not null && ping.SetName is not null && ping.Message is null)  //Replica set
             {
                 scheduler = new ReplicaSetScheduler(settings, loggerFactory);
             }

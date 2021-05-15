@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Net;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -26,7 +23,7 @@ namespace MongoDB.Client.Scheduler
         public MongoPingMessage? LastPing => _lastPing;
         public EndPoint EndPoint { get; }
         public RouterScheduler(MongoServiceConnection connection, MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
-            :base(settings, connectionFactory, loggerFactory, null)
+            : base(settings, connectionFactory, loggerFactory, null)
         {
             _connection = connection;
             EndPoint = _connection.EndPoint;
@@ -231,7 +228,7 @@ namespace MongoDB.Client.Scheduler
                     await serviceConnection.Connect(_settings, token).ConfigureAwait(false);
                     var scheduler = new RouterScheduler(serviceConnection, _settings with { ConnectionPoolMaxSize = maxConnections }, connectionFactory, _loggerFactory);
                     await scheduler.MongoPing(token).ConfigureAwait(false);
-                    
+
                     if (scheduler.LastPing is null)
                     {
                         _badHosts.Add(endpoint);
