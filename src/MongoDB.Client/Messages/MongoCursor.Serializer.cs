@@ -9,13 +9,13 @@ namespace MongoDB.Client.Messages
         private static ReadOnlySpan<byte> MongoCursorns => new byte[2] { 110, 115 };
         private static ReadOnlySpan<byte> MongoCursorfirstBatch => new byte[10] { 102, 105, 114, 115, 116, 66, 97, 116, 99, 104 };
         private static ReadOnlySpan<byte> MongoCursornextBatch => new byte[9] { 110, 101, 120, 116, 66, 97, 116, 99, 104 };
-        public static bool TryParseBson(ref MongoDB.Client.Bson.Reader.BsonReader reader, System.Collections.Generic.List<T> first, System.Collections.Generic.List<T> next, out MongoDB.Client.Messages.MongoCursor<T> message)
+        public static bool TryParseBson(ref MongoDB.Client.Bson.Reader.BsonReader reader, out MongoDB.Client.Messages.MongoCursor<T> message)
         {
             message = default;
             long Int64Id = default;
             string StringNamespace = default;
-            System.Collections.Generic.List<T> ListFirstBatch = first;
-            System.Collections.Generic.List<T> ListNextBatch = next;
+            System.Collections.Generic.List<T> ListFirstBatch = default;
+            System.Collections.Generic.List<T> ListNextBatch = default;
             if (!reader.TryGetInt32(out int docLength))
             {
                 return false;
@@ -60,6 +60,7 @@ namespace MongoDB.Client.Messages
                         {
                             if (bsonName.SequenceEqual9(MongoCursorfirstBatch))
                             {
+                                ListFirstBatch = new();
                                 if (!TryParseListT(ref reader, ListFirstBatch))
                                 {
                                     return false;
@@ -99,6 +100,7 @@ namespace MongoDB.Client.Messages
                                     {
                                         if (bsonName.SequenceEqual9(MongoCursornextBatch))
                                         {
+                                            ListNextBatch = new();
                                             if (!TryParseListT(ref reader, ListNextBatch))
                                             {
                                                 return false;
@@ -178,7 +180,16 @@ namespace MongoDB.Client.Messages
         private static bool TryParseListT(ref MongoDB.Client.Bson.Reader.BsonReader reader, System.Collections.Generic.List<T>? list)
         {
             //list = default;
-            var internalList = list;
+            //var internalList = list;
+            //System.Collections.Generic.List<T> internalList;
+            //if(list == null)
+            //{
+            //    internalList = new();
+            //}
+            //else
+            //{
+            //    internalList = list;
+            //}
             if (!reader.TryGetInt32(out int listDocLength))
             {
                 return false;
@@ -199,7 +210,8 @@ namespace MongoDB.Client.Messages
 
                 if (listBsonType == 10)
                 {
-                    internalList.Add(default);
+                    //internalList.Add(default);
+                    list.Add(default);
                     continue;
                 }
 
@@ -209,7 +221,8 @@ namespace MongoDB.Client.Messages
                 }
                 else
                 {
-                    internalList.Add(temp);
+                    list.Add(temp);
+                    //internalList.Add(temp);
                     continue;
                 }
             }
@@ -224,7 +237,7 @@ namespace MongoDB.Client.Messages
                 throw new MongoDB.Client.Bson.Serialization.Exceptions.SerializerEndMarkerException(nameof(MongoDB.Client.Messages.MongoCursor<T>), listEndMarker);
             }
 
-            list = internalList;
+            //list = internalList;
             return true;
         }
 

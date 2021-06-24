@@ -18,14 +18,14 @@ namespace MongoDB.Client.Protocol.Readers
         private long _docLength;
         private long _docReaded;
 
-        private ParserState _state;
-
+//        private ParserState _state;
+        private CursorResultState<T> _state;
 
         public FindMsgType0BodyReaderUnsafe(ResponseMsgMessage message)
             : base(null!, message)
         {
             _payloadLength = message.Header.MessageLength;
-            _state = ParserState.Initial;
+            //_state = ParserState.Initial;
         }
 
 
@@ -37,112 +37,149 @@ namespace MongoDB.Client.Protocol.Readers
         {
             message = _cursorResult;
             var bsonReader = new BsonReader(input);
-
-            if (_state == ParserState.Initial)
+            if (_state.DocLen.HasValue == false)
             {
-                var checkpoint = bsonReader.BytesConsumed;
-                if (TryReadCursorStart(ref bsonReader, out var modelsLength, out var docLength, out var hasBatch) ==
-                    false)
+                if (CursorResult<T>.TryParseBson(ref bsonReader, out _state))
                 {
+                    message = _state.message;
+                    consumed = _state.Position;
+                    examined = consumed;
+                    message.MongoCursor.Items = message.MongoCursor.FirstBatch;
+                    return true;
+                }
+                else
+                {
+                    consumed = _state.Position;
+                    examined = consumed;
                     return false;
                 }
-
-                _modelsLength = modelsLength - 4;
-                _docLength = docLength;
-                _docReaded = bsonReader.BytesConsumed - checkpoint;
-                consumed = bsonReader.Position;
-                examined = bsonReader.Position;
-                Advance(_docReaded);
-                _state = hasBatch ? ParserState.Models : ParserState.Complete;
             }
-
-            if (_state == ParserState.Models)
+            else
             {
-                var items = message.MongoCursor.Items;
-                while (_modelsReaded < _modelsLength - 1)
+                if (CursorResult<T>.TryContinueParseBson(ref bsonReader, ref _state))
                 {
-                    var checkpoint = bsonReader.BytesConsumed;
-#if DEBUG
-                    if (bsonReader.TryGetByte(out var type) == false)
-                    {
-                        return false;
-                    }
-
-                    if (bsonReader.TryGetCString(out var name) == false)
-                    {
-                        return false;
-                    }
-#else
-                    if (bsonReader.TryAdvanceTo(0) == false)
-                    {
-                        return false;
-                    }
-#endif
-                    if (bsonReader.TryPeekInt32(out int modelLength) && bsonReader.Remaining >= modelLength)
-                    {
-                        bool tryParseResult = default;
-                        T? item = default;
-                        unsafe
-                        {
-                            //TODO: FIX IT
-                            tryParseResult = SerializerFnPtrProvider<T>.TryParseFnPtr(ref bsonReader, out item);
-                        }
-                        if (tryParseResult)
-                        {
-                            items.Add(item);
-                            _modelsReaded += bsonReader.BytesConsumed - checkpoint;
-                            Advance(bsonReader.BytesConsumed - checkpoint);
-                            consumed = bsonReader.Position;
-                            examined = bsonReader.Position;
-                        }
-                        else
-                        {
-                            ThrowHelper.InvalidBsonException();
-                        }
-                    }
-                    else
-                    {
-                        message = default;
-                        return false;
-                    }
+                    message = _state.message;
+                    consumed = _state.Position;
+                    examined = consumed;
+                    message.MongoCursor.Items = message.MongoCursor.FirstBatch;
+                    return true;
                 }
-
-                _state = ParserState.ModelsEnd;
-            }
-
-            if (_state == ParserState.ModelsEnd)
-            {
-                if (bsonReader.TryGetByte(out var endDocumentMarker) == false)
+                else
                 {
+                    consumed = _state.Position;
+                    examined = consumed;
                     return false;
                 }
-                _docReaded += _modelsLength + 1;
-                Advance(1);
-                consumed = bsonReader.Position;
-                examined = bsonReader.Position;
-                _state = ParserState.Cursor;
             }
+   
+            
+//            var bsonReader = new BsonReader(input);
 
-            if (_state == ParserState.Cursor)
-            {
-                var checkpoint = bsonReader.BytesConsumed;
-                if (TryReadCursorEnd(ref bsonReader, checkpoint) == false)
-                {
-                    return false;
-                }
+//            if (_state == ParserState.Initial)
+//            {
+//                var checkpoint = bsonReader.BytesConsumed;
+//                if (TryReadCursorStart(ref bsonReader, out var modelsLength, out var docLength, out var hasBatch) ==
+//                    false)
+//                {
+//                    return false;
+//                }
 
-                Advance(bsonReader.BytesConsumed - checkpoint);
-                consumed = bsonReader.Position;
-                examined = bsonReader.Position;
-                _state = ParserState.Complete;
-            }
+//                _modelsLength = modelsLength - 4;
+//                _docLength = docLength;
+//                _docReaded = bsonReader.BytesConsumed - checkpoint;
+//                consumed = bsonReader.Position;
+//                examined = bsonReader.Position;
+//                Advance(_docReaded);
+//                _state = hasBatch ? ParserState.Models : ParserState.Complete;
+//            }
+
+//            if (_state == ParserState.Models)
+//            {
+//                var items = message.MongoCursor.Items;
+//                while (_modelsReaded < _modelsLength - 1)
+//                {
+//                    var checkpoint = bsonReader.BytesConsumed;
+//#if DEBUG
+//                    if (bsonReader.TryGetByte(out var type) == false)
+//                    {
+//                        return false;
+//                    }
+
+//                    if (bsonReader.TryGetCString(out var name) == false)
+//                    {
+//                        return false;
+//                    }
+//#else
+//                    if (bsonReader.TryAdvanceTo(0) == false)
+//                    {
+//                        return false;
+//                    }
+//#endif
+//                    if (bsonReader.TryPeekInt32(out int modelLength) && bsonReader.Remaining >= modelLength)
+//                    {
+//                        bool tryParseResult = default;
+//                        T? item = default;
+//                        unsafe
+//                        {
+//                            //TODO: FIX IT
+//                            tryParseResult = SerializerFnPtrProvider<T>.TryParseFnPtr(ref bsonReader, out item);
+//                        }
+//                        if (tryParseResult)
+//                        {
+//                            items.Add(item);
+//                            _modelsReaded += bsonReader.BytesConsumed - checkpoint;
+//                            Advance(bsonReader.BytesConsumed - checkpoint);
+//                            consumed = bsonReader.Position;
+//                            examined = bsonReader.Position;
+//                        }
+//                        else
+//                        {
+//                            ThrowHelper.InvalidBsonException();
+//                        }
+//                    }
+//                    else
+//                    {
+//                        message = default;
+//                        return false;
+//                    }
+//                }
+
+//                _state = ParserState.ModelsEnd;
+//            }
+
+//            if (_state == ParserState.ModelsEnd)
+//            {
+//                if (bsonReader.TryGetByte(out var endDocumentMarker) == false)
+//                {
+//                    return false;
+//                }
+//                _docReaded += _modelsLength + 1;
+//                Advance(1);
+//                consumed = bsonReader.Position;
+//                examined = bsonReader.Position;
+//                _state = ParserState.Cursor;
+//            }
+
+//            if (_state == ParserState.Cursor)
+//            {
+//                var checkpoint = bsonReader.BytesConsumed;
+//                if (TryReadCursorEnd(ref bsonReader, checkpoint) == false)
+//                {
+//                    return false;
+//                }
+
+//                Advance(bsonReader.BytesConsumed - checkpoint);
+//                consumed = bsonReader.Position;
+//                examined = bsonReader.Position;
+//                _state = ParserState.Complete;
+//            }
 
 
-            Debug.Assert(Message.Consumed == Message.Header.MessageLength);
+//            Debug.Assert(Message.Consumed == Message.Header.MessageLength);
 
-            Complete = _state == ParserState.Complete;
+//            Complete = _state == ParserState.Complete;
 
-            return true;
+//            return true;
         }
 
 

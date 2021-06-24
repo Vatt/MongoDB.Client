@@ -3,6 +3,20 @@ using MongoDB.Client.Bson.Reader;
 
 namespace MongoDB.Client.Messages
 {
+    public struct CursorResultState<T>
+    {
+        public int? DocLen;
+        public SequencePosition Position;
+        public MongoDB.Client.Messages.MongoCursor<T> MongoCursorMongoCursor;
+        public double DoubleOk;
+        public string StringErrorMessage;
+        public MongoDB.Client.Messages.MongoClusterTime MongoClusterTimeClusterTime;
+        public MongoDB.Client.Bson.Document.BsonTimestamp? NullableOperationTime;
+        public int Int32Code;
+        public string StringCodeName;
+        public MongoDB.Client.Messages.CursorResult<T> message;
+        public bool EndMarker;
+    }
     public partial class CursorResult<T>
     {
         private static ReadOnlySpan<byte> CursorResultcursor => new byte[6] { 99, 117, 114, 115, 111, 114 };
@@ -12,24 +26,19 @@ namespace MongoDB.Client.Messages
         private static ReadOnlySpan<byte> CursorResultcodeName => new byte[8] { 99, 111, 100, 101, 78, 97, 109, 101 };
         private static ReadOnlySpan<byte> CursorResult_clusterTime => new byte[12] { 36, 99, 108, 117, 115, 116, 101, 114, 84, 105, 109, 101 };
         private static ReadOnlySpan<byte> CursorResultoperationTime => new byte[13] { 111, 112, 101, 114, 97, 116, 105, 111, 110, 84, 105, 109, 101 };
-        public static bool TryParseBson(ref MongoDB.Client.Bson.Reader.BsonReader reader, System.Collections.Generic.List<T> first, System.Collections.Generic.List<T> next, out MongoDB.Client.Messages.CursorResult<T> message)
+        public static bool TryParseBson(ref MongoDB.Client.Bson.Reader.BsonReader reader, out CursorResultState<T> state)
         {
-            message = default;
-            MongoDB.Client.Messages.MongoCursor<T> MongoCursorMongoCursor = default;
-            double DoubleOk = default;
-            string StringErrorMessage = default;
-            int Int32Code = default;
-            string StringCodeName = default;
-            MongoDB.Client.Messages.MongoClusterTime MongoClusterTimeClusterTime = default;
-            MongoDB.Client.Bson.Document.BsonTimestamp? NullableOperationTime = default;
+            state = new CursorResultState<T>();
+            state.EndMarker = false;
             if (!reader.TryGetInt32(out int docLength))
             {
                 return false;
             }
-
+            state.DocLen = docLength;
             var unreaded = reader.Remaining + sizeof(int);
             while (unreaded - reader.Remaining < docLength - 1)
             {
+                state.Position = reader.Position;
                 if (!reader.TryGetByte(out var bsonType))
                 {
                     return false;
@@ -51,7 +60,7 @@ namespace MongoDB.Client.Messages
                         {
                             if (bsonName.SequenceEqual5(CursorResulterrmsg))
                             {
-                                if (!reader.TryGetString(out StringErrorMessage))
+                                if (!reader.TryGetString(out state.StringErrorMessage))
                                 {
                                     return false;
                                 }
@@ -66,7 +75,7 @@ namespace MongoDB.Client.Messages
                         {
                             if (bsonName.SequenceEqual9(CursorResult_clusterTime))
                             {
-                                if (!MongoDB.Client.Messages.MongoClusterTime.TryParseBson(ref reader, out MongoClusterTimeClusterTime))
+                                if (!MongoDB.Client.Messages.MongoClusterTime.TryParseBson(ref reader, out state.MongoClusterTimeClusterTime))
                                 {
                                     return false;
                                 }
@@ -90,7 +99,7 @@ namespace MongoDB.Client.Messages
                                     {
                                         if (bsonName.SequenceEqual5(CursorResultcursor))
                                         {
-                                            if (!MongoDB.Client.Messages.MongoCursor<T>.TryParseBson(ref reader, first, next, out MongoCursorMongoCursor))
+                                            if (!MongoDB.Client.Messages.MongoCursor<T>.TryParseBson(ref reader, out state.MongoCursorMongoCursor))
                                             {
                                                 return false;
                                             }
@@ -105,7 +114,7 @@ namespace MongoDB.Client.Messages
                                     {
                                         if (bsonName.SequenceEqual4(CursorResultcode))
                                         {
-                                            if (!reader.TryGetInt32(out Int32Code))
+                                            if (!reader.TryGetInt32(out state.Int32Code))
                                             {
                                                 return false;
                                             }
@@ -115,7 +124,7 @@ namespace MongoDB.Client.Messages
 
                                         if (bsonName.SequenceEqual8(CursorResultcodeName))
                                         {
-                                            if (!reader.TryGetString(out StringCodeName))
+                                            if (!reader.TryGetString(out state.StringCodeName))
                                             {
                                                 return false;
                                             }
@@ -143,7 +152,7 @@ namespace MongoDB.Client.Messages
                                     {
                                         if (bsonName.SequenceEqual2(CursorResultok))
                                         {
-                                            if (!reader.TryGetDouble(out DoubleOk))
+                                            if (!reader.TryGetDouble(out state.DoubleOk))
                                             {
                                                 return false;
                                             }
@@ -158,7 +167,7 @@ namespace MongoDB.Client.Messages
                                     {
                                         if (bsonName.SequenceEqual9(CursorResultoperationTime))
                                         {
-                                            if (!reader.TryGetTimestamp(out NullableOperationTime))
+                                            if (!reader.TryGetTimestamp(out state.NullableOperationTime))
                                             {
                                                 return false;
                                             }
@@ -179,9 +188,9 @@ namespace MongoDB.Client.Messages
                     return false;
                 }
             }
-
             if (!reader.TryGetByte(out var endMarker))
             {
+                state.EndMarker = true;
                 return false;
             }
 
@@ -190,7 +199,182 @@ namespace MongoDB.Client.Messages
                 throw new MongoDB.Client.Bson.Serialization.Exceptions.SerializerEndMarkerException(nameof(MongoDB.Client.Messages.CursorResult<T>), endMarker);
             }
 
-            message = new MongoDB.Client.Messages.CursorResult<T>(mongoCursor: MongoCursorMongoCursor, ok: DoubleOk, errorMessage: StringErrorMessage, code: Int32Code, codeName: StringCodeName, clusterTime: MongoClusterTimeClusterTime, operationTime: NullableOperationTime);
+            state.message = new MongoDB.Client.Messages.CursorResult<T>(mongoCursor: state.MongoCursorMongoCursor, ok: state.DoubleOk, errorMessage: state.StringErrorMessage, code: state.Int32Code, codeName: state.StringCodeName, clusterTime: state.MongoClusterTimeClusterTime, operationTime: state.NullableOperationTime);
+            return true;
+        }
+        public static bool TryContinueParseBson(ref MongoDB.Client.Bson.Reader.BsonReader reader, ref CursorResultState<T> state)
+        {
+            if(state.EndMarker)
+            {
+                goto END_MARKER;
+            }
+            var docLength = state.DocLen!.Value;
+            var unreaded = reader.Remaining + sizeof(int);
+            while (unreaded - reader.Remaining < docLength - 1)
+            {
+                state.Position = reader.Position;
+                if (!reader.TryGetByte(out var bsonType))
+                {
+                    return false;
+                }
+
+                if (!reader.TryGetCStringAsSpan(out var bsonName))
+                {
+                    return false;
+                }
+
+                if (bsonType == 10)
+                {
+                    continue;
+                }
+
+                switch (System.Runtime.InteropServices.MemoryMarshal.GetReference(bsonName))
+                {
+                    case 101:
+                        {
+                            if (bsonName.SequenceEqual5(CursorResulterrmsg))
+                            {
+                                if (!reader.TryGetString(out state.StringErrorMessage))
+                                {
+                                    return false;
+                                }
+
+                                continue;
+                            }
+
+                            break;
+                        }
+
+                    case 36:
+                        {
+                            if (bsonName.SequenceEqual9(CursorResult_clusterTime))
+                            {
+                                if (!MongoDB.Client.Messages.MongoClusterTime.TryParseBson(ref reader, out state.MongoClusterTimeClusterTime))
+                                {
+                                    return false;
+                                }
+
+                                continue;
+                            }
+
+                            break;
+                        }
+
+                    case 99:
+                        {
+                            if (bsonName.Length < 1)
+                            {
+                                break;
+                            }
+
+                            switch (bsonName[1])
+                            {
+                                case 117:
+                                    {
+                                        if (bsonName.SequenceEqual5(CursorResultcursor))
+                                        {
+                                            if (!MongoDB.Client.Messages.MongoCursor<T>.TryParseBson(ref reader, out state.MongoCursorMongoCursor))
+                                            {
+                                                return false;
+                                            }
+
+                                            continue;
+                                        }
+
+                                        break;
+                                    }
+
+                                case 111:
+                                    {
+                                        if (bsonName.SequenceEqual4(CursorResultcode))
+                                        {
+                                            if (!reader.TryGetInt32(out state.Int32Code))
+                                            {
+                                                return false;
+                                            }
+
+                                            continue;
+                                        }
+
+                                        if (bsonName.SequenceEqual8(CursorResultcodeName))
+                                        {
+                                            if (!reader.TryGetString(out state.StringCodeName))
+                                            {
+                                                return false;
+                                            }
+
+                                            continue;
+                                        }
+
+                                        break;
+                                    }
+                            }
+
+                            break;
+                        }
+
+                    case 111:
+                        {
+                            if (bsonName.Length < 1)
+                            {
+                                break;
+                            }
+
+                            switch (bsonName[1])
+                            {
+                                case 107:
+                                    {
+                                        if (bsonName.SequenceEqual2(CursorResultok))
+                                        {
+                                            if (!reader.TryGetDouble(out state.DoubleOk))
+                                            {
+                                                return false;
+                                            }
+
+                                            continue;
+                                        }
+
+                                        break;
+                                    }
+
+                                case 112:
+                                    {
+                                        if (bsonName.SequenceEqual9(CursorResultoperationTime))
+                                        {
+                                            if (!reader.TryGetTimestamp(out state.NullableOperationTime))
+                                            {
+                                                return false;
+                                            }
+
+                                            continue;
+                                        }
+
+                                        break;
+                                    }
+                            }
+
+                            break;
+                        }
+                }
+
+                if (!reader.TrySkip(bsonType))
+                {
+                    return false;
+                }
+            }
+            END_MARKER:
+            if (!reader.TryGetByte(out var endMarker))
+            {
+                state.EndMarker = true;
+                return false;
+            }
+
+            if (endMarker != 0)
+            {
+                throw new MongoDB.Client.Bson.Serialization.Exceptions.SerializerEndMarkerException(nameof(MongoDB.Client.Messages.CursorResult<T>), endMarker);
+            }
+
+            state.message = new MongoDB.Client.Messages.CursorResult<T>(mongoCursor: state.MongoCursorMongoCursor, ok: state.DoubleOk, errorMessage: state.StringErrorMessage, code: state.Int32Code, codeName: state.StringCodeName, clusterTime: state.MongoClusterTimeClusterTime, operationTime: state.NullableOperationTime);
             return true;
         }
 

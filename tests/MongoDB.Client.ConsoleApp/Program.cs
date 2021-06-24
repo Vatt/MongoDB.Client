@@ -16,9 +16,9 @@ namespace MongoDB.Client.ConsoleApp
         static async Task Main(string[] args)
         {
 
-            //await LoadTest<GeoIp>(1024*1024, new[] { 4 });
+            await LoadTest<GeoIp>(1024*1024, new[] { 4 });
             //await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, false);
-            await TestShardedCluster();
+            //await TestShardedCluster();
             //await TestTransaction();
             //await TestStandalone();
         }
