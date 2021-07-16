@@ -39,34 +39,30 @@ namespace MongoDB.Client.Protocol.Readers
             var bsonReader = new BsonReader(input);
             if (_state.DocLen.HasValue == false)
             {
-                if (CursorResult<T>.TryParseBson(ref bsonReader, out _state))
+                if (CursorResult<T>.TryParseBson(ref bsonReader, out _state, out consumed))
                 {
                     message = _state.message;
-                    consumed = _state.Position;
                     examined = consumed;
-                    message.MongoCursor.Items = message.MongoCursor.FirstBatch;
+                    //message.MongoCursor.Items = message.MongoCursor.FirstBatch;
                     return true;
                 }
                 else
                 {
-                    consumed = _state.Position;
                     examined = consumed;
                     return false;
                 }
             }
             else
             {
-                if (CursorResult<T>.TryContinueParseBson(ref bsonReader, ref _state))
+                if (CursorResult<T>.TryContinueParseBson(ref bsonReader, ref _state, out consumed))
                 {
                     message = _state.message;
-                    consumed = _state.Position;
                     examined = consumed;
-                    message.MongoCursor.Items = message.MongoCursor.FirstBatch;
+                    //message.MongoCursor.Items = message.MongoCursor.FirstBatch;
                     return true;
                 }
                 else
                 {
-                    consumed = _state.Position;
                     examined = consumed;
                     return false;
                 }

@@ -24,9 +24,10 @@ namespace MongoDB.Client.Benchmarks
         [Params(1024)]
         public int RequestsCount { get; set; }
 
-        [Params(1, 4, 8, 16, 32, 64, 128, 256, 512)] public int Parallelism { get; set; }
+        //[Params(1, 4, 8, 16, 32, 64, 128, 256, 512)] public int Parallelism { get; set; }
+        [Params(16)] public int Parallelism { get; set; }
 
-        [Params(ClientType.Old, ClientType.New, ClientType.NewExperimental)]
+        [Params(/*ClientType.Old,*/ ClientType.New/*, ClientType.NewExperimental*/)]
         public ClientType ClientType { get; set; }
 
         [GlobalSetup]

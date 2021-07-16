@@ -15,12 +15,43 @@ namespace MongoDB.Client.ConsoleApp
     {
         static async Task Main(string[] args)
         {
-
-            await LoadTest<GeoIp>(1024*1024, new[] { 4 });
+            await TestStates();
+            //await LoadTest<GeoIp>(1024, new[] { 4 });
             //await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, false);
             //await TestShardedCluster();
             //await TestTransaction();
             //await TestStandalone();
+        }
+        static async Task TestStates()
+        {
+            var items = new GeoIpSeeder().GenerateSeed(10000);
+            var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder
+                    .SetMinimumLevel(LogLevel.Information)
+                    .AddConsole();
+            });
+            var client = await MongoClient.CreateClient("mongodb://centos0.mshome.net/?maxPoolSize=1&appName=MongoDB.Client.ConsoleApp", loggerFactory);
+            var db = client.GetDatabase("TestDb");
+            var collection = db.GetCollection<GeoIp>("TestCollection");
+            try
+            {
+                await collection.DropAsync();
+            }
+            catch (MongoCommandException e) when (e.Code == 26)
+            {
+                // skip
+            }
+            await collection.InsertAsync(items);
+            var result = await collection.Find(BsonDocument.Empty).ToListAsync();
+            try
+            {
+                await collection.DropAsync();
+            }
+            catch (MongoCommandException e) when (e.Code == 26)
+            {
+                // skip
+            }
         }
         static async Task TestShardedCluster()
         {
