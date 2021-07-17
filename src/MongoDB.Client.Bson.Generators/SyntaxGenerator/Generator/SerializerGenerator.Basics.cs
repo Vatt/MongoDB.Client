@@ -19,6 +19,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static readonly StatementSyntax ReturnFalseStatement = ReturnStatement(SF.LiteralExpression(SyntaxKind.FalseLiteralExpression));
         public static readonly StatementSyntax ReturnNothingStatement = ReturnStatement();
         public static readonly SizeOfExpressionSyntax SizeOfInt32Expr = SizeOf(IntPredefinedType());
+        public static readonly TypeSyntax NullableIntType = SF.NullableType(IntPredefinedType());
         public static readonly BreakStatementSyntax BreakStatement = SF.BreakStatement();
         public static SyntaxToken SequenceEqualToken => SF.Identifier("SequenceEqual");
         public static ITypeSymbol ExtractTypeFromNullableIfNeed(ITypeSymbol original)
