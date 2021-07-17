@@ -10,6 +10,10 @@ namespace MongoDB.Client.Bson.Serialization
     {
         public int? DocLen;
         public int Consumed;
-        public SequencePosition Position;
+        public SerializerStateBase()
+        {
+            DocLen = null;
+            Consumed = 0;
+        }
     }
 }

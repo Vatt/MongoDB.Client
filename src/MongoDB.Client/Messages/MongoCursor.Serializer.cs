@@ -207,7 +207,7 @@ namespace MongoDB.Client.Messages
                 }
                 else
                 {
-                    localConsumed = startCheckpoint - reader.Remaining;
+                    localConsumed = reader.BytesConsumed - startCheckpoint;
                     state.InListNextBatch = false;
                 }
             }
@@ -420,7 +420,7 @@ namespace MongoDB.Client.Messages
 
                 if (listBsonType == 10)
                 {
-                    list.Add(default);
+                    list.Add(default!);
                     state.Consumed = consumed + localConsumed;
                     continue;
                 }

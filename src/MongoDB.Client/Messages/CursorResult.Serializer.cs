@@ -222,7 +222,7 @@ namespace MongoDB.Client.Messages
         }
         public static bool TryContinueParseBson(ref MongoDB.Client.Bson.Reader.BsonReader reader, ref CursorResultState<T> state, out SequencePosition Position)
         {
-            Position = reader.Position;
+            //Position = reader.Position;
             var startCheckpoint = reader.BytesConsumed;
             var consumed = state.Consumed;
             long localConsumed = 0;
@@ -234,7 +234,7 @@ namespace MongoDB.Client.Messages
             {
                 if (!MongoDB.Client.Messages.MongoCursor<T>.TryContinueParseBson(ref reader, ref state.MongoCursorMongoCursorState, out Position))
                 {
-                    Position = reader.Position;
+                    //Position = reader.Position;
                     return false;
                 }
                 else
