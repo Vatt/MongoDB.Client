@@ -103,6 +103,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.SeparatedList(source);
         }
+        public static SeparatedSyntaxList<SyntaxNode> SeparatedList<T>(params T[] source) where T : SyntaxNode
+        {
+            return SF.SeparatedList(source);
+        }
         public static SeparatedSyntaxList<SyntaxNode> SeparatedList<T>() where T : SyntaxNode
         {
             return SF.SeparatedList<T>();
@@ -328,6 +332,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return SF.LocalDeclarationStatement(SF.VariableDeclaration(type, SeparatedList(declarator)));
         }
         public static BlockSyntax Block(params StatementSyntax[] statements)
+        {
+            return SF.Block(statements);
+        }
+        public static BlockSyntax Block(IEnumerable<StatementSyntax> statements)
         {
             return SF.Block(statements);
         }
