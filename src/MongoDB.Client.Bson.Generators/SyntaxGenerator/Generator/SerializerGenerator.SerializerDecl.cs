@@ -54,6 +54,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 case ClassDeclarationSyntax:
                     declaration = SF.ClassDeclaration(SelfName(ctx.Declaration))
                         .WithModifiers(modifiers)
+                        .AddMembers(GenerateEnumOfStates(ctx))
+                        .AddMembers(GenerateState(ctx))
+                        .AddMembers(CreateMessageMethod(ctx))
                         .AddMembers(GenerateStaticNamesSpans(ctx))
                         .AddMembers(GenerateEnumsStaticNamesSpansIfHave(ctx))
                         .AddMembers(TryParseMethod(ctx))
@@ -65,6 +68,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 case StructDeclarationSyntax:
                     declaration = SF.StructDeclaration(SelfName(ctx.Declaration))
                         .WithModifiers(modifiers)
+                        .AddMembers(GenerateEnumOfStates(ctx))
+                        .AddMembers(GenerateState(ctx))
+                        .AddMembers(CreateMessageMethod(ctx))
                         .AddMembers(GenerateStaticNamesSpans(ctx))
                         .AddMembers(GenerateEnumsStaticNamesSpansIfHave(ctx))
                         .AddMembers(TryParseMethod(ctx))
@@ -79,6 +85,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         {
                             TryParseMethod(ctx), WriteMethod(ctx)
                         })
+                        .AddRange(new List<MemberDeclarationSyntax> { GenerateEnumOfStates(ctx), GenerateState(ctx), CreateMessageMethod(ctx)})
                         .AddRange(GenerateStaticNamesSpans(ctx))
                         .AddRange(GenerateEnumsStaticNamesSpansIfHave(ctx))
                         .AddRange(GenerateCollectionMethods(ctx))

@@ -385,6 +385,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.ReturnStatement(expr);
         }
+        public static ReturnStatementSyntax ReturnStatement(SyntaxToken expr)
+        {
+            return SF.ReturnStatement(IdentifierName(expr));
+        }
         public static NameColonSyntax NameColon(SyntaxToken name)
         {
             return SF.NameColon(IdentifierName(name));

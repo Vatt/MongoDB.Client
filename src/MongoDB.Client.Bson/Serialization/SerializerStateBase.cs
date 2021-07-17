@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MongoDB.Client.Bson.Serialization
 {
-    abstract class SerializerStateBase
+    public abstract class SerializerStateBase
     {
         public int? DocLen;
         public int Consumed;
