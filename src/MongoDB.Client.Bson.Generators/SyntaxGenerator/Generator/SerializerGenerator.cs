@@ -72,6 +72,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var first = SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member1);
             return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, first, member2);
         }
+        public static MemberAccessExpressionSyntax SimpleMemberAccess(SyntaxToken source, SyntaxToken member1, SyntaxToken member2)
+        {
+            var first = SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName(source), IdentifierName(member1));
+            return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, first, IdentifierName(member2));
+        }
         public static ExpressionStatementSyntax InvocationExprStatement(SyntaxToken source, SyntaxToken member, params ArgumentSyntax[] args)
         {
             return SF.ExpressionStatement(InvocationExpr(source, member, args));

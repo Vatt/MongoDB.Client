@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Reader;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Bson.Writer;
 using Xunit;
@@ -101,6 +102,10 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
         private static ReadOnlySpan<byte> CustomModelProp0 => new byte[5] { 80, 114, 111, 112, 48 };
         private static ReadOnlySpan<byte> CustomModelProp1 => new byte[5] { 80, 114, 111, 112, 49 };
         private static ReadOnlySpan<byte> CustomModelProp2 => new byte[5] { 80, 114, 111, 112, 50 };
+        public static GeneratorCustomModel CreateMessage(SerializerStateBase state)
+        {
+            throw new NotSupportedException("FIX CUSTOM INTERFACE");
+        }
         public static bool TryParseBson(ref MongoDB.Client.Bson.Reader.BsonReader reader, out MongoDB.Client.Tests.Serialization.Serializers.GeneratorCustomModel message)
         {
             message = default;
