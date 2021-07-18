@@ -30,6 +30,30 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             public static implicit operator ReadOperationContext(ExpressionSyntax expr) => new ReadOperationContext(expr);
         }
+        private static MethodDeclarationSyntax TryParsePrologueMethod(ContextCore ctx)
+        {
+            List<StatementSyntax> statements = new();
+            statements.Add(SimpleAssignExprStatement(StateToken, ObjectCreation(StateNameType(ctx))));
+            statements.Add(IfNotReturnFalseElse(TryGetByte(StateDocLenMemberAccess), 
+                Block(
+                    SimpleAssignExpr(StateToken, SimpleMemberAccess(StateNameToken(ctx), MainLoopEnumStateToken)),
+                    AddAssignmentExpr(SimpleMemberAccess(StateToken, ConsumedToken), NumericLiteralExpr(1)),
+                    ReturnTrueStatement)));
+
+
+            return SF.MethodDeclaration(
+                    attributeLists: default,
+                    modifiers: new(PrivateKeyword(), StaticKeyword()),
+                    explicitInterfaceSpecifier: default,//SF.ExplicitInterfaceSpecifier(GenericName(SerializerInterfaceToken, TypeFullName(decl))),
+                    returnType: BoolPredefinedType(),
+                    identifier: Identifier("TryParsePrologue"),
+                    parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken), OutParameter(SerializerBaseType, StateToken)),
+                    body: Block(statements),
+                    constraintClauses: default,
+                    expressionBody: default,
+                    typeParameterList: default,
+                    semicolonToken: default);
+        }
         private static MethodDeclarationSyntax TryParseMethod(ContextCore ctx)
         {
             var declaration = ctx.Declaration;

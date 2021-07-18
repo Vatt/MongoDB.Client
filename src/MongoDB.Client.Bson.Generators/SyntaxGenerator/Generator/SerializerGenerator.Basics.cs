@@ -253,6 +253,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.AssignmentExpression(SyntaxKind.AddAssignmentExpression, IdentifierName(left), right);
         }
+        public static ExpressionSyntax AddAssignmentExpr(ExpressionSyntax left, ExpressionSyntax right)
+        {
+            return SF.AssignmentExpression(SyntaxKind.AddAssignmentExpression, left, right);
+        }
         public static BinaryExpressionSyntax BinaryExprEqualsEquals(SyntaxToken left, ExpressionSyntax right)
         {
             return SF.BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(left), right);
