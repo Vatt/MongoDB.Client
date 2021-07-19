@@ -22,6 +22,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static readonly TypeSyntax NullableIntType = SF.NullableType(IntPredefinedType());
         public static readonly BreakStatementSyntax BreakStatement = SF.BreakStatement();
         public static SyntaxToken SequenceEqualToken => SF.Identifier("SequenceEqual");
+        public static TypeSyntax SequencePositionType => SF.ParseTypeName("SequencePosition");
+        public static SyntaxToken PositionToken => SF.Identifier("Position");
         public static ITypeSymbol ExtractTypeFromNullableIfNeed(ITypeSymbol original)
         {
             if (original is INamedTypeSymbol namedType)
@@ -256,6 +258,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static ExpressionSyntax AddAssignmentExpr(ExpressionSyntax left, ExpressionSyntax right)
         {
             return SF.AssignmentExpression(SyntaxKind.AddAssignmentExpression, left, right);
+        }
+        public static StatementSyntax AddAssignmentExprStatement(ExpressionSyntax left, ExpressionSyntax right)
+        {
+            return Statement(SF.AssignmentExpression(SyntaxKind.AddAssignmentExpression, left, right));
         }
         public static BinaryExpressionSyntax BinaryExprEqualsEquals(SyntaxToken left, ExpressionSyntax right)
         {

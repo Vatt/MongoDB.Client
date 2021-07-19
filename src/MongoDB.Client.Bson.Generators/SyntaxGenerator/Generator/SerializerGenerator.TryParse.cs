@@ -34,7 +34,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             List<StatementSyntax> statements = new();
             statements.Add(SimpleAssignExprStatement(StateToken, ObjectCreation(StateNameType(ctx))));
-            statements.Add(IfNotReturnFalseElse(TryGetByte(StateDocLenMemberAccess), 
+            statements.Add(IfNotReturnFalseElse(TryGetInt32(StateDocLenMemberAccess), 
                 Block(
                     SimpleAssignExpr(StateToken, SimpleMemberAccess(StateNameToken(ctx), MainLoopEnumStateToken)),
                     AddAssignmentExpr(SimpleMemberAccess(StateToken, ConsumedToken), NumericLiteralExpr(1)),
@@ -44,15 +44,81 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return SF.MethodDeclaration(
                     attributeLists: default,
                     modifiers: new(PrivateKeyword(), StaticKeyword()),
-                    explicitInterfaceSpecifier: default,//SF.ExplicitInterfaceSpecifier(GenericName(SerializerInterfaceToken, TypeFullName(decl))),
+                    explicitInterfaceSpecifier: default,
                     returnType: BoolPredefinedType(),
                     identifier: Identifier("TryParsePrologue"),
-                    parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken), OutParameter(SerializerBaseType, StateToken)),
+                    parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken), OutParameter(SerializerStateBaseType, StateToken)),
                     body: Block(statements),
                     constraintClauses: default,
                     expressionBody: default,
                     typeParameterList: default,
                     semicolonToken: default);
+        }
+        private static MethodDeclarationSyntax TryParseEpilogue(ContextCore ctx)
+        {
+            List<StatementSyntax> statements = new();
+            statements.Add(VarLocalTypedStateDeclFromOrigimalState(ctx));
+            statements.Add(IfStatement(TryGetByte(VarVariableDeclarationExpr(EndMarkerToken)), Block(SimpleAssignExpr(TypedStateToken, SimpleMemberAccess(StateNameToken(ctx), EndMarkerEnumStateToken)), ReturnFalseStatement)));
+            statements.Add(IfStatement(BinaryExprNotEquals(EndMarkerToken, NumericLiteralExpr((byte)'\x00')), Block(SerializerEndMarkerException(ctx.Declaration, IdentifierName(EndMarkerToken)))));
+            statements.Add(AddAssignmentExprStatement(TypedStateConsumedMemberAccess, NumericLiteralExpr(1)));
+            statements.Add(ReturnTrueStatement);
+
+
+            return SF.MethodDeclaration(
+                    attributeLists: default,
+                    modifiers: new(PrivateKeyword(), StaticKeyword()),
+                    explicitInterfaceSpecifier: default,
+                    returnType: BoolPredefinedType(),
+                    identifier: Identifier("TryParseEpilogue"),
+                    parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken), Parameter(SerializerStateBaseType, StateToken)),
+                    body: Block(statements),
+                    constraintClauses: default,
+                    expressionBody: default,
+                    typeParameterList: default,
+                    semicolonToken: default);
+        }
+        private static MethodDeclarationSyntax TryParseMainLoop(ContextCore ctx)
+        {
+            var declaration = ctx.Declaration;
+
+            StatementSyntax[] operations = default;
+            switch (ctx.GeneratorMode.IfConditions)
+            {
+                case false:
+                    operations = ContextTreeTryParseOperations(ctx, BsonTypeToken, BsonNameToken);
+                    break;
+                case true:
+                    operations = Operations(ctx, BsonTypeToken, BsonNameToken);
+                    break;
+            }
+            return SF.MethodDeclaration(
+                    attributeLists: default,
+                    modifiers: new(PrivateKeyword(), StaticKeyword()),
+                    explicitInterfaceSpecifier: default,
+                    returnType: BoolPredefinedType(),
+                    identifier: Identifier("TryParseMainLoop"),
+                    parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken),
+                                                 Parameter(SerializerStateBaseType, StateToken),
+                                                 OutParameter(SequencePositionType, PositionToken)),
+                    body: default,
+                    constraintClauses: default,
+                    expressionBody: default,
+                    typeParameterList: default,
+                    semicolonToken: default)
+                .WithBody(
+                    Block(
+                     VarLocalTypedStateDeclFromOrigimalState(ctx),
+                     VarLocalDeclarationStatement(DocLengthToken, StateDocLenMemberAccess),
+                     SF.WhileStatement(
+                         BinaryExprLessThan(
+                             BinaryExprMinus(IdentifierName(UnreadedToken), ReaderRemainingExpr),
+                             BinaryExprMinus(IdentifierName(DocLengthToken), NumericLiteralExpr(1))),
+                         Block(
+                             IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(BsonTypeToken))),
+                             IfNotReturnFalse(TryGetCStringAsSpan(VarVariableDeclarationExpr(BsonNameToken))),
+                             IfContinue(BinaryExprEqualsEquals(IdentifierName(BsonTypeToken), NumericLiteralExpr(10))),
+                             operations,
+                             IfNotReturnFalse(TrySkip(BsonTypeToken))))));
         }
         private static MethodDeclarationSyntax TryParseMethod(ContextCore ctx)
         {

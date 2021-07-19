@@ -23,5 +23,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static SyntaxToken WriterInputVarToken => Identifier("message");
         public static SyntaxToken BsonNameToken => Identifier("bsonName");
         public static SyntaxToken BsonTypeToken => Identifier("bsonType");
+        public static SyntaxToken EndMarkerToken => Identifier("endMarker");
+        public static SyntaxToken UnreadedToken => Identifier("unreaded");
+        public static SyntaxToken DocLengthToken => Identifier("docLength");
     }
 }

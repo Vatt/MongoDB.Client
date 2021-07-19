@@ -20,16 +20,18 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static readonly SyntaxToken StatePropertyNameToken = Identifier("State");
         private static readonly SyntaxToken StateToken = Identifier("state");
         private static readonly SyntaxToken TypedStateToken = Identifier("typedState");
-        private static readonly string SerializerBaseTypeString = "MongoDB.Client.Bson.Serialization.SerializerStateBase";
-        private static readonly TypeSyntax SerializerBaseType = SF.ParseTypeName(SerializerBaseTypeString);
+        private static readonly string SerializerBaseStateTypeString = "MongoDB.Client.Bson.Serialization.SerializerStateBase";
+        private static readonly TypeSyntax SerializerStateBaseType = SF.ParseTypeName(SerializerBaseStateTypeString);
         private static readonly SyntaxToken DocLenToken = Identifier("DocLen");
         private static readonly SyntaxToken ConsumedToken = Identifier("Consumed");
         private static readonly SyntaxToken CollectionToken = Identifier("Collection");
         private static readonly MemberAccessExpressionSyntax StateDocLenMemberAccess = SimpleMemberAccess(StateToken, DocLenToken);
         private static readonly MemberAccessExpressionSyntax TypedStateDocLenMemberAccess = SimpleMemberAccess(TypedStateToken, DocLenToken);
-        private static readonly SyntaxToken SerializerBaseTypeToken = Identifier(SerializerBaseTypeString);
-        private static INamedTypeSymbol SerializerStateBaseNamedType => BsonSerializerGenerator.Compilation.GetTypeByMetadataName(SerializerBaseTypeString)!;
-        private static readonly BaseListSyntax StateBase = SF.BaseList(SeparatedList(SF.SimpleBaseType(SF.ParseTypeName(SerializerBaseTypeString))));
+        private static readonly MemberAccessExpressionSyntax TypedStateConsumedMemberAccess = SimpleMemberAccess(TypedStateToken, ConsumedToken);
+        private static readonly MemberAccessExpressionSyntax StateConsumedMemberAccess = SimpleMemberAccess(StateToken, ConsumedToken);
+        private static readonly SyntaxToken SerializerBaseTypeToken = Identifier(SerializerBaseStateTypeString);
+        private static INamedTypeSymbol SerializerStateBaseNamedType => BsonSerializerGenerator.Compilation.GetTypeByMetadataName(SerializerBaseStateTypeString)!;
+        private static readonly BaseListSyntax StateBase = SF.BaseList(SeparatedList(SF.SimpleBaseType(SF.ParseTypeName(SerializerBaseStateTypeString))));
         private static SyntaxToken MemberEnumStateNameToken(MemberContext ctx) => Identifier($"{ctx.NameSym.Name}InProgress");
         private static SyntaxToken NameOfEnumStatesToken(ContextCore ctx) => Identifier($"{ctx.Declaration.Name}States");
         public static TypeSyntax TypeNameOfEnumStates(ContextCore ctx) => SF.ParseTypeName($"{ctx.Declaration.Name}States");
@@ -196,7 +198,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         explicitInterfaceSpecifier: default,
                         returnType: SF.ParseTypeName(ctx.Declaration.ToString()),
                         identifier: CreateMessageToken,
-                        parameterList: ParameterList(Parameter(SF.ParseTypeName(SerializerBaseTypeString), StateToken)),
+                        parameterList: ParameterList(Parameter(SF.ParseTypeName(SerializerBaseStateTypeString), StateToken)),
                         body: default,
                         constraintClauses: default,
                         expressionBody: default,
