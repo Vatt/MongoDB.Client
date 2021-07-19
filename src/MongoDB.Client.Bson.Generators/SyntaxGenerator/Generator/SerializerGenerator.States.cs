@@ -9,27 +9,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        private static readonly EnumMemberDeclarationSyntax InitialEnumState = SF.EnumMemberDeclaration("Initial");
-        private static readonly SyntaxToken InitialEnumStateToken = Identifier("Initial");
-        private static readonly EnumMemberDeclarationSyntax MainLoopEnumState = SF.EnumMemberDeclaration("MainLoop");
-        private static readonly SyntaxToken MainLoopEnumStateToken = Identifier("MainLoop");
-        private static readonly EnumMemberDeclarationSyntax EndMarkerEnumState = SF.EnumMemberDeclaration("EndMarker");
-        private static readonly SyntaxToken EndMarkerEnumStateToken = Identifier("EndMarker");
-        private static readonly EnumMemberDeclarationSyntax InProgressEnumState = SF.EnumMemberDeclaration("InProgress");
-        private static readonly SyntaxToken InProgressEnumStateToken = Identifier("InProgress");
-        private static readonly SyntaxToken StatePropertyNameToken = Identifier("State");
-        private static readonly SyntaxToken StateToken = Identifier("state");
-        private static readonly SyntaxToken TypedStateToken = Identifier("typedState");
-        private static readonly string SerializerBaseStateTypeString = "MongoDB.Client.Bson.Serialization.SerializerStateBase";
-        private static readonly TypeSyntax SerializerStateBaseType = SF.ParseTypeName(SerializerBaseStateTypeString);
-        private static readonly SyntaxToken DocLenToken = Identifier("DocLen");
-        private static readonly SyntaxToken ConsumedToken = Identifier("Consumed");
-        private static readonly SyntaxToken CollectionToken = Identifier("Collection");
-        private static readonly MemberAccessExpressionSyntax StateDocLenMemberAccess = SimpleMemberAccess(StateToken, DocLenToken);
-        private static readonly MemberAccessExpressionSyntax TypedStateDocLenMemberAccess = SimpleMemberAccess(TypedStateToken, DocLenToken);
-        private static readonly MemberAccessExpressionSyntax TypedStateConsumedMemberAccess = SimpleMemberAccess(TypedStateToken, ConsumedToken);
-        private static readonly MemberAccessExpressionSyntax StateConsumedMemberAccess = SimpleMemberAccess(StateToken, ConsumedToken);
-        private static readonly SyntaxToken SerializerBaseTypeToken = Identifier(SerializerBaseStateTypeString);
         private static INamedTypeSymbol SerializerStateBaseNamedType => BsonSerializerGenerator.Compilation.GetTypeByMetadataName(SerializerBaseStateTypeString)!;
         private static readonly BaseListSyntax StateBase = SF.BaseList(SeparatedList(SF.SimpleBaseType(SF.ParseTypeName(SerializerBaseStateTypeString))));
         private static SyntaxToken MemberEnumStateNameToken(MemberContext ctx) => Identifier($"{ctx.NameSym.Name}InProgress");

@@ -12,6 +12,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static readonly TypeSyntax VarType = SF.ParseTypeName("var");
         public static readonly ExpressionSyntax NewBsonObjectIdExpr = InvocationExpr(TypeFullName(BsonObjectId), SF.IdentifierName("NewObjectId"));
         public static readonly ExpressionSyntax BsonNameLengthExpr = SimpleMemberAccess(BsonNameToken, Identifier("Length"));
+        public static readonly ExpressionSyntax ReaderBytesConsumedExpr = SimpleMemberAccess(BsonReaderToken, Identifier("BytesConsumed"));
+        public static readonly ExpressionSyntax ReaderPositionExpr = SimpleMemberAccess(BsonReaderToken, Identifier("Position"));
         public static readonly GenericNameSyntax ReadOnlySpanByteName = GenericName(Identifier("ReadOnlySpan"), BytePredefinedType());
         public static readonly GenericNameSyntax SpanByteName = GenericName(Identifier("Span"), BytePredefinedType());
         public static readonly ContinueStatementSyntax ContinueStatement = SF.ContinueStatement();
@@ -21,6 +23,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static readonly SizeOfExpressionSyntax SizeOfInt32Expr = SizeOf(IntPredefinedType());
         public static readonly TypeSyntax NullableIntType = SF.NullableType(IntPredefinedType());
         public static readonly BreakStatementSyntax BreakStatement = SF.BreakStatement();
+        public static readonly StatementSyntax AssignConsumedIfFalseStatement = SimpleAssignExprStatement(SimpleMemberAccess(StateToken, ConsumedToken), BinaryExprMinus(LoopCheckpointToken, StartCheckpointToken));
+        public static readonly StatementSyntax AssignLocalConsumedIfTrueStatement = SimpleAssignExprStatement(LocalConsumedToken, BinaryExprMinus(ReaderBytesConsumedExpr, StartCheckpointToken));
         public static SyntaxToken SequenceEqualToken => SF.Identifier("SequenceEqual");
         public static TypeSyntax SequencePositionType => SF.ParseTypeName("SequencePosition");
         public static SyntaxToken PositionToken => SF.Identifier("Position");
@@ -214,6 +218,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.BinaryExpression(SyntaxKind.SubtractExpression, IdentifierName(left), right);
         }
+        public static BinaryExpressionSyntax BinaryExprMinus(SyntaxToken left, SyntaxToken right)
+        {
+            return SF.BinaryExpression(SyntaxKind.SubtractExpression, IdentifierName(left), IdentifierName(right));
+        }
         public static BinaryExpressionSyntax BinaryExprMinus(ExpressionSyntax left, SyntaxToken right)
         {
             return SF.BinaryExpression(SyntaxKind.SubtractExpression, left, IdentifierName(right));
@@ -346,6 +354,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Block(statements);
         }
+
         public static BlockSyntax Block(IEnumerable<StatementSyntax> statements)
         {
             return SF.Block(statements);
@@ -382,6 +391,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static BlockSyntax Block(IfStatementSyntax if1, IfStatementSyntax if2, IfStatementSyntax if3, StatementSyntax[] statements1, params StatementSyntax[] statements2)
         {
             return SF.Block(if1, if2, if3).AddStatements(statements1).AddStatements(statements2);
+        }
+        public static BlockSyntax Block(ExpressionStatementSyntax expr1, LocalDeclarationStatementSyntax expr2, IfStatementSyntax if1, IfStatementSyntax if2, IfStatementSyntax if3, StatementSyntax[] statements1, params StatementSyntax[] statements2)
+        {
+            return SF.Block(expr1, expr2).AddStatements(if1, if2, if3).AddStatements(statements1).AddStatements(statements2);
         }
         public static BlockSyntax Block(IfStatementSyntax if1, IfStatementSyntax if2, IfStatementSyntax if3, ImmutableList<StatementSyntax>.Builder builder)
         {

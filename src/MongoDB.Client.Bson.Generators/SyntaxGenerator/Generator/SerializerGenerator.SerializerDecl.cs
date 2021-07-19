@@ -62,7 +62,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         .AddMembers(TryParseMainLoop(ctx))
                         .AddMembers(GenerateStaticNamesSpans(ctx))
                         .AddMembers(GenerateEnumsStaticNamesSpansIfHave(ctx))
-                        .AddMembers(TryParseMethod(ctx))
+                        //.AddMembers(TryParseMethod(ctx))
                         .AddMembers(WriteMethod(ctx))
                         .AddMembers(GenerateCollectionMethods(ctx))
                         .AddMembers(GenerateReadStringReprEnumMethods(ctx))
@@ -79,7 +79,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         .AddMembers(TryParseMainLoop(ctx))
                         .AddMembers(GenerateStaticNamesSpans(ctx))
                         .AddMembers(GenerateEnumsStaticNamesSpansIfHave(ctx))
-                        .AddMembers(TryParseMethod(ctx))
+                        //.AddMembers(TryParseMethod(ctx))
                         .AddMembers(WriteMethod(ctx))
                         .AddMembers(GenerateCollectionMethods(ctx))
                         .AddMembers(GenerateReadStringReprEnumMethods(ctx))
@@ -89,7 +89,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     var members = new SyntaxList<MemberDeclarationSyntax>()
                         .AddRange(new List<MemberDeclarationSyntax>
                         {
-                            TryParseMethod(ctx), WriteMethod(ctx)
+                            /*TryParseMethod(ctx),*/ WriteMethod(ctx)
                         })
                         .AddRange(new List<MemberDeclarationSyntax> { GenerateEnumOfStates(ctx), GenerateState(ctx), CreateMessageMethod(ctx), TryParsePrologueMethod(ctx), TryParseEpilogue(ctx), TryParseMainLoop(ctx)})
                         .AddRange(GenerateStaticNamesSpans(ctx))
