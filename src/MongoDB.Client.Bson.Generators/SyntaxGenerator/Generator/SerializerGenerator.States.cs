@@ -13,11 +13,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static readonly BaseListSyntax StateBase = SF.BaseList(SeparatedList(SF.SimpleBaseType(SF.ParseTypeName(SerializerBaseStateTypeString))));
         private static SyntaxToken MemberEnumStateNameToken(MemberContext ctx) => Identifier($"{ctx.NameSym.Name}InProgress");
         private static SyntaxToken NameOfEnumStatesToken(ContextCore ctx) => Identifier($"{ctx.Declaration.Name}States");
+        private static ExpressionSyntax EnumStateFromContextAccess(ContextCore ctx, MemberContext member) => SimpleMemberAccess(NameOfEnumStatesToken(ctx), MemberEnumStateNameToken(member));
         public static TypeSyntax TypeNameOfEnumStates(ContextCore ctx) => SF.ParseTypeName($"{ctx.Declaration.Name}States");
         private static SyntaxToken StateNameToken(ContextCore ctx) => Identifier($"{ctx.Declaration.Name}State");
         private static TypeSyntax StateNameType(ContextCore ctx) => SF.ParseTypeName($"{ctx.Declaration.Name}State");
         private static StatementSyntax VarLocalTypedStateDeclFromOrigimalState(ContextCore ctx) => VarLocalDeclarationStatement(TypedStateToken, Cast(StateNameType(ctx), IdentifierName(StateToken)));
         private static MemberAccessExpressionSyntax TypedStateMemberAccess(MemberContext ctx) => SimpleMemberAccess(TypedStateToken, ctx.AssignedVariableToken);
+        private static MemberAccessExpressionSyntax TypedStateStateAccess => SimpleMemberAccess(TypedStateToken, Identifier("State"));
+        private static StatementSyntax TypedStateStateAccessStatement(MemberContext ctx) => Statement(TypedStateStateAccess);
+        private static StatementSyntax TypedStateMemberAccessStatement(MemberContext ctx) => Statement(TypedStateMemberAccess(ctx));
         private static MemberAccessExpressionSyntax StateMemberAccess(MemberContext ctx) => SimpleMemberAccess(StateToken, ctx.AssignedVariableToken);
         private static readonly SyntaxToken NameOfEnumCollectionStatesToken = Identifier($"CollectionStates");
         private static SyntaxToken NameOfCollectionState(ITypeSymbol type) => Identifier($"{UnwrapTypeName(type)}State");

@@ -8,7 +8,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        private static bool TryGetEnumReadOperation(SyntaxToken readTarget, ISymbol nameSym, ITypeSymbol typeSym, bool forceUseTempVar, out ReadOperationContext result)
+        private static bool TryGetEnumReadOperation(MemberContext member,SyntaxToken readTarget, ISymbol nameSym, ITypeSymbol typeSym, bool forceUseTempVar, out ReadOperationContext result)
         {
             var trueType = ExtractTypeFromNullableIfNeed(typeSym);
             result = default;
@@ -35,11 +35,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     //result = new(InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(VarVariableDeclarationExpr(readTarget))), IdentifierName(readTarget));
                     //result = new(InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(TypedVariableDeclarationExpr(TypeFullName(trueType), readTarget))), IdentifierName(readTarget));
-                    result = new(InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(TypedVariableDeclarationExpr(SF.ParseTypeName(typeSym.ToString()), readTarget))), IdentifierName(readTarget));
+                    //result = new(InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(TypedVariableDeclarationExpr(SF.ParseTypeName(typeSym.ToString()), readTarget))), IdentifierName(readTarget));
+                    result = new(InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(TypedStateMemberAccess(member))));
                 }
                 else
                 {
-                    result = InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(readTarget));
+                    //result = InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(readTarget));
+                    result = InvocationExpr(readMethod, RefArgument(BsonReaderToken), OutArgument(TypedStateMemberAccess(member)));
                 }
 
                 return true;

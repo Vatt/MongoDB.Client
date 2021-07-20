@@ -113,7 +113,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                      VarLocalDeclarationStatement(LocalConsumedToken, NumericLiteralExpr(0)),
                      SF.WhileStatement(
                          BinaryExprLessThan(
-                             BinaryExprMinus(IdentifierName(UnreadedToken), ReaderRemainingExpr),
+                             BinaryExprPlus(TypedStateConsumedMemberAccess, IdentifierName(LocalConsumedToken)),
                              BinaryExprMinus(IdentifierName(DocLengthToken), NumericLiteralExpr(1))),
                          Block(
                              SimpleAssignExprStatement(PositionToken, ReaderPositionExpr),
@@ -122,7 +122,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                              IfNotReturnFalse(TryGetCStringAsSpan(VarVariableDeclarationExpr(BsonNameToken))),
                              IfContinue(BinaryExprEqualsEquals(IdentifierName(BsonTypeToken), NumericLiteralExpr(10))),
                              operations,
-                             IfNotReturnFalse(TrySkip(BsonTypeToken))))));
+                             //IfNotReturnFalse(TrySkip(BsonTypeToken))))));
+                             IfNotElse(TrySkip(BsonTypeToken), Block(AssignConsumedIfFalseStatement, ReturnFalseStatement), Block(AssignLocalConsumedIfTrueStatement))))));
         }
         private static MethodDeclarationSyntax TryParseMethod(ContextCore ctx)
         {
@@ -243,7 +244,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     continue;
                 }
-                if (TryGenerateParseEnum(member.ByteName.Length, member.StaticSpanNameToken, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))
+                if (TryGenerateParseEnum(member.ByteName.Length, member.StaticSpanNameToken, member, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))
                 {
                     continue;
                 }
@@ -257,15 +258,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return builder.ToArray();
         }
 
-        private static bool TryGenerateParseEnum(int byteNameLength, SyntaxToken staticNameSpan, SyntaxToken readTarget, SyntaxToken bsonName, ISymbol nameSym, ITypeSymbol typeSym, ImmutableList<StatementSyntax>.Builder builder)
+        private static bool TryGenerateParseEnum(int byteNameLength, SyntaxToken staticNameSpan, MemberContext member, SyntaxToken readTarget, SyntaxToken bsonName, ISymbol nameSym, ITypeSymbol typeSym, ImmutableList<StatementSyntax>.Builder builder)
         {
-            if (TryGetEnumReadOperation(readTarget, nameSym, typeSym, false, out var enumOp) == false)
+            if (TryGetEnumReadOperation(member, readTarget, nameSym, typeSym, false, out var enumOp) == false)
             {
                 return false;
             }
-            StatementSyntax ifOperation = enumOp.TempExpr != null ? IfNotReturnFalseElse(enumOp.Expr, Block(SimpleAssignExpr(readTarget, enumOp.TempExpr))) : IfNotReturnFalse(enumOp.Expr);
+            StatementSyntax ifOperation = enumOp.TempExpr != null ? 
+                IfNotElse(enumOp.Expr, Block(AssignConsumedIfFalseStatement, ReturnFalseStatement), Block(SimpleAssignExpr(readTarget, enumOp.TempExpr))) : 
+                IfNot(enumOp.Expr, AssignConsumedIfFalseStatement, ReturnFalseStatement);
             builder.IfStatement(condition: SpanSequenceEqual(bsonName, staticNameSpan, byteNameLength),
-                                statement: Block(ifOperation, ContinueStatement));
+                                statement: Block(ifOperation, AssignLocalConsumedIfTrueStatement, ContinueStatement));
             return true;
         }
 
@@ -308,12 +311,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                                RefArgument(BsonReaderToken),
                                                OutArgument(TypedStateMemberAccess(member)));
                 builder.IfStatement(condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken, member.ByteName.Length),
-                                    //statement: Block(IfNotReturnFalse(condition), ContinueStatement));
-                                    statement: Block(IfNot(condition, AssignConsumedIfFalseStatement, ReturnFalseStatement), AssignLocalConsumedIfTrueStatement, ContinueStatement));
+                                    statement: Block(IfNot(condition, AssignConsumedIfFalseStatement, SimpleAssignExprStatement(TypedStateStateAccess, EnumStateFromContextAccess(member.Root, member)), ReturnFalseStatement), AssignLocalConsumedIfTrueStatement, ContinueStatement));
                 return true;
             }
             else
             {
+                //уточнить не реф тип, может быть ненужна ветка со стейтами отдельная уже
                 var localTryParseVar = Identifier($"{member.AssignedVariableToken.ToString()}TryParseTemp");
                 var condition = InvocationExpr(IdentifierName(type.ToString()), TryParseBsonToken,
                                                RefArgument(BsonReaderToken), OutArgument(TypedStateMemberAccess(member)));
@@ -321,7 +324,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 builder.IfStatement(condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken, member.ByteName.Length),
                                     statement:
                                         Block(
-                                            IfNot(condition, AssignConsumedIfFalseStatement, ReturnFalseStatement),
+                                            IfNot(condition, AssignConsumedIfFalseStatement, Statement(TypedStateMemberAccess(member)), ReturnFalseStatement),
                                             SimpleAssignExprStatement(member.AssignedVariableToken, localTryParseVar),
                                             AssignLocalConsumedIfTrueStatement,
                                             ContinueStatement));

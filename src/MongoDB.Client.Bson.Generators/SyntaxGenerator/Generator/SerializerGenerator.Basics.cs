@@ -23,7 +23,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static readonly SizeOfExpressionSyntax SizeOfInt32Expr = SizeOf(IntPredefinedType());
         public static readonly TypeSyntax NullableIntType = SF.NullableType(IntPredefinedType());
         public static readonly BreakStatementSyntax BreakStatement = SF.BreakStatement();
-        public static readonly StatementSyntax AssignConsumedIfFalseStatement = SimpleAssignExprStatement(SimpleMemberAccess(StateToken, ConsumedToken), BinaryExprMinus(LoopCheckpointToken, StartCheckpointToken));
+        public static readonly StatementSyntax AssignConsumedIfFalseStatement = SimpleAssignExprStatement(SimpleMemberAccess(TypedStateToken, ConsumedToken), BinaryExprMinus(LoopCheckpointToken, StartCheckpointToken));
         public static readonly StatementSyntax AssignLocalConsumedIfTrueStatement = SimpleAssignExprStatement(LocalConsumedToken, BinaryExprMinus(ReaderBytesConsumedExpr, StartCheckpointToken));
         public static SyntaxToken SequenceEqualToken => SF.Identifier("SequenceEqual");
         public static TypeSyntax SequencePositionType => SF.ParseTypeName("SequencePosition");
@@ -156,6 +156,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return SF.IfStatement(
                 SF.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, condition),
                 SF.Block(ReturnFalseStatement),
+                SF.ElseClause(@else));
+        }
+        public static IfStatementSyntax IfNotElse(ExpressionSyntax condition, BlockSyntax ifTrueBlock, BlockSyntax @else)
+        {
+            //return IfNotReturn(condition, SF.ReturnStatement(FalseLiteralExpr()));
+            return SF.IfStatement(
+                SF.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, condition),
+                ifTrueBlock,
                 SF.ElseClause(@else));
         }
         public static IfStatementSyntax IfNot(ExpressionSyntax condition, ExpressionSyntax statement)

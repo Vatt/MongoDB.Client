@@ -179,7 +179,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             if (operations.Count == 0)
             {
-                if (TryGenerateParseEnum(member.ByteName.Length, member.StaticSpanNameToken, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))
+                if (TryGenerateParseEnum(member.ByteName.Length, member.StaticSpanNameToken, member, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))
                 {
                     goto RETURN;
                 }
@@ -222,7 +222,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
             MemberContext member = host.Member;
-            if (TryGenerateParseEnum(member.ByteName.Length, member.StaticSpanNameToken, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))
+            if (TryGenerateParseEnum(member.ByteName.Length, member.StaticSpanNameToken, member, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))
             {
                 return builder.ToArray();
             }
