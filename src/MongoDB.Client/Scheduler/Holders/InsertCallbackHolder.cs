@@ -25,10 +25,10 @@ namespace MongoDB.Client.Scheduler.Holders
             {
                 InsertMessageWriter = new InsertMessageWriterUnsafe<T>();
             }
-            else if (SerializersMap.TryGetSerializer<T>(out var serializer))
-            {
-                InsertMessageWriter = new InsertMessageWriter<T>(serializer);
-            }
+            //else if (SerializersMap.TryGetSerializer<T>(out var serializer))
+            //{
+            //    InsertMessageWriter = new InsertMessageWriter<T>(serializer);
+            //}
             else
             {
                 throw new MongoException($"Serializer for type '{typeof(T)}' does not found");

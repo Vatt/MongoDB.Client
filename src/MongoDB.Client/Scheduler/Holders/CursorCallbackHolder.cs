@@ -7,9 +7,9 @@ using MongoDB.Client.Protocol.Readers;
 
 namespace MongoDB.Client.Scheduler.Holders
 {
-    internal static partial class CursorCallbackHolder<T>
+    internal static partial class CursorCallbackHolder<T> where T : IBsonSerializer<T>
     {
-        private static readonly IGenericBsonSerializer<T>? _serializer;
+        //private static readonly IGenericBsonSerializer<T>? _serializer;
         internal static readonly unsafe delegate*<ref Bson.Reader.BsonReader, out T, bool> TryParseFnPtr;
 
         static unsafe CursorCallbackHolder()
@@ -18,14 +18,15 @@ namespace MongoDB.Client.Scheduler.Holders
 
             if (TryParseFnPtr == null)
             {
-                if (SerializersMap.TryGetSerializer(out IGenericBsonSerializer<T>? serializer))
-                {
-                    _serializer = serializer;
-                }
-                else
-                {
-                    throw new MongoException($"Serializer for type '{typeof(T)}' does not found");
-                }
+                //if (SerializersMap.TryGetSerializer(out IGenericBsonSerializer<T>? serializer))
+                //{
+                //    _serializer = serializer;
+                //}
+                //else
+                //{
+                //    throw new MongoException($"Serializer for type '{typeof(T)}' does not found");
+                //}
+                throw new MongoException($"Serializer for type '{typeof(T)}' does not found");
             }
         }
 

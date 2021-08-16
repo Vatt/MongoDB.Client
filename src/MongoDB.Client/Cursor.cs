@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Scheduler;
 using MongoDB.Client.Utils;
 
 namespace MongoDB.Client
 {
-    public class Cursor<T> : IAsyncEnumerable<T>
+    public class Cursor<T> : IAsyncEnumerable<T> where T : IBsonSerializer<T>
     {
         private readonly TransactionHandler _transaction;
         private readonly IMongoScheduler _scheduler;
@@ -27,7 +28,7 @@ namespace MongoDB.Client
         {
             _limit = limit;
         }
-        public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken)
+        public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken) 
         {
             var result = await _scheduler.FindAsync<T>(_filter, _limit, _collectionNamespace, _transaction, cancellationToken).ConfigureAwait(false);
             if (result.CursorResult.ErrorMessage is not null)

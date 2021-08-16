@@ -11,13 +11,11 @@ namespace MongoDB.Client.Protocol.Readers
     internal abstract class MsgBodyReader<T> : IMessageReader<CursorResult<T>>
     {
         protected readonly CursorResult<T> _cursorResult;
-        protected readonly IGenericBsonSerializer<T> Serializer;
         protected readonly ResponseMsgMessage Message;
         public bool Complete { get; protected set; }
 
-        public MsgBodyReader(IGenericBsonSerializer<T> serializer, ResponseMsgMessage message)
+        public MsgBodyReader(ResponseMsgMessage message)
         {
-            Serializer = serializer;
             Message = message;
             _cursorResult = new CursorResult<T>(new MongoCursor<T>(ListsPool<T>.Pool.Get()));
         }
