@@ -26,7 +26,7 @@ namespace MongoDB.Client.Tests.Serialization
                 } }
             };
 
-            var result = await RoundTripAsync(doc, new BsonDocumentSerializer());
+            var result = await RoundTripAsync(doc);
 
             Assert.Equal(doc, result);
         }
@@ -41,7 +41,7 @@ namespace MongoDB.Client.Tests.Serialization
                 { "guid", BsonBinaryData.Create(guid)}
             };
 
-            var result = await RoundTripAsync(doc, new BsonDocumentSerializer());
+            var result = await RoundTripAsync(doc);
 
             Assert.Equal(doc, result);
         }
@@ -55,7 +55,7 @@ namespace MongoDB.Client.Tests.Serialization
                 { "objectId", oid}
             };
 
-            var result = await RoundTripAsync(doc, new BsonDocumentSerializer());
+            var result = await RoundTripAsync(doc);
 
             Assert.Equal(doc, result);
         }

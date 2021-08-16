@@ -5,7 +5,8 @@ using MongoDB.Client.Protocol.Core;
 
 namespace MongoDB.Client.Protocol.Writers
 {
-    public class ReplyBodyWriter<T> : IMessageWriter<T> where T: IBsonSerializer<T>
+    public class ReplyBodyWriter<T> : IMessageWriter<T> 
+        where T: IBsonSerializer<T>
     {
         public void WriteMessage(T message, IBufferWriter<byte> output)
         {

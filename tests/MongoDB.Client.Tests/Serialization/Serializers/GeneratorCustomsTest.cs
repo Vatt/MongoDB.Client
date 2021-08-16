@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Reader;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Bson.Writer;
 using Xunit;
@@ -87,7 +88,7 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
             return HashCode.Combine(StringProp, ExtensionProp);
         }
     }
-    public class GeneratorCustomModel : IEquatable<GeneratorCustomModel>
+    public class GeneratorCustomModel : IEquatable<GeneratorCustomModel>, IBsonSerializer<GeneratorCustomModel>
     {
         public int Prop0 { get; }
         public int Prop1 { get; }

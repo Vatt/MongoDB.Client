@@ -112,7 +112,7 @@ namespace MongoDB.Client.Scheduler
         }
 
 
-        public async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token)
+        public async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token) where T: IBsonSerializer<T>
         {
             var request = MongoRequestPool.Get();
             var taskSource = request.CompletionSource;

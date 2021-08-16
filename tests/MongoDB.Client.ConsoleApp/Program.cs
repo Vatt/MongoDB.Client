@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Tests.Models;
 
@@ -18,9 +19,9 @@ namespace MongoDB.Client.ConsoleApp
 
             //await LoadTest<GeoIp>(1024*1024, new[] { 4 });
             //await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, false);
-            await TestShardedCluster();
+            //await TestShardedCluster();
             //await TestTransaction();
-            //await TestStandalone();
+            await TestStandalone();
         }
         static async Task TestShardedCluster()
         {
@@ -144,7 +145,7 @@ namespace MongoDB.Client.ConsoleApp
             Console.WriteLine();
         }
 
-        static async Task ReplicaSetConenctionTest<T>(int requestCount, IEnumerable<int> parallelism, bool useTransaction) where T : IIdentified
+        static async Task ReplicaSetConenctionTest<T>(int requestCount, IEnumerable<int> parallelism, bool useTransaction) where T : IIdentified, IBsonSerializer<T>
         {
             var loggerFactory = LoggerFactory.Create(builder =>
             {
@@ -177,7 +178,7 @@ namespace MongoDB.Client.ConsoleApp
                 Console.WriteLine($"End: {item}. Elapsed: {stopwatch.Elapsed}");
             }
         }
-        static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelism) where T : IIdentified
+        static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelism) where T : IIdentified, IBsonSerializer<T>
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
 
