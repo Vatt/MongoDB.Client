@@ -94,7 +94,7 @@ namespace MongoDB.Client.Bson.Reader
                     }
                 case 10:
                     {
-                        objectValue = null;
+                        objectValue = null!;
                         return true;
                     }
                 case 16:

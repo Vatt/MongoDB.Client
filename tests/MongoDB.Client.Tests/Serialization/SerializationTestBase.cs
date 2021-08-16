@@ -11,22 +11,20 @@ using MongoDB.Client.Bson.Writer;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
-using MongoDB.Client.Protocol.Writers;
 
 namespace MongoDB.Client.Tests.Serialization
 {
-    internal unsafe class UnitTestReplyBodyWriter<T> : IMessageWriter<T>
+    internal class UnitTestReplyBodyWriter<T> : IMessageWriter<T>
         where T: IBsonSerializer<T>
     {
         public void WriteMessage(T message, IBufferWriter<byte> output)
         {
             var writer = new BsonWriter(output);
-            //SerializerFnPtrProvider<T>.WriteFnPtr(ref writer, message);
             T.WriteBson(ref writer, message);
-
         }
     }
-    internal unsafe class UnitTestReplyBodyReader<T> : IMessageReader<QueryResult<T>>
+
+    internal class UnitTestReplyBodyReader<T> : IMessageReader<QueryResult<T>>
         where T: IBsonSerializer<T>
     {
         private readonly ReplyMessage _replyMessage;
@@ -44,7 +42,6 @@ namespace MongoDB.Client.Tests.Serialization
             var bsonReader = new BsonReader(input);
             while (_result.Count < _replyMessage.ReplyHeader.NumberReturned)
             {
-                //if (SerializerFnPtrProvider<T>.TryParseFnPtr(ref bsonReader, out var item))
                 if (T.TryParseBson(ref bsonReader, out var item))
                 {
                     _result.Add(item);
@@ -70,6 +67,7 @@ namespace MongoDB.Client.Tests.Serialization
             await wtask;
             return await rtask;
         }
+
         public static async Task<BsonDocument> RoundTripWithBsonAsync<T>(T message) where T : IBsonSerializer<T>
         {
             var pipe = new Pipe();
@@ -82,11 +80,8 @@ namespace MongoDB.Client.Tests.Serialization
             where T1 : IBsonSerializer<T1>
         {
             var pipe = new Pipe();
-            UnitTestReplyBodyReader<T1> reader = default;
-            unsafe
-            {
-                reader = new UnitTestReplyBodyReader<T1>(new ReplyMessage(default, new ReplyMessageHeader(default, default, default, 1)));
-            }
+            var reader = new UnitTestReplyBodyReader<T1>(new ReplyMessage(default, new ReplyMessageHeader(default, default, default, 1)));
+  
             await WriteAsync(pipe.Writer, message);
             return await ReadAsync<T1>(pipe.Reader, reader);
         }
@@ -108,11 +103,7 @@ namespace MongoDB.Client.Tests.Serialization
         public static async Task WriteAsync<T>(PipeWriter output, T message) where T: IBsonSerializer<T>
         {
             var writer = new ProtocolWriter(output);
-            UnitTestReplyBodyWriter<T> messageWriter = default;
-            unsafe
-            {
-                messageWriter = new UnitTestReplyBodyWriter<T>();
-            }
+            var messageWriter = new UnitTestReplyBodyWriter<T>();
             await writer.WriteUnsafeAsync(messageWriter, message).ConfigureAwait(false);
             await output.FlushAsync();
             await output.CompleteAsync();
