@@ -10,6 +10,7 @@ using MongoDB.Client.Bson.Writer;
 
 namespace MongoDB.Client.Bson.Document
 {
+    //FIXIT: implement this
     [DebuggerTypeProxy(typeof(CollectionDebugView<>))]
     public class BsonDocument : IBsonSerializer<BsonDocument>, IEnumerable<BsonElement>, IEquatable<BsonDocument>
     {
@@ -17,11 +18,24 @@ namespace MongoDB.Client.Bson.Document
 
         private readonly List<BsonElement> _elements;
 
-
-        public static bool TryParseBson(ref BsonReader reader, out BsonDocument message)
+        public static bool TryParseBson(ref BsonReader reader, out SerializerStateBase state)
         {
-            return reader.TryParseDocument(out message);
+            throw new NotImplementedException();
         }
+
+        public static bool TryContinueParseBson(ref BsonReader reader, SerializerStateBase state)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static BsonDocument CreateMessage(SerializerStateBase state)
+        {
+            throw new NotImplementedException();
+        }
+        //public static bool TryParseBson(ref BsonReader reader, out BsonDocument message)
+        //{
+        //    return reader.TryParseDocument(out message);
+        //}
 
         public static void WriteBson(ref BsonWriter writer, in BsonDocument message)
         {
