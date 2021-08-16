@@ -68,6 +68,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         .AddBaseListTypes(SerializerBaseType(ctx))
                         .AddMembers(GenerateEnumOfStates(ctx))
                         .AddMembers(GenerateState(ctx))
+                        .AddMembers(TryContinueParseMethod(ctx))
                         .AddMembers(CreateMessageMethod(ctx))
                         .AddMembers(TryParsePrologueMethod(ctx))
                         .AddMembers(TryParseEpilogue(ctx))
@@ -86,6 +87,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         .AddBaseListTypes(SerializerBaseType(ctx))
                         .AddMembers(GenerateEnumOfStates(ctx))
                         .AddMembers(GenerateState(ctx))
+                        .AddMembers(TryContinueParseMethod(ctx))
                         .AddMembers(CreateMessageMethod(ctx))
                         .AddMembers(TryParsePrologueMethod(ctx))
                         .AddMembers(TryParseEpilogue(ctx))
@@ -104,7 +106,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         {
                             /*TryParseMethod(ctx),*/ WriteMethod(ctx)
                         })
-                        .AddRange(new List<MemberDeclarationSyntax> { GenerateEnumOfStates(ctx), GenerateState(ctx), CreateMessageMethod(ctx), TryParsePrologueMethod(ctx), TryParseEpilogue(ctx), TryParseMainLoop(ctx)})
+                        .AddRange(new List<MemberDeclarationSyntax> 
+                        { 
+                            GenerateEnumOfStates(ctx), 
+                            GenerateState(ctx),
+                            TryContinueParseMethod(ctx), 
+                            CreateMessageMethod(ctx), 
+                            TryParsePrologueMethod(ctx), 
+                            TryParseEpilogue(ctx), 
+                            TryParseMainLoop(ctx)})
                         .AddRange(GenerateStaticNamesSpans(ctx))
                         .AddRange(GenerateEnumsStaticNamesSpansIfHave(ctx))
                         .AddRange(GenerateCollectionMethods(ctx))

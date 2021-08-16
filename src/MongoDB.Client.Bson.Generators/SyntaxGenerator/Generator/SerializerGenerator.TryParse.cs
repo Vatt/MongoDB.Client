@@ -30,6 +30,36 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             public static implicit operator ReadOperationContext(ExpressionSyntax expr) => new ReadOperationContext(expr);
         }
+        private static MethodDeclarationSyntax TryContinueParseMethod(ContextCore ctx)
+        {
+            List<StatementSyntax> statements = new();
+            var switchSections = new List<SwitchSectionSyntax>();
+            switchSections.Add(SwitchSection(SimpleMemberAccess(NameOfEnumStatesToken(ctx), InitialEnumStateToken), Block(new List<StatementSyntax>())));
+            switchSections.Add(SwitchSection(SimpleMemberAccess(NameOfEnumStatesToken(ctx), MainLoopEnumStateToken), Block(new List<StatementSyntax>())));
+            switchSections.Add(SwitchSection(SimpleMemberAccess(NameOfEnumStatesToken(ctx), EndMarkerEnumStateToken), Block(new List<StatementSyntax>())));
+            foreach (var member in ctx.Members)
+            {
+                var truetype = ExtractTypeFromNullableIfNeed(member.TypeSym);
+                if (IsBsonSerializable(truetype))
+                {
+                    switchSections.Add(SwitchSection(SimpleMemberAccess(NameOfEnumStatesToken(ctx), MemberEnumStateNameToken(member)), Block(new List<StatementSyntax>())));
+                }
+            }
+            statements.Add(VarLocalTypedStateDeclFromOrigimalState(ctx));
+            statements.Add(SwitchStatement(TypedStateStateAccess, switchSections));
+            return SF.MethodDeclaration(
+                    attributeLists: default,
+                    modifiers: new(PrivateKeyword(), StaticKeyword()),
+                    explicitInterfaceSpecifier: default,
+                    returnType: BoolPredefinedType(),
+                    identifier: TryContinueParseBsonToken,
+                    parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken), Parameter(SerializerStateBaseType, StateToken)),
+                    body: SF.Block(statements),
+                    constraintClauses: default,
+                    expressionBody: default,
+                    typeParameterList: default,
+                    semicolonToken: default);
+        }
         private static MethodDeclarationSyntax TryParsePrologueMethod(ContextCore ctx)
         {
             List<StatementSyntax> statements = new();
@@ -47,7 +77,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     explicitInterfaceSpecifier: default,
                     returnType: BoolPredefinedType(),
                     identifier: Identifier("TryParsePrologue"),
-                    parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken), OutParameter(SerializerStateBaseType, StateToken)),
+                    parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken), Parameter(SerializerStateBaseType, StateToken)),
                     body: Block(statements),
                     constraintClauses: default,
                     expressionBody: default,
