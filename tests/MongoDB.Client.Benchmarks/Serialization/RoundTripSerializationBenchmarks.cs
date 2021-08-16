@@ -8,8 +8,6 @@ namespace MongoDB.Client.Benchmarks.Serialization
     [MemoryDiagnoser]
     public class RoundTripSerializationBenchmarks
     {
-        private static readonly BsonDocumentSerializer _serializer = new BsonDocumentSerializer();
-
         [Benchmark]
         public async Task<BsonDocument> BsonSerialization()
         {
@@ -26,7 +24,7 @@ namespace MongoDB.Client.Benchmarks.Serialization
                 } }
             };
 
-            return await SerializationHelper.RoundTripAsync(doc, _serializer);
+            return await SerializationHelper.RoundTripAsync(doc);
         }
     }
 }

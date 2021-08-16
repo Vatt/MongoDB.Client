@@ -211,12 +211,14 @@ namespace MongoDB.Client.Bson.Reader
             }
             else
             {
-                if (SerializersMap.TryGetSerializer<T>(out var serializer) == false)
-                {
-                    ThrowSerializerNotFound(typeof(T).Name);
-                }
+                //if (SerializersMap.TryGetSerializer<T>(out var serializer) == false)
+                //{
+                //    ThrowSerializerNotFound(typeof(T).Name);
+                //}
 
-                return serializer.TryParseBson(ref this, out genericValue);
+                //return serializer.TryParseBson(ref this, out genericValue);
+                ThrowSerializerNotFound(typeof(T).Name);
+                return false;
             }
 
         }

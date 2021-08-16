@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Scheduler;
@@ -9,7 +10,7 @@ using MongoDB.Client.Utils;
 
 namespace MongoDB.Client
 {
-    public class MongoCollection<T>
+    public class MongoCollection<T> where T : IBsonSerializer<T>
     {
         private readonly IMongoScheduler _scheduler;
 
@@ -24,7 +25,7 @@ namespace MongoDB.Client
 
         public CollectionNamespace Namespace { get; }
 
-        public Cursor<T> Find(BsonDocument filter)
+        public Cursor<T> Find(BsonDocument filter) 
         {
             return Find(TransactionHandler.CreateImplicit(_scheduler), filter);
         }

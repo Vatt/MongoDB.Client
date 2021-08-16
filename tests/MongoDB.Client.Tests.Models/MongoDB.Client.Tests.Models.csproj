@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
+    <EnablePreviewFeatures>true</EnablePreviewFeatures>
+    <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
     <NoWarn>$(NoWarn);CS8618;CS8632;CS8669</NoWarn>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
@@ -14,7 +16,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="MongoDB.Bson" Version="2.12.0" />
+    <PackageReference Include="MongoDB.Bson" Version="2.13.1" />
   </ItemGroup>
   
 </Project>

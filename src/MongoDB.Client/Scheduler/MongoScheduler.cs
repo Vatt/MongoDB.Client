@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
@@ -93,7 +94,7 @@ namespace MongoDB.Client.Scheduler
         }
 
 
-        public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token)
+        public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token) where T : IBsonSerializer<T>
         {
             var request = MongoRequestPool.Get();
             var taskSrc = request.CompletionSource;
@@ -111,7 +112,7 @@ namespace MongoDB.Client.Scheduler
         }
 
 
-        public async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token)
+        public async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token) where T: IBsonSerializer<T>
         {
             var request = MongoRequestPool.Get();
             var taskSource = request.CompletionSource;

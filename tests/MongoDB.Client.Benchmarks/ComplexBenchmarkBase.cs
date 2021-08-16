@@ -6,6 +6,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Tests.Models;
 using MongoDB.Driver;
 using NewClient = MongoDB.Client.MongoClient;
@@ -15,7 +16,7 @@ using OldClient = MongoDB.Driver.MongoClient;
 namespace MongoDB.Client.Benchmarks
 {
     [MemoryDiagnoser]
-    public class ComplexBenchmarkBase<T> where T : IIdentified
+    public class ComplexBenchmarkBase<T> where T : IIdentified, IBsonSerializer<T>
     {
         private MongoCollection<T> _collection;
         private IMongoCollection<T> _oldCollection;

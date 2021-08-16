@@ -80,7 +80,8 @@ namespace MongoDB.Client.Bson.Serialization
             {
                 WriteFnPtr = (delegate*<ref BsonWriter, in T, void>)writeMethod.MethodHandle.GetFunctionPointer();
             }
-            if ((TryParseFnPtr != default && WriteFnPtr != default) || SerializersMap.TryGetSerializer<T>(out var _))
+            //if ((TryParseFnPtr != default && WriteFnPtr != default) || SerializersMap.TryGetSerializer<T>(out var _))
+            if (TryParseFnPtr != default && WriteFnPtr != default)
             {
                 IsSerializable = true;
                 IsSimpleBsonType = false;

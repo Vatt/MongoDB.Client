@@ -1,19 +1,20 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
 
 namespace MongoDB.Client
 {
     public static class MongoClientExtensions
     {
-        public static async ValueTask<List<T>> ToListAsync<T>(this ValueTask<CursorResult<T>> cursorTask)
+        public static async ValueTask<List<T>> ToListAsync<T>(this ValueTask<CursorResult<T>> cursorTask) where T : IBsonSerializer<T>
         {
             var cursorResult = await cursorTask.ConfigureAwait(false);
             return cursorResult.MongoCursor.ToList();
         }
 
-        public static async ValueTask<T?> FirstOrDefaultAsync<T>(this ValueTask<CursorResult<T>> cursorTask)
+        public static async ValueTask<T?> FirstOrDefaultAsync<T>(this ValueTask<CursorResult<T>> cursorTask) where T : IBsonSerializer<T>
         {
             var cursorResult = await cursorTask.ConfigureAwait(false);
             var cursor = cursorResult.MongoCursor;
@@ -22,7 +23,7 @@ namespace MongoDB.Client
             return first is not null ? first.FirstOrDefault() : next!.FirstOrDefault();
         }
 
-        public static List<T> ToList<T>(this MongoCursor<T> mongoCursor)
+        public static List<T> ToList<T>(this MongoCursor<T> mongoCursor) where T : IBsonSerializer<T>
         {
             var cursor = mongoCursor;
             var first = cursor.FirstBatch;
