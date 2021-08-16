@@ -1,9 +1,10 @@
 ﻿using System;
 using MongoDB.Client.Bson.Reader;
+using MongoDB.Client.Bson.Serialization;
 
 namespace MongoDB.Client.Messages
 {
-    public struct CursorResultState<T>
+    public struct CursorResultState<T> where T : IBsonSerializer<T>
     {
         public int? DocLen;
         public bool InMongoCursorMongoCursor;
