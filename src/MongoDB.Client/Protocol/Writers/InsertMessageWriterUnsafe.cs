@@ -50,8 +50,6 @@ namespace MongoDB.Client.Protocol.Writers
 
             foreach (var item in message.Items)
             {
-                //WriterFnPtr(ref writer, item);
-                //SerializerFnPtrProvider<T>.WriteFnPtr(ref writer, item);
                 T.WriteBson(ref writer, item);
             }
 

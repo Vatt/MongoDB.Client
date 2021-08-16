@@ -49,20 +49,20 @@ namespace MongoDB.Client.Benchmarks
             RootDocument.WriteBson(ref writer, _document);
         }
 
-        [Benchmark]
-        public RootDocument ReadOld()
-        {
-            return BsonSerializer.Deserialize<RootDocument>(_documentBson);
-        }
+        //[Benchmark]
+        //public RootDocument ReadOld()
+        //{
+        //    return BsonSerializer.Deserialize<RootDocument>(_documentBson);
+        //}
 
-        [Benchmark]
-        public void WriteOld()
-        {
-            using (var stream = new MemoryStream(_buffer))
-            using (var writer = new BsonBinaryWriter(stream))
-            {
-                BsonSerializer.Serialize(writer, _document);
-            }
-        }
+        //[Benchmark]
+        //public void WriteOld()
+        //{
+        //    using (var stream = new MemoryStream(_buffer))
+        //    using (var writer = new BsonBinaryWriter(stream))
+        //    {
+        //        BsonSerializer.Serialize(writer, _document);
+        //    }
+        //}
     }
 }
