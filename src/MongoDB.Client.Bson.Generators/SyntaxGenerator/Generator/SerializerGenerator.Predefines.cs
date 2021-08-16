@@ -26,6 +26,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static SyntaxToken WriteBsonToken => Identifier("WriteBson");
         public static SyntaxToken CreateMessageToken => Identifier("CreateMessage");
         public static SyntaxToken TryParseBsonToken => Identifier("TryParseBson");
+        public static SyntaxToken TryContinueParseBsonToken => Identifier("TryContinueParseBson");
         public static SyntaxToken BsonReaderToken => Identifier("reader");
         public static SyntaxToken BsonWriterToken => Identifier("writer");
         public static SyntaxToken TryParseOutVarToken => Identifier("message");
@@ -41,6 +42,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static SyntaxToken InProgressEnumStateToken => Identifier("InProgress");
         public static SyntaxToken StatePropertyNameToken => Identifier("State");
         public static SyntaxToken StateToken => Identifier("state");
+        public static SyntaxToken CollectionStateArgumentToken => Identifier("Argument");
         public static SyntaxToken TypedStateToken => Identifier("typedState");
         public static SyntaxToken DocLenToken => Identifier("DocLen");
         public static SyntaxToken ConsumedToken => Identifier("Consumed");

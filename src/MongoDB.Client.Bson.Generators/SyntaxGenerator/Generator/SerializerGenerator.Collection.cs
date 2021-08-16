@@ -155,10 +155,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return methods.ToArray();
         }
-        private static bool TryGenerateCollectionTryParseBson(ITypeSymbol typeSym, ISymbol nameSym, CollectionReadContext readCtx, ImmutableList<StatementSyntax>.Builder builder)
+        private static bool TryGenerateCollectionTryParseBson(MemberContext ctx, ITypeSymbol typeSym, ISymbol nameSym, CollectionReadContext readCtx, ImmutableList<StatementSyntax>.Builder builder, bool continueGeneration = false)
         {
             ITypeSymbol callType = default;
             ITypeSymbol outArgType = default;
+            var methodToken = continueGeneration ? TryContinueParseBsonToken : TryParseBsonToken;
             if (IsBsonSerializable(typeSym))
             {
                 callType = typeSym;
@@ -176,12 +177,18 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 return false;
             }
 
-            var operation = InvocationExpr(IdentifierName(callType.ToString()), TryParseBsonToken,
+            var operation = InvocationExpr(IdentifierName(callType.ToString()), methodToken,
                                            RefArgument(BsonReaderToken),
-                                           OutArgument(TypedVariableDeclarationExpr(TypeFullName(outArgType),
-                                                       readCtx.TempCollectionReadTargetToken)));
-            builder.IfNotReturnFalseElse(condition: operation,
-                @else: Block(InvocationExprStatement(readCtx.TempCollectionToken, CollectionAddToken, readCtx.CollectionAddArguments), ContinueStatement));
+                                           //OutArgument(TypedVariableDeclarationExpr(TypeFullName(outArgType),
+                                           Argument(SimpleMemberAccess(StateToken, CollectionStateArgumentToken)),
+                                           OutArgument(PositionToken));
+            builder.IfNotReturnFalseElse(
+                condition: operation,
+                @else: continueGeneration ? Block(InvocationExprStatement(CollectionLowStateMemberAccess(ctx), CollectionAddToken, Argument(InvocationExpr(CollectionStateArgumentToken, CreateMessageToken))),
+                                                  AddAssignmentExprStatement(StateConsumedMemberAccess, BinaryExprMinus(ReaderBytesConsumedExpr, StartCheckpointToken)),
+                                                  BreakStatement) :
+                                            Block(SimpleMemberAccess(CollectionLowStateMemberAccess(ctx), CollectionAddToken), 
+                                            ContinueStatement));
             return true;
         }
         private static bool TryGenerateCollectionSimpleRead(MemberContext ctx, ITypeSymbol type, CollectionReadContext readCtx, ImmutableList<StatementSyntax>.Builder builder)
@@ -197,7 +204,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 condition: operation,
                 @else:
                 Block(
-                    InvocationExprStatement(readCtx.TempCollectionToken, CollectionAddToken, readCtx.CollectionAddArguments),
+                    InvocationExprStatement(CollectionLowStateMemberAccess(ctx), CollectionAddToken, readCtx.CollectionAddArguments),
                     ContinueStatement));
             return true;
         }

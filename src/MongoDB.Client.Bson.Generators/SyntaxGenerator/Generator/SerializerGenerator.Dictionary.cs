@@ -60,7 +60,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 goto RETURN;
             }
-            if (TryGenerateCollectionTryParseBson(trueTypeArg, ctx.NameSym, DictionaryReadContext, builder))
+            if (TryGenerateCollectionTryParseBson(ctx, trueTypeArg, ctx.NameSym, DictionaryReadContext, builder))
             {
                 goto RETURN;
             }

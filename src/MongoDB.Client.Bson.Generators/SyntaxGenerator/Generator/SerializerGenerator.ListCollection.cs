@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -17,6 +18,48 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             Identifier("temp"),
             Identifier("internalList"),
             new[] { Argument(Identifier("temp")) });
+        private static SwitchStatementSyntax GenerateListStatesSwitch(MemberContext ctx)
+        {
+            List<SwitchSectionSyntax> sections = new();
+            var builder = ImmutableList.CreateBuilder<StatementSyntax>();
+            var trueType = ExtractTypeFromNullableIfNeed(ctx.TypeSym);
+            var typeArg = (trueType as INamedTypeSymbol).TypeArguments[0];
+            var trueTypeArg = ExtractTypeFromNullableIfNeed(typeArg);
+            if (TryGenerateCollectionTryParseBson(ctx, trueTypeArg, ctx.NameSym, ListReadContext, builder, true))
+            {
+                goto SECTIONS;
+            }
+            else if (TryGenerateCollectionSimpleRead(ctx, trueTypeArg, ListReadContext, builder))
+            {
+                goto SECTIONS;
+            }
+            else if (TryGetEnumReadOperation(ctx, ListReadContext.TempCollectionReadTargetToken, ctx.NameSym, typeArg, true, out var enumOp))
+            {
+                builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(ListReadContext.TempCollectionToken, CollectionAddToken, Argument(enumOp.TempExpr))));
+                goto SECTIONS;
+            }
+            ReportUnsuporterTypeError(ctx.NameSym, trueTypeArg);
+        SECTIONS:
+            sections.Add(SwitchSection(SimpleMemberAccess(StateNameToken(ctx.Root), NameOfEnumCollectionStatesToken, InitialEnumStateToken), 
+                Block(
+                    IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(ListReadContext.DocLenToken))),
+                    SimpleAssignExprStatement(CollectionLowStateMemberAccess(ctx), ObjectCreation(ConstructCollectionType(trueType))),
+                    AddAssignmentExprStatement(StateConsumedMemberAccess, SizeOfInt32Expr),
+                    BreakStatement)));
+            sections.Add(SwitchSection(SimpleMemberAccess(StateNameToken(ctx.Root), NameOfEnumCollectionStatesToken, InProgressEnumStateToken),
+                Block(
+                    builder.ToArray()
+                    )));
+            sections.Add(SwitchSection(SimpleMemberAccess(StateNameToken(ctx.Root), NameOfEnumCollectionStatesToken, EndMarkerEnumStateToken), 
+                Block(
+                    IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(ListReadContext.EndMarkerToken))),
+                    IfStatement(
+                        BinaryExprNotEquals(ListReadContext.EndMarkerToken, NumericLiteralExpr((byte)'\x00')),
+                        Block(Statement(SerializerEndMarkerException(ctx.Root.Declaration, IdentifierName(ListReadContext.EndMarkerToken))))),
+                    AddAssignmentExprStatement(StateConsumedMemberAccess, NumericLiteralExpr(1)),
+                    ReturnTrueStatement)));
+            return SwitchStatement(StateStateAccess, sections);
+        }
         private static MethodDeclarationSyntax TryParseListCollectionMethod(MemberContext ctx, ITypeSymbol type)
         {
             var typeArg = (type as INamedTypeSymbol).TypeArguments[0];
@@ -24,7 +67,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             //ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
-            if (TryGenerateCollectionTryParseBson(trueTypeArg, ctx.NameSym, ListReadContext, builder))
+            if (TryGenerateCollectionTryParseBson(ctx, trueTypeArg, ctx.NameSym, ListReadContext, builder))
             {
                 goto RETURN;
             }
@@ -48,7 +91,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     returnType: BoolPredefinedType(),
                     identifier: CollectionTryParseMethodName(type),
                     parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken),
-                                                 OutParameter(IdentifierName(type.ToString()), ListReadContext.OutMessageToken)),
+                                                 RefParameter(StateDotCollectionStateType(ctx), StateToken),
+                                                 OutParameter(SequencePositionType, PositionToken)),
                     body: default,
                     constraintClauses: default,
                     expressionBody: default,
@@ -56,10 +100,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     semicolonToken: default)
                 .WithBody(
                    Block(
-                       SimpleAssignExprStatement(ListReadContext.OutMessageToken, DefaultLiteralExpr()),
-                       VarLocalDeclarationStatement(ListReadContext.TempCollectionToken, ObjectCreation(ConstructCollectionType(type))),
-                       IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(ListReadContext.DocLenToken))),
-                       VarLocalDeclarationStatement(ListReadContext.UnreadedToken, BinaryExprPlus(ReaderRemainingExpr, SizeOfInt32Expr)),
+                       SimpleAssignExprStatement(PositionToken, ReaderPositionExpr),
+                       VarLocalDeclarationStatement(StartCheckpointToken, ReaderBytesConsumedExpr),
+                       GenerateListStatesSwitch(ctx),
+                       //VarLocalDeclarationStatement(ListReadContext.TempCollectionToken, ObjectCreation(ConstructCollectionType(type))),
+                       //IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(ListReadContext.DocLenToken))),
+                       //VarLocalDeclarationStatement(ListReadContext.UnreadedToken, BinaryExprPlus(ReaderRemainingExpr, SizeOfInt32Expr)),
                        SF.WhileStatement(
                            condition:
                                BinaryExprLessThan(
@@ -67,16 +113,19 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                    BinaryExprMinus(ListReadContext.DocLenToken, NumericLiteralExpr(1))),
                            statement:
                                Block(
+                                   VarLocalDeclarationStatement(LoopCheckpointToken, ReaderBytesConsumedExpr),
+                                   SimpleAssignExprStatement(PositionToken, ReaderPositionExpr),
                                    IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(ListReadContext.BsonTypeToken))),
                                    IfNotReturnFalse(TrySkipCStringExpr),
                                    IfStatement(
                                        condition: BinaryExprEqualsEquals(ListReadContext.BsonTypeToken, NumericLiteralExpr(10)),
                                        statement: Block(
-                                           InvocationExprStatement(ListReadContext.TempCollectionToken, CollectionAddToken, Argument(DefaultLiteralExpr())),
+                                           InvocationExprStatement(CollectionLowStateMemberAccess(ctx), CollectionAddToken, Argument(DefaultLiteralExpr())),
                                            ContinueStatement
-                                           )),
-                                   builder.ToArray()
-                                   )),
+                                           ))
+                                   
+                                   )
+                               .AddStatements(builder.ToArray())),
                        IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(ListReadContext.EndMarkerToken))),
                        IfStatement(
                            BinaryExprNotEquals(ListReadContext.EndMarkerToken, NumericLiteralExpr((byte)'\x00')),

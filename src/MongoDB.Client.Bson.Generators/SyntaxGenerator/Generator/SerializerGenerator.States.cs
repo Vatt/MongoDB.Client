@@ -17,9 +17,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static TypeSyntax TypeNameOfEnumStates(ContextCore ctx) => SF.ParseTypeName($"{ctx.Declaration.Name}States");
         private static SyntaxToken StateNameToken(ContextCore ctx) => Identifier($"{ctx.Declaration.Name}State");
         private static TypeSyntax StateNameType(ContextCore ctx) => SF.ParseTypeName($"{ctx.Declaration.Name}State");
+        private static TypeSyntax StateDotCollectionStateType(MemberContext member) => SF.ParseTypeName($"{member.Root.Declaration.Name}State.{UnwrapTypeName(ExtractTypeFromNullableIfNeed(member.TypeSym))}State");
+        private static SyntaxToken StateDotCollectionStateToken(MemberContext member) => Identifier($"{member.Root.Declaration.Name}State.{UnwrapTypeName(ExtractTypeFromNullableIfNeed(member.TypeSym))}State");
         private static StatementSyntax VarLocalTypedStateDeclFromOrigimalState(ContextCore ctx) => VarLocalDeclarationStatement(TypedStateToken, Cast(StateNameType(ctx), IdentifierName(StateToken)));
         private static MemberAccessExpressionSyntax TypedStateMemberAccess(MemberContext ctx) => SimpleMemberAccess(TypedStateToken, ctx.AssignedVariableToken);
         private static MemberAccessExpressionSyntax TypedStateStateAccess => SimpleMemberAccess(TypedStateToken, Identifier("State"));
+        private static MemberAccessExpressionSyntax StateStateAccess => SimpleMemberAccess(StateToken, Identifier("State"));
         private static StatementSyntax TypedStateStateAccessStatement(MemberContext ctx) => Statement(TypedStateStateAccess);
         private static StatementSyntax TypedStateMemberAccessStatement(MemberContext ctx) => Statement(TypedStateMemberAccess(ctx));
         private static MemberAccessExpressionSyntax StateMemberAccess(MemberContext ctx) => SimpleMemberAccess(StateToken, ctx.AssignedVariableToken);
@@ -31,6 +34,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return InvocationExpr(IdentifierName(trueType.ToString()), CreateMessageToken, Argument(TypedStateMemberAccess(ctx)));
         }
         private static ExpressionSyntax CollectionStateMemberAccess(MemberContext ctx) => SimpleMemberAccess(TypedStateToken, ctx.AssignedVariableToken, CollectionToken);
+        private static ExpressionSyntax CollectionLowStateMemberAccess(MemberContext ctx) => SimpleMemberAccess(StateToken, CollectionToken);
         private static EnumDeclarationSyntax GenerateEnumOfStates(ContextCore ctx)
         {
             List<EnumMemberDeclarationSyntax> states = new();
@@ -205,6 +209,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 SF.StructDeclaration(NameOfCollectionState(trueType))
                   .AddModifiers(PublicKeyword())
                   .AddMembers(SF.FieldDeclaration(
+                                    attributeLists: default,
+                                    modifiers: new(PublicKeyword()),
+                                    declaration: SF.VariableDeclaration(SerializerStateBaseType, SeparatedList(SF.VariableDeclarator(CollectionStateArgumentToken))),
+                                    semicolonToken: SemicolonToken()),
+                              SF.FieldDeclaration(
                                     attributeLists: default,
                                     modifiers: new(PublicKeyword()),
                                     declaration: SF.VariableDeclaration(NullableIntType, SeparatedList(SF.VariableDeclarator(DocLenToken))),
