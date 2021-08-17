@@ -10,7 +10,7 @@ using MongoDB.Client.Messages;
 
 namespace MongoDB.Client.Protocol.Readers
 {
-    internal class FindMsgType0BodyReaderUnsafe<T> : MsgBodyReader<T>
+    internal class FindMsgType0BodyReaderUnsafe<T> : MsgBodyReader<T> where T: IBsonSerializer<T>
     {
         private long _modelsReaded;
         private long _payloadLength;
@@ -19,10 +19,10 @@ namespace MongoDB.Client.Protocol.Readers
         private long _docReaded;
 
 //        private ParserState _state;
-        private CursorResultState<T> _state;
+        private SerializerStateBase _state;
 
         public FindMsgType0BodyReaderUnsafe(ResponseMsgMessage message)
-            : base(null!, message)
+            : base(message)
         {
             _payloadLength = message.Header.MessageLength;
             //_state = ParserState.Initial;
@@ -41,7 +41,7 @@ namespace MongoDB.Client.Protocol.Readers
             {
                 if (CursorResult<T>.TryParseBson(ref bsonReader, out _state, out consumed))
                 {
-                    message = _state.message;
+                    message = CursorResult<T>.CreateMessage(_state);
                     examined = consumed;
                     //message.MongoCursor.Items = message.MongoCursor.FirstBatch;
                     return true;
@@ -54,9 +54,9 @@ namespace MongoDB.Client.Protocol.Readers
             }
             else
             {
-                if (CursorResult<T>.TryContinueParseBson(ref bsonReader, ref _state, out consumed))
+                if (CursorResult<T>.TryContinueParseBson(ref bsonReader, _state, out consumed))
                 {
-                    message = _state.message;
+                    message = CursorResult<T>.CreateMessage(_state);
                     examined = consumed;
                     //message.MongoCursor.Items = message.MongoCursor.FirstBatch;
                     return true;

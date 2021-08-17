@@ -18,12 +18,12 @@ namespace MongoDB.Client.Bson.Document
 
         private readonly List<BsonElement> _elements;
 
-        public static bool TryParseBson(ref BsonReader reader, out SerializerStateBase state)
+        public static bool TryParseBson(ref BsonReader reader, out SerializerStateBase state, out SequencePosition position)
         {
             throw new NotImplementedException();
         }
 
-        public static bool TryContinueParseBson(ref BsonReader reader, SerializerStateBase state)
+        public static bool TryContinueParseBson(ref BsonReader reader, SerializerStateBase state, out SequencePosition position)
         {
             throw new NotImplementedException();
         }

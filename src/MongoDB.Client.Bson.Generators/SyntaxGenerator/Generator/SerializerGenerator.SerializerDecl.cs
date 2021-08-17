@@ -70,12 +70,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         .AddMembers(GenerateState(ctx))
                         .AddMembers(TryContinueParseMethod(ctx))
                         .AddMembers(CreateMessageMethod(ctx))
+                        .AddMembers(TryParseMethod(ctx))
                         .AddMembers(TryParsePrologueMethod(ctx))
                         .AddMembers(TryParseEpilogue(ctx))
                         .AddMembers(TryParseMainLoop(ctx))
                         .AddMembers(GenerateStaticNamesSpans(ctx))
                         .AddMembers(GenerateEnumsStaticNamesSpansIfHave(ctx))
-                        //.AddMembers(TryParseMethod(ctx))
                         .AddMembers(WriteMethod(ctx))
                         .AddMembers(GenerateCollectionMethods(ctx))
                         .AddMembers(GenerateReadStringReprEnumMethods(ctx))
@@ -89,12 +89,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         .AddMembers(GenerateState(ctx))
                         .AddMembers(TryContinueParseMethod(ctx))
                         .AddMembers(CreateMessageMethod(ctx))
+                        .AddMembers(TryParseMethod(ctx))
                         .AddMembers(TryParsePrologueMethod(ctx))
                         .AddMembers(TryParseEpilogue(ctx))
                         .AddMembers(TryParseMainLoop(ctx))
                         .AddMembers(GenerateStaticNamesSpans(ctx))
                         .AddMembers(GenerateEnumsStaticNamesSpansIfHave(ctx))
-                        //.AddMembers(TryParseMethod(ctx))
                         .AddMembers(WriteMethod(ctx))
                         .AddMembers(GenerateCollectionMethods(ctx))
                         .AddMembers(GenerateReadStringReprEnumMethods(ctx))
@@ -111,7 +111,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                             GenerateEnumOfStates(ctx), 
                             GenerateState(ctx),
                             TryContinueParseMethod(ctx), 
-                            CreateMessageMethod(ctx), 
+                            CreateMessageMethod(ctx),
+                            TryParseMethod(ctx),
                             TryParsePrologueMethod(ctx), 
                             TryParseEpilogue(ctx), 
                             TryParseMainLoop(ctx)})

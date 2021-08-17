@@ -30,30 +30,73 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             public static implicit operator ReadOperationContext(ExpressionSyntax expr) => new ReadOperationContext(expr);
         }
+        private static List<StatementSyntax> InitStateStatements()
+        {
+            List<StatementSyntax> statements = new();
+            statements.Add(IfNotReturnFalse(InvocationExpr(IdentifierName(TryParsePrologueToken), RefArgument(BsonReaderToken), Argument(TypedStateToken))));
+            statements.Add(IfNotReturnFalse(InvocationExpr(IdentifierName(TryParseMainLoopToken), RefArgument(BsonReaderToken), Argument(TypedStateToken), OutArgument(PositionToken))));
+            statements.Add(IfNotReturnFalse(InvocationExpr(IdentifierName(TryParseEpilogueToken), RefArgument(BsonReaderToken), Argument(TypedStateToken))));
+            statements.Add(BreakStatement);
+            return statements;
+        }
+        private static List<StatementSyntax> MainLoopStateStatements()
+        {
+            List<StatementSyntax> statements = new();
+            statements.Add(IfNotReturnFalse(InvocationExpr(IdentifierName(TryParseMainLoopToken), RefArgument(BsonReaderToken), Argument(TypedStateToken), OutArgument(PositionToken))));
+            statements.Add(IfNotReturnFalse(InvocationExpr(IdentifierName(TryParseEpilogueToken), RefArgument(BsonReaderToken), Argument(TypedStateToken))));
+            statements.Add(BreakStatement);
+            return statements;
+        }
+        private static List<StatementSyntax> EndMarkerStateStatements()
+        {
+            List<StatementSyntax> statements = new();
+            statements.Add(IfNotReturnFalse(InvocationExpr(IdentifierName(TryParseEpilogueToken), RefArgument(BsonReaderToken), Argument(TypedStateToken))));
+            statements.Add(BreakStatement);
+            return statements;
+        }
+        private static List<SwitchSectionSyntax> InProgressStates(ContextCore ctx)
+        {
+            List<SwitchSectionSyntax> sections = new();
+            foreach(var member in ctx.Members.Where( x => IsBsonSerializable(x.TypeSym)))
+            {
+                var memberId = IdentifierName(member.NameSym.ToString());
+                var tryContinueParseCall = InvocationExpr(memberId, TryContinueParseBsonToken, RefArgument(BsonReaderToken), Argument(TypedStateMemberAccess(member)), OutArgument(PositionToken));
+                sections.Add(SwitchSection(SimpleMemberAccess(NameOfEnumStatesToken(ctx), MemberEnumStateNameToken(member)), 
+                                           Block(IfNotReturnFalse(tryContinueParseCall), 
+                                                 IfNotReturnFalse(InvocationExpr(IdentifierName(TryParseMainLoopToken), RefArgument(BsonReaderToken), Argument(TypedStateToken), OutArgument(PositionToken))), 
+                                                 BreakStatement)));
+            }
+            return sections;
+        }
         private static MethodDeclarationSyntax TryContinueParseMethod(ContextCore ctx)
         {
             List<StatementSyntax> statements = new();
             var switchSections = new List<SwitchSectionSyntax>();
-            switchSections.Add(SwitchSection(SimpleMemberAccess(NameOfEnumStatesToken(ctx), InitialEnumStateToken), Block(new List<StatementSyntax>())));
-            switchSections.Add(SwitchSection(SimpleMemberAccess(NameOfEnumStatesToken(ctx), MainLoopEnumStateToken), Block(new List<StatementSyntax>())));
-            switchSections.Add(SwitchSection(SimpleMemberAccess(NameOfEnumStatesToken(ctx), EndMarkerEnumStateToken), Block(new List<StatementSyntax>())));
-            foreach (var member in ctx.Members)
-            {
-                var truetype = ExtractTypeFromNullableIfNeed(member.TypeSym);
-                if (IsBsonSerializable(truetype))
-                {
-                    switchSections.Add(SwitchSection(SimpleMemberAccess(NameOfEnumStatesToken(ctx), MemberEnumStateNameToken(member)), Block(new List<StatementSyntax>())));
-                }
-            }
+            switchSections.Add(SwitchSection(SimpleMemberAccess(NameOfEnumStatesToken(ctx), InitialEnumStateToken), Block(InitStateStatements())));
+            switchSections.Add(SwitchSection(SimpleMemberAccess(NameOfEnumStatesToken(ctx), MainLoopEnumStateToken), Block(MainLoopStateStatements())));
+            switchSections.Add(SwitchSection(SimpleMemberAccess(NameOfEnumStatesToken(ctx), EndMarkerEnumStateToken), Block(EndMarkerStateStatements())));
+            switchSections.AddRange(InProgressStates(ctx));
+            //foreach (var member in ctx.Members)
+            //{
+            //    var truetype = ExtractTypeFromNullableIfNeed(member.TypeSym);
+            //    if (IsBsonSerializable(truetype))
+            //    {
+            //        switchSections.Add(SwitchSection(SimpleMemberAccess(NameOfEnumStatesToken(ctx), MemberEnumStateNameToken(member)), Block(new List<StatementSyntax>())));
+            //    }
+            //}
+            statements.Add(SimpleAssignExprStatement(PositionToken, ReaderPositionExpr));
             statements.Add(VarLocalTypedStateDeclFromOrigimalState(ctx));
             statements.Add(SwitchStatement(TypedStateStateAccess, switchSections));
+            statements.Add(ReturnTrueStatement);
             return SF.MethodDeclaration(
                     attributeLists: default,
-                    modifiers: new(PrivateKeyword(), StaticKeyword()),
+                    modifiers: new(PublicKeyword(), StaticKeyword()),
                     explicitInterfaceSpecifier: default,
                     returnType: BoolPredefinedType(),
                     identifier: TryContinueParseBsonToken,
-                    parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken), Parameter(SerializerStateBaseType, StateToken)),
+                    parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken), 
+                                                 Parameter(SerializerStateBaseType, StateToken), 
+                                                 OutParameter(SequencePositionType, PositionToken)),
                     body: SF.Block(statements),
                     constraintClauses: default,
                     expressionBody: default,
@@ -63,7 +106,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static MethodDeclarationSyntax TryParsePrologueMethod(ContextCore ctx)
         {
             List<StatementSyntax> statements = new();
-            statements.Add(SimpleAssignExprStatement(StateToken, ObjectCreation(StateNameType(ctx))));
             statements.Add(IfNotReturnFalseElse(TryGetInt32(StateDocLenMemberAccess), 
                 Block(
                     SimpleAssignExpr(StateToken, SimpleMemberAccess(StateNameToken(ctx), MainLoopEnumStateToken)),
@@ -76,8 +118,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     modifiers: new(PrivateKeyword(), StaticKeyword()),
                     explicitInterfaceSpecifier: default,
                     returnType: BoolPredefinedType(),
-                    identifier: Identifier("TryParsePrologue"),
-                    parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken), Parameter(SerializerStateBaseType, StateToken)),
+                    identifier: TryParsePrologueToken,
+                    //parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken), Parameter(SerializerStateBaseType, StateToken)),
+                    parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken), Parameter(StateNameType(ctx), StateToken)),
                     body: Block(statements),
                     constraintClauses: default,
                     expressionBody: default,
@@ -87,7 +130,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static MethodDeclarationSyntax TryParseEpilogue(ContextCore ctx)
         {
             List<StatementSyntax> statements = new();
-            statements.Add(VarLocalTypedStateDeclFromOrigimalState(ctx));
             statements.Add(IfStatement(TryGetByte(VarVariableDeclarationExpr(EndMarkerToken)), Block(SimpleAssignExpr(TypedStateToken, SimpleMemberAccess(StateNameToken(ctx), EndMarkerEnumStateToken)), ReturnFalseStatement)));
             statements.Add(IfStatement(BinaryExprNotEquals(EndMarkerToken, NumericLiteralExpr((byte)'\x00')), Block(SerializerEndMarkerException(ctx.Declaration, IdentifierName(EndMarkerToken)))));
             statements.Add(AddAssignmentExprStatement(TypedStateConsumedMemberAccess, NumericLiteralExpr(1)));
@@ -100,7 +142,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     explicitInterfaceSpecifier: default,
                     returnType: BoolPredefinedType(),
                     identifier: Identifier("TryParseEpilogue"),
-                    parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken), Parameter(SerializerStateBaseType, StateToken)),
+                    parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken), Parameter(StateNameType(ctx), TypedStateToken)),
                     body: Block(statements),
                     constraintClauses: default,
                     expressionBody: default,
@@ -128,7 +170,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     returnType: BoolPredefinedType(),
                     identifier: Identifier("TryParseMainLoop"),
                     parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken),
-                                                 Parameter(SerializerStateBaseType, StateToken),
+                                                 Parameter(StateNameType(ctx), TypedStateToken),
                                                  OutParameter(SequencePositionType, PositionToken)),
                     body: default,
                     constraintClauses: default,
@@ -137,7 +179,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     semicolonToken: default)
                 .WithBody(
                     Block(
-                     VarLocalTypedStateDeclFromOrigimalState(ctx),
                      VarLocalDeclarationStatement(DocLengthToken, SimpleMemberAccess(StateDocLenMemberAccess, Identifier("Value"))),
                      VarLocalDeclarationStatement(StartCheckpointToken, ReaderBytesConsumedExpr),
                      VarLocalDeclarationStatement(LocalConsumedToken, NumericLiteralExpr(0)),
@@ -157,21 +198,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         private static MethodDeclarationSyntax TryParseMethod(ContextCore ctx)
         {
-            var declaration = ctx.Declaration;
-            var docLenToken = Identifier("docLength");
-            var unreadedToken = Identifier("unreaded");
-            var endMarkerToken = Identifier("endMarker");
-
-            StatementSyntax[] operations = default;
-            switch (ctx.GeneratorMode.IfConditions)
-            {
-                case false:
-                    operations = ContextTreeTryParseOperations(ctx, BsonTypeToken, BsonNameToken);
-                    break;
-                case true:
-                    operations = Operations(ctx, BsonTypeToken, BsonNameToken);
-                    break;
-            }
             return SF.MethodDeclaration(
                     attributeLists: default,
                     modifiers: new(PublicKeyword(), StaticKeyword()),
@@ -179,7 +205,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     returnType: BoolPredefinedType(),
                     identifier: TryParseBsonToken,
                     parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken),
-                                                 OutParameter(TypeFullName(declaration), TryParseOutVarToken)),
+                                                 OutParameter(SerializerStateBaseType, StateToken),
+                                                 OutParameter(SequencePositionType, PositionToken)),
                     body: default,
                     constraintClauses: default,
                     expressionBody: default,
@@ -187,26 +214,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     semicolonToken: default)
                 .WithBody(
                     Block(
-                     SimpleAssignExprStatement(TryParseOutVarToken, DefaultLiteralExpr()),
-                     DeclareTempVariables(ctx),
-                     IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(docLenToken))),
-                     VarLocalDeclarationStatement(unreadedToken, BinaryExprPlus(ReaderRemainingExpr, SizeOfInt32Expr)),
-                     SF.WhileStatement(
-                         BinaryExprLessThan(
-                             BinaryExprMinus(IdentifierName(unreadedToken), ReaderRemainingExpr),
-                             BinaryExprMinus(IdentifierName(docLenToken), NumericLiteralExpr(1))),
-                         Block(
-                             IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(BsonTypeToken))),
-                             IfNotReturnFalse(TryGetCStringAsSpan(VarVariableDeclarationExpr(BsonNameToken))),
-                             IfContinue(BinaryExprEqualsEquals(IdentifierName(BsonTypeToken), NumericLiteralExpr(10))),
-                             operations,
-                             IfNotReturnFalse(TrySkip(BsonTypeToken)))),
-                     IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
-                     SF.IfStatement(
-                         BinaryExprNotEquals(endMarkerToken, NumericLiteralExpr((byte)'\x00')),
-                         Block(SerializerEndMarkerException(declaration, IdentifierName(endMarkerToken)))))
-                        .AddStatements(CreateMessage(ctx))
-                        .AddStatements(ReturnTrueStatement));
+                        SimpleAssignExprStatement(StateToken, ObjectCreation(StateNameType(ctx))),
+                        VarLocalTypedStateDeclFromOrigimalState(ctx),
+                        IfNotReturnFalse(InvocationExpr(IdentifierName(TryParsePrologueToken), RefArgument(BsonReaderToken), Argument(TypedStateToken))),
+                        IfNotReturnFalse(InvocationExpr(IdentifierName(TryParseMainLoopToken), RefArgument(BsonReaderToken), Argument(TypedStateToken), OutArgument(PositionToken))),
+                        IfNotReturnFalse(InvocationExpr(IdentifierName(TryParseEpilogueToken), RefArgument(BsonReaderToken), Argument(TypedStateToken))),
+                        ReturnTrueStatement
+                     ));
         }
         private static StatementSyntax[] DeclareTempVariables(ContextCore ctx)
         {
