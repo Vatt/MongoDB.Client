@@ -9,7 +9,7 @@ namespace MongoDB.Client.Bson.Serialization
     public abstract class SerializerStateBase
     {
         public int? DocLen;
-        public int Consumed;
+        public long Consumed;
         public SerializerStateBase()
         {
             DocLen = null;

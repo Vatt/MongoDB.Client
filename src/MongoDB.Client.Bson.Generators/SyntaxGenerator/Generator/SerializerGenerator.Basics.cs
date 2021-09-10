@@ -226,6 +226,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.BinaryExpression(SyntaxKind.SubtractExpression, IdentifierName(left), right);
         }
+        public static BinaryExpressionSyntax BinaryExprPlus(SyntaxToken left, SyntaxToken right)
+        {
+            return SF.BinaryExpression(SyntaxKind.AddExpression, IdentifierName(left), IdentifierName(right));
+        }
+        public static BinaryExpressionSyntax BinaryExprPlus(ExpressionSyntax left, SyntaxToken right)
+        {
+            return SF.BinaryExpression(SyntaxKind.AddExpression, left, IdentifierName(right));
+        }
         public static BinaryExpressionSyntax BinaryExprMinus(SyntaxToken left, SyntaxToken right)
         {
             return SF.BinaryExpression(SyntaxKind.SubtractExpression, IdentifierName(left), IdentifierName(right));
@@ -469,6 +477,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static SwitchStatementSyntax SwitchStatement(ExpressionSyntax expr, List<SwitchSectionSyntax> sections)
         {
             return SF.SwitchStatement(expr, new SyntaxList<SwitchSectionSyntax>(sections.ToArray()));
+        }
+        public static SwitchStatementSyntax SwitchStatement(ExpressionSyntax expr, params SwitchSectionSyntax[] sections)
+        {
+            return SF.SwitchStatement(expr, new SyntaxList<SwitchSectionSyntax>(sections));
         }
     }
 }

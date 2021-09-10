@@ -105,6 +105,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return InvocationExpr(IdentifierName(source), IdentifierName(member), args);
         }
+        public static ExpressionSyntax InvocationExpr(SyntaxToken source0, SyntaxToken source1, SyntaxToken member, params ArgumentSyntax[] args)
+        {
+            return InvocationExpr(SimpleMemberAccess(source0, source1), member, args);
+        }
         public static ExpressionSyntax InvocationExpr(SyntaxToken source, GenericNameSyntax member, params ArgumentSyntax[] args)
         {
             return SF.InvocationExpression(SimpleMemberAccess(IdentifierName(source), member), SF.ArgumentList().AddArguments(args));
@@ -292,6 +296,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return SF.LiteralExpression(SyntaxKind.NullLiteralExpression);
         }
         public static LiteralExpressionSyntax NumericLiteralExpr(int value)
+        {
+            return SF.LiteralExpression(SyntaxKind.NumericLiteralExpression, SF.Literal(value));
+        }
+        public static LiteralExpressionSyntax NumericLiteralExpr(long value)
         {
             return SF.LiteralExpression(SyntaxKind.NumericLiteralExpression, SF.Literal(value));
         }

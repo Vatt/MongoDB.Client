@@ -25,7 +25,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var trueType = ExtractTypeFromNullableIfNeed(ctx.TypeSym);
             var typeArg = (trueType as INamedTypeSymbol).TypeArguments[0];
             var trueTypeArg = ExtractTypeFromNullableIfNeed(typeArg);
-            if (TryGenerateCollectionTryParseBson(ctx, trueTypeArg, ctx.NameSym, ListReadContext, builder, true))
+            if (TryGenerateCollectionTryParseBson(ctx, trueTypeArg, ctx.NameSym, ListReadContext, builder, true, true))
             {
                 goto SECTIONS;
             }
@@ -52,10 +52,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     )));
             sections.Add(SwitchSection(SimpleMemberAccess(StateNameToken(ctx.Root), NameOfEnumCollectionStatesToken, EndMarkerEnumStateToken), 
                 Block(
-                    IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(ListReadContext.EndMarkerToken))),
+                    IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(Identifier("endMarker")))),
                     IfStatement(
-                        BinaryExprNotEquals(ListReadContext.EndMarkerToken, NumericLiteralExpr((byte)'\x00')),
-                        Block(Statement(SerializerEndMarkerException(ctx.Root.Declaration, IdentifierName(ListReadContext.EndMarkerToken))))),
+                        BinaryExprNotEquals(Identifier("endMarker"), NumericLiteralExpr((byte)'\x00')),
+                        Block(Statement(SerializerEndMarkerException(ctx.Root.Declaration, IdentifierName(Identifier("endMarker")))))),
                     AddAssignmentExprStatement(StateConsumedMemberAccess, NumericLiteralExpr(1)),
                     ReturnTrueStatement)));
             return SwitchStatement(StateStateAccess, sections);
@@ -64,7 +64,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             var typeArg = (type as INamedTypeSymbol).TypeArguments[0];
             var trueTypeArg = ExtractTypeFromNullableIfNeed(typeArg);
-
+            var StateConsumedAssign = AddAssignmentExprStatement(StateConsumedMemberAccess, BinaryExprMinus(ReaderBytesConsumedExpr, StartCheckpointToken));
             //ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
             if (TryGenerateCollectionTryParseBson(ctx, trueTypeArg, ctx.NameSym, ListReadContext, builder))
@@ -102,14 +102,18 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                    Block(
                        SimpleAssignExprStatement(PositionToken, ReaderPositionExpr),
                        VarLocalDeclarationStatement(StartCheckpointToken, ReaderBytesConsumedExpr),
+                       
                        GenerateListStatesSwitch(ctx),
                        //VarLocalDeclarationStatement(ListReadContext.TempCollectionToken, ObjectCreation(ConstructCollectionType(type))),
                        //IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(ListReadContext.DocLenToken))),
                        //VarLocalDeclarationStatement(ListReadContext.UnreadedToken, BinaryExprPlus(ReaderRemainingExpr, SizeOfInt32Expr)),
+                       //VarLocalDeclarationStatement(LocalDocLenToken, SimpleMemberAccess(StateToken, DocLenToken)),
+                       //VarLocalDeclarationStatement(LocalCollectionToken, SimpleMemberAccess(StateToken, CollectionToken)),
+                       VarLocalDeclarationStatement(SmallConsumedToken, StateConsumedMemberAccess),
                        SF.WhileStatement(
                            condition:
                                BinaryExprLessThan(
-                                   BinaryExprMinus(ListReadContext.UnreadedToken, ReaderRemainingExpr),
+                                   BinaryExprPlus(SmallConsumedToken, LocalConsumedToken),
                                    BinaryExprMinus(ListReadContext.DocLenToken, NumericLiteralExpr(1))),
                            statement:
                                Block(
@@ -121,6 +125,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                        condition: BinaryExprEqualsEquals(ListReadContext.BsonTypeToken, NumericLiteralExpr(10)),
                                        statement: Block(
                                            InvocationExprStatement(CollectionLowStateMemberAccess(ctx), CollectionAddToken, Argument(DefaultLiteralExpr())),
+                                           SimpleAssignExprStatement(LoopCheckpointToken, BinaryExprMinus(ReaderBytesConsumedExpr, StartCheckpointToken)),
                                            ContinueStatement
                                            ))
                                    

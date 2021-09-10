@@ -39,6 +39,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static void IfNotReturnFalseElse(this ImmutableList<StatementSyntax>.Builder builder, ExpressionSyntax condition, BlockSyntax @else)
         {
             builder.Add(SerializerGenerator.IfNotReturnFalseElse(condition, @else));
+        }     
+        public static void IfNotElse(this ImmutableList<StatementSyntax>.Builder builder, ExpressionSyntax condition, BlockSyntax statements, BlockSyntax @else)
+        {
+            builder.Add(SerializerGenerator.IfNotElse(condition, statements, @else));
         }
         public static void IfNotReturnFalse(this ImmutableList<StatementSyntax>.Builder builder, ExpressionSyntax condition)
         {

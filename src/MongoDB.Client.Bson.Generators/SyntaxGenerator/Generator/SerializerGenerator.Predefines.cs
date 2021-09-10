@@ -50,9 +50,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static SyntaxToken DocLenToken => Identifier("DocLen");
         public static SyntaxToken ConsumedToken => Identifier("Consumed");
         public static SyntaxToken CollectionToken => Identifier("Collection");
+        public static SyntaxToken LocalCollectionToken => Identifier("collection");
         public static SyntaxToken SerializerBaseTypeToken => Identifier(SerializerBaseStateTypeString);
         public static SyntaxToken StartCheckpointToken => Identifier("startCheckpoint");
         public static SyntaxToken LoopCheckpointToken => Identifier("loopCheckpoint");
         public static SyntaxToken LocalConsumedToken => Identifier("localConsumed");
+        public static SyntaxToken LocalDocLenToken => Identifier("docLen");
+        public static SyntaxToken SmallConsumedToken => Identifier("consumed");
     }
 }

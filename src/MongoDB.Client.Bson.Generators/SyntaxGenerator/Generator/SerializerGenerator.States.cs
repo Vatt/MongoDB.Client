@@ -23,15 +23,21 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static MemberAccessExpressionSyntax TypedStateMemberAccess(MemberContext ctx) => SimpleMemberAccess(TypedStateToken, ctx.AssignedVariableToken);
         private static MemberAccessExpressionSyntax TypedStateStateAccess => SimpleMemberAccess(TypedStateToken, Identifier("State"));
         private static MemberAccessExpressionSyntax StateStateAccess => SimpleMemberAccess(StateToken, Identifier("State"));
+        private static MemberAccessExpressionSyntax CollectionStateArgumentAccess => SimpleMemberAccess(StateToken, CollectionStateArgumentToken);
         private static StatementSyntax TypedStateStateAccessStatement(MemberContext ctx) => Statement(TypedStateStateAccess);
         private static StatementSyntax TypedStateMemberAccessStatement(MemberContext ctx) => Statement(TypedStateMemberAccess(ctx));
         private static MemberAccessExpressionSyntax StateMemberAccess(MemberContext ctx) => SimpleMemberAccess(StateToken, ctx.AssignedVariableToken);
         private static readonly SyntaxToken NameOfEnumCollectionStatesToken = Identifier($"CollectionStates");
         private static SyntaxToken NameOfCollectionState(ITypeSymbol type) => Identifier($"{UnwrapTypeName(type)}State");
-        private static ExpressionSyntax CreateMessageFromState(MemberContext ctx)
+        private static ExpressionSyntax CreateMessageFromTypedState(MemberContext ctx)
         {
             var trueType = ExtractTypeFromNullableIfNeed(ctx.TypeSym);
             return InvocationExpr(IdentifierName(trueType.ToString()), CreateMessageToken, Argument(TypedStateMemberAccess(ctx)));
+        }
+        private static ExpressionSyntax CreateMessageFromState(ITypeSymbol typeSym, ExpressionSyntax target)
+        {
+            var trueType = ExtractTypeFromNullableIfNeed(typeSym);
+            return InvocationExpr(IdentifierName(trueType.ToString()), CreateMessageToken, Argument(target));
         }
         private static ExpressionSyntax CollectionStateMemberAccess(MemberContext ctx) => SimpleMemberAccess(TypedStateToken, ctx.AssignedVariableToken, CollectionToken);
         private static ExpressionSyntax CollectionLowStateMemberAccess(MemberContext ctx) => SimpleMemberAccess(StateToken, CollectionToken);
@@ -124,7 +130,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     {
                         if(IsBsonSerializable(trueType))
                         {
-                            args.Add(Argument(CreateMessageFromState(member), NameColon(parameter)));
+                            args.Add(Argument(CreateMessageFromTypedState(member), NameColon(parameter)));
                         }
                         else if (IsCollection(trueType))
                         {
@@ -140,7 +146,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     {
                         if (IsBsonSerializable(trueType))
                         {
-                            assignments.Add(SimpleAssignExprStatement(SimpleMemberAccess(TryParseOutVarToken, IdentifierName(member.NameSym.Name)), CreateMessageFromState(member)));
+                            assignments.Add(SimpleAssignExprStatement(SimpleMemberAccess(TryParseOutVarToken, IdentifierName(member.NameSym.Name)), CreateMessageFromTypedState(member)));
                         }
                         else if (IsCollection(trueType))
                         {
@@ -166,7 +172,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
                     if (IsBsonSerializable(trueType))
                     {
-                        result.Add(SimpleAssignExprStatement(SimpleMemberAccess(TryParseOutVarToken, IdentifierName(member.NameSym.Name)), CreateMessageFromState(member)));
+                        result.Add(SimpleAssignExprStatement(SimpleMemberAccess(TryParseOutVarToken, IdentifierName(member.NameSym.Name)), CreateMessageFromTypedState(member)));
                     }
                     else if (IsCollection(trueType))
                     {
@@ -211,6 +217,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                   .AddMembers(SF.FieldDeclaration(
                                     attributeLists: default,
                                     modifiers: new(PublicKeyword()),
+                                    declaration: SF.VariableDeclaration(SF.ParseTypeName("CollectionStates"), SeparatedList(SF.VariableDeclarator(StatePropertyNameToken)))),
+                              SF.FieldDeclaration(
+                                    attributeLists: default,
+                                    modifiers: new(PublicKeyword()),
                                     declaration: SF.VariableDeclaration(SerializerStateBaseType, SeparatedList(SF.VariableDeclarator(CollectionStateArgumentToken))),
                                     semicolonToken: SemicolonToken()),
                               SF.FieldDeclaration(
@@ -221,7 +231,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                               SF.FieldDeclaration(
                                     attributeLists: default,
                                     modifiers: new(PublicKeyword()),
-                                    declaration: SF.VariableDeclaration(IntPredefinedType(), SeparatedList(SF.VariableDeclarator(ConsumedToken))),
+                                    declaration: SF.VariableDeclaration(LongPredefinedType(), SeparatedList(SF.VariableDeclarator(ConsumedToken))),
                                     semicolonToken: SemicolonToken()),
                               SF.FieldDeclaration(
                                     attributeLists: default,
@@ -234,7 +244,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             if (result.Count > 0)
             {
-                result.Add(SF.EnumDeclaration(default, default, NameOfEnumCollectionStatesToken, default, SeparatedList(InitialEnumState, EndMarkerEnumState, InProgressEnumState)));
+                result.Add(SF.EnumDeclaration(default, SyntaxTokenList(PublicKeyword()), NameOfEnumCollectionStatesToken, default, SeparatedList(InitialEnumState, EndMarkerEnumState, InProgressEnumState)));
             }
             return result;
         }

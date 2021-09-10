@@ -59,7 +59,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             List<SwitchSectionSyntax> sections = new();
             foreach(var member in ctx.Members.Where( x => IsBsonSerializable(x.TypeSym)))
             {
-                var memberId = IdentifierName(member.NameSym.ToString());
+                //var memberId = IdentifierName(member.NameSym.ToString());
+                var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
+                var memberId = IdentifierName(trueType.ToString());
                 var tryContinueParseCall = InvocationExpr(memberId, TryContinueParseBsonToken, RefArgument(BsonReaderToken), Argument(TypedStateMemberAccess(member)), OutArgument(PositionToken));
                 sections.Add(SwitchSection(SimpleMemberAccess(NameOfEnumStatesToken(ctx), MemberEnumStateNameToken(member)), 
                                            Block(IfNotReturnFalse(tryContinueParseCall), 
@@ -108,7 +110,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             List<StatementSyntax> statements = new();
             statements.Add(IfNotReturnFalseElse(TryGetInt32(StateDocLenMemberAccess), 
                 Block(
-                    SimpleAssignExpr(StateToken, SimpleMemberAccess(StateNameToken(ctx), MainLoopEnumStateToken)),
+                    SimpleAssignExpr(StateStateAccess, SimpleMemberAccess(NameOfEnumStatesToken(ctx), MainLoopEnumStateToken)),
                     AddAssignmentExpr(SimpleMemberAccess(StateToken, ConsumedToken), NumericLiteralExpr(1)),
                     ReturnTrueStatement)));
 
@@ -130,9 +132,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static MethodDeclarationSyntax TryParseEpilogue(ContextCore ctx)
         {
             List<StatementSyntax> statements = new();
-            statements.Add(IfStatement(TryGetByte(VarVariableDeclarationExpr(EndMarkerToken)), Block(SimpleAssignExpr(TypedStateToken, SimpleMemberAccess(StateNameToken(ctx), EndMarkerEnumStateToken)), ReturnFalseStatement)));
-            statements.Add(IfStatement(BinaryExprNotEquals(EndMarkerToken, NumericLiteralExpr((byte)'\x00')), Block(SerializerEndMarkerException(ctx.Declaration, IdentifierName(EndMarkerToken)))));
+            statements.Add(IfStatement(TryGetByte(VarVariableDeclarationExpr(EndMarkerToken)), Block(SimpleAssignExpr(TypedStateStateAccess, SimpleMemberAccess(NameOfEnumStatesToken(ctx), EndMarkerEnumStateToken)), ReturnFalseStatement)));
             statements.Add(AddAssignmentExprStatement(TypedStateConsumedMemberAccess, NumericLiteralExpr(1)));
+            statements.Add(IfStatement(BinaryExprNotEquals(EndMarkerToken, NumericLiteralExpr((byte)'\x00')), Block(SerializerEndMarkerException(ctx.Declaration, IdentifierName(EndMarkerToken)))));
             statements.Add(ReturnTrueStatement);
 
 
@@ -179,9 +181,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     semicolonToken: default)
                 .WithBody(
                     Block(
-                     VarLocalDeclarationStatement(DocLengthToken, SimpleMemberAccess(StateDocLenMemberAccess, Identifier("Value"))),
+                     VarLocalDeclarationStatement(DocLengthToken, SimpleMemberAccess(TypedStateDocLenMemberAccess, Identifier("Value"))),
                      VarLocalDeclarationStatement(StartCheckpointToken, ReaderBytesConsumedExpr),
-                     VarLocalDeclarationStatement(LocalConsumedToken, NumericLiteralExpr(0)),
+                     VarLocalDeclarationStatement(LocalConsumedToken, NumericLiteralExpr(0L)),
+                     SimpleAssignExprStatement(PositionToken, ReaderPositionExpr),
                      SF.WhileStatement(
                          BinaryExprLessThan(
                              BinaryExprPlus(TypedStateConsumedMemberAccess, IdentifierName(LocalConsumedToken)),
@@ -194,7 +197,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                              IfContinue(BinaryExprEqualsEquals(IdentifierName(BsonTypeToken), NumericLiteralExpr(10))),
                              operations,
                              //IfNotReturnFalse(TrySkip(BsonTypeToken))))));
-                             IfNotElse(TrySkip(BsonTypeToken), Block(AssignConsumedIfFalseStatement, ReturnFalseStatement), Block(AssignLocalConsumedIfTrueStatement))))));
+                             IfNotElse(TrySkip(BsonTypeToken), Block(AssignConsumedIfFalseStatement, ReturnFalseStatement), Block(AssignLocalConsumedIfTrueStatement)))),
+                     ReturnTrueStatement));
         }
         private static MethodDeclarationSyntax TryParseMethod(ContextCore ctx)
         {
@@ -216,6 +220,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     Block(
                         SimpleAssignExprStatement(StateToken, ObjectCreation(StateNameType(ctx))),
                         VarLocalTypedStateDeclFromOrigimalState(ctx),
+                        SimpleAssignExprStatement(PositionToken, ReaderPositionExpr),
                         IfNotReturnFalse(InvocationExpr(IdentifierName(TryParsePrologueToken), RefArgument(BsonReaderToken), Argument(TypedStateToken))),
                         IfNotReturnFalse(InvocationExpr(IdentifierName(TryParseMainLoopToken), RefArgument(BsonReaderToken), Argument(TypedStateToken), OutArgument(PositionToken))),
                         IfNotReturnFalse(InvocationExpr(IdentifierName(TryParseEpilogueToken), RefArgument(BsonReaderToken), Argument(TypedStateToken))),
@@ -353,7 +358,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 var condition = InvocationExpr(IdentifierName(type.ToString()), TryParseBsonToken,
                                                RefArgument(BsonReaderToken),
-                                               OutArgument(TypedStateMemberAccess(member)));
+                                               OutArgument(TypedStateMemberAccess(member)),
+                                               OutArgument(PositionToken));
                 builder.IfStatement(condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken, member.ByteName.Length),
                                     statement: Block(IfNot(condition, AssignConsumedIfFalseStatement, SimpleAssignExprStatement(TypedStateStateAccess, EnumStateFromContextAccess(member.Root, member)), ReturnFalseStatement), AssignLocalConsumedIfTrueStatement, ContinueStatement));
                 return true;
@@ -393,11 +399,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             if (IsListCollection(trueTypeSym))
             {
-                return InvocationExpr(IdentifierName(CollectionTryParseMethodName(trueTypeSym)), RefArgument(readerId), OutArgument(readTarget));
+                return InvocationExpr(IdentifierName(CollectionTryParseMethodName(trueTypeSym)), RefArgument(readerId), RefArgument(readTarget), OutArgument(PositionToken));
             }
             if (IsDictionaryCollection(trueTypeSym))
             {
-                return InvocationExpr(IdentifierName(CollectionTryParseMethodName(trueTypeSym)), RefArgument(readerId), OutArgument(readTarget));
+                return InvocationExpr(IdentifierName(CollectionTryParseMethodName(trueTypeSym)), RefArgument(readerId), RefArgument(readTarget), OutArgument(PositionToken));
             }
             if (TryGetSimpleReadOperation(nameSym, trueTypeSym, IdentifierName(bsonType), readTarget, out var simpleOperation))
             {
