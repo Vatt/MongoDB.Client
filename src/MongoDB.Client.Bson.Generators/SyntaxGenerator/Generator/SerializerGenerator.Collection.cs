@@ -8,35 +8,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        //public readonly struct CollectionReadContext
-        //{
-        //    public readonly SyntaxToken DocLenToken;
-        //    public readonly SyntaxToken UnreadedToken;
-        //    public readonly SyntaxToken EndMarkerToken;
-        //    public readonly SyntaxToken BsonTypeToken;
-        //    public readonly SyntaxToken BsonNameToken;
-        //    public readonly SyntaxToken OutMessageToken;
-        //    public readonly SyntaxToken TempCollectionReadTargetToken;
-        //    public readonly SyntaxToken TempCollectionToken;
-        //    public readonly ArgumentSyntax[] CollectionAddArguments;
-
-        //    public CollectionReadContext(
-        //        SyntaxToken docLenToken, SyntaxToken unreadedToken, SyntaxToken endMarkerToken,
-        //        SyntaxToken bsonTypeToken, SyntaxToken bsonNameToken, SyntaxToken outMessageTokenToken,
-        //        SyntaxToken tempCollectionReadTargetToken, SyntaxToken tempCollectionToken,
-        //        ArgumentSyntax[] collectionAddArguments)
-        //    {
-        //        DocLenToken = docLenToken;
-        //        UnreadedToken = unreadedToken;
-        //        EndMarkerToken = endMarkerToken;
-        //        BsonTypeToken = bsonTypeToken;
-        //        BsonNameToken = bsonNameToken;
-        //        OutMessageToken = outMessageTokenToken;
-        //        TempCollectionReadTargetToken = tempCollectionReadTargetToken;
-        //        TempCollectionToken = tempCollectionToken;
-        //        CollectionAddArguments = collectionAddArguments;
-        //    }
-        //}
         public static string UnwrapTypeName(ITypeSymbol type)
         {
             string name = type.Name;

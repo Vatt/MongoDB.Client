@@ -7,16 +7,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        //public static readonly CollectionReadContext ListReadContext = new CollectionReadContext(
-        //    Identifier("listDocLength"),
-        //    Identifier("listUnreaded"),
-        //    Identifier("listEndMarker"),
-        //    Identifier("listBsonType"),
-        //    Identifier("listBsonName"),
-        //    Identifier("list"),
-        //    Identifier("temp"),
-        //    Identifier("internalList"),
-        //    new[] { Argument(Identifier("temp")) });
         private static MethodDeclarationSyntax TryParseListCollectionMethod(MemberContext ctx, ITypeSymbol type)
         {
             var typeArg = (type as INamedTypeSymbol).TypeArguments[0];
@@ -33,7 +23,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 goto RETURN;
             }
 
-            //if (TryGetEnumReadOperation(ListReadContext.TempCollectionReadTargetToken, ctx.NameSym, trueTypeArg, true, out var enumOp))
             if (TryGetEnumReadOperation(TempToken, ctx.NameSym, typeArg, true, out var enumOp))
             {
                 builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(InternalListToken, CollectionAddToken, Argument(enumOp.TempExpr))));

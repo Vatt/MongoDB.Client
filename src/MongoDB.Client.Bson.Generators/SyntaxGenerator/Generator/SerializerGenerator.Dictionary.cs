@@ -7,17 +7,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        //public static readonly CollectionReadContext DictionaryReadContext = new CollectionReadContext(
-        //    Identifier("dictionaryDocLength"),
-        //    Identifier("dictionaryUnreaded"),
-        //    Identifier("dictionaryEndMarker"),
-        //    Identifier("dictionaryBsonType"),
-        //    Identifier("dictionaryBsonName"),
-        //    Identifier("dictionary"),
-        //    Identifier("temp"),
-        //    Identifier("internalDictionary"),
-        //    new[] { Argument(Identifier("dictionaryBsonName")), Argument(Identifier("temp")) });
-
         public static void ExtractDictionaryTypeArgs(INamedTypeSymbol type, out ITypeSymbol keyTypeArg, out ITypeSymbol valueTypeArg)
         {
             keyTypeArg = default;
@@ -64,7 +53,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 goto RETURN;
             }
-            //if (TryGetEnumReadOperation(DictionaryReadContext.TempCollectionReadTargetToken, ctx.NameSym, trueTypeArg, true, out var enumOp))
             if (TryGetEnumReadOperation(TempToken, ctx.NameSym, typeArg, true, out var enumOp))
             {
                 builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(InternalDictionaryToken, CollectionAddToken, Argument(DictionaryBsonNameToken), Argument(enumOp.TempExpr))));
