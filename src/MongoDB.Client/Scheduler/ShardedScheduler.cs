@@ -225,7 +225,8 @@ namespace MongoDB.Client.Scheduler
                     IMongoConnectionFactory connectionFactory = _settings.ClientType switch
                     {
                         ClientType.Default => new MongoConnectionFactory(endpoint, _loggerFactory),
-                        ClientType.Experimental => new ExperimentalMongoConnectionFactory(endpoint, _loggerFactory)
+                        ClientType.Experimental => new ExperimentalMongoConnectionFactory(endpoint, _loggerFactory),
+                        _ => throw new MongoBadClientTypeException()
                     };
                     var ctx = await connectionfactory.ConnectAsync(endpoint, token).ConfigureAwait(false);
                     var serviceConnection = new MongoServiceConnection(ctx);

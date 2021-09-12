@@ -9,25 +9,10 @@ namespace MongoDB.Client.Scheduler.Holders
 {
     internal static partial class CursorCallbackHolder<T> where T : IBsonSerializer<T>
     {
-        //private static readonly IGenericBsonSerializer<T>? _serializer;
-        //internal static readonly unsafe delegate*<ref Bson.Reader.BsonReader, out T, bool> TryParseFnPtr;
 
         static unsafe CursorCallbackHolder()
         {
-            //TryParseFnPtr = SerializerFnPtrProvider<T>.TryParseFnPtr;
 
-            //if (TryParseFnPtr == null)
-            //{
-            //    //if (SerializersMap.TryGetSerializer(out IGenericBsonSerializer<T>? serializer))
-            //    //{
-            //    //    _serializer = serializer;
-            //    //}
-            //    //else
-            //    //{
-            //    //    throw new MongoException($"Serializer for type '{typeof(T)}' does not found");
-            //    //}
-            //    throw new MongoException($"Serializer for type '{typeof(T)}' does not found");
-            //}
         }
 
         internal static async ValueTask<IParserResult> CursorParseAsync(ProtocolReader reader, MongoResponseMessage mongoResponse)
@@ -37,18 +22,6 @@ namespace MongoDB.Client.Scheduler.Holders
                 IMessageReader<CursorResult<T>> bodyReader;
                 if (msgMessage.MsgHeader.PayloadType == 0)
                 {
-                    //unsafe
-                    //{
-                    //    if (TryParseFnPtr != default)
-                    //    {
-                    //        bodyReader = new FindMsgType0BodyReaderUnsafe<T>(msgMessage);
-                    //    }
-                    //    else
-                    //    {
-                    //        throw new MongoException($"Serializer for type '{typeof(T)}' does not found");
-                    //        //bodyReader = new FindMsgType0BodyReader<T>(_serializer!, msgMessage);
-                    //    }
-                    //}
                     bodyReader = new FindMsgType0BodyReaderUnsafe<T>(msgMessage);
                     var result = await reader.ReadAsync(bodyReader).ConfigureAwait(false);
                     reader.Advance();

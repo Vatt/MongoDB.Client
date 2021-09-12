@@ -82,12 +82,7 @@ namespace MongoDB.Client.Protocol.Readers
                     {
                         bool tryParseResult = default;
                         T? item = default;
-                        unsafe
-                        {
-                            //TODO: FIX IT
-                            //tryParseResult = SerializerFnPtrProvider<T>.TryParseFnPtr(ref bsonReader, out item);
-                            tryParseResult = T.TryParseBson(ref bsonReader, out item);
-                        }
+                        tryParseResult = T.TryParseBson(ref bsonReader, out item);
                         if (tryParseResult)
                         {
                             items.Add(item);

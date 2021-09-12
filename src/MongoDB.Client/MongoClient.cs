@@ -98,7 +98,8 @@ namespace MongoDB.Client
                 IMongoConnectionFactory factory = settings.ClientType switch
                 {
                     ClientType.Default => new MongoConnectionFactory(settings.Endpoints[0], loggerFactory),
-                    ClientType.Experimental => new ExperimentalMongoConnectionFactory(settings.Endpoints[0], loggerFactory)
+                    ClientType.Experimental => new ExperimentalMongoConnectionFactory(settings.Endpoints[0], loggerFactory),
+                    _ => throw new MongoBadClientTypeException()
                 };
                 scheduler = new StandaloneScheduler(settings, factory, loggerFactory);
             }

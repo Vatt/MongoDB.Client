@@ -14,8 +14,6 @@ namespace MongoDB.Client.Connection
     public sealed partial class MongoConnection : IAsyncDisposable
     {
         public int ConnectionId { get; }
-        public int Threshold => 4;
-
         private ILogger _logger;
         private ConcurrentDictionary<long, MongoRequest> _completions;
         private ProtocolReader? _protocolReader;
