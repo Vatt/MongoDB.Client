@@ -2,7 +2,6 @@
 using System.Buffers.Binary;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
-using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Writer;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;

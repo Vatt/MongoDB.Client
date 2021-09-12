@@ -1,7 +1,5 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Threading.Channels;
-using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using MongoDB.Client.Tests.Models;
 using BsonDocument = MongoDB.Client.Bson.Document.BsonDocument;

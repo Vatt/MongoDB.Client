@@ -1,6 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Scheduler;
 
@@ -18,8 +16,8 @@ namespace MongoDB.Client
             Client = client;
             Name = name;
         }
-        
-        public MongoCollection<T> GetCollection<T>(string name) 
+
+        public MongoCollection<T> GetCollection<T>(string name)
             where T : IBsonSerializer<T>
         {
             return new MongoCollection<T>(this, name, _scheduler);

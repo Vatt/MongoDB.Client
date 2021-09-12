@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
@@ -12,7 +10,7 @@ namespace MongoDB.Client.Messages
     public unsafe static class CursorItemSerializer
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe bool TryParseBson<T>(ref BsonReader reader, out T item) where T: IBsonSerializer<T>
+        public static unsafe bool TryParseBson<T>(ref BsonReader reader, out T item) where T : IBsonSerializer<T>
         {
             //return SerializerFnPtrProvider<T>.TryParseFnPtr(ref reader, out item);
             return T.TryParseBson(ref reader, out item);
@@ -24,7 +22,7 @@ namespace MongoDB.Client.Messages
     }
     //[BsonSerializable]
     public partial class CursorResult<T> : IParserResult
-        where T: IBsonSerializer<T>
+        where T : IBsonSerializer<T>
     {
         [BsonElement("cursor")]
         public MongoCursor<T> MongoCursor { get; set; }

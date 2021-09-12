@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using MongoDB.Client.Messages;
+﻿using MongoDB.Client.Messages;
 using MongoDB.Client.Scheduler;
 
 namespace MongoDB.Client

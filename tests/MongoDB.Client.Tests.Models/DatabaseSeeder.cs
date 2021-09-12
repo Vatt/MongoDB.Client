@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace MongoDB.Client.Tests.Models
+﻿namespace MongoDB.Client.Tests.Models
 {
     public class DatabaseSeeder
     {

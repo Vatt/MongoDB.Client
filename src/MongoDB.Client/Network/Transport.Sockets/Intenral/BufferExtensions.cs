@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.InteropServices;
 
 namespace MongoDB.Client.Network.Transport.Sockets.Internal

@@ -1,5 +1,4 @@
-﻿using System;
-using MongoDB.Client.Bson.Reader;
+﻿using MongoDB.Client.Bson.Reader;
 
 namespace MongoDB.Client.Messages
 {

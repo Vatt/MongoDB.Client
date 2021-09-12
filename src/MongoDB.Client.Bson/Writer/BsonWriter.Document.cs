@@ -1,5 +1,4 @@
-﻿using System;
-using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Utils;
 
 namespace MongoDB.Client.Bson.Writer

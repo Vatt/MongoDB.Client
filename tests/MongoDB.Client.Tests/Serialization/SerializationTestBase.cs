@@ -1,9 +1,6 @@
-﻿using System;
-using System.Buffers;
+﻿using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipelines;
-using System.Linq;
-using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
@@ -15,7 +12,7 @@ using MongoDB.Client.Protocol.Readers;
 namespace MongoDB.Client.Tests.Serialization
 {
     internal class UnitTestReplyBodyWriter<T> : IMessageWriter<T>
-        where T: IBsonSerializer<T>
+        where T : IBsonSerializer<T>
     {
         public void WriteMessage(T message, IBufferWriter<byte> output)
         {
@@ -25,7 +22,7 @@ namespace MongoDB.Client.Tests.Serialization
     }
 
     internal class UnitTestReplyBodyReader<T> : IMessageReader<QueryResult<T>>
-        where T: IBsonSerializer<T>
+        where T : IBsonSerializer<T>
     {
         private readonly ReplyMessage _replyMessage;
         private readonly QueryResult<T> _result;
@@ -81,7 +78,7 @@ namespace MongoDB.Client.Tests.Serialization
         {
             var pipe = new Pipe();
             var reader = new UnitTestReplyBodyReader<T1>(new ReplyMessage(default, new ReplyMessageHeader(default, default, default, 1)));
-  
+
             await WriteAsync(pipe.Writer, message);
             return await ReadAsync<T1>(pipe.Reader, reader);
         }
@@ -100,7 +97,7 @@ namespace MongoDB.Client.Tests.Serialization
             reader.Advance();
             return result.Message.FirstOrDefault();
         }
-        public static async Task WriteAsync<T>(PipeWriter output, T message) where T: IBsonSerializer<T>
+        public static async Task WriteAsync<T>(PipeWriter output, T message) where T : IBsonSerializer<T>
         {
             var writer = new ProtocolWriter(output);
             var messageWriter = new UnitTestReplyBodyWriter<T>();

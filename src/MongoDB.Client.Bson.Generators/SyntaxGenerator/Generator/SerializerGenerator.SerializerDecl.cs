@@ -12,7 +12,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static SyntaxToken TryGetSerializerToken = Identifier("TryGetSerializer");
         public static ExpressionSyntax SerializerMapId = IdentifierName("MongoDB.Client.Bson.Serialization.SerializersMap");
         public static SyntaxToken SerializerInterfaceToken = Identifier("IBsonSerializer");
-        public static BaseTypeSyntax SerializerBaseType(ContextCore ctx) 
+        public static BaseTypeSyntax SerializerBaseType(ContextCore ctx)
         {
             //return GenericName(SerializerInterfaceToken, SF.ParseTypeName(ctx.Declaration.ToString()));
             return SF.SimpleBaseType(GenericName(SerializerInterfaceToken, SF.ParseTypeName(ctx.Declaration.ToString())));

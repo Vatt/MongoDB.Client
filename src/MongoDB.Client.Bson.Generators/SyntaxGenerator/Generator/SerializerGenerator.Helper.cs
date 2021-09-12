@@ -34,7 +34,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     {
                         return false;
                     }
-                    if (extType.Interfaces.FirstOrDefault( x => x.OriginalDefinition.Equals(IBsonSerializerExtensionNamedType, SymbolEqualityComparer.Default)) is not null)
+                    if (extType.Interfaces.FirstOrDefault(x => x.OriginalDefinition.Equals(IBsonSerializerExtensionNamedType, SymbolEqualityComparer.Default)) is not null)
                     {
                         return true;
                     }

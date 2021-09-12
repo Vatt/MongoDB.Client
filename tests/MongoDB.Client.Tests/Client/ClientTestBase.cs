@@ -1,6 +1,4 @@
-﻿using System;
-using System.Net;
-using System.Threading.Tasks;
+﻿using System.Net;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 

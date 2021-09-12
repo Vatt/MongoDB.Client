@@ -10,8 +10,8 @@ using MongoDB.Client.Protocol.Messages;
 
 namespace MongoDB.Client.Protocol.Writers
 {
-    internal class InsertMessageWriterUnsafe<T> : IMessageWriter<InsertMessage<T>> 
-        where T: IBsonSerializer<T>
+    internal class InsertMessageWriterUnsafe<T> : IMessageWriter<InsertMessage<T>>
+        where T : IBsonSerializer<T>
     {
         public unsafe void WriteMessage(InsertMessage<T> message, IBufferWriter<byte> output)
         {

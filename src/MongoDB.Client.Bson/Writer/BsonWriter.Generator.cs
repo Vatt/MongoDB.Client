@@ -1,5 +1,4 @@
-﻿using System;
-using System.Buffers.Text;
+﻿using System.Buffers.Text;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using MongoDB.Client.Bson.Document;

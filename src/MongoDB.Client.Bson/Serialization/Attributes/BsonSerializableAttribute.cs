@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MongoDB.Client.Bson.Serialization.Attributes
+﻿namespace MongoDB.Client.Bson.Serialization.Attributes
 {
     [Flags]
     public enum GeneratorMode : byte

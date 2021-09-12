@@ -1,6 +1,4 @@
 ﻿using System.IO.Pipelines;
-using System.Linq;
-using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
@@ -13,7 +11,7 @@ namespace MongoDB.Client.ConsoleApp
 
     public static class InMemorySerialization
     {
-        public static async Task<T> RoundTripAsync<T>(T message) where T: IBsonSerializer<T>
+        public static async Task<T> RoundTripAsync<T>(T message) where T : IBsonSerializer<T>
         {
             var pipe = new Pipe(new PipeOptions(pauseWriterThreshold: long.MaxValue, resumeWriterThreshold: long.MaxValue));
             var wtask = WriteAsync<T>(pipe.Writer, message);

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Channels;
-using System.Threading.Tasks;
+﻿using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Connection;
@@ -112,7 +108,7 @@ namespace MongoDB.Client.Scheduler
         }
 
 
-        public async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token) where T: IBsonSerializer<T>
+        public async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token) where T : IBsonSerializer<T>
         {
             var request = MongoRequestPool.Get();
             var taskSource = request.CompletionSource;

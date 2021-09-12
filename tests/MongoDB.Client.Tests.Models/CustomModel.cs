@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using MongoDB.Client.Bson.Serialization;
+﻿using MongoDB.Client.Bson.Serialization;
 
 namespace MongoDB.Client.Tests.Models
 {

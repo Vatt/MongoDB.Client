@@ -1,5 +1,4 @@
-﻿using System;
-using System.Buffers;
+﻿using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
@@ -8,7 +7,7 @@ using MongoDB.Client.Protocol.Core;
 
 namespace MongoDB.Client.Protocol.Readers
 {
-    internal class ReplyBodyReader<T> : IMessageReader<QueryResult<T>> where T: IBsonSerializer<T>
+    internal class ReplyBodyReader<T> : IMessageReader<QueryResult<T>> where T : IBsonSerializer<T>
     {
         private readonly ReplyMessage _replyMessage;
         private readonly QueryResult<T> _result;

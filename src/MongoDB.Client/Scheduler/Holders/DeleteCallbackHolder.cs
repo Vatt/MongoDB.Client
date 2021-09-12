@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using MongoDB.Client.Exceptions;
+﻿using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Core;

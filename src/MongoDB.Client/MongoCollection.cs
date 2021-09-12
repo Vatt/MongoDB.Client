@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
@@ -25,7 +22,7 @@ namespace MongoDB.Client
 
         public CollectionNamespace Namespace { get; }
 
-        public Cursor<T> Find(BsonDocument filter) 
+        public Cursor<T> Find(BsonDocument filter)
         {
             return Find(TransactionHandler.CreateImplicit(_scheduler), filter);
         }

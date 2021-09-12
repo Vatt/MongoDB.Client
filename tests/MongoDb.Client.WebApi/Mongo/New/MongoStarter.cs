@@ -1,8 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
-
-namespace MongoDb.Client.WebApi
+﻿namespace MongoDb.Client.WebApi
 {
     public class MongoStarter : IHostedService
     {

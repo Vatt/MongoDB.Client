@@ -1,9 +1,7 @@
-﻿using System;
-using System.Buffers.Binary;
+﻿using System.Buffers.Binary;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using System.Threading;
 using MongoDB.Client.Bson.Utils;
 
 namespace MongoDB.Client.Bson.Document

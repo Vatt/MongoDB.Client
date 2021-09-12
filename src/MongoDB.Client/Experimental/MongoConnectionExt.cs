@@ -1,6 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using MongoDB.Client.Connection;
+﻿using MongoDB.Client.Connection;
 
 namespace MongoDB.Client.Experimental
 {

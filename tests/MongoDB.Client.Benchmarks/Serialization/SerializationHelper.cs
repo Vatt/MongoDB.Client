@@ -1,6 +1,4 @@
 ﻿using System.IO.Pipelines;
-using System.Linq;
-using System.Threading.Tasks;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
@@ -11,7 +9,7 @@ namespace MongoDB.Client.Benchmarks.Serialization
 {
     class SerializationHelper
     {
-        public static async ValueTask<T> RoundTripAsync<T>(T message) where T: IBsonSerializer<T>
+        public static async ValueTask<T> RoundTripAsync<T>(T message) where T : IBsonSerializer<T>
         {
             var pipe = new Pipe();
 

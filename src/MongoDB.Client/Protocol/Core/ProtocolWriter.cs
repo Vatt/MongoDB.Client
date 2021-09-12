@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Pipelines;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.IO.Pipelines;
 using MongoDB.Client.Exceptions;
 
 namespace MongoDB.Client.Protocol.Core

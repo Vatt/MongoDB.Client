@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MongoDB.Client.Bson.Document
+﻿namespace MongoDB.Client.Bson.Document
 {
     public enum BsonBinaryDataType : byte
     {

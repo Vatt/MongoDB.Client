@@ -1,5 +1,3 @@
-using System;
-
 namespace MongoDB.Client.Protocol.Writers
 {
     [Flags]

@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using MongoDB.Client.Bson.Serialization;
+﻿using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
 
 namespace MongoDB.Client

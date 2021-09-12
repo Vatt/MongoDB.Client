@@ -1,7 +1,5 @@
-﻿using System.Threading.Tasks;
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
 using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization;
 
 namespace MongoDB.Client.Benchmarks.Serialization
 {
