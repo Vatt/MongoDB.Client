@@ -1,7 +1,4 @@
-﻿using System;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Net;
 using Microsoft.AspNetCore.Connections;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
@@ -92,7 +89,7 @@ namespace MongoDB.Client.Connection
 
             return doc;
         }
-        public async ValueTask<QueryResult<TResp>?> SendQueryAsync<TResp>(QueryMessage message, CancellationToken token)
+        public async ValueTask<QueryResult<TResp>?> SendQueryAsync<TResp>(QueryMessage message, CancellationToken token) where TResp : IBsonSerializer<TResp>
         {
             if (_protocolWriter is null)
             {
@@ -108,12 +105,12 @@ namespace MongoDB.Client.Connection
             MongoResponseMessage replyMessage = new ReplyMessage(header, replyResult);
             var result = await ParseAsync<TResp>(_protocolReader, replyMessage);
             return result as QueryResult<TResp>;
-            async ValueTask<IParserResult> ParseAsync<T>(ProtocolReader reader, MongoResponseMessage mongoResponse)
+            async ValueTask<IParserResult> ParseAsync<T>(ProtocolReader reader, MongoResponseMessage mongoResponse) where T : IBsonSerializer<T>
             {
                 switch (mongoResponse)
                 {
                     case ReplyMessage replyMessage:
-                        var bodyReader = new ReplyBodyReader<T>((IGenericBsonSerializer<T>)new BsonDocumentSerializer(), replyMessage);
+                        var bodyReader = new ReplyBodyReader<T>(replyMessage);
                         var bodyResult = await reader.ReadAsync(bodyReader, default).ConfigureAwait(false);
                         reader.Advance();
                         return bodyResult.Message;

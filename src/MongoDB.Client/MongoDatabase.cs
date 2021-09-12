@@ -1,5 +1,5 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
+﻿using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Scheduler;
 
 namespace MongoDB.Client
@@ -18,6 +18,7 @@ namespace MongoDB.Client
         }
 
         public MongoCollection<T> GetCollection<T>(string name)
+            where T : IBsonSerializer<T>
         {
             return new MongoCollection<T>(this, name, _scheduler);
         }
@@ -29,7 +30,8 @@ namespace MongoDB.Client
 
         public ValueTask DropCollectionAsync(TransactionHandler transaction, string collectionName, CancellationToken cancellationToken = default)
         {
-            var collection = GetCollection<object>(collectionName);
+            //var collection = GetCollection<object>(collectionName);
+            var collection = GetCollection<BsonDocument>(collectionName);
             return collection.DropAsync(transaction, cancellationToken);
         }
 
@@ -40,7 +42,7 @@ namespace MongoDB.Client
 
         public ValueTask CreateCollectionAsync(TransactionHandler transaction, string collectionName, CancellationToken cancellationToken = default)
         {
-            var collection = GetCollection<object>(collectionName);
+            var collection = GetCollection<BsonDocument>(collectionName);
             return collection.CreateAsync(transaction, cancellationToken);
         }
     }

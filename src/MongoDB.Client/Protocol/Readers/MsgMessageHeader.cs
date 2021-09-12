@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MongoDB.Client.Protocol.Readers
+﻿namespace MongoDB.Client.Protocol.Readers
 {
     public readonly struct MsgMessageHeader
     {

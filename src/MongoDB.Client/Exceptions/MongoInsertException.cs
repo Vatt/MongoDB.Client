@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using MongoDB.Client.Messages;
+﻿using MongoDB.Client.Messages;
 
 namespace MongoDB.Client.Exceptions
 {

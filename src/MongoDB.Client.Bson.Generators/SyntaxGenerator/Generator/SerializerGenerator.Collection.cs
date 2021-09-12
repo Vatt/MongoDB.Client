@@ -8,35 +8,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        public readonly struct CollectionReadContext
-        {
-            public readonly SyntaxToken DocLenToken;
-            public readonly SyntaxToken UnreadedToken;
-            public readonly SyntaxToken EndMarkerToken;
-            public readonly SyntaxToken BsonTypeToken;
-            public readonly SyntaxToken BsonNameToken;
-            public readonly SyntaxToken OutMessageToken;
-            public readonly SyntaxToken TempCollectionReadTargetToken;
-            public readonly SyntaxToken TempCollectionToken;
-            public readonly ArgumentSyntax[] CollectionAddArguments;
-
-            public CollectionReadContext(
-                SyntaxToken docLenToken, SyntaxToken unreadedToken, SyntaxToken endMarkerToken,
-                SyntaxToken bsonTypeToken, SyntaxToken bsonNameToken, SyntaxToken outMessageTokenToken,
-                SyntaxToken tempCollectionReadTargetToken, SyntaxToken tempCollectionToken,
-                ArgumentSyntax[] collectionAddArguments)
-            {
-                DocLenToken = docLenToken;
-                UnreadedToken = unreadedToken;
-                EndMarkerToken = endMarkerToken;
-                BsonTypeToken = bsonTypeToken;
-                BsonNameToken = bsonNameToken;
-                OutMessageToken = outMessageTokenToken;
-                TempCollectionReadTargetToken = tempCollectionReadTargetToken;
-                TempCollectionToken = tempCollectionToken;
-                CollectionAddArguments = collectionAddArguments;
-            }
-        }
         public static string UnwrapTypeName(ITypeSymbol type)
         {
             string name = type.Name;
@@ -116,7 +87,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static MethodDeclarationSyntax[] GenerateCollectionMethods(ContextCore ctx)
         {
             List<MethodDeclarationSyntax> methods = new();
-            HashSet<ITypeSymbol> declared = new();
+            HashSet<ITypeSymbol> declared = new(SymbolEqualityComparer.Default);
             foreach (var member in ctx.Members.Where(x => IsCollection(x.TypeSym)))
             {
                 var type = member.TypeSym as INamedTypeSymbol;
@@ -155,7 +126,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             return methods.ToArray();
         }
-        private static bool TryGenerateCollectionTryParseBson(ITypeSymbol typeSym, ISymbol nameSym, CollectionReadContext readCtx, ImmutableList<StatementSyntax>.Builder builder)
+        private static bool TryGenerateCollectionTryParseBson(ITypeSymbol typeSym, ISymbol nameSym, SyntaxToken collectionToken, SyntaxToken readTarget,
+            ImmutableList<StatementSyntax>.Builder builder, params ArgumentSyntax[] collectionAddArgs)
         {
             ITypeSymbol callType = default;
             ITypeSymbol outArgType = default;
@@ -179,14 +151,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var operation = InvocationExpr(IdentifierName(callType.ToString()), TryParseBsonToken,
                                            RefArgument(BsonReaderToken),
                                            OutArgument(TypedVariableDeclarationExpr(TypeFullName(outArgType),
-                                                       readCtx.TempCollectionReadTargetToken)));
+                                                       readTarget)));
             builder.IfNotReturnFalseElse(condition: operation,
-                @else: Block(InvocationExprStatement(readCtx.TempCollectionToken, CollectionAddToken, readCtx.CollectionAddArguments), ContinueStatement));
+                @else: Block(InvocationExprStatement(collectionToken, CollectionAddToken, collectionAddArgs), ContinueStatement));
             return true;
         }
-        private static bool TryGenerateCollectionSimpleRead(MemberContext ctx, ITypeSymbol type, CollectionReadContext readCtx, ImmutableList<StatementSyntax>.Builder builder)
+        private static bool TryGenerateCollectionSimpleRead(MemberContext ctx, ITypeSymbol type, SyntaxToken CollectionToken, SyntaxToken readTarget, SyntaxToken bsonTypeToken,
+            ImmutableList<StatementSyntax>.Builder builder, params ArgumentSyntax[] collectionAddArgs)
         {
-            var (operation, tempVar) = ReadOperation(ctx.Root, ctx.NameSym, type, BsonReaderToken, TypedVariableDeclarationExpr(TypeFullName(type), readCtx.TempCollectionReadTargetToken), readCtx.BsonTypeToken);
+            var (operation, tempVar) = ReadOperation(ctx.Root, ctx.NameSym, type, BsonReaderToken, TypedVariableDeclarationExpr(TypeFullName(type), readTarget), bsonTypeToken);
             Debug.Assert(tempVar is null);
             if (operation == default)
             {
@@ -197,7 +170,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 condition: operation,
                 @else:
                 Block(
-                    InvocationExprStatement(readCtx.TempCollectionToken, CollectionAddToken, readCtx.CollectionAddArguments),
+                    InvocationExprStatement(CollectionToken, CollectionAddToken, collectionAddArgs),
                     ContinueStatement));
             return true;
         }

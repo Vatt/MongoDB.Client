@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MongoDB.Client.Exceptions
+﻿namespace MongoDB.Client.Exceptions
 {
     public class MongoDBUriParserException : MongoException
     {

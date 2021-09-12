@@ -1,7 +1,4 @@
-﻿using System;
-
-
-namespace MongoDB.Client.Bson.Serialization.Attributes
+﻿namespace MongoDB.Client.Bson.Serialization.Attributes
 {
     public enum BinaryDataRepresentation
     {

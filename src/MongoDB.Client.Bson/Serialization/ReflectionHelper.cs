@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
+﻿using System.Reflection;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Writer;
 namespace MongoDB.Client.Bson.Serialization

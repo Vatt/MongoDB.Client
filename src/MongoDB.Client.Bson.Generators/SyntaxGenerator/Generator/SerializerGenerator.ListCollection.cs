@@ -7,16 +7,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        public static readonly CollectionReadContext ListReadContext = new CollectionReadContext(
-            Identifier("listDocLength"),
-            Identifier("listUnreaded"),
-            Identifier("listEndMarker"),
-            Identifier("listBsonType"),
-            Identifier("listBsonName"),
-            Identifier("list"),
-            Identifier("temp"),
-            Identifier("internalList"),
-            new[] { Argument(Identifier("temp")) });
         private static MethodDeclarationSyntax TryParseListCollectionMethod(MemberContext ctx, ITypeSymbol type)
         {
             var typeArg = (type as INamedTypeSymbol).TypeArguments[0];
@@ -24,19 +14,18 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             //ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
-            if (TryGenerateCollectionTryParseBson(trueTypeArg, ctx.NameSym, ListReadContext, builder))
+            if (TryGenerateCollectionTryParseBson(trueTypeArg, ctx.NameSym, InternalListToken, TempToken, builder, Argument(TempToken)))
             {
                 goto RETURN;
             }
-            if (TryGenerateCollectionSimpleRead(ctx, trueTypeArg, ListReadContext, builder))
+            if (TryGenerateCollectionSimpleRead(ctx, trueTypeArg, InternalListToken, TempToken, ListBsonTypeToken, builder, Argument(TempToken)))
             {
                 goto RETURN;
             }
 
-            //if (TryGetEnumReadOperation(ListReadContext.TempCollectionReadTargetToken, ctx.NameSym, trueTypeArg, true, out var enumOp))
-            if (TryGetEnumReadOperation(ListReadContext.TempCollectionReadTargetToken, ctx.NameSym, typeArg, true, out var enumOp))
+            if (TryGetEnumReadOperation(TempToken, ctx.NameSym, typeArg, true, out var enumOp))
             {
-                builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(ListReadContext.TempCollectionToken, CollectionAddToken, Argument(enumOp.TempExpr))));
+                builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(InternalListToken, CollectionAddToken, Argument(enumOp.TempExpr))));
                 goto RETURN;
             }
             ReportUnsuporterTypeError(ctx.NameSym, trueTypeArg);
@@ -48,7 +37,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     returnType: BoolPredefinedType(),
                     identifier: CollectionTryParseMethodName(type),
                     parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken),
-                                                 OutParameter(IdentifierName(type.ToString()), ListReadContext.OutMessageToken)),
+                                                 OutParameter(IdentifierName(type.ToString()), ListToken)),
                     body: default,
                     constraintClauses: default,
                     expressionBody: default,
@@ -56,32 +45,32 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     semicolonToken: default)
                 .WithBody(
                    Block(
-                       SimpleAssignExprStatement(ListReadContext.OutMessageToken, DefaultLiteralExpr()),
-                       VarLocalDeclarationStatement(ListReadContext.TempCollectionToken, ObjectCreation(ConstructCollectionType(type))),
-                       IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(ListReadContext.DocLenToken))),
-                       VarLocalDeclarationStatement(ListReadContext.UnreadedToken, BinaryExprPlus(ReaderRemainingExpr, SizeOfInt32Expr)),
+                       SimpleAssignExprStatement(ListToken, DefaultLiteralExpr()),
+                       VarLocalDeclarationStatement(InternalListToken, ObjectCreation(ConstructCollectionType(type))),
+                       IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(ListDocLenToken))),
+                       VarLocalDeclarationStatement(ListUnreadedToken, BinaryExprPlus(ReaderRemainingExpr, SizeOfInt32Expr)),
                        SF.WhileStatement(
                            condition:
                                BinaryExprLessThan(
-                                   BinaryExprMinus(ListReadContext.UnreadedToken, ReaderRemainingExpr),
-                                   BinaryExprMinus(ListReadContext.DocLenToken, NumericLiteralExpr(1))),
+                                   BinaryExprMinus(ListUnreadedToken, ReaderRemainingExpr),
+                                   BinaryExprMinus(ListDocLenToken, NumericLiteralExpr(1))),
                            statement:
                                Block(
-                                   IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(ListReadContext.BsonTypeToken))),
+                                   IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(ListBsonTypeToken))),
                                    IfNotReturnFalse(TrySkipCStringExpr),
                                    IfStatement(
-                                       condition: BinaryExprEqualsEquals(ListReadContext.BsonTypeToken, NumericLiteralExpr(10)),
+                                       condition: BinaryExprEqualsEquals(ListBsonTypeToken, NumericLiteralExpr(10)),
                                        statement: Block(
-                                           InvocationExprStatement(ListReadContext.TempCollectionToken, CollectionAddToken, Argument(DefaultLiteralExpr())),
+                                           InvocationExprStatement(InternalListToken, CollectionAddToken, Argument(DefaultLiteralExpr())),
                                            ContinueStatement
                                            )),
                                    builder.ToArray()
                                    )),
-                       IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(ListReadContext.EndMarkerToken))),
+                       IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(ListEndMarkerToken))),
                        IfStatement(
-                           BinaryExprNotEquals(ListReadContext.EndMarkerToken, NumericLiteralExpr((byte)'\x00')),
-                           Block(Statement(SerializerEndMarkerException(ctx.Root.Declaration, IdentifierName(ListReadContext.EndMarkerToken))))),
-                       SimpleAssignExprStatement(ListReadContext.OutMessageToken, ListReadContext.TempCollectionToken),
+                           BinaryExprNotEquals(ListEndMarkerToken, NumericLiteralExpr((byte)'\x00')),
+                           Block(Statement(SerializerEndMarkerException(ctx.Root.Declaration, IdentifierName(ListEndMarkerToken))))),
+                       SimpleAssignExprStatement(ListToken, InternalListToken),
                        ReturnTrueStatement
                        ));
         }

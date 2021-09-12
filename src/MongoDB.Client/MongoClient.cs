@@ -1,7 +1,4 @@
-﻿using System;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Net;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using MongoDB.Client.Connection;
@@ -98,7 +95,8 @@ namespace MongoDB.Client
                 IMongoConnectionFactory factory = settings.ClientType switch
                 {
                     ClientType.Default => new MongoConnectionFactory(settings.Endpoints[0], loggerFactory),
-                    ClientType.Experimental => new ExperimentalMongoConnectionFactory(settings.Endpoints[0], loggerFactory)
+                    ClientType.Experimental => new ExperimentalMongoConnectionFactory(settings.Endpoints[0], loggerFactory),
+                    _ => throw new MongoBadClientTypeException()
                 };
                 scheduler = new StandaloneScheduler(settings, factory, loggerFactory);
             }

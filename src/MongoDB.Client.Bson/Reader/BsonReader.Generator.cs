@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
@@ -94,7 +93,7 @@ namespace MongoDB.Client.Bson.Reader
                     }
                 case 10:
                     {
-                        objectValue = null;
+                        objectValue = null!;
                         return true;
                     }
                 case 16:
@@ -211,12 +210,14 @@ namespace MongoDB.Client.Bson.Reader
             }
             else
             {
-                if (SerializersMap.TryGetSerializer<T>(out var serializer) == false)
-                {
-                    ThrowSerializerNotFound(typeof(T).Name);
-                }
+                //if (SerializersMap.TryGetSerializer<T>(out var serializer) == false)
+                //{
+                //    ThrowSerializerNotFound(typeof(T).Name);
+                //}
 
-                return serializer.TryParseBson(ref this, out genericValue);
+                //return serializer.TryParseBson(ref this, out genericValue);
+                ThrowSerializerNotFound(typeof(T).Name);
+                return false;
             }
 
         }

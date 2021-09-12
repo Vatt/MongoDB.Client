@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace MongoDb.Client.WebApi.Mongo
+﻿namespace MongoDb.Client.WebApi.Mongo
 {
     public interface IMongoRepository<T>
     {

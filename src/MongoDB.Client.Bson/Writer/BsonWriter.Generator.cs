@@ -1,5 +1,4 @@
-﻿using System;
-using System.Buffers.Text;
+﻿using System.Buffers.Text;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using MongoDB.Client.Bson.Document;
@@ -165,16 +164,17 @@ namespace MongoDB.Client.Bson.Writer
             }
             else
             {
-                if (!SerializersMap.TryGetSerializer<T>(out var serializer))
-                {
-                    ThrowSerializerNotFound(typeof(T).Name);
-                }
-                if (serializer is null)
-                {
-                    ThrowSerializerIsNull(typeof(T).Name);
-                }
-                typeReserved.WriteByte(3);
-                serializer.WriteBson(ref this, genericValue);
+                //if (!SerializersMap.TryGetSerializer<T>(out var serializer))
+                //{
+                //    ThrowSerializerNotFound(typeof(T).Name);
+                //}
+                //if (serializer is null)
+                //{
+                //    ThrowSerializerIsNull(typeof(T).Name);
+                //}
+                //typeReserved.WriteByte(3);
+                //serializer.WriteBson(ref this, genericValue);
+                ThrowSerializerNotFound(typeof(T).Name);
             }
         }
 

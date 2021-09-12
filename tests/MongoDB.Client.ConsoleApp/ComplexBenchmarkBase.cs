@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Channels;
-using System.Threading.Tasks;
+﻿using System.Threading.Channels;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Tests.Models;
 
 namespace MongoDB.Client.ConsoleApp
 {
-    public class ComplexBenchmarkBase<T> where T : IIdentified
+    public class ComplexBenchmarkBase<T> where T : IIdentified, IBsonSerializer<T>
     {
         private MongoCollection<T> _collection;
         private T[] _items;

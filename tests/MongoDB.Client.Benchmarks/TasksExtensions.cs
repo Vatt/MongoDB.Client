@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-
 namespace MongoDB.Client.Benchmarks
 {
     public static class TasksExtensions

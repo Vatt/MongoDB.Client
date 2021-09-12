@@ -12,6 +12,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static readonly TypeSyntax VarType = SF.ParseTypeName("var");
         public static readonly ExpressionSyntax NewBsonObjectIdExpr = InvocationExpr(TypeFullName(BsonObjectId), SF.IdentifierName("NewObjectId"));
         public static readonly ExpressionSyntax BsonNameLengthExpr = SimpleMemberAccess(BsonNameToken, Identifier("Length"));
+        public static readonly SyntaxToken BsonNameLengthToken = Identifier("bsonNameLength");
         public static readonly GenericNameSyntax ReadOnlySpanByteName = GenericName(Identifier("ReadOnlySpan"), BytePredefinedType());
         public static readonly GenericNameSyntax SpanByteName = GenericName(Identifier("Span"), BytePredefinedType());
         public static readonly ContinueStatementSyntax ContinueStatement = SF.ContinueStatement();

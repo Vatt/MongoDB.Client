@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-
-namespace MongoDb.Client.WebApi.Mongo.New
+﻿namespace MongoDb.Client.WebApi.Mongo.New
 {
     public static class OldMongoExtensions
     {

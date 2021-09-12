@@ -165,7 +165,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 ReportGenerationContextTreeError();
             }
-            return SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(host.Offset!.Value)), sections);
+            return SwitchStatement(GetSpanElementUnsafe(bsonName, host.Offset!.Value), sections);
         }
         private static SwitchSectionSyntax GenerateCase(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
         {
@@ -204,7 +204,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                             builder.AddRange(GenerateCondition(ctx, operation, bsonType, bsonName));
                             break;
                         case OpCtxType.Switch:
-                            builder.Add(IfBreak(BinaryExprLessThan(BsonNameLengthExpr, NumericLiteralExpr(operation.Offset!.Value))));
+                            builder.Add(IfBreak(BinaryExprLessThan(BsonNameLengthToken, NumericLiteralExpr(operation.Offset!.Value))));
                             builder.Add(GenerateSwitch(ctx, operation, bsonType, bsonName));
                             break;
                         default:
@@ -253,15 +253,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var offset = host.Offset ?? 0;
             if (host.Offset == 0)
             {
-                return new[]
+                return new StatementSyntax[]
                 {
+                    VarLocalDeclarationStatement(BsonNameLengthToken, BsonNameLengthExpr),
                     SwitchStatement(GetSpanElementUnsafe(bsonName, host.Offset!.Value), sections)
                 };
             }
             return new StatementSyntax[]
             {
+                VarLocalDeclarationStatement(BsonNameLengthToken, BsonNameLengthExpr),
                 IfStatement(
-                    condition: BinaryExprLessThan(BsonNameLengthExpr, NumericLiteralExpr(offset)),
+                    condition: BinaryExprLessThan(BsonNameLengthToken, NumericLiteralExpr(offset)),
                     statement: Block(IfNotReturnFalse(TrySkip(BsonTypeToken)), ContinueStatement)),
                 SwitchStatement(GetSpanElementUnsafe(bsonName, host.Offset!.Value), sections)
             };

@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using MongoDB.Client.Bson.Serialization.Attributes;
+﻿using MongoDB.Client.Bson.Serialization.Attributes;
 using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization.Serializers

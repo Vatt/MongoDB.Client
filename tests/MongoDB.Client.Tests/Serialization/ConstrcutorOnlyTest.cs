@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using MongoDB.Client.Tests.Models;
+﻿using MongoDB.Client.Tests.Models;
 using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization

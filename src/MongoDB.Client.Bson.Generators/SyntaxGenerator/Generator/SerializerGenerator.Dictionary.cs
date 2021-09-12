@@ -7,17 +7,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        public static readonly CollectionReadContext DictionaryReadContext = new CollectionReadContext(
-            Identifier("dictionaryDocLength"),
-            Identifier("dictionaryUnreaded"),
-            Identifier("dictionaryEndMarker"),
-            Identifier("dictionaryBsonType"),
-            Identifier("dictionaryBsonName"),
-            Identifier("dictionary"),
-            Identifier("temp"),
-            Identifier("internalDictionary"),
-            new[] { Argument(Identifier("dictionaryBsonName")), Argument(Identifier("temp")) });
-
         public static void ExtractDictionaryTypeArgs(INamedTypeSymbol type, out ITypeSymbol keyTypeArg, out ITypeSymbol valueTypeArg)
         {
             keyTypeArg = default;
@@ -56,19 +45,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             var trueTypeArg = ExtractTypeFromNullableIfNeed(typeArg);
             var builder = ImmutableList.CreateBuilder<StatementSyntax>();
-            if (TryGenerateCollectionSimpleRead(ctx, trueTypeArg, DictionaryReadContext, builder))
+            if (TryGenerateCollectionSimpleRead(ctx, trueTypeArg, InternalDictionaryToken, TempToken, DictionaryBsonTypeToken, builder, Argument(DictionaryBsonNameToken), Argument(TempToken)))
             {
                 goto RETURN;
             }
-            if (TryGenerateCollectionTryParseBson(trueTypeArg, ctx.NameSym, DictionaryReadContext, builder))
+            if (TryGenerateCollectionTryParseBson(trueTypeArg, ctx.NameSym, InternalDictionaryToken, TempToken, builder, Argument(DictionaryBsonNameToken), Argument(TempToken)))
             {
                 goto RETURN;
             }
-            //if (TryGetEnumReadOperation(DictionaryReadContext.TempCollectionReadTargetToken, ctx.NameSym, trueTypeArg, true, out var enumOp))
-            if (TryGetEnumReadOperation(DictionaryReadContext.TempCollectionReadTargetToken, ctx.NameSym, typeArg, true, out var enumOp))
+            if (TryGetEnumReadOperation(TempToken, ctx.NameSym, typeArg, true, out var enumOp))
             {
-                builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(DictionaryReadContext.TempCollectionToken, CollectionAddToken,
-                                                                               Argument(DictionaryReadContext.BsonNameToken), Argument(enumOp.TempExpr))));
+                builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(InternalDictionaryToken, CollectionAddToken, Argument(DictionaryBsonNameToken), Argument(enumOp.TempExpr))));
                 goto RETURN;
             }
             ReportUnsuporterTypeError(ctx.NameSym, trueTypeArg);
@@ -80,7 +67,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     returnType: BoolPredefinedType(),
                     identifier: CollectionTryParseMethodName(type),
                     parameterList: ParameterList(RefParameter(BsonReaderType, BsonReaderToken),
-                                                 OutParameter(IdentifierName(type.ToString()), DictionaryReadContext.OutMessageToken)),
+                                                 OutParameter(IdentifierName(type.ToString()), DictionaryToken)),
                     body: default,
                     constraintClauses: default,
                     expressionBody: default,
@@ -88,33 +75,33 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     semicolonToken: default)
                 .WithBody(
                    Block(
-                       SimpleAssignExprStatement(DictionaryReadContext.OutMessageToken, DefaultLiteralExpr()),
-                       VarLocalDeclarationStatement(DictionaryReadContext.TempCollectionToken, ObjectCreation(ConstructCollectionType(type))),
-                       IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(DictionaryReadContext.DocLenToken))),
-                       VarLocalDeclarationStatement(DictionaryReadContext.UnreadedToken, BinaryExprPlus(ReaderRemainingExpr, SizeOfInt32Expr)),
+                       SimpleAssignExprStatement(DictionaryToken, DefaultLiteralExpr()),
+                       VarLocalDeclarationStatement(InternalDictionaryToken, ObjectCreation(ConstructCollectionType(type))),
+                       IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(DictionaryDocLenToken))),
+                       VarLocalDeclarationStatement(DictionaryUnreadedToken, BinaryExprPlus(ReaderRemainingExpr, SizeOfInt32Expr)),
                        SF.WhileStatement(
                            condition:
                                BinaryExprLessThan(
-                                   BinaryExprMinus(DictionaryReadContext.UnreadedToken, ReaderRemainingExpr),
-                                   BinaryExprMinus(DictionaryReadContext.DocLenToken, NumericLiteralExpr(1))),
+                                   BinaryExprMinus(DictionaryUnreadedToken, ReaderRemainingExpr),
+                                   BinaryExprMinus(DictionaryDocLenToken, NumericLiteralExpr(1))),
                            statement:
                                Block(
-                                   IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(DictionaryReadContext.BsonTypeToken))),
-                                   IfNotReturnFalse(TryGetCString(VarVariableDeclarationExpr(DictionaryReadContext.BsonNameToken))),
+                                   IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(DictionaryBsonTypeToken))),
+                                   IfNotReturnFalse(TryGetCString(VarVariableDeclarationExpr(DictionaryBsonNameToken))),
                                    IfStatement(
-                                       condition: BinaryExprEqualsEquals(DictionaryReadContext.BsonTypeToken, NumericLiteralExpr(10)),
+                                       condition: BinaryExprEqualsEquals(DictionaryBsonTypeToken, NumericLiteralExpr(10)),
                                        statement: Block(
-                                           InvocationExprStatement(DictionaryReadContext.TempCollectionToken, CollectionAddToken,
-                                                                   Argument(DictionaryReadContext.BsonNameToken), Argument(DefaultLiteralExpr())),
+                                           InvocationExprStatement(InternalDictionaryToken, CollectionAddToken,
+                                                                   Argument(DictionaryBsonNameToken), Argument(DefaultLiteralExpr())),
                                            ContinueStatement
                                            )),
                                    builder.ToArray()
                                    )),
-                       IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(DictionaryReadContext.EndMarkerToken))),
+                       IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(DictionaryEndMarkerToken))),
                        IfStatement(
-                           BinaryExprNotEquals(DictionaryReadContext.EndMarkerToken, NumericLiteralExpr((byte)'\x00')),
-                           Block(Statement(SerializerEndMarkerException(ctx.Root.Declaration, IdentifierName(DictionaryReadContext.EndMarkerToken))))),
-                       SimpleAssignExprStatement(DictionaryReadContext.OutMessageToken, DictionaryReadContext.TempCollectionToken),
+                           BinaryExprNotEquals(DictionaryEndMarkerToken, NumericLiteralExpr((byte)'\x00')),
+                           Block(Statement(SerializerEndMarkerException(ctx.Root.Declaration, IdentifierName(DictionaryEndMarkerToken))))),
+                       SimpleAssignExprStatement(DictionaryToken, InternalDictionaryToken),
                        ReturnTrueStatement
                        ));
         }

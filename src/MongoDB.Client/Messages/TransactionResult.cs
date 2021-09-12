@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Messages

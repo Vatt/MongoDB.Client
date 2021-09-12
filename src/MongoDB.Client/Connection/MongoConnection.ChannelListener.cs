@@ -1,6 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using MongoDB.Client.Exceptions;
+﻿using MongoDB.Client.Exceptions;
 
 namespace MongoDB.Client.Connection
 {

@@ -1,7 +1,4 @@
-using System;
-using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
 using Xunit;
 
@@ -26,7 +23,7 @@ namespace MongoDB.Client.Tests.Serialization
                 } }
             };
 
-            var result = await RoundTripAsync(doc, new BsonDocumentSerializer());
+            var result = await RoundTripAsync(doc);
 
             Assert.Equal(doc, result);
         }
@@ -41,7 +38,7 @@ namespace MongoDB.Client.Tests.Serialization
                 { "guid", BsonBinaryData.Create(guid)}
             };
 
-            var result = await RoundTripAsync(doc, new BsonDocumentSerializer());
+            var result = await RoundTripAsync(doc);
 
             Assert.Equal(doc, result);
         }
@@ -55,7 +52,7 @@ namespace MongoDB.Client.Tests.Serialization
                 { "objectId", oid}
             };
 
-            var result = await RoundTripAsync(doc, new BsonDocumentSerializer());
+            var result = await RoundTripAsync(doc);
 
             Assert.Equal(doc, result);
         }

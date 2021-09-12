@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Threading;
+﻿using System.Collections.Concurrent;
 using System.Threading.Channels;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
@@ -14,8 +11,6 @@ namespace MongoDB.Client.Connection
     public sealed partial class MongoConnection : IAsyncDisposable
     {
         public int ConnectionId { get; }
-        public int Threshold => 4;
-
         private ILogger _logger;
         private ConcurrentDictionary<long, MongoRequest> _completions;
         private ProtocolReader? _protocolReader;

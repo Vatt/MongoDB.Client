@@ -1,5 +1,4 @@
-﻿using System;
-using System.Buffers;
+﻿using System.Buffers;
 using System.Buffers.Binary;
 using MongoDB.Client.Bson.Writer;
 using MongoDB.Client.Protocol.Core;

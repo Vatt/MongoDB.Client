@@ -1,5 +1,4 @@
-﻿using System;
-using System.Reflection;
+﻿using System.Reflection;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Writer;
@@ -80,7 +79,8 @@ namespace MongoDB.Client.Bson.Serialization
             {
                 WriteFnPtr = (delegate*<ref BsonWriter, in T, void>)writeMethod.MethodHandle.GetFunctionPointer();
             }
-            if ((TryParseFnPtr != default && WriteFnPtr != default) || SerializersMap.TryGetSerializer<T>(out var _))
+            //if ((TryParseFnPtr != default && WriteFnPtr != default) || SerializersMap.TryGetSerializer<T>(out var _))
+            if (TryParseFnPtr != default && WriteFnPtr != default)
             {
                 IsSerializable = true;
                 IsSimpleBsonType = false;

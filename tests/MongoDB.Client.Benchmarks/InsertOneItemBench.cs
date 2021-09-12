@@ -1,6 +1,4 @@
-﻿using System;
-using System.Net;
-using System.Threading.Tasks;
+﻿using System.Net;
 using BenchmarkDotNet.Attributes;
 using MongoDB.Client.Tests.Models;
 using MongoDB.Driver;

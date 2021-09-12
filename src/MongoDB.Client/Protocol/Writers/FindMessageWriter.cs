@@ -1,7 +1,7 @@
 ﻿using System.Buffers;
 using System.Buffers.Binary;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
-using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Writer;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
@@ -29,9 +29,8 @@ namespace MongoDB.Client.Protocol.Writers
             var buffer = new Utils.ArrayBufferWriter();
             var writer2 = new BsonWriter(buffer);
             FindRequest.WriteBson(ref writer2, message.Document);
-            var bsonReader = new BsonDocumentSerializer();
             var reader = new BsonReader(buffer.GetSequesnce());
-            bsonReader.TryParseBson(ref reader, out var bsonDoc);
+            BsonDocument.TryParseBson(ref reader, out var bsonDoc);
             var bson = bsonDoc.ToString();
             System.Console.WriteLine("Find");
             System.Console.WriteLine(bson);

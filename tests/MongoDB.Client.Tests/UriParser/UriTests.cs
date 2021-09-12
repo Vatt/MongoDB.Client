@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using MongoDB.Client.Utils;
+﻿using MongoDB.Client.Utils;
 using Xunit;
 
 namespace MongoDB.Client.Tests.UriParser

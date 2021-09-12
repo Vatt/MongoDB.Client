@@ -1,9 +1,7 @@
-﻿using System;
-using System.Buffers;
+﻿using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
-using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 
@@ -11,8 +9,6 @@ namespace MongoDB.Client.Protocol.Readers
 {
     internal class BsonBodyReader : IMessageReader<BsonParseResult>
     {
-        private static readonly IGenericBsonSerializer<BsonDocument> _resultSerializer = new BsonDocumentSerializer();
-
         public long Consumed { get; private set; }
 
         public bool TryParseMessage(
@@ -24,7 +20,7 @@ namespace MongoDB.Client.Protocol.Readers
             var bsonReader = new BsonReader(input);
 
 
-            if (_resultSerializer.TryParseBson(ref bsonReader, out var document) == false)
+            if (BsonDocument.TryParseBson(ref bsonReader, out var document) == false)
             {
                 message = default;
                 return false;
