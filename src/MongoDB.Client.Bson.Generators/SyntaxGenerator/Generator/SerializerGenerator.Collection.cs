@@ -116,7 +116,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static MethodDeclarationSyntax[] GenerateCollectionMethods(ContextCore ctx)
         {
             List<MethodDeclarationSyntax> methods = new();
-            HashSet<ITypeSymbol> declared = new();
+            HashSet<ITypeSymbol> declared = new(SymbolEqualityComparer.IncludeNullability);
             foreach (var member in ctx.Members.Where(x => IsCollection(x.TypeSym)))
             {
                 var type = member.TypeSym as INamedTypeSymbol;

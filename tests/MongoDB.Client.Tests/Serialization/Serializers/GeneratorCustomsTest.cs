@@ -39,8 +39,9 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
             return HashCode.Combine(A, B, C);
         }
     }
-    public static class StructForExtensionSerializer
+    public class StructForExtensionSerializer : IBsonSerializerExtension<StructForExtension>
     {
+        private StructForExtensionSerializer() { }
         public static bool TryParseBson(ref BsonReader reader, out StructForExtension message)
         {
             message = default;

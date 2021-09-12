@@ -4,11 +4,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Messages
 {
-    public static class DnsEndPointSerializer
+    public class DnsEndPointSerializer : IBsonSerializerExtension<EndPoint>
     {
         private static readonly byte ColonChar = (byte)':';
 

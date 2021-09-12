@@ -57,7 +57,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static MethodDeclarationSyntax[] GenerateWriteStringReprEnumMethods(ContextCore ctx)
         {
             List<MethodDeclarationSyntax> methods = new();
-            HashSet<ISymbol> alreadyCreated = new();
+            HashSet<ISymbol> alreadyCreated = new(SymbolEqualityComparer.Default);
             foreach (var member in ctx.Members.Where(member => ExtractTypeFromNullableIfNeed(member.TypeSym).TypeKind == TypeKind.Enum))
             {
                 var repr = GetEnumRepresentation(member.NameSym);
@@ -74,7 +74,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static MethodDeclarationSyntax[] GenerateReadStringReprEnumMethods(ContextCore ctx)
         {
             List<MethodDeclarationSyntax> methods = new();
-            var alreadyCreated = new HashSet<ISymbol>();
+            var alreadyCreated = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
             foreach (var member in ctx.Members.Where(member => ExtractTypeFromNullableIfNeed(member.TypeSym).TypeKind == TypeKind.Enum))
             {
                 var repr = GetEnumRepresentation(member.NameSym);
@@ -92,7 +92,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var outMessage = Identifier("enumMessage");
             var trueType = ExtractTypeFromNullableIfNeed(ctx.TypeSym);
             var repr = GetEnumRepresentation(ctx.NameSym);
-            var alreadyCreated = new HashSet<ISymbol>();
+            var alreadyCreated = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
             if (repr != 1)
             {
                 return default;

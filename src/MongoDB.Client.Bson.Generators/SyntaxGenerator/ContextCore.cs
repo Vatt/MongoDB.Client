@@ -104,7 +104,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         }
         private Dictionary<ISymbol, string> MatchContructorArguments()
         {
-            var binds = new Dictionary<ISymbol, string>();
+            var binds = new Dictionary<ISymbol, string>(SymbolEqualityComparer.IncludeNullability);
             foreach (var param in ConstructorParams)
             {
                 var member = FindMemberByName(Declaration, param.Name);
