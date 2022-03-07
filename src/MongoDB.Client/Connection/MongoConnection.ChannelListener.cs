@@ -19,9 +19,17 @@ namespace MongoDB.Client.Connection
 
             while (!_shutdownCts.IsCancellationRequested)
             {
-                var request = await _channelReader.ReadAsync(_shutdownCts.Token).ConfigureAwait(false);
-                _completions.GetOrAdd(request.RequestNumber, request);
-                await request.WriteAsync!(_protocolWriter, _shutdownCts.Token).ConfigureAwait(false);
+                while (await _channelReader.WaitToReadAsync().ConfigureAwait(false))
+                {
+                    while (_channelReader.TryRead(out var request))
+                    {
+                        _completions.GetOrAdd(request.RequestNumber, request);
+                        await request.WriteAsync!(_protocolWriter, _shutdownCts.Token).ConfigureAwait(false);
+                    }
+                }
+                //var request = await _channelReader.ReadAsync(_shutdownCts.Token).ConfigureAwait(false);
+                //_completions.GetOrAdd(request.RequestNumber, request);
+                //await request.WriteAsync!(_protocolWriter, _shutdownCts.Token).ConfigureAwait(false);
             }
         }
     }

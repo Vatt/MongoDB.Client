@@ -97,7 +97,10 @@ namespace MongoDB.Client.Scheduler
                 return protocol.WriteAsync(ProtocolWriters.FindMessageWriter, message, token);
             };
             request.RequestNumber = message.Header.RequestNumber;
-            await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            if (_channelWriter.TryWrite(request) == false)
+            {
+                await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            }           
             var cursor = (CursorResult<T>)await taskSrc.GetValueTask().ConfigureAwait(false);
             MongoRequestPool.Return(request);
             return cursor;
@@ -114,7 +117,10 @@ namespace MongoDB.Client.Scheduler
             {
                 return InsertCallbackHolder<T>.WriteAsync(message, protocol, token);
             };
-            await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            if (_channelWriter.TryWrite(request) == false)
+            {
+                await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            }
             var result = (InsertResult)await taskSource.GetValueTask().ConfigureAwait(false);
             MongoRequestPool.Return(request);
 
@@ -137,7 +143,10 @@ namespace MongoDB.Client.Scheduler
             {
                 return protocol.WriteAsync(ProtocolWriters.DeleteMessageWriter, message, token);
             };
-            await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            if (_channelWriter.TryWrite(request) == false)
+            {
+                await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            }
             var deleteResult = (DeleteResult)await taskSource.GetValueTask().ConfigureAwait(false);
             MongoRequestPool.Return(request);
             return deleteResult!;
@@ -153,7 +162,10 @@ namespace MongoDB.Client.Scheduler
             {
                 return protocol.WriteAsync(ProtocolWriters.TransactionMessageWriter, message, token);
             };
-            await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            if (_channelWriter.TryWrite(request) == false)
+            {
+                await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            }
             var transactionResult = (TransactionResult)await taskSource.GetValueTask().ConfigureAwait(false);
             MongoRequestPool.Return(request);
             if (transactionResult!.Ok != 1)
@@ -162,7 +174,7 @@ namespace MongoDB.Client.Scheduler
             }
         }
 
-        public async ValueTask DropCollectionAsync(DropCollectionMessage message, CancellationToken cancellationToken)
+        public async ValueTask DropCollectionAsync(DropCollectionMessage message, CancellationToken token)
         {
             var taskSource = new ManualResetValueTaskSource<IParserResult>();
             var request = new MongoRequest(taskSource);
@@ -172,7 +184,10 @@ namespace MongoDB.Client.Scheduler
             {
                 return protocol.WriteAsync(ProtocolWriters.DropCollectionMessageWriter, message, token);
             };
-            await _channelWriter.WriteAsync(request, cancellationToken).ConfigureAwait(false);
+            if (_channelWriter.TryWrite(request) == false)
+            {
+                await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            }   
             var result = (DropCollectionResult)await taskSource.GetValueTask().ConfigureAwait(false);
 
             if (result.Ok != 1)
@@ -182,7 +197,7 @@ namespace MongoDB.Client.Scheduler
         }
 
 
-        public async ValueTask CreateCollectionAsync(CreateCollectionMessage message, CancellationToken cancellationToken)
+        public async ValueTask CreateCollectionAsync(CreateCollectionMessage message, CancellationToken token)
         {
             var taskSource = new ManualResetValueTaskSource<IParserResult>();
             var request = new MongoRequest(taskSource);
@@ -192,7 +207,10 @@ namespace MongoDB.Client.Scheduler
             {
                 return protocol.WriteAsync(ProtocolWriters.CreateCollectionMessageWriter, message, token);
             };
-            await _channelWriter.WriteAsync(request, cancellationToken);
+            if (_channelWriter.TryWrite(request) == false)
+            {
+                await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            }
             var result = (CreateCollectionResult)await taskSource.GetValueTask().ConfigureAwait(false);
 
             if (result.Ok != 1)
