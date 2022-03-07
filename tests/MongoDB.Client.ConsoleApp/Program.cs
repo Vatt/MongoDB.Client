@@ -13,11 +13,11 @@ namespace MongoDB.Client.ConsoleApp
         static async Task Main(string[] args)
         {
 
-            //await LoadTest<GeoIp>(1024*1024, new[] { 4 });
+            await LoadTest<GeoIp>(1024*1024, new[] { 512 });
             //await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, false);
             //await TestShardedCluster();
             //await TestTransaction();
-            await TestStandalone();
+            //await TestStandalone();
         }
         static async Task TestShardedCluster()
         {
@@ -177,7 +177,7 @@ namespace MongoDB.Client.ConsoleApp
         static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelism) where T : IIdentified, IBsonSerializer<T>
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
-
+            host = "mongodb://mongo0.mshome.net/?maxPoolSize=1";
             var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder
@@ -185,7 +185,7 @@ namespace MongoDB.Client.ConsoleApp
                     .AddConsole();
             });
 
-            var client = await MongoClient.CreateClient(new DnsEndPoint(host, 27017), loggerFactory);
+            var client = await MongoClient.CreateClient(host, loggerFactory);
             // var client = MongoExperimental.CreateWithExperimentalConnection(new DnsEndPoint(host, 27017), loggerFactory);
 
             var db = client.GetDatabase("TestDb");

@@ -1,7 +1,9 @@
 ﻿using System.Collections.Immutable;
 using System.Net;
+using System.Runtime.Versioning;
 using System.Threading.Channels;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Environments;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Tests.Models;
@@ -12,6 +14,7 @@ using OldClient = MongoDB.Driver.MongoClient;
 
 namespace MongoDB.Client.Benchmarks
 {
+    [RequiresPreviewFeatures]
     [MemoryDiagnoser]
     public class ComplexBenchmarkBase<T> where T : IIdentified, IBsonSerializer<T>
     {
@@ -100,7 +103,7 @@ namespace MongoDB.Client.Benchmarks
                     throw new NotSupportedException(ClientType.ToString());
             }
         }
-
+        [RequiresPreviewFeatures]
         [Benchmark]
         public async Task ComplexBenchmark()
         {
