@@ -2,8 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <EnablePreviewFeatures>true</EnablePreviewFeatures>
-    <LangVersion>preview</LangVersion>
+    <LangVersion>10</LangVersion>
     <Nullable>enable</Nullable>
     <NoWarn>$(NoWarn);CS8618;CS8632;CS8669</NoWarn>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>

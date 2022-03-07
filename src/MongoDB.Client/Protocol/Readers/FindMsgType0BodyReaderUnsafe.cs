@@ -9,7 +9,8 @@ using MongoDB.Client.Messages;
 
 namespace MongoDB.Client.Protocol.Readers
 {
-    internal class FindMsgType0BodyReaderUnsafe<T> : MsgBodyReader<T> where T : IBsonSerializer<T>
+    internal class FindMsgType0BodyReaderUnsafe<T> : MsgBodyReader<T>
+        //where T : IBsonSerializer<T>
     {
         private long _modelsReaded;
         private long _payloadLength;
@@ -28,7 +29,7 @@ namespace MongoDB.Client.Protocol.Readers
         }
 
 
-        public override bool TryParseMessage(
+        public unsafe override bool TryParseMessage(
             in ReadOnlySequence<byte> input,
             ref SequencePosition consumed,
             ref SequencePosition examined,
@@ -81,7 +82,8 @@ namespace MongoDB.Client.Protocol.Readers
                     {
                         bool tryParseResult = default;
                         T? item = default;
-                        tryParseResult = T.TryParseBson(ref bsonReader, out item);
+                        //tryParseResult = T.TryParseBson(ref bsonReader, out item);
+                        tryParseResult = SerializerFnPtrProvider<T>.TryParseFnPtr(ref bsonReader, out item);
                         if (tryParseResult)
                         {
                             items.Add(item);

@@ -7,7 +7,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Messages
 {
-    public class DnsEndPointSerializer : IBsonSerializerExtension<EndPoint>
+    public class DnsEndPointSerializer //: IBsonSerializerExtension<EndPoint>
     {
         private static readonly byte ColonChar = (byte)':';
 

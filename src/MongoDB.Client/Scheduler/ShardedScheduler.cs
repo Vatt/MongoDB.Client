@@ -116,7 +116,7 @@ namespace MongoDB.Client.Scheduler
         }
 
         public async ValueTask<FindResult<T>> FindAsync<T>(BsonDocument filter, int limit, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)
-            where T : IBsonSerializer<T>
+            //where T : IBsonSerializer<T>
         {
             var scheduler = GetScheduler();
             var lastPing = scheduler.LastPing!;
@@ -147,7 +147,7 @@ namespace MongoDB.Client.Scheduler
             }
         }
         public ValueTask<CursorResult<T>> GetMoreAsync<T>(MongoScheduler scheduler, long cursorId, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)
-            where T : IBsonSerializer<T>
+            //where T : IBsonSerializer<T>
         {
             var info = GetScheduler();
             var lastPing = info.LastPing!;
@@ -177,7 +177,7 @@ namespace MongoDB.Client.Scheduler
             }
         }
         public ValueTask InsertAsync<T>(TransactionHandler transaction, IEnumerable<T> items, CollectionNamespace collectionNamespace, CancellationToken token)
-            where T : IBsonSerializer<T>
+            //where T : IBsonSerializer<T>
         {
             var scheduler = GetScheduler();
             var lastPing = scheduler.LastPing!;

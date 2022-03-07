@@ -7,7 +7,7 @@ using MongoDB.Client.Protocol.Writers;
 
 namespace MongoDB.Client.Scheduler.Holders
 {
-    internal static class InsertCallbackHolder<T> where T : IBsonSerializer<T>
+    internal static class InsertCallbackHolder<T> //where T : IBsonSerializer<T>
     {
         private static readonly IMessageWriter<InsertMessage<T>> InsertMessageWriter;
         private static readonly InsertMsgType0BodyReader InsertBodyReader = new InsertMsgType0BodyReader();

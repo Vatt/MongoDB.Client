@@ -6,7 +6,7 @@ using MongoDB.Client.Utils;
 
 namespace MongoDB.Client
 {
-    public class Cursor<T> : IAsyncEnumerable<T> where T : IBsonSerializer<T>
+    public class Cursor<T> : IAsyncEnumerable<T> //where T : IBsonSerializer<T>
     {
         private readonly TransactionHandler _transaction;
         private readonly IMongoScheduler _scheduler;

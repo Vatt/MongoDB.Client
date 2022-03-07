@@ -5,7 +5,7 @@ using MongoDB.Client.Bson.Serialization;
 namespace MongoDb.Client.WebApi.Mongo
 {
     public class BaseNewRepository<T> : IMongoRepository<T>
-        where T : IBsonSerializer<T>
+        //where T : IBsonSerializer<T>
     {
         private readonly MongoCollection<T> _collection;
 

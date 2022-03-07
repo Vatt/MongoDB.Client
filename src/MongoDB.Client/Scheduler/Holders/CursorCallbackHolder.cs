@@ -6,7 +6,7 @@ using MongoDB.Client.Protocol.Readers;
 
 namespace MongoDB.Client.Scheduler.Holders
 {
-    internal static partial class CursorCallbackHolder<T> where T : IBsonSerializer<T>
+    internal static partial class CursorCallbackHolder<T> //where T : IBsonSerializer<T>
     {
 
         static unsafe CursorCallbackHolder()

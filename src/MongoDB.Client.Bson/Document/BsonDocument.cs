@@ -8,7 +8,7 @@ using MongoDB.Client.Bson.Writer;
 namespace MongoDB.Client.Bson.Document
 {
     [DebuggerTypeProxy(typeof(CollectionDebugView<>))]
-    public class BsonDocument : IBsonSerializer<BsonDocument>, IEnumerable<BsonElement>, IEquatable<BsonDocument>
+    public class BsonDocument : IEnumerable<BsonElement>, IEquatable<BsonDocument>//, IBsonSerializer<BsonDocument>
     {
         public static BsonDocument Empty => new BsonDocument();
 
@@ -265,5 +265,6 @@ namespace MongoDB.Client.Bson.Document
 
             return hash.ToHashCode();
         }
+
     }
 }

@@ -18,7 +18,7 @@ namespace MongoDB.Client
         }
 
         public MongoCollection<T> GetCollection<T>(string name)
-            where T : IBsonSerializer<T>
+            //where T : IBsonSerializer<T>
         {
             return new MongoCollection<T>(this, name, _scheduler);
         }

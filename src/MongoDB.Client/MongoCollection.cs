@@ -7,7 +7,7 @@ using MongoDB.Client.Utils;
 
 namespace MongoDB.Client
 {
-    public class MongoCollection<T> where T : IBsonSerializer<T>
+    public class MongoCollection<T> //where T : IBsonSerializer<T>
     {
         private readonly IMongoScheduler _scheduler;
 

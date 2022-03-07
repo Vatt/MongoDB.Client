@@ -141,7 +141,7 @@ namespace MongoDB.Client.ConsoleApp
             Console.WriteLine();
         }
 
-        static async Task ReplicaSetConenctionTest<T>(int requestCount, IEnumerable<int> parallelism, bool useTransaction) where T : IIdentified, IBsonSerializer<T>
+        static async Task ReplicaSetConenctionTest<T>(int requestCount, IEnumerable<int> parallelism, bool useTransaction) where T : IIdentified//, IBsonSerializer<T>
         {
             var loggerFactory = LoggerFactory.Create(builder =>
             {
@@ -158,7 +158,7 @@ namespace MongoDB.Client.ConsoleApp
             {
                 Console.WriteLine("Start: " + item);
                 var bench = new ComplexBenchmarkBase<T>(db, item, requestCount);
-                bench.Setup();
+                await bench.Setup();
 
                 stopwatch.Restart();
                 try
@@ -174,7 +174,7 @@ namespace MongoDB.Client.ConsoleApp
                 Console.WriteLine($"End: {item}. Elapsed: {stopwatch.Elapsed}");
             }
         }
-        static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelism) where T : IIdentified, IBsonSerializer<T>
+        static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelism) where T : IIdentified//, IBsonSerializer<T>
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
             host = "mongodb://mongo0.mshome.net/?maxPoolSize=1";

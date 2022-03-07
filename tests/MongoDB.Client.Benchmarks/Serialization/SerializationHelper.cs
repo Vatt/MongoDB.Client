@@ -1,5 +1,6 @@
 ﻿using System.IO.Pipelines;
-using MongoDB.Client.Bson.Serialization;
+using System.Linq;
+using System.Threading.Tasks;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
@@ -9,7 +10,7 @@ namespace MongoDB.Client.Benchmarks.Serialization
 {
     class SerializationHelper
     {
-        public static async ValueTask<T> RoundTripAsync<T>(T message) where T : IBsonSerializer<T>
+        public static async ValueTask<T> RoundTripAsync<T>(T message) //where T : IBsonSerializer<T>
         {
             var pipe = new Pipe();
 
@@ -17,7 +18,7 @@ namespace MongoDB.Client.Benchmarks.Serialization
             return await ReadAsync<T>(pipe.Reader);
         }
 
-        private static async ValueTask<T> ReadAsync<T>(PipeReader input) where T : IBsonSerializer<T>
+        private static async ValueTask<T> ReadAsync<T>(PipeReader input)// where T : IBsonSerializer<T>
         {
             var reader = new ProtocolReader(input);
 
@@ -28,7 +29,7 @@ namespace MongoDB.Client.Benchmarks.Serialization
         }
 
 
-        private static async ValueTask WriteAsync<T>(PipeWriter output, T message) where T : IBsonSerializer<T>
+        private static async ValueTask WriteAsync<T>(PipeWriter output, T message) //where T : IBsonSerializer<T>
         {
             var writer = new ProtocolWriter(output);
 

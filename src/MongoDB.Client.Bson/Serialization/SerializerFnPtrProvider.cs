@@ -23,7 +23,7 @@ namespace MongoDB.Client.Bson.Serialization
                 IsSimpleBsonType = false;
                 return;
             }
-            if (typeof(T) == typeof(string) || typeof(T) == typeof(BsonDocument) ||
+            if (typeof(T) == typeof(string) || /*typeof(T) == typeof(BsonDocument) ||*/
                 typeof(T) == typeof(BsonArray) || typeof(T) == typeof(BsonObjectId) || typeof(T) == typeof(Guid) ||
                 typeof(T) == typeof(DateTimeOffset) || typeof(T) == typeof(BsonTimestamp))
             {

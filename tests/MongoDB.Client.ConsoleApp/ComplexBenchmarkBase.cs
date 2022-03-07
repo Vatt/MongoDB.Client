@@ -5,7 +5,7 @@ using MongoDB.Client.Tests.Models;
 
 namespace MongoDB.Client.ConsoleApp
 {
-    public class ComplexBenchmarkBase<T> where T : IIdentified, IBsonSerializer<T>
+    public class ComplexBenchmarkBase<T> where T : IIdentified//, IBsonSerializer<T>
     {
         private MongoCollection<T> _collection;
         private T[] _items;
