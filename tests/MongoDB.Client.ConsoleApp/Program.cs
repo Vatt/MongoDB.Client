@@ -177,7 +177,7 @@ namespace MongoDB.Client.ConsoleApp
         static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelism) where T : IIdentified, IBsonSerializer<T>
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
-            host = "mongodb://mongo0.mshome.net/?maxPoolSize=16";
+            host = "mongodb://mongo0.mshome.net/?maxPoolSize=1";
             var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder
@@ -195,7 +195,7 @@ namespace MongoDB.Client.ConsoleApp
             {
                 Console.WriteLine("Start: " + item);
                 var bench = new ComplexBenchmarkBase<T>(db, item, requestCount);
-                bench.Setup();
+                await bench.Setup();
 
                 stopwatch.Restart();
                 try

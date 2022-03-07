@@ -22,17 +22,17 @@ namespace MongoDB.Client.Connection
             {
                 try
                 {
-                    var header = await ReadAsyncPrivate(_protocolReader, ProtocolReaders.MessageHeaderReader, _shutdownCts.Token).ConfigureAwait(false);
+                    var header = await ReadAsyncPrivate(ProtocolReaders.MessageHeaderReader, _shutdownCts.Token).ConfigureAwait(false);
                     switch (header.Opcode)
                     {
                         case Opcode.Reply:
                             _logger.GotReplyMessage(header.ResponseTo);
-                            var replyResult = await ReadAsyncPrivate(_protocolReader, ProtocolReaders.ReplyMessageReader, _shutdownCts.Token).ConfigureAwait(false);
+                            var replyResult = await ReadAsyncPrivate(ProtocolReaders.ReplyMessageReader, _shutdownCts.Token).ConfigureAwait(false);
                             message = new ReplyMessage(header, replyResult);
                             break;
                         case Opcode.OpMsg:
                             _logger.GotMsgMessage(header.ResponseTo);
-                            var msgResult = await ReadAsyncPrivate(_protocolReader, ProtocolReaders.MsgMessageReader, _shutdownCts.Token).ConfigureAwait(false);
+                            var msgResult = await ReadAsyncPrivate(ProtocolReaders.MsgMessageReader, _shutdownCts.Token).ConfigureAwait(false);
                             message = new ResponseMsgMessage(header, msgResult);
                             break;
                         case Opcode.Message:
@@ -88,13 +88,13 @@ namespace MongoDB.Client.Connection
             }
         }
 
-        private static async ValueTask<T> ReadAsyncPrivate<T>(ProtocolReader protocolReader, IMessageReader<T> reader, CancellationToken token)
+        private async ValueTask<T> ReadAsyncPrivate<T>(IMessageReader<T> reader, CancellationToken token)
         {
-            var result = await protocolReader.ReadAsync(reader, token).ConfigureAwait(false);
-            protocolReader.Advance();
+            var result = await _protocolReader!.ReadAsync(reader, token).ConfigureAwait(false);
+            _protocolReader!.Advance();
             if (result.IsCanceled || result.IsCompleted)
             {
-                //TODO: DO SOME
+                _logger.LogError("ProtocolReader is Canceled or Completed");
             }
             return result.Message;
         }
