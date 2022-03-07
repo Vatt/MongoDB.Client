@@ -26,7 +26,7 @@ namespace MongoDB.Client.Protocol.Writers
             writer.WriteInt32((int)CreateFlags(message));
 
             writer.WriteByte((byte)PayloadType.Type0);
-
+/*
 #if DEBUG
             var buffer = new Utils.ArrayBufferWriter();
             var writer2 = new BsonWriter(buffer);
@@ -37,7 +37,7 @@ namespace MongoDB.Client.Protocol.Writers
             System.Console.WriteLine("Insert");
             System.Console.WriteLine(bson);
 #endif
-
+*/
             InsertHeader.WriteBson(ref writer, message.InsertHeader);
 
 

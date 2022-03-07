@@ -101,7 +101,8 @@ namespace MongoDB.Client.Tests.Serialization
         {
             var writer = new ProtocolWriter(output);
             var messageWriter = new UnitTestReplyBodyWriter<T>();
-            await writer.WriteUnsafeAsync(messageWriter, message).ConfigureAwait(false);
+            //await writer.WriteUnsafeAsync(messageWriter, message).ConfigureAwait(false);
+            await writer.WriteAsync(messageWriter, message).ConfigureAwait(false);
             await output.FlushAsync();
             await output.CompleteAsync();
         }

@@ -20,7 +20,6 @@ namespace MongoDB.Client.ConsoleApp
             Parallelism = parallelism;
             RequestsCount = requestsCount;
         }
-
         public void Setup()
         {
             _collection = _database.GetCollection<T>("Insert" + Guid.NewGuid().ToString());

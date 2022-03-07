@@ -24,7 +24,6 @@ namespace MongoDB.Client.Connection
             _protocolListenerTask = StartProtocolListenerAsync();
             ConnectionInfo = await DoConnectAsync(cancellationToken).ConfigureAwait(false);
             _channelListenerTask = StartChannelListerAsync();
-            _channelFindListenerTask = StartFindChannelListerAsync();
             async Task<ConnectionInfo> DoConnectAsync(CancellationToken token)
             {
                 var _initialDocument = InitHelper.CreateInitialCommand(_settings);
@@ -92,7 +91,8 @@ namespace MongoDB.Client.Connection
             _completions.GetOrAdd(completion.RequestNumber, completion);
             try
             {
-                await _protocolWriter.WriteUnsafeAsync(ProtocolWriters.QueryMessageWriter, message, cancellationToken).ConfigureAwait(false);
+                //await _protocolWriter.WriteUnsafeAsync(ProtocolWriters.QueryMessageWriter, message, cancellationToken).ConfigureAwait(false);
+                await _protocolWriter.WriteAsync(ProtocolWriters.QueryMessageWriter, message, cancellationToken).ConfigureAwait(false);
                 var response = await new ValueTask<IParserResult>(completion.CompletionSource, completion.CompletionSource.Version).ConfigureAwait(false);
 
                 if (response is QueryResult<TResp> queryResult)

@@ -177,7 +177,7 @@ namespace MongoDB.Client.ConsoleApp
         static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelism) where T : IIdentified, IBsonSerializer<T>
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
-            host = "mongodb://mongo0.mshome.net/?maxPoolSize=1";
+            host = "mongodb://mongo0.mshome.net/?maxPoolSize=16";
             var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder

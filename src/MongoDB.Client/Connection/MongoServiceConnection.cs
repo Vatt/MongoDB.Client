@@ -95,7 +95,8 @@ namespace MongoDB.Client.Connection
             {
                 ThrowHelper.ThrowNotInitialized();
             }
-            await _protocolWriter.WriteUnsafeAsync(ProtocolWriters.QueryMessageWriter, message, token).ConfigureAwait(false);
+            //await _protocolWriter.WriteUnsafeAsync(ProtocolWriters.QueryMessageWriter, message, token).ConfigureAwait(false);
+            await _protocolWriter.WriteAsync(ProtocolWriters.QueryMessageWriter, message, token).ConfigureAwait(false);
             var header = await ReadAsyncPrivate(_protocolReader, ProtocolReaders.MessageHeaderReader, _shutdownCts.Token).ConfigureAwait(false);
             if (header.Opcode != Opcode.Reply)
             {

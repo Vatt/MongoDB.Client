@@ -24,7 +24,7 @@ namespace MongoDB.Client.Protocol.Writers
             writer.WriteInt32((int)CreateFlags(message));
 
             writer.WriteByte((byte)message.Type);
-
+/*
 #if DEBUG
             var buffer = new Utils.ArrayBufferWriter();
             var writer2 = new BsonWriter(buffer);
@@ -35,6 +35,7 @@ namespace MongoDB.Client.Protocol.Writers
             System.Console.WriteLine("Find");
             System.Console.WriteLine(bson);
 #endif
+*/
 
             FindRequest.WriteBson(ref writer, message.Document);
             writer.Commit();

@@ -20,9 +20,7 @@ namespace MongoDB.Client.Scheduler
         //private readonly List<MongoConnection> _connections; 
         private readonly List<MongoConnection> _connections;
         private readonly Channel<MongoRequest> _channel;
-        private readonly Channel<MongoRequest> _findChannel;
         private readonly ChannelWriter<MongoRequest> _channelWriter;
-        private readonly ChannelWriter<MongoRequest> _cursorChannel;
         private readonly MongoClientSettings _settings;
         private readonly int _maxConnections;
         private static int _counter;
@@ -36,9 +34,7 @@ namespace MongoDB.Client.Scheduler
             _logger = loggerFactory.CreateLogger<StandaloneScheduler>();
             var options = new BoundedChannelOptions(10);
             _channel = Channel.CreateBounded<MongoRequest>(options);
-            _findChannel = Channel.CreateBounded<MongoRequest>(options);
             _channelWriter = _channel.Writer;
-            _cursorChannel = _findChannel.Writer;
             _connections = new List<MongoConnection>();
             _settings = settings;
             _counter = 0;
@@ -86,7 +82,7 @@ namespace MongoDB.Client.Scheduler
 
         private ValueTask<MongoConnection> CreateNewConnection(CancellationToken token)
         {
-            return _connectionFactory.CreateAsync(_settings, _channel.Reader, _findChannel.Reader, this, token);
+            return _connectionFactory.CreateAsync(_settings, _channel.Reader, this, token);
         }
 
 
@@ -101,7 +97,7 @@ namespace MongoDB.Client.Scheduler
                 return protocol.WriteAsync(ProtocolWriters.FindMessageWriter, message, token);
             };
             request.RequestNumber = message.Header.RequestNumber;
-            await _cursorChannel.WriteAsync(request).ConfigureAwait(false);
+            await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
             var cursor = (CursorResult<T>)await taskSrc.GetValueTask().ConfigureAwait(false);
             MongoRequestPool.Return(request);
             return cursor;
