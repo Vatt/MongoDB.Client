@@ -22,12 +22,12 @@ namespace MongoDB.Client.Benchmarks
         private IMongoCollection<T> _oldCollection;
         private T[] _items;
 
-        [Params(1024)]
+        [Params(1024*10)]
         public int RequestsCount { get; set; }
 
-        [Params(1, 4, 8, 16, 32, 64, 128, 256/*, 512*/ )] public int Parallelism { get; set; }
+        [Params(/*1, 4, 8, 16, 32, 64, 128, 256, 512*/ 1024 )] public int Parallelism { get; set; }
 
-        [Params(ClientType.Old,/* ClientType.New,*/ ClientType.NewExperimental)]
+        [Params(/*ClientType.Old, ClientType.New, ClientType.NewExperimental*/ClientType.NewExperimental)]
         public ClientType ClientType { get; set; }
 
         [GlobalSetup]
@@ -143,7 +143,11 @@ namespace MongoDB.Client.Benchmarks
 
                 foreach (var item in items)
                 {
-                    await channel.Writer.WriteAsync(item);
+                    if (channel.Writer.TryWrite(item) == false)
+                    {
+                        await channel.Writer.WriteAsync(item);
+                    }
+                    
                 }
 
                 channel.Writer.Complete();
