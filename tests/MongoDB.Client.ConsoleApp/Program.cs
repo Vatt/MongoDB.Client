@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
+using MongoDB.Client.Settings;
 using MongoDB.Client.Tests.Models;
 
 namespace MongoDB.Client.ConsoleApp
@@ -13,7 +14,7 @@ namespace MongoDB.Client.ConsoleApp
         static async Task Main(string[] args)
         {
 
-            await LoadTest<GeoIp>(1024*1024, new[] { 512 });
+            await LoadTest<GeoIp>(1024 * 1024, new[] { 512 });
             //await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, false);
             //await TestShardedCluster();
             //await TestTransaction();
@@ -177,17 +178,15 @@ namespace MongoDB.Client.ConsoleApp
         static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelism) where T : IIdentified//, IBsonSerializer<T>
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
-            host = "mongodb://mongo0.mshome.net/?maxPoolSize=1";
+            host = "mongodb://mongo0.mshome.net/?maxPoolSize=1&clientType=experimental";
             var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder
                     .SetMinimumLevel(LogLevel.Information)
                     .AddConsole();
             });
-
-            var client = await MongoClient.CreateClient(host, loggerFactory);
-            // var client = MongoExperimental.CreateWithExperimentalConnection(new DnsEndPoint(host, 27017), loggerFactory);
-
+            var settings = MongoClientSettings.FromConnectionString(host);
+            var client = await MongoClient.CreateClient(settings, loggerFactory);
             var db = client.GetDatabase("TestDb");
             var stopwatch = new Stopwatch();
             Console.WriteLine(typeof(T).Name);

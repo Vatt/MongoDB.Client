@@ -25,9 +25,9 @@ namespace MongoDB.Client.Benchmarks
         [Params(1024)]
         public int RequestsCount { get; set; }
 
-        [Params(1, 4, 8, 16, 32, 64, 128, 256/*, 512*/)] public int Parallelism { get; set; }
+        [Params(1, 4, 8, 16, 32, 64, 128, 256/*, 512*/ )] public int Parallelism { get; set; }
 
-        [Params(ClientType.Old, ClientType.New, ClientType.NewExperimental)]
+        [Params(ClientType.Old,/* ClientType.New,*/ ClientType.NewExperimental)]
         public ClientType ClientType { get; set; }
 
         [GlobalSetup]
@@ -63,9 +63,10 @@ namespace MongoDB.Client.Benchmarks
             {
                 Endpoints = new EndPoint[] { new DnsEndPoint(host, 27017) }.ToImmutableArray(),
             };
-            var client = await NewClient.CreateClient(settings);
+            var client = NewClient.CreateClient(settings).Result;
             var db = client.GetDatabase(dbName);
             _collection = db.GetCollection<T>(collectionName);
+            await _collection.CreateAsync();
         }
         private async Task InitNewClientExperimental(string host, string dbName, string collectionName)
         {
@@ -163,7 +164,10 @@ namespace MongoDB.Client.Benchmarks
                 {
                     while (true)
                     {
-                        var item = await reader.ReadAsync();
+                        if (reader.TryRead(out var item) == false)
+                        {
+                            item = await reader.ReadAsync();
+                        }
                         await Work(collection, item);
                     }
                 }

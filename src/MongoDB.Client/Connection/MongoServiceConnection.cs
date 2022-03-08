@@ -20,11 +20,13 @@ namespace MongoDB.Client.Connection
         internal ConnectionInfo? ConnectionInfo;
         private ProtocolReader _protocolReader;
         private ProtocolWriter _protocolWriter;
+        private ConnectionContext _ctx;
         private CancellationTokenSource _shutdownCts = new CancellationTokenSource();
         private int _requestId = 0;
         public EndPoint EndPoint { get; }
         public MongoServiceConnection(ConnectionContext connection)
         {
+            _ctx = connection;
             EndPoint = connection.RemoteEndPoint!;
             _protocolReader = connection.CreateReader();
             _protocolWriter = connection.CreateWriter();
@@ -138,6 +140,7 @@ namespace MongoDB.Client.Connection
             _shutdownCts.Cancel();
             await _protocolReader.DisposeAsync().ConfigureAwait(false);
             await _protocolWriter.DisposeAsync().ConfigureAwait(false);
+            await _ctx.DisposeAsync().ConfigureAwait(false);
         }
     }
 }

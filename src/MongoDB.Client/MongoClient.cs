@@ -65,6 +65,7 @@ namespace MongoDB.Client
                     await using var serviceConnection = new MongoServiceConnection(ctx);
                     await serviceConnection.Connect(settings, token).ConfigureAwait(false);
                     ping = await serviceConnection.MongoPing(token).ConfigureAwait(false);
+                    //await serviceConnection.DisposeAsync().ConfigureAwait(false);
                     break;
                 }
                 catch (Exception)
@@ -72,7 +73,6 @@ namespace MongoDB.Client
                     continue;
                 }
             }
-
             if (ping is null)
             {
                 ThrowHelper.MongoInitExceptions<MongoClient>();

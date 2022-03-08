@@ -25,7 +25,6 @@ namespace MongoDB.Client.ConsoleApp
             var collectionName = "Insert" + Guid.NewGuid().ToString();
             await _database.CreateCollectionAsync(collectionName);
             _collection = _database.GetCollection<T>(collectionName);
-
             _items = new DatabaseSeeder().GenerateSeed<T>(RequestsCount).ToArray();
             var set = new HashSet<BsonObjectId>();
             foreach (var item in _items)
@@ -88,9 +87,9 @@ namespace MongoDB.Client.ConsoleApp
                 }
                 else
                 {
-                    //await collection.InsertAsync(item);
+                    await collection.InsertAsync(item);
                     var result = await collection.Find(filter).FirstOrDefaultAsync();
-                    //await collection.DeleteOneAsync(filter);
+                    await collection.DeleteOneAsync(filter);
                 }
             }
 
