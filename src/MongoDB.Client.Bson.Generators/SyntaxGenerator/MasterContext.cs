@@ -13,7 +13,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var (node, symbol) = pair;
-                Contexts.Add(new ContextCore(this, node, symbol));
+                Contexts.Add(new ContextCore(node, symbol));
 
             }
         }

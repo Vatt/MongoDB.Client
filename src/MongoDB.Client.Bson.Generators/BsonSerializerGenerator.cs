@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -12,12 +13,12 @@ using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators
 {
 
-    [Generator]
-    class BsonSerializerGenerator : ISourceGenerator
+    [Generator(LanguageNames.CSharp)]
+    public class BsonSerializerGenerator : IIncrementalGenerator
     {
         public static GeneratorExecutionContext Context;
         public static Compilation Compilation;
-        public void Execute(GeneratorExecutionContext context)
+        /*public void Execute(GeneratorExecutionContext context)
         {
 #if DEBUG
             //System.Diagnostics.Debugger.Launch();
@@ -40,10 +41,10 @@ namespace MongoDB.Client.Bson.Generators
 #if DEBUG
             SerializerGenerator.ReportDuration("All", all.Elapsed);
 #endif
-        }
+        }*/
 
 
-        public static CompilationUnitSyntax[] Create(MasterContext master, CancellationToken cancellationToken)
+        /*public static CompilationUnitSyntax[] Create(MasterContext master, CancellationToken cancellationToken)
         {
             CompilationUnitSyntax[] units = new CompilationUnitSyntax[master.Contexts.Count];
 
@@ -66,9 +67,9 @@ namespace MongoDB.Client.Bson.Generators
                     .AddMembers(SerializerGenerator.GenerateSerializer(master.Contexts[index]));
             }
             return units;
-        }
+        }*/
 
-        public class SemanticBsonAttributeReciver : ISyntaxContextReceiver
+        /*public class SemanticBsonAttributeReciver : ISyntaxContextReceiver
         {
             public HashSet<BsonSerializerNode> Symbols { get; } = new HashSet<BsonSerializerNode>();
 
@@ -102,7 +103,7 @@ namespace MongoDB.Client.Bson.Generators
 
                 }
             }
-        }
+        }*/
 
         internal readonly struct BsonSerializerNode : IEquatable<BsonSerializerNode>
         {
@@ -141,9 +142,80 @@ namespace MongoDB.Client.Bson.Generators
             }
         }
 
-        public void Initialize(GeneratorInitializationContext context)
+        // public void Initialize(GeneratorInitializationContext context)
+        // {
+        //     context.RegisterForSyntaxNotifications(() => new SemanticBsonAttributeReciver());
+        // }
+
+        public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            context.RegisterForSyntaxNotifications(() => new SemanticBsonAttributeReciver());
+            System.Diagnostics.Debugger.Launch();
+            var declarations = context.SyntaxProvider.CreateSyntaxProvider(Predicate, Transform).Where(static decl => decl != null);
+            IncrementalValueProvider<(Compilation, ImmutableArray<ContextCore>)> compilationAndDeclarations = context.CompilationProvider.Combine(declarations.Collect());
+            context.RegisterSourceOutput(compilationAndDeclarations, static (spc, source) => Execute(source.Item1, source.Item2, spc));
+        }
+        private bool Predicate(SyntaxNode node, CancellationToken token)
+        {
+            switch (node)
+            {
+                case ClassDeclarationSyntax classDecl when classDecl.AttributeLists.Count > 0: return true;
+                case StructDeclarationSyntax structDecl when structDecl.AttributeLists.Count > 0: return true;
+                case RecordDeclarationSyntax recordDecl when recordDecl.AttributeLists.Count > 0: return true;
+                default: return false;
+            }
+        }
+        INamedTypeSymbol BsonSerializableAttr = null;
+
+        private ContextCore Transform(GeneratorSyntaxContext context, CancellationToken token)
+        {
+            Compilation = context.SemanticModel.Compilation;
+            var model = context.SemanticModel;
+            BsonSerializableAttr ??= model.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonSerializableAttribute")!;
+
+            switch (context.Node)
+            {
+                case ClassDeclarationSyntax classDecl when classDecl.AttributeLists.Count > 0:
+                case StructDeclarationSyntax structDecl when structDecl.AttributeLists.Count > 0:
+                case RecordDeclarationSyntax recordDecl when recordDecl.AttributeLists.Count > 0:
+                    if (model.GetDeclaredSymbol(context.Node) is INamedTypeSymbol symbol)
+                    {
+                        foreach (var attr in symbol.GetAttributes())
+                        {
+                            if (attr.AttributeClass!.Equals(BsonSerializableAttr, SymbolEqualityComparer.Default))
+                            {
+                                return new ContextCore(context.Node, symbol);
+                            }
+                        }
+                    }
+
+                    break;
+            }
+            return null;
+        }
+        private static void Execute(Compilation compilation, ImmutableArray<ContextCore> declarations, SourceProductionContext context)
+        {
+            Compilation = compilation;
+            var systemDirective = SF.UsingDirective(SF.ParseName("System"));
+            var systemCollectionsGenericDirective = SF.UsingDirective(SF.ParseName("System.Collections.Generic"));
+            var systemBuffersBinaryDirective = SF.UsingDirective(SF.ParseName("System.Buffers.Binary"));
+            var bsonReaderDirective = SF.UsingDirective(SF.ParseName("MongoDB.Client.Bson.Reader"));
+            var bsonSerializerDirective = SF.UsingDirective(SF.ParseName("MongoDB.Client.Bson.Serialization"));
+
+            for (int index = 0; index < declarations.Length; index++)
+            {
+                var decl = declarations[index];
+                context.AddSource(decl.SerializerName.ToString(),
+                    SF.CompilationUnit()
+                        .AddUsings(
+                            systemDirective,
+                            systemCollectionsGenericDirective,
+                            systemBuffersBinaryDirective,
+                            bsonReaderDirective,
+                            bsonSerializerDirective)
+                        .AddMembers(SerializerGenerator.GenerateSerializer(decl))
+                        .NormalizeWhitespace()
+                        .ToString());
+            }
         }
     }
 }
