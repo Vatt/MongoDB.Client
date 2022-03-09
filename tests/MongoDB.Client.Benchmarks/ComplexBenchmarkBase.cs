@@ -25,9 +25,9 @@ namespace MongoDB.Client.Benchmarks
         [Params(1024*10)]
         public int RequestsCount { get; set; }
 
-        [Params(/*1, 4, 8, 16, 32, 64, 128, 256, 512*/ 1024 )] public int Parallelism { get; set; }
+        [Params(/*1, 4, 8, 16, 32, 64, 128, 256, 512*/ 64 )] public int Parallelism { get; set; }
 
-        [Params(/*ClientType.Old, ClientType.New, ClientType.NewExperimental*/ClientType.NewExperimental)]
+        [Params(/*ClientType.Old, ClientType.New, ClientType.NewExperimental*/ClientType.New)]
         public ClientType ClientType { get; set; }
 
         [GlobalSetup]
@@ -75,9 +75,10 @@ namespace MongoDB.Client.Benchmarks
                 Endpoints = new EndPoint[] { new DnsEndPoint(host, 27017) }.ToImmutableArray(),
                 ClientType = Settings.ClientType.Experimental
             };
-            var client = await NewClient.CreateClient(settings);
+            var client = NewClient.CreateClient(settings).Result;
             var db = client.GetDatabase(dbName);
             _collection = db.GetCollection<T>(collectionName);
+            await _collection.CreateAsync();
         }
         private void InitOldClient(string host, string dbName, string collectionName)
         {
