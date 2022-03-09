@@ -1,5 +1,4 @@
-﻿using MongoDB.Client.Bson.Serialization;
-using MongoDB.Client.Messages;
+﻿using MongoDB.Client.Messages;
 
 namespace MongoDB.Client
 {

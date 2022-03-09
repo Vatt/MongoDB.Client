@@ -1,6 +1,4 @@
-﻿using MongoDB.Client.Bson.Serialization;
-
-namespace MongoDB.Client
+﻿namespace MongoDB.Client
 {
     public static class CursorExtensions
     {

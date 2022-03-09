@@ -2,7 +2,6 @@
 using System.Net;
 using System.Text;
 using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Messages

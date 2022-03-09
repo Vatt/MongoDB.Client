@@ -1,6 +1,5 @@
 ﻿using System.Threading.Channels;
 using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Tests.Models;
 
 namespace MongoDB.Client.ConsoleApp

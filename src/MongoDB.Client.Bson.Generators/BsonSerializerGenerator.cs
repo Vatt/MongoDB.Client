@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Text;
-using System.Threading;
+﻿using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -38,7 +33,7 @@ namespace MongoDB.Client.Bson.Generators
                 default: return false;
             }
         }
-        
+
 
         private ContextCore Transform(GeneratorSyntaxContext context, CancellationToken token)
         {
@@ -55,7 +50,7 @@ namespace MongoDB.Client.Bson.Generators
                     }
                 }
             }
-            return null;            
+            return null;
         }
         private static void Execute(Compilation compilation, ImmutableArray<ContextCore> declarations, SourceProductionContext context)
         {

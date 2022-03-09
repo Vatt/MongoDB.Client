@@ -1,5 +1,4 @@
 ﻿using MongoDB.Client.Bson.Reader;
-using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Bson.Writer;
 using Xunit;

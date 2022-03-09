@@ -1,5 +1,4 @@
 ﻿using MongoDB.Client;
-using MongoDB.Client.Bson.Serialization;
 
 namespace MongoDb.Client.WebApi
 {

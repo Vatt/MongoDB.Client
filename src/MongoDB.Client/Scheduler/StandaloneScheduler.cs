@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Messages;
@@ -34,7 +33,7 @@ namespace MongoDB.Client.Scheduler
         }
 
         public async ValueTask<FindResult<T>> FindAsync<T>(BsonDocument filter, int limit, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)
-            //where T : IBsonSerializer<T>
+        //where T : IBsonSerializer<T>
         {
             var requestNum = _mongoScheduler.GetNextRequestNumber();
             var requestDocument = new FindRequest(collectionNamespace.CollectionName, filter, limit, default, null, collectionNamespace.DatabaseName, transaction.SessionId);
@@ -45,7 +44,7 @@ namespace MongoDB.Client.Scheduler
 
 
         public ValueTask<CursorResult<T>> GetMoreAsync<T>(MongoScheduler scheduler, long cursorId, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)
-            //where T : IBsonSerializer<T>
+        //where T : IBsonSerializer<T>
         {
             var requestNum = scheduler.GetNextRequestNumber();
             var requestDocument = new FindRequest(null, null, default, cursorId, null, collectionNamespace.DatabaseName, transaction.SessionId);
@@ -55,7 +54,7 @@ namespace MongoDB.Client.Scheduler
 
 
         public ValueTask InsertAsync<T>(TransactionHandler transaction, IEnumerable<T> items, CollectionNamespace collectionNamespace, CancellationToken token)
-            //where T : IBsonSerializer<T>
+        //where T : IBsonSerializer<T>
         {
             var requestNumber = _mongoScheduler.GetNextRequestNumber();
             var insertHeader = new InsertHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId);

@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Diagnostics;
 using MongoDB.Client.Bson.Reader;
-using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Utils;
 using MongoDB.Client.Bson.Writer;
 

@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Immutable;
 using System.Linq;
-using System.Net;
-using System.Runtime.Versioning;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
@@ -10,7 +7,6 @@ using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Tests.Models;
 using MongoDB.Driver;
 using NewClient = MongoDB.Client.MongoClient;
-using NewSettings = MongoDB.Client.Settings.MongoClientSettings;
 using OldClient = MongoDB.Driver.MongoClient;
 
 namespace MongoDB.Client.Benchmarks
@@ -142,7 +138,7 @@ namespace MongoDB.Client.Benchmarks
                     {
                         await channel.Writer.WriteAsync(item);
                     }
-                    
+
                 }
 
                 channel.Writer.Complete();

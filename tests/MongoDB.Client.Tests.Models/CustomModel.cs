@@ -1,6 +1,4 @@
-﻿using MongoDB.Client.Bson.Serialization;
-
-namespace MongoDB.Client.Tests.Models
+﻿namespace MongoDB.Client.Tests.Models
 {
     public class CustomModel : IEquatable<CustomModel>//, IBsonSerializer<CustomModel>
     {

@@ -1,7 +1,4 @@
-﻿using MongoDB.Client.Bson.Reader;
-using MongoDB.Client.Bson.Writer;
-
-namespace MongoDB.Client.Bson.Serialization
+﻿namespace MongoDB.Client.Bson.Serialization
 {
     //public interface IBsonSerializerExtension<T>
     //{

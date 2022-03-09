@@ -1,7 +1,5 @@
 ﻿using System.Buffers;
 using System.Buffers.Binary;
-using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Writer;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
@@ -24,18 +22,18 @@ namespace MongoDB.Client.Protocol.Writers
             writer.WriteInt32((int)CreateFlags(message));
 
             writer.WriteByte((byte)message.Type);
-/*
-#if DEBUG
-            var buffer = new Utils.ArrayBufferWriter();
-            var writer2 = new BsonWriter(buffer);
-            FindRequest.WriteBson(ref writer2, message.Document);
-            var reader = new BsonReader(buffer.GetSequesnce());
-            BsonDocument.TryParseBson(ref reader, out var bsonDoc);
-            var bson = bsonDoc.ToString();
-            System.Console.WriteLine("Find");
-            System.Console.WriteLine(bson);
-#endif
-*/
+            /*
+            #if DEBUG
+                        var buffer = new Utils.ArrayBufferWriter();
+                        var writer2 = new BsonWriter(buffer);
+                        FindRequest.WriteBson(ref writer2, message.Document);
+                        var reader = new BsonReader(buffer.GetSequesnce());
+                        BsonDocument.TryParseBson(ref reader, out var bsonDoc);
+                        var bson = bsonDoc.ToString();
+                        System.Console.WriteLine("Find");
+                        System.Console.WriteLine(bson);
+            #endif
+            */
 
             FindRequest.WriteBson(ref writer, message.Document);
             writer.Commit();

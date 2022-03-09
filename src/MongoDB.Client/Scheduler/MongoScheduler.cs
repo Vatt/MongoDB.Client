@@ -1,6 +1,5 @@
 ﻿using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
-using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
@@ -100,7 +99,7 @@ namespace MongoDB.Client.Scheduler
             if (_channelWriter.TryWrite(request) == false)
             {
                 await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
-            }           
+            }
             var cursor = (CursorResult<T>)await taskSrc.GetValueTask().ConfigureAwait(false);
             MongoRequestPool.Return(request);
             return cursor;
@@ -187,7 +186,7 @@ namespace MongoDB.Client.Scheduler
             if (_channelWriter.TryWrite(request) == false)
             {
                 await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
-            }   
+            }
             var result = (DropCollectionResult)await taskSource.GetValueTask().ConfigureAwait(false);
 
             if (result.Ok != 1)

@@ -1,5 +1,4 @@
-﻿using MongoDB.Client.Bson.Serialization;
-using MongoDB.Client.Exceptions;
+﻿using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;

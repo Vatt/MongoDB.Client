@@ -10,7 +10,7 @@ using MongoDB.Client.Messages;
 namespace MongoDB.Client.Protocol.Readers
 {
     internal class FindMsgType0BodyReaderUnsafe<T> : MsgBodyReader<T>
-        //where T : IBsonSerializer<T>
+    //where T : IBsonSerializer<T>
     {
         private long _modelsReaded;
         private long _payloadLength;

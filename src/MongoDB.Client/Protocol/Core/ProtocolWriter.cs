@@ -49,7 +49,7 @@ namespace MongoDB.Client.Protocol.Core
             {
                 _disposed = true;
             }
-            
+
         }
         public async ValueTask WriteAsync<TWriteMessage>(IMessageWriter<TWriteMessage> writer, TWriteMessage protocolMessage, CancellationToken cancellationToken = default)
         {

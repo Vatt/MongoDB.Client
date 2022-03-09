@@ -22,7 +22,7 @@ namespace MongoDB.Client.Messages
     }
     //[BsonSerializable]
     public partial class CursorResult<T> : IParserResult
-        //where T : IBsonSerializer<T>
+    //where T : IBsonSerializer<T>
     {
         [BsonElement("cursor")]
         public MongoCursor<T> MongoCursor { get; set; }

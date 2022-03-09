@@ -12,7 +12,7 @@ using MongoDB.Client.Protocol.Readers;
 namespace MongoDB.Client.Tests.Serialization
 {
     internal class UnitTestReplyBodyWriter<T> : IMessageWriter<T>
-        //where T : IBsonSerializer<T>
+    //where T : IBsonSerializer<T>
     {
         public unsafe void WriteMessage(T message, IBufferWriter<byte> output)
         {
@@ -23,7 +23,7 @@ namespace MongoDB.Client.Tests.Serialization
     }
 
     internal class UnitTestReplyBodyReader<T> : IMessageReader<QueryResult<T>>
-        //where T : IBsonSerializer<T>
+    //where T : IBsonSerializer<T>
     {
         private readonly ReplyMessage _replyMessage;
         private readonly QueryResult<T> _result;
@@ -75,8 +75,8 @@ namespace MongoDB.Client.Tests.Serialization
         }
 
         public static async Task<T1> RoundTripAsync<T0, T1>(T0 message)
-            //where T0 : IBsonSerializer<T0>
-            //where T1 : IBsonSerializer<T1>
+        //where T0 : IBsonSerializer<T0>
+        //where T1 : IBsonSerializer<T1>
         {
             var pipe = new Pipe();
             var reader = new UnitTestReplyBodyReader<T1>(new ReplyMessage(default, new ReplyMessageHeader(default, default, default, 1)));

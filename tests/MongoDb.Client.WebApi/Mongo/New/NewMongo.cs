@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using Microsoft.Extensions.Options;
 using MongoDB.Client;
-using MongoDB.Client.Bson.Serialization;
 
 namespace MongoDb.Client.WebApi
 {
