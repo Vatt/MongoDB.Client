@@ -22,12 +22,15 @@ namespace MongoDB.Client.Benchmarks
         private IMongoCollection<T> _oldCollection;
         private T[] _items;
 
-        [Params(1024*10)]
+        [Params(1, 4, 8, 16)]
+        public int NewClientMaxPoolSize { get; set; }
+
+        [Params(1024)]
         public int RequestsCount { get; set; }
 
-        [Params(/*1, 4, 8, 16, 32, 64, 128, 256, 512*/ 64 )] public int Parallelism { get; set; }
+        [Params(1, 4, 8, 16, 32, 64, 128, 256/*, 512*/ /*64*/ )] public int Parallelism { get; set; }
 
-        [Params(/*ClientType.Old, ClientType.New, ClientType.NewExperimental*/ClientType.New)]
+        [Params(ClientType.Old, /*ClientType.New,*/ ClientType.NewExperimental/*ClientType.New*/)]
         public ClientType ClientType { get; set; }
 
         [GlobalSetup]
@@ -59,23 +62,14 @@ namespace MongoDB.Client.Benchmarks
 
         private async Task InitNewClient(string host, string dbName, string collectionName)
         {
-            var settings = new NewSettings
-            {
-                Endpoints = new EndPoint[] { new DnsEndPoint(host, 27017) }.ToImmutableArray(),
-            };
-            var client = NewClient.CreateClient(settings).Result;
+            var client = NewClient.CreateClient($"mongodb://{host}:27017/?maxPoolSize={NewClientMaxPoolSize}").Result;
             var db = client.GetDatabase(dbName);
             _collection = db.GetCollection<T>(collectionName);
             await _collection.CreateAsync();
         }
         private async Task InitNewClientExperimental(string host, string dbName, string collectionName)
         {
-            var settings = new NewSettings
-            {
-                Endpoints = new EndPoint[] { new DnsEndPoint(host, 27017) }.ToImmutableArray(),
-                ClientType = Settings.ClientType.Experimental
-            };
-            var client = NewClient.CreateClient(settings).Result;
+            var client = NewClient.CreateClient($"mongodb://{host}:27017/?maxPoolSize={NewClientMaxPoolSize}&clientType=Experimental").Result;
             var db = client.GetDatabase(dbName);
             _collection = db.GetCollection<T>(collectionName);
             await _collection.CreateAsync();
