@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -65,7 +63,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 case ClassDeclarationSyntax:
                     declaration = SF.ClassDeclaration(SelfName(ctx.Declaration))
                         .WithModifiers(modifiers)
-                        .AddBaseListTypes(SerializerBaseType(ctx))
+                        //.AddBaseListTypes(SerializerBaseType(ctx))
                         .AddMembers(GenerateStaticNamesSpans(ctx))
                         .AddMembers(GenerateEnumsStaticNamesSpansIfHave(ctx))
                         .AddMembers(TryParseMethod(ctx))
@@ -77,7 +75,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 case StructDeclarationSyntax:
                     declaration = SF.StructDeclaration(SelfName(ctx.Declaration))
                         .WithModifiers(modifiers)
-                        .AddBaseListTypes(SerializerBaseType(ctx))
+                        //.AddBaseListTypes(SerializerBaseType(ctx))
                         .AddMembers(GenerateStaticNamesSpans(ctx))
                         .AddMembers(GenerateEnumsStaticNamesSpansIfHave(ctx))
                         .AddMembers(TryParseMethod(ctx))
@@ -102,7 +100,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         modifiers,
                         decl.Keyword,
                         Identifier(SelfName(ctx.Declaration)),
-                        default, default, SF.BaseList(SeparatedList(SerializerBaseType(ctx))), default,
+                        default, default, /*SF.BaseList(SeparatedList(SerializerBaseType(ctx)))*/default, default,
                         OpenBraceToken(), members, CloseBraceToken(), default);
 
                     break;
@@ -124,7 +122,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                          new(PublicKeyword(), PartialKeyword()),
                          RecordKeyword(),
                          Identifier(SelfName(namedSym)),
-                         default, default, SF.BaseList(SeparatedList(SerializerBaseType(symbol))), default,
+                         default, default, /*SF.BaseList(SeparatedList(SerializerBaseType(symbol)))*/default, default,
                          OpenBraceToken(), new SyntaxList<MemberDeclarationSyntax>().Add(member), CloseBraceToken(), default);
                     //((RecordDeclarationSyntax)decl).AddTypeParameterListParameters
                     return ProcessNested(decl, symbol.ContainingSymbol);
@@ -136,7 +134,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         namedSym = (INamedTypeSymbol)symbol;
                         TypeParameterSyntax[] typeParams = namedSym.TypeArguments.IsEmpty ? null : namedSym.TypeArguments.Select(x => TypeParameter(x)).ToArray();
                         decl = SF.ClassDeclaration(symbol.Name)
-                            .AddBaseListTypes(SerializerBaseType(symbol))
+                            //.AddBaseListTypes(SerializerBaseType(symbol))
                             .AddModifiers(PublicKeyword(), PartialKeyword())
                             .AddMembers(member);
                         if (typeParams is not null)
@@ -149,7 +147,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         namedSym = (INamedTypeSymbol)symbol;
                         typeParams = namedSym.TypeArguments.IsEmpty ? null : namedSym.TypeArguments.Select(x => TypeParameter(x)).ToArray();
                         decl = SF.StructDeclaration(symbol.Name)
-                            .AddBaseListTypes(SerializerBaseType(symbol))
+                            //.AddBaseListTypes(SerializerBaseType(symbol))
                             .AddModifiers(PublicKeyword(), StaticKeyword())
                             .AddMembers(member);
                         if (typeParams is not null)

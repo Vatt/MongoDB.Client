@@ -1,4 +1,5 @@
-﻿using System.Buffers;
+﻿using System;
+using System.Buffers;
 
 namespace MongoDB.Client.Benchmarks.Serialization
 {

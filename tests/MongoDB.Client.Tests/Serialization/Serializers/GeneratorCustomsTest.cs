@@ -1,5 +1,4 @@
 ﻿using MongoDB.Client.Bson.Reader;
-using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Bson.Writer;
 using Xunit;
@@ -35,9 +34,8 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
             return HashCode.Combine(A, B, C);
         }
     }
-    public class StructForExtensionSerializer : IBsonSerializerExtension<StructForExtension>
+    public static class StructForExtensionSerializer //: IBsonSerializerExtension<StructForExtension>
     {
-        private StructForExtensionSerializer() { }
         public static bool TryParseBson(ref BsonReader reader, out StructForExtension message)
         {
             message = default;
@@ -85,7 +83,7 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
             return HashCode.Combine(StringProp, ExtensionProp);
         }
     }
-    public class GeneratorCustomModel : IEquatable<GeneratorCustomModel>, IBsonSerializer<GeneratorCustomModel>
+    public class GeneratorCustomModel : IEquatable<GeneratorCustomModel>//, IBsonSerializer<GeneratorCustomModel>
     {
         public int Prop0 { get; }
         public int Prop1 { get; }

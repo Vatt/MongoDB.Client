@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
+﻿using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
 
@@ -34,7 +31,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
     }
     internal class ContextCore
     {
-        internal MasterContext Root { get; }
         internal INamedTypeSymbol Declaration { get; }
         internal INamedTypeSymbol BaseSym { get; }
         internal SyntaxNode DeclarationNode { get; }
@@ -67,9 +63,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         }
 
         internal bool HavePrimaryConstructor => ConstructorParams.HasValue;
-        public ContextCore(MasterContext root, SyntaxNode node, INamedTypeSymbol symbol)
+        public ContextCore(SyntaxNode node, INamedTypeSymbol symbol)
         {
-            Root = root;
             Declaration = symbol;
             BaseSym = Declaration.BaseType;
             DeclarationNode = node;

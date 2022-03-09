@@ -1,5 +1,4 @@
 ﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Scheduler;
@@ -7,7 +6,7 @@ using MongoDB.Client.Utils;
 
 namespace MongoDB.Client
 {
-    public class MongoCollection<T> where T : IBsonSerializer<T>
+    public class MongoCollection<T> //where T : IBsonSerializer<T>
     {
         private readonly IMongoScheduler _scheduler;
 

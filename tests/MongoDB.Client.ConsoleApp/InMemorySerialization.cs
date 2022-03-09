@@ -1,6 +1,5 @@
 ﻿using System.IO.Pipelines;
 using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
@@ -11,7 +10,7 @@ namespace MongoDB.Client.ConsoleApp
 
     public static class InMemorySerialization
     {
-        public static async Task<T> RoundTripAsync<T>(T message) where T : IBsonSerializer<T>
+        public static async Task<T> RoundTripAsync<T>(T message) //where T : IBsonSerializer<T>
         {
             var pipe = new Pipe(new PipeOptions(pauseWriterThreshold: long.MaxValue, resumeWriterThreshold: long.MaxValue));
             var wtask = WriteAsync<T>(pipe.Writer, message);
@@ -20,13 +19,13 @@ namespace MongoDB.Client.ConsoleApp
             return await rtask;
         }
 
-        public static async Task<BsonDocument> RoundTripToBsonAsync<T>(T message) where T : IBsonSerializer<T>
+        public static async Task<BsonDocument> RoundTripToBsonAsync<T>(T message)// where T : IBsonSerializer<T>
         {
             var pipe = new Pipe();
             await WriteAsync<T>(pipe.Writer, message);
             return await ReadAsync<BsonDocument>(pipe.Reader);
         }
-        public static async Task<T> ReadAsync<T>(PipeReader input) where T : IBsonSerializer<T>
+        public static async Task<T> ReadAsync<T>(PipeReader input) //where T : IBsonSerializer<T>
         {
             var reader = new ProtocolReader(input);
 
@@ -37,7 +36,7 @@ namespace MongoDB.Client.ConsoleApp
         }
 
 
-        public static async Task WriteAsync<T>(PipeWriter output, T message) where T : IBsonSerializer<T>
+        public static async Task WriteAsync<T>(PipeWriter output, T message) //where T : IBsonSerializer<T>
         {
             var writer = new ProtocolWriter(output);
 

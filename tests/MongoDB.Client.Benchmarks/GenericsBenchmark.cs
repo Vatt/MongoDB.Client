@@ -1,3 +1,4 @@
+using System.Linq;
 using BenchmarkDotNet.Attributes;
 using MongoDB.Client.Benchmarks.Serialization;
 using MongoDB.Client.Benchmarks.Serialization.Models;

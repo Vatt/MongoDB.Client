@@ -7,7 +7,7 @@ using MongoDB.Client.Protocol.Core;
 
 namespace MongoDB.Client.Protocol.Readers
 {
-    internal class ReplyBodyReader<T> : IMessageReader<QueryResult<T>> where T : IBsonSerializer<T>
+    internal class ReplyBodyReader<T> : IMessageReader<QueryResult<T>> //where T : IBsonSerializer<T>
     {
         private readonly ReplyMessage _replyMessage;
         private readonly QueryResult<T> _result;
@@ -18,13 +18,14 @@ namespace MongoDB.Client.Protocol.Readers
             _result = new QueryResult<T>(_replyMessage.ReplyHeader.CursorId);
         }
 
-        public bool TryParseMessage(in ReadOnlySequence<byte> input, ref SequencePosition consumed, ref SequencePosition examined, [MaybeNullWhen(false)] out QueryResult<T> message)
+        public unsafe bool TryParseMessage(in ReadOnlySequence<byte> input, ref SequencePosition consumed, ref SequencePosition examined, [MaybeNullWhen(false)] out QueryResult<T> message)
         {
             message = _result;
             var bsonReader = new BsonReader(input);
             while (_result.Count < _replyMessage.ReplyHeader.NumberReturned)
             {
-                if (T.TryParseBson(ref bsonReader, out var item))
+                //if (T.TryParseBson(ref bsonReader, out var item))
+                if (SerializerFnPtrProvider<T>.TryParseFnPtr(ref bsonReader, out var item))
                 {
                     _result.Add(item);
                     consumed = bsonReader.Position;

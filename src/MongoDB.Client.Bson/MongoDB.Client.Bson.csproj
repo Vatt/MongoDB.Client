@@ -2,8 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <EnablePreviewFeatures>true</EnablePreviewFeatures>
-    <LangVersion>preview</LangVersion>
+    <LangVersion>10</LangVersion>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -11,7 +10,7 @@
     <ImplicitUsings>true</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.IO.Pipelines" Version="5.0.1" />
+    <PackageReference Include="System.IO.Pipelines" Version="6.0.2" />
   </ItemGroup>
 
 </Project>

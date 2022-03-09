@@ -1,5 +1,7 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Threading.Channels;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using MongoDB.Client.Tests.Models;
 using BsonDocument = MongoDB.Client.Bson.Document.BsonDocument;
@@ -63,7 +65,7 @@ namespace MongoDB.Client.Benchmarks
             else
             {
                 var iterations = RequestsCount / Parallelism;
-                var tasks = new Task<RootDocument>[Parallelism];
+                var tasks = new Task[Parallelism];
                 for (int i = 0; i < iterations; i++)
                 {
                     for (int j = 0; j < Parallelism; j++)

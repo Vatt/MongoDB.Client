@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -34,10 +32,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     {
                         return false;
                     }
-                    if (extType.Interfaces.FirstOrDefault(x => x.OriginalDefinition.Equals(IBsonSerializerExtensionNamedType, SymbolEqualityComparer.Default)) is not null)
+                    //if (extType.Interfaces.FirstOrDefault(x => x.OriginalDefinition.Equals(IBsonSerializerExtensionNamedType, SymbolEqualityComparer.Default)) is not null)
+                    //{
+                    //    return true;
+                    //}
+                    if (HaveParseWriteExtensionMethods(extType, typeSym) == false)
                     {
-                        return true;
+                        return false;
                     }
+                    return true;
                 }
             }
             return false;
@@ -52,11 +55,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     return true;
                 }
             }
-            if (typeSym is INamedTypeSymbol namedType && namedType.Interfaces.FirstOrDefault(x => x.OriginalDefinition.Equals(IBsonSerializerNamedType, SymbolEqualityComparer.Default)) is not null)
+            //if (typeSym is INamedTypeSymbol namedType && namedType.Interfaces.FirstOrDefault(x => x.OriginalDefinition.Equals(IBsonSerializerNamedType, SymbolEqualityComparer.Default)) is not null)
+            //{
+            //    return true;
+            //}
+            if (HaveParseWriteMethods(typeSym))
             {
                 return true;
             }
-
             return false;
         }
 
@@ -93,7 +99,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             return -1;
         }
-        [Obsolete]
+        //[Obsolete]
         public static bool HaveParseWriteExtensionMethods(ISymbol typeSym, ISymbol retType = null)
         {
             ISymbol returnType = retType ?? typeSym;
@@ -174,7 +180,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             return false;
         }
-        [Obsolete]
+        //[Obsolete]
         public static bool HaveParseWriteMethods(ISymbol typeSym, ISymbol retType = null)
         {
             ISymbol returnType = retType ?? typeSym;

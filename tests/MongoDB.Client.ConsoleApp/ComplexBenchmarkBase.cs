@@ -1,11 +1,10 @@
 ﻿using System.Threading.Channels;
 using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Tests.Models;
 
 namespace MongoDB.Client.ConsoleApp
 {
-    public class ComplexBenchmarkBase<T> where T : IIdentified, IBsonSerializer<T>
+    public class ComplexBenchmarkBase<T> where T : IIdentified//, IBsonSerializer<T>
     {
         private MongoCollection<T> _collection;
         private T[] _items;
@@ -20,11 +19,11 @@ namespace MongoDB.Client.ConsoleApp
             Parallelism = parallelism;
             RequestsCount = requestsCount;
         }
-
-        public void Setup()
+        public async Task Setup()
         {
-            _collection = _database.GetCollection<T>("Insert" + Guid.NewGuid().ToString());
-
+            var collectionName = "Insert" + Guid.NewGuid().ToString();
+            await _database.CreateCollectionAsync(collectionName);
+            _collection = _database.GetCollection<T>(collectionName);
             _items = new DatabaseSeeder().GenerateSeed<T>(RequestsCount).ToArray();
             var set = new HashSet<BsonObjectId>();
             foreach (var item in _items)

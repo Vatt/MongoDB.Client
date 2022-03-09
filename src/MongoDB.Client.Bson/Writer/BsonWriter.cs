@@ -38,12 +38,14 @@ namespace MongoDB.Client.Bson.Writer
 
             public void WriteByte(byte source)
             {
+                Debug.Assert(source != 0);
                 Debug.Assert(_reserved2 == null);
                 _reserved1[0] = source;
             }
 
             public void Write(int source)
             {
+                Debug.Assert(source != 0);
                 if (_reserved2.IsEmpty)
                 {
                     BinaryPrimitives.WriteInt32LittleEndian(_reserved1, source);

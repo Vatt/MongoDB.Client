@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using Microsoft.Extensions.Options;
 using MongoDB.Client;
-using MongoDB.Client.Bson.Serialization;
 
 namespace MongoDb.Client.WebApi
 {
@@ -24,7 +23,7 @@ namespace MongoDb.Client.WebApi
             _db = client.GetDatabase("WebApiDb");
         }
 
-        public MongoCollection<T> GetCollection<T>(string name) where T : IBsonSerializer<T>
+        public MongoCollection<T> GetCollection<T>(string name) //where T : IBsonSerializer<T>
         {
             return _db.GetCollection<T>(name);
         }

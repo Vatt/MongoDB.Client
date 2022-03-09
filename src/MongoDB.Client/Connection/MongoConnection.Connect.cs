@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Connections;
 using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol;
@@ -24,7 +23,6 @@ namespace MongoDB.Client.Connection
             _protocolListenerTask = StartProtocolListenerAsync();
             ConnectionInfo = await DoConnectAsync(cancellationToken).ConfigureAwait(false);
             _channelListenerTask = StartChannelListerAsync();
-            _channelFindListenerTask = StartFindChannelListerAsync();
             async Task<ConnectionInfo> DoConnectAsync(CancellationToken token)
             {
                 var _initialDocument = InitHelper.CreateInitialCommand(_settings);
@@ -68,7 +66,8 @@ namespace MongoDB.Client.Connection
             //    return doc;
             //}
         }
-        public async ValueTask<QueryResult<TResp>> SendQueryAsync<TResp>(QueryMessage message, CancellationToken cancellationToken) where TResp : IBsonSerializer<TResp>
+        public async ValueTask<QueryResult<TResp>> SendQueryAsync<TResp>(QueryMessage message, CancellationToken cancellationToken)
+        //where TResp : IBsonSerializer<TResp>
         {
             if (_protocolWriter is null)
             {
@@ -92,7 +91,8 @@ namespace MongoDB.Client.Connection
             _completions.GetOrAdd(completion.RequestNumber, completion);
             try
             {
-                await _protocolWriter.WriteUnsafeAsync(ProtocolWriters.QueryMessageWriter, message, cancellationToken).ConfigureAwait(false);
+                //await _protocolWriter.WriteUnsafeAsync(ProtocolWriters.QueryMessageWriter, message, cancellationToken).ConfigureAwait(false);
+                await _protocolWriter.WriteAsync(ProtocolWriters.QueryMessageWriter, message, cancellationToken).ConfigureAwait(false);
                 var response = await new ValueTask<IParserResult>(completion.CompletionSource, completion.CompletionSource.Version).ConfigureAwait(false);
 
                 if (response is QueryResult<TResp> queryResult)
@@ -109,7 +109,8 @@ namespace MongoDB.Client.Connection
                 _queue.Enqueue(taskSource);
             }
 
-            async ValueTask<IParserResult> ParseAsync<T>(ProtocolReader reader, MongoResponseMessage mongoResponse) where T : IBsonSerializer<T>
+            async ValueTask<IParserResult> ParseAsync<T>(ProtocolReader reader, MongoResponseMessage mongoResponse)
+            //where T : IBsonSerializer<T>
             {
                 switch (mongoResponse)
                 {

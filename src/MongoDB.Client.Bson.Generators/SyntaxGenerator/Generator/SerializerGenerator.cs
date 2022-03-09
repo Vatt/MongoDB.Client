@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -7,7 +6,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
-        private static GeneratorExecutionContext ExecutionContext => BsonSerializerGenerator.Context;
+        private static SourceProductionContext ExecutionContext => BsonSerializerGenerator.Context;
         private static Compilation Compilation => BsonSerializerGenerator.Compilation;
 
         public static readonly LiteralExpressionSyntax TrueLiteralExpr = SF.LiteralExpression(SyntaxKind.TrueLiteralExpression);

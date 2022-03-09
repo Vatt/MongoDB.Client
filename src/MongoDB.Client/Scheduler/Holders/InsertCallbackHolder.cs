@@ -1,5 +1,4 @@
-﻿using MongoDB.Client.Bson.Serialization;
-using MongoDB.Client.Exceptions;
+﻿using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
@@ -7,7 +6,7 @@ using MongoDB.Client.Protocol.Writers;
 
 namespace MongoDB.Client.Scheduler.Holders
 {
-    internal static class InsertCallbackHolder<T> where T : IBsonSerializer<T>
+    internal static class InsertCallbackHolder<T> //where T : IBsonSerializer<T>
     {
         private static readonly IMessageWriter<InsertMessage<T>> InsertMessageWriter;
         private static readonly InsertMsgType0BodyReader InsertBodyReader = new InsertMsgType0BodyReader();

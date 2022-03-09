@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using Microsoft.AspNetCore.Connections;
 using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol;
@@ -20,11 +19,13 @@ namespace MongoDB.Client.Connection
         internal ConnectionInfo? ConnectionInfo;
         private ProtocolReader _protocolReader;
         private ProtocolWriter _protocolWriter;
+        private ConnectionContext _ctx;
         private CancellationTokenSource _shutdownCts = new CancellationTokenSource();
         private int _requestId = 0;
         public EndPoint EndPoint { get; }
         public MongoServiceConnection(ConnectionContext connection)
         {
+            _ctx = connection;
             EndPoint = connection.RemoteEndPoint!;
             _protocolReader = connection.CreateReader();
             _protocolWriter = connection.CreateWriter();
@@ -89,13 +90,15 @@ namespace MongoDB.Client.Connection
 
             return doc;
         }
-        public async ValueTask<QueryResult<TResp>?> SendQueryAsync<TResp>(QueryMessage message, CancellationToken token) where TResp : IBsonSerializer<TResp>
+        public async ValueTask<QueryResult<TResp>?> SendQueryAsync<TResp>(QueryMessage message, CancellationToken token)
+        //where TResp : IBsonSerializer<TResp>
         {
             if (_protocolWriter is null)
             {
                 ThrowHelper.ThrowNotInitialized();
             }
-            await _protocolWriter.WriteUnsafeAsync(ProtocolWriters.QueryMessageWriter, message, token).ConfigureAwait(false);
+            //await _protocolWriter.WriteUnsafeAsync(ProtocolWriters.QueryMessageWriter, message, token).ConfigureAwait(false);
+            await _protocolWriter.WriteAsync(ProtocolWriters.QueryMessageWriter, message, token).ConfigureAwait(false);
             var header = await ReadAsyncPrivate(_protocolReader, ProtocolReaders.MessageHeaderReader, _shutdownCts.Token).ConfigureAwait(false);
             if (header.Opcode != Opcode.Reply)
             {
@@ -105,7 +108,8 @@ namespace MongoDB.Client.Connection
             MongoResponseMessage replyMessage = new ReplyMessage(header, replyResult);
             var result = await ParseAsync<TResp>(_protocolReader, replyMessage);
             return result as QueryResult<TResp>;
-            async ValueTask<IParserResult> ParseAsync<T>(ProtocolReader reader, MongoResponseMessage mongoResponse) where T : IBsonSerializer<T>
+            async ValueTask<IParserResult> ParseAsync<T>(ProtocolReader reader, MongoResponseMessage mongoResponse)
+            //where T : IBsonSerializer<T>
             {
                 switch (mongoResponse)
                 {
@@ -135,6 +139,7 @@ namespace MongoDB.Client.Connection
             _shutdownCts.Cancel();
             await _protocolReader.DisposeAsync().ConfigureAwait(false);
             await _protocolWriter.DisposeAsync().ConfigureAwait(false);
+            await _ctx.DisposeAsync().ConfigureAwait(false);
         }
     }
 }
