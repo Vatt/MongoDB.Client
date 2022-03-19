@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.ObjectPool;
-using System.Collections.Generic;
 
 namespace MongoDB.Client.Utils
 {

@@ -1,27 +1,24 @@
-﻿using MongoDB.Client.Bson.Document;
-using System;
-using System.Net;
-using System.Threading.Tasks;
+﻿using System.Net;
+using MongoDB.Client.Bson.Document;
 
 namespace MongoDB.Client.Tests.Client
 {
     public abstract class ClientTestBase
     {
         protected string Host { get; init; } = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
+        protected string RsHost { get; init; } = Environment.GetEnvironmentVariable("MONGODB_RS_HOST") ?? "localhost";
+        protected string ShardedHost { get; init; } = Environment.GetEnvironmentVariable("MONGODB_SHARDED_HOST") ?? "localhost";
+        
         protected string DB { get; init; } = "TestDb";
         protected string Collection { get; init; } = "TestCollection";
-        protected MongoClient Client { get; init; }
-        public ClientTestBase()
+
+        protected async Task<List<T>> CreateCollectionInsertFindDeleteDropCollectionAsync<T>(T[] data) //where T : IBsonSerializer<T>
         {
-            Client = new MongoClient(new DnsEndPoint(Host, 27017));
-        }
-        protected async Task<T> CreateCollectionInsertFindDeleteDropCollectionAsync<T>(T data)
-        {
-            await Client.InitAsync(default);
-            var collection = Client.GetDatabase(DB).GetCollection<T>(Collection + Guid.NewGuid());
+            var client = await MongoClient.CreateClient(new DnsEndPoint(Host, 27017)).ConfigureAwait(false);
+            var collection = client.GetDatabase(DB).GetCollection<T>(Collection + Guid.NewGuid());
             await collection.CreateAsync();
             await collection.InsertAsync(data);
-            var findResult = await collection.Find(BsonDocument.Empty).FirstOrDefaultAsync();
+            var findResult = await collection.Find(BsonDocument.Empty).ToListAsync();
             await collection.DeleteOneAsync(BsonDocument.Empty);
             await collection.DropAsync();
             return findResult;

@@ -1,32 +1,32 @@
-﻿using BenchmarkDotNet.Attributes;
+﻿using System;
+using System.Linq;
+using System.Threading.Channels;
+using System.Threading.Tasks;
+using BenchmarkDotNet.Attributes;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Tests.Models;
 using MongoDB.Driver;
-using System;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Net;
-using System.Threading.Channels;
-using System.Threading.Tasks;
-using OldClient = MongoDB.Driver.MongoClient;
 using NewClient = MongoDB.Client.MongoClient;
-using NewSettings = MongoDB.Client.Settings.MongoClientSettings;
+using OldClient = MongoDB.Driver.MongoClient;
 
 namespace MongoDB.Client.Benchmarks
 {
     [MemoryDiagnoser]
-    public class ComplexBenchmarkBase<T> where T : IIdentified
+    public class ComplexBenchmarkBase<T> where T : IIdentified//, IBsonSerializer<T>
     {
         private MongoCollection<T> _collection;
         private IMongoCollection<T> _oldCollection;
         private T[] _items;
 
+        [Params(1, 4, 8, 16)]
+        public int NewClientMaxPoolSize { get; set; }
+
         [Params(1024)]
         public int RequestsCount { get; set; }
 
-        [Params(1, 4, 8, 16, 32, 64, 128, 256, 512)] public int Parallelism { get; set; }
+        [Params(1, 4, 8, 16, 32, 64, 128, 256/*, 512*/ /*64*/ )] public int Parallelism { get; set; }
 
-        [Params(ClientType.Old, ClientType.New, ClientType.NewExperimental)]
+        [Params(ClientType.Old, /*ClientType.New,*/ ClientType.NewExperimental/*ClientType.New*/)]
         public ClientType ClientType { get; set; }
 
         [GlobalSetup]
@@ -58,24 +58,17 @@ namespace MongoDB.Client.Benchmarks
 
         private async Task InitNewClient(string host, string dbName, string collectionName)
         {
-            var settings = new NewSettings
-            {
-                Endpoints = new EndPoint[] { new DnsEndPoint(host, 27017) }.ToImmutableArray(),
-            };
-            var client = await NewClient.CreateClient(settings);
+            var client = NewClient.CreateClient($"mongodb://{host}:27017/?maxPoolSize={NewClientMaxPoolSize}").Result;
             var db = client.GetDatabase(dbName);
             _collection = db.GetCollection<T>(collectionName);
+            await _collection.CreateAsync();
         }
         private async Task InitNewClientExperimental(string host, string dbName, string collectionName)
         {
-            var settings = new NewSettings
-            {
-                Endpoints = new EndPoint[] { new DnsEndPoint(host, 27017) }.ToImmutableArray(),
-                ClientType = Settings.ClientType.Experimental
-            };
-            var client = await NewClient.CreateClient(settings);
+            var client = NewClient.CreateClient($"mongodb://{host}:27017/?maxPoolSize={NewClientMaxPoolSize}&clientType=Experimental").Result;
             var db = client.GetDatabase(dbName);
             _collection = db.GetCollection<T>(collectionName);
+            await _collection.CreateAsync();
         }
         private void InitOldClient(string host, string dbName, string collectionName)
         {
@@ -102,20 +95,20 @@ namespace MongoDB.Client.Benchmarks
                     throw new NotSupportedException(ClientType.ToString());
             }
         }
-
         [Benchmark]
         public async Task ComplexBenchmark()
         {
+            var items = new DatabaseSeeder().GenerateSeed<T>(RequestsCount).ToArray();
             switch (ClientType)
             {
                 case ClientType.Old:
-                    await StartOld(_oldCollection, _items);
+                    await StartOld(_oldCollection, items);
                     break;
                 case ClientType.New:
-                    await StartNew(_collection, _items);
+                    await StartNew(_collection, items);
                     break;
                 case ClientType.NewExperimental:
-                    await StartNew(_collection, _items);
+                    await StartNew(_collection, items);
                     break;
                 default:
                     throw new NotSupportedException(ClientType.ToString());
@@ -142,7 +135,11 @@ namespace MongoDB.Client.Benchmarks
 
                 foreach (var item in items)
                 {
-                    await channel.Writer.WriteAsync(item);
+                    if (channel.Writer.TryWrite(item) == false)
+                    {
+                        await channel.Writer.WriteAsync(item);
+                    }
+
                 }
 
                 channel.Writer.Complete();
@@ -163,7 +160,10 @@ namespace MongoDB.Client.Benchmarks
                 {
                     while (true)
                     {
-                        var item = await reader.ReadAsync();
+                        if (reader.TryRead(out var item) == false)
+                        {
+                            item = await reader.ReadAsync();
+                        }
                         await Work(collection, item);
                     }
                 }

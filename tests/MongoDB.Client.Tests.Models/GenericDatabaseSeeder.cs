@@ -1,6 +1,4 @@
 ﻿using MongoDB.Client.Bson.Document;
-using System;
-using System.Collections.Generic;
 using GenericDocument = MongoDB.Client.Tests.Models.GenericDocument<double, string, MongoDB.Client.Bson.Document.BsonDocument, MongoDB.Client.Bson.Document.BsonObjectId, int, long,
                                                                     System.DateTimeOffset, System.Guid, MongoDB.Client.Tests.Models.AnotherGenericModel<int>, MongoDB.Client.Tests.Models.AnotherGenericModel<string>>;
 using SmallGenericDocument = MongoDB.Client.Tests.Models.SmallGenericDocument<MongoDB.Client.Tests.Models.AnotherGenericModel<int>, MongoDB.Client.Tests.Models.AnotherGenericModel<string>>;

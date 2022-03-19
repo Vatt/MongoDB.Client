@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MongoDB.Client.Bson.Document
+﻿namespace MongoDB.Client.Bson.Document
 {
     public enum BsonBinaryDataType : byte
     {
@@ -31,7 +29,10 @@ namespace MongoDB.Client.Bson.Document
         {
             return new BsonBinaryData(BsonBinaryDataType.Generic, data);
         }
-
+        public static BsonBinaryData Create(BsonBinaryDataType type, byte[] data)
+        {
+            return new BsonBinaryData(type, data);
+        }
         public bool Equals(BsonBinaryData other)
         {
             return Type == other.Type && Value.Equals(other.Value);
@@ -56,7 +57,7 @@ namespace MongoDB.Client.Bson.Document
                 case BsonBinaryDataType.EncryptedBSONValue:
                 case BsonBinaryDataType.UserDefined:
                 default:
-                    var array = (byte[]) Value;
+                    var array = (byte[])Value;
                     var base64 = Convert.ToBase64String(array);
                     var type = (int)Type;
                     return $"new BinData({type}, \"{base64}\")";

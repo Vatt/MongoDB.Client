@@ -1,5 +1,4 @@
 ﻿using MongoDB.Client.Tests.Models;
-using System.Threading.Tasks;
 using Xunit;
 using CommonModel = MongoDB.Client.Tests.Models.CommonModel;
 
@@ -11,15 +10,17 @@ namespace MongoDB.Client.Tests.Client
         public async Task CommonTest()
         {
             var model = CommonModel.Create();
-            var result = await CreateCollectionInsertFindDeleteDropCollectionAsync(model);
-            Assert.Equal(model, result);
+            var result = await CreateCollectionInsertFindDeleteDropCollectionAsync(new[] { model });
+            Assert.True(result.Count == 1);
+            Assert.Equal(model, result[0]);
         }
         [Fact]
         public async Task CustomTest()
         {
             var model = CustomModel.Create();
-            var result = await CreateCollectionInsertFindDeleteDropCollectionAsync(model);
-            Assert.Equal(model, result);
+            var result = await CreateCollectionInsertFindDeleteDropCollectionAsync(new[] { model });
+            Assert.True(result.Count == 1);
+            Assert.Equal(model, result[0]);
         }
     }
 }

@@ -1,10 +1,10 @@
-﻿using BenchmarkDotNet.Attributes;
-using MongoDB.Client.Tests.Models;
-using MongoDB.Driver;
-using System;
+﻿using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using BenchmarkDotNet.Attributes;
+using MongoDB.Client.Tests.Models;
+using MongoDB.Driver;
 using BsonDocument = MongoDB.Client.Bson.Document.BsonDocument;
 
 namespace MongoDB.Client.Benchmarks
@@ -62,7 +62,7 @@ namespace MongoDB.Client.Benchmarks
             else
             {
                 var iterations = RequestsCount / Parallelism;
-                var tasks = new Task<RootDocument>[Parallelism];
+                var tasks = new Task[Parallelism];
                 for (int i = 0; i < iterations; i++)
                 {
                     for (int j = 0; j < Parallelism; j++)
@@ -88,7 +88,7 @@ namespace MongoDB.Client.Benchmarks
             else
             {
                 var iterations = RequestsCount / Parallelism;
-                var tasks = new Task<RootDocument>[Parallelism];
+                var tasks = new Task[Parallelism];
                 for (int i = 0; i < iterations; i++)
                 {
                     for (int j = 0; j < Parallelism; j++)

@@ -1,16 +1,16 @@
-﻿using MongoDB.Client.Bson.Document;
+﻿using System.Buffers;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
-using System;
-using System.Buffers;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 
 namespace MongoDB.Client.Protocol.Readers
 {
     internal class FindMsgType0BodyReaderUnsafe<T> : MsgBodyReader<T>
+    //where T : IBsonSerializer<T>
     {
         private long _modelsReaded;
         private long _payloadLength;
@@ -22,14 +22,14 @@ namespace MongoDB.Client.Protocol.Readers
 
 
         public FindMsgType0BodyReaderUnsafe(ResponseMsgMessage message)
-            : base(null!, message)
+            : base(message)
         {
             _payloadLength = message.Header.MessageLength;
             _state = ParserState.Initial;
         }
 
 
-        public override bool TryParseMessage(
+        public unsafe override bool TryParseMessage(
             in ReadOnlySequence<byte> input,
             ref SequencePosition consumed,
             ref SequencePosition examined,
@@ -82,11 +82,8 @@ namespace MongoDB.Client.Protocol.Readers
                     {
                         bool tryParseResult = default;
                         T? item = default;
-                        unsafe
-                        {
-                            //TODO: FIX IT
-                            tryParseResult = SerializerFnPtrProvider<T>.TryParseFnPtr(ref bsonReader, out item);
-                        }
+                        //tryParseResult = T.TryParseBson(ref bsonReader, out item);
+                        tryParseResult = SerializerFnPtrProvider<T>.TryParseFnPtr(ref bsonReader, out item);
                         if (tryParseResult)
                         {
                             items.Add(item);
@@ -444,3 +441,55 @@ namespace MongoDB.Client.Protocol.Readers
         }
     }
 }
+//using System;
+//using System.Buffers;
+//using System.Diagnostics;
+//using System.Diagnostics.CodeAnalysis;
+//using MongoDB.Client.Bson.Document;
+//using MongoDB.Client.Bson.Reader;
+//using MongoDB.Client.Bson.Serialization;
+//using MongoDB.Client.Exceptions;
+//using MongoDB.Client.Messages;
+
+//namespace MongoDB.Client.Protocol.Readers
+//{
+//    internal class FindMsgType0BodyReaderUnsafe<T> : MsgBodyReader<T>
+//    {
+
+//        public FindMsgType0BodyReaderUnsafe(ResponseMsgMessage message)
+//            : base(null!, message)
+//        {
+
+//        }
+
+
+//        public override bool TryParseMessage(
+//            in ReadOnlySequence<byte> input,
+//            ref SequencePosition consumed,
+//            ref SequencePosition examined,
+//            [MaybeNullWhen(false)] out CursorResult<T> message)
+//        {
+//            var bsonReader = new BsonReader(input);
+//            //var a = 1;
+//            //if (a == 2)
+//            //{
+//            //    bsonReader.TryParseDocument(out var doc);
+//            //}
+//            if (CursorResult<T>.TryParseBson(ref bsonReader, FirstBatch, NextBatch, out message))
+//            {
+//                consumed = bsonReader.Position;
+//                examined = consumed;       
+//                return true;
+//            }
+//            else
+//            {
+//                consumed = bsonReader.Position;
+//                examined = consumed;
+//                return false;
+//            }
+//            message = default;
+//            return false;
+
+//        }
+//    }
+//}

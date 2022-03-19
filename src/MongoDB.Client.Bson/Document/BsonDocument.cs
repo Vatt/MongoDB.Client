@@ -1,18 +1,28 @@
-﻿using MongoDB.Client.Bson.Utils;
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 using System.Diagnostics;
-using System.Linq;
+using MongoDB.Client.Bson.Reader;
+using MongoDB.Client.Bson.Utils;
+using MongoDB.Client.Bson.Writer;
 
 namespace MongoDB.Client.Bson.Document
 {
     [DebuggerTypeProxy(typeof(CollectionDebugView<>))]
-    public class BsonDocument : IEnumerable<BsonElement>, IEquatable<BsonDocument>
+    public class BsonDocument : IEnumerable<BsonElement>, IEquatable<BsonDocument>//, IBsonSerializer<BsonDocument>
     {
         public static BsonDocument Empty => new BsonDocument();
 
         private readonly List<BsonElement> _elements;
+
+
+        public static bool TryParseBson(ref BsonReader reader, out BsonDocument message)
+        {
+            return reader.TryParseDocument(out message);
+        }
+
+        public static void WriteBson(ref BsonWriter writer, in BsonDocument message)
+        {
+            writer.WriteDocument(message);
+        }
 
         public BsonDocument()
         {
@@ -263,5 +273,6 @@ namespace MongoDB.Client.Bson.Document
 
             return hash.ToHashCode();
         }
+
     }
 }

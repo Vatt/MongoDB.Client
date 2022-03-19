@@ -1,5 +1,3 @@
-using System;
-
 namespace MongoDb.Client.WebApi
 {
     public class WeatherForecast

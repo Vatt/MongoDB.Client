@@ -3,13 +3,10 @@ using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Scheduler;
 using MongoDB.Client.Utils;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MongoDB.Client
 {
-    public class MongoCollection<T>
+    public class MongoCollection<T> //where T : IBsonSerializer<T>
     {
         private readonly IMongoScheduler _scheduler;
 

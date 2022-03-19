@@ -1,23 +1,20 @@
-﻿using MongoDB.Client.Bson.Serialization;
+﻿using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Utils;
-using System;
-using System.Buffers;
-using System.Diagnostics.CodeAnalysis;
 
 namespace MongoDB.Client.Protocol.Readers
 {
     internal abstract class MsgBodyReader<T> : IMessageReader<CursorResult<T>>
+    //where T : IBsonSerializer<T>
     {
         protected readonly CursorResult<T> _cursorResult;
-        protected readonly IGenericBsonSerializer<T> Serializer;
         protected readonly ResponseMsgMessage Message;
         public bool Complete { get; protected set; }
 
-        public MsgBodyReader(IGenericBsonSerializer<T> serializer, ResponseMsgMessage message)
+        public MsgBodyReader(ResponseMsgMessage message)
         {
-            Serializer = serializer;
             Message = message;
             _cursorResult = new CursorResult<T>(new MongoCursor<T>(ListsPool<T>.Pool.Get()));
         }

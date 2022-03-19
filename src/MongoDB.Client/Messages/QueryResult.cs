@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 
 namespace MongoDB.Client.Messages
 {
@@ -126,7 +124,8 @@ namespace MongoDB.Client.Messages
                     _items.Item1 = value;
                 }
 
-                if (_other.Count > 1 && index == 1) {
+                if (_other.Count > 1 && index == 1)
+                {
                     _items.Item2 = value;
                 }
 

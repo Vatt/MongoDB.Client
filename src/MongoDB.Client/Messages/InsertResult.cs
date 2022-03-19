@@ -1,6 +1,5 @@
 ﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
-using System.Collections.Generic;
 
 namespace MongoDB.Client.Messages
 {

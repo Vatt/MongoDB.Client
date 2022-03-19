@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -7,6 +6,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
     internal static partial class SerializerGenerator
     {
+        private static SourceProductionContext ExecutionContext => BsonSerializerGenerator.Context;
+        private static Compilation Compilation => BsonSerializerGenerator.Compilation;
+
         public static readonly LiteralExpressionSyntax TrueLiteralExpr = SF.LiteralExpression(SyntaxKind.TrueLiteralExpression);
         public static readonly LiteralExpressionSyntax FalseLiteralExpr = SF.LiteralExpression(SyntaxKind.FalseLiteralExpression);
         public static StatementSyntax[] Statements(params ExpressionSyntax[] expressions)
@@ -45,6 +47,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member);
         }
         public static MemberAccessExpressionSyntax SimpleMemberAccess(ExpressionSyntax source, SimpleNameSyntax member)
+        {
+            return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member);
+        }
+        public static MemberAccessExpressionSyntax SimpleMemberAccess(ExpressionSyntax source, GenericNameSyntax member)
         {
             return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member);
         }
@@ -92,6 +98,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static ExpressionSyntax InvocationExpr(SyntaxToken source, SyntaxToken member, params ArgumentSyntax[] args)
         {
             return InvocationExpr(IdentifierName(source), IdentifierName(member), args);
+        }
+        public static ExpressionSyntax InvocationExpr(SyntaxToken source, GenericNameSyntax member, params ArgumentSyntax[] args)
+        {
+            return SF.InvocationExpression(SimpleMemberAccess(IdentifierName(source), member), SF.ArgumentList().AddArguments(args));
         }
         public static ExpressionSyntax InvocationExpr(ExpressionSyntax source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
         {
@@ -247,6 +257,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.PredefinedType(IntKeyword());
         }
+        public static PredefinedTypeSyntax NativeIntPredefinedType()
+        {
+            return SF.PredefinedType(IntKeyword());
+        }
         public static PredefinedTypeSyntax LongPredefinedType()
         {
             return SF.PredefinedType(LongKeyword());
@@ -328,17 +342,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static TypeSyntax TypeFullName(ISymbol sym)
         {
+            //TODO: FIX THIS SHIT
             ISymbol trueType = sym.Name.Equals("Nullable") ? ((INamedTypeSymbol)sym).TypeParameters[0] : sym;
             return SF.ParseTypeName(trueType.ToString());
         }
         public static TypeSyntax TypeName(ITypeSymbol sym)
         {
+            //TODO: FIX THIS SHIT
             ITypeSymbol trueType = sym.Name.Equals("Nullable") ? ((INamedTypeSymbol)sym).TypeParameters[0] : sym;
             return SF.ParseTypeName(trueType.Name);
-        }
-        public static TypeParameterSyntax FullTypeParameter(ITypeSymbol sym)
-        {
-            return SF.TypeParameter(sym.ToString());
         }
         public static TypeParameterSyntax TypeParameter(ITypeSymbol sym)
         {

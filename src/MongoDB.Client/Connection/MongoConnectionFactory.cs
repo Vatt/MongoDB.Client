@@ -1,14 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
 using MongoDB.Client.Authentication;
+﻿using System.Net;
+using System.Threading.Channels;
+using Microsoft.Extensions.Logging;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Network;
 using MongoDB.Client.Network.Transport.Sockets.Internal;
 using MongoDB.Client.Scheduler;
 using MongoDB.Client.Settings;
-using System.Net;
-using System.Threading;
-using System.Threading.Channels;
-using System.Threading.Tasks;
 
 namespace MongoDB.Client.Connection
 {
@@ -27,7 +26,7 @@ namespace MongoDB.Client.Connection
             _logger = loggerFactory.CreateLogger<MongoConnectionFactory>();
         }
 
-        public async ValueTask<MongoConnection> CreateAsync(MongoClientSettings settings, ScramAuthenticator authenticator, ChannelReader<MongoRequest> reader, ChannelReader<MongoRequest> findReader, MongoScheduler requestScheduler, CancellationToken token)
+        public async ValueTask<MongoConnection> CreateAsync(MongoClientSettings settings, ScramAuthenticator authenticator, ChannelReader<MongoRequest> reader, MongoScheduler requestScheduler, CancellationToken token)
         {
             var context = await _networkFactory.ConnectAsync(_endPoint, token).ConfigureAwait(false);
             if (context is null)
@@ -35,7 +34,7 @@ namespace MongoDB.Client.Connection
                 ThrowHelper.ConnectionException<SocketConnection>(_endPoint);
             }
             var id = Interlocked.Increment(ref CONNECTION_ID);
-            var connection = new MongoConnection(id, settings, _loggerFactory.CreateLogger<MongoConnection>(), reader, findReader, requestScheduler);
+            var connection = new MongoConnection(id, settings, _loggerFactory.CreateLogger<MongoConnection>(), reader, requestScheduler);
             await connection.StartAsync(authenticator, context, token).ConfigureAwait(false);
             _logger.LogInformation("Created new connection: {id}", id);
             return connection;

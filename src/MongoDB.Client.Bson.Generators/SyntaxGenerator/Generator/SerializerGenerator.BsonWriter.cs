@@ -28,7 +28,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return InvocationExpr(BsonWriterToken, IdentifierName("Write_Type_Name"), Argument(NumericLiteralExpr(typeid)), Argument(IdentifierName(name)));
         }
-        public static ExpressionSyntax WriteBsonNull(IdentifierNameSyntax name)
+        public static ExpressionSyntax WriteBsonNull(ExpressionSyntax name)
         {
             return InvocationExpr(BsonWriterToken, IdentifierName("WriteBsonNull"), Argument(name));
         }
@@ -63,6 +63,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static ExpressionSyntax WriteGeneric(ExpressionSyntax name, ExpressionSyntax reserved)
         {
             return InvocationExpr(BsonWriterToken, IdentifierName("WriteGeneric"), Argument(name), RefArgument(reserved));
+        }
+        public static ExpressionSyntax WriteObject(ExpressionSyntax name, ExpressionSyntax reserved)
+        {
+            return InvocationExpr(BsonWriterToken, IdentifierName("WriteObject"), Argument(name), RefArgument(reserved));
         }
         public static ExpressionSyntax WriterReserve(int size)
         {

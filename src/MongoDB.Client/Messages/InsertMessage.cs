@@ -1,6 +1,5 @@
 ﻿using MongoDB.Client.Protocol.Common;
 using MongoDB.Client.Protocol.Messages;
-using System.Collections.Generic;
 
 namespace MongoDB.Client.Messages
 {

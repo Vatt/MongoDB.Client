@@ -1,16 +1,14 @@
-﻿using MongoDB.Client.Bson.Serialization.Attributes;
-using System;
-using System.Collections.Generic;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text;
 using MongoDB.Client.Bson.Document;
-using System.Diagnostics.CodeAnalysis;
+using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Messages
 {
-    public static class DnsEndPointSerializer
+    public class DnsEndPointSerializer //: IBsonSerializerExtension<EndPoint>
     {
-        private static readonly byte ColonChar = (byte) ':';
+        private static readonly byte ColonChar = (byte)':';
 
         public static bool TryParseBson(ref Bson.Reader.BsonReader reader, [MaybeNullWhen(false)] out EndPoint message)
         {
@@ -45,7 +43,7 @@ namespace MongoDB.Client.Messages
         [BsonElement("clusterTime")]
         public BsonTimestamp ClusterTime { get; }
 
-        [BsonElement("signature")] 
+        [BsonElement("signature")]
         public MongoSignature MongoSignature { get; }
 
         public MongoClusterTime(BsonTimestamp ClusterTime, MongoSignature MongoSignature)
@@ -58,10 +56,10 @@ namespace MongoDB.Client.Messages
     [BsonSerializable]
     public partial class MongoSignature
     {
-        [BsonElement("hash")] 
+        [BsonElement("hash")]
         public byte[] Hash { get; }
 
-        [BsonElement("keyId")] 
+        [BsonElement("keyId")]
         public long KeyId { get; }
 
         public MongoSignature(byte[] Hash, long KeyId)
@@ -76,9 +74,13 @@ namespace MongoDB.Client.Messages
     {
         [BsonElement("hosts")]
         [BsonSerializer(typeof(DnsEndPointSerializer))]
-        public List<EndPoint> Hosts { get; }
+        public List<EndPoint>? Hosts { get; }
 
-        [BsonElement("setName")] public string SetName { get; }
+        [BsonElement("setName")]
+        public string? SetName { get; }
+
+        [BsonElement("msg")]
+        public string? Message { get; }
 
         [BsonElement("me")]
         [BsonSerializer(typeof(DnsEndPointSerializer))]
@@ -88,22 +90,26 @@ namespace MongoDB.Client.Messages
         [BsonSerializer(typeof(DnsEndPointSerializer))]
         public EndPoint? Primary { get; }
 
-        [BsonElement("$clusterTime")] public MongoClusterTime ClusterTime { get; }
+        [BsonElement("$clusterTime")]
+        public MongoClusterTime ClusterTime { get; }
 
-        [BsonElement("ismaster")] public bool IsMaster { get; }
+        [BsonElement("ismaster")]
+        public bool IsMaster { get; }
 
-        [BsonElement("secondary")] public bool IsSecondary { get; }
+        [BsonElement("secondary")]
+        public bool IsSecondary { get; }
 
-        public MongoPingMessage(List<EndPoint> Hosts, string SetName, EndPoint Me, EndPoint Primary,
-            MongoClusterTime ClusterTime, bool IsMaster, bool IsSecondary)
+        public MongoPingMessage(List<EndPoint> hosts, string setName, string message, EndPoint me, EndPoint primary,
+            MongoClusterTime clusterTime, bool isMaster, bool isSecondary)
         {
-            this.Hosts = Hosts;
-            this.SetName = SetName;
-            this.Me = Me;
-            this.Primary = Primary;
-            this.ClusterTime = ClusterTime;
-            this.IsMaster = IsMaster;
-            this.IsSecondary = IsSecondary;
+            Hosts = hosts;
+            SetName = setName;
+            Me = me;
+            Primary = primary;
+            ClusterTime = clusterTime;
+            IsMaster = isMaster;
+            IsSecondary = isSecondary;
+            Message = message;
         }
     }
 }

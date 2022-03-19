@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Text;
+﻿using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -17,6 +16,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static INamedTypeSymbol BsonIdAttr => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonIdAttribute")!;
         public static INamedTypeSymbol BsonWriteIgnoreIfAttr => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonWriteIgnoreIfAttribute")!;
         public static INamedTypeSymbol BsonBinaryDataAttr => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonBinaryDataAttribute")!;
+        public static INamedTypeSymbol IBsonSerializerNamedType => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.IBsonSerializer`1")!;
+        public static INamedTypeSymbol IBsonSerializerExtensionNamedType => BsonSerializerGenerator.Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.IBsonSerializerExtension`1")!;
 
         public static bool IsBsonExtensionSerializable(ISymbol nameSym, ISymbol typeSym, out ITypeSymbol extType)
         {
@@ -27,10 +28,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 if (attr.AttributeClass is not null && attr.AttributeClass.Equals(bsonExtAttr, SymbolEqualityComparer.Default))
                 {
                     extType = BsonSerializerGenerator.Compilation.GetTypeByMetadataName(attr.ConstructorArguments[0].Value?.ToString());
-                    if (extType == null)
+                    if (extType == null || IsCollection(typeSym))//The attribute is common for both the collection element and the field/property
                     {
                         return false;
                     }
+                    //if (extType.Interfaces.FirstOrDefault(x => x.OriginalDefinition.Equals(IBsonSerializerExtensionNamedType, SymbolEqualityComparer.Default)) is not null)
+                    //{
+                    //    return true;
+                    //}
                     if (HaveParseWriteExtensionMethods(extType, typeSym) == false)
                     {
                         return false;
@@ -50,7 +55,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     return true;
                 }
             }
-
+            //if (typeSym is INamedTypeSymbol namedType && namedType.Interfaces.FirstOrDefault(x => x.OriginalDefinition.Equals(IBsonSerializerNamedType, SymbolEqualityComparer.Default)) is not null)
+            //{
+            //    return true;
+            //}
             if (HaveParseWriteMethods(typeSym))
             {
                 return true;
@@ -58,7 +66,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             return false;
         }
 
-        public static int GetGeneratorMode(INamedTypeSymbol symbol)
+        public static GeneratorMode GetGeneratorMode(INamedTypeSymbol symbol)
         {
             var bsonAttr = BsonSerializableAttr;
             foreach (var attr in symbol.GetAttributes())
@@ -67,13 +75,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     if (attr.ConstructorArguments.IsEmpty)
                     {
-                        return 1;
+                        return new GeneratorMode();
                     }
-                    return (int)attr.ConstructorArguments[0].Value;
+                    return new GeneratorMode((byte)attr.ConstructorArguments[0].Value);
                 }
             }
-
-            return -1;
+            return new GeneratorMode();
         }
         public static int GetBinaryDataRepresentation(ISymbol symbol)
         {
@@ -92,6 +99,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             return -1;
         }
+        //[Obsolete]
         public static bool HaveParseWriteExtensionMethods(ISymbol typeSym, ISymbol retType = null)
         {
             ISymbol returnType = retType ?? typeSym;
@@ -172,6 +180,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             return false;
         }
+        //[Obsolete]
         public static bool HaveParseWriteMethods(ISymbol typeSym, ISymbol retType = null)
         {
             ISymbol returnType = retType ?? typeSym;

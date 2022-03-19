@@ -1,6 +1,5 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Client.Bson.Serialization.Attributes;
-using System.Collections.Generic;
 
 namespace MongoDB.Client.Tests.Models
 {

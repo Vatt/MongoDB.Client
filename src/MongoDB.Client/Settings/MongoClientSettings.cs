@@ -1,9 +1,6 @@
-using MongoDB.Client.Utils;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Net;
+using MongoDB.Client.Utils;
 
 namespace MongoDB.Client.Settings
 {
@@ -54,7 +51,7 @@ namespace MongoDB.Client.Settings
         public string? ReplicaSet { get; init; }
         public ReadPreference ReadPreference { get; init; }
         public ClientType ClientType { get; init; }
-        public int ConnectionPoolMaxSize { get; init; }
+        public int ConnectionPoolMaxSize { get; init; } = 1;
 
         public static MongoClientSettings FromConnectionString(string uriString)
         {

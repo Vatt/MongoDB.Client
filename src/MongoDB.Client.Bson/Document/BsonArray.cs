@@ -1,5 +1,5 @@
-﻿using MongoDB.Client.Bson.Utils;
-using System.Diagnostics;
+﻿using System.Diagnostics;
+using MongoDB.Client.Bson.Utils;
 
 namespace MongoDB.Client.Bson.Document
 {

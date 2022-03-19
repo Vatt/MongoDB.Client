@@ -1,9 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
+﻿using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using MongoDB.Client.Bson.Generators.SyntaxGenerator.Diagnostics;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 {
@@ -153,7 +150,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 var caseOp = CreateCaseContext(group.Value, group.Key, offset);
                 root.Add(caseOp);
             }
-
             return GenerateRoot(ctx, root, bsonType, bsonName);
         }
         private static SwitchStatementSyntax GenerateSwitch(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
@@ -165,9 +161,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
             if (sections.Count == 0)
             {
-                GeneratorDiagnostics.ReportGenerationContextTreeError();
+                ReportGenerationContextTreeError();
             }
-            return SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(host.Offset.Value)), sections);
+            return SwitchStatement(GetSpanElementUnsafe(bsonName, host.Offset!.Value), sections);
         }
         private static SwitchSectionSyntax GenerateCase(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
         {
@@ -176,7 +172,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var operations = host.InnerOperations;
             if (operations.Count > 0 && member is not null)
             {
-                GeneratorDiagnostics.ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
+                ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
             }
             if (operations.Count == 0)
             {
@@ -184,15 +180,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     goto RETURN;
                 }
-                else if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
+
+                if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
                 {
                     goto RETURN;
                 }
-                else if (TryGenerateTryParseBson(member, bsonName, builder))
+
+                if (TryGenerateTryParseBson(member, bsonName, builder))
                 {
                     goto RETURN;
                 }
-                GeneratorDiagnostics.ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
+                ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
             }
             else
             {
@@ -204,10 +202,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                             builder.AddRange(GenerateCondition(ctx, operation, bsonType, bsonName));
                             break;
                         case OpCtxType.Switch:
+                            builder.Add(IfBreak(BinaryExprLessThan(BsonNameLengthToken, NumericLiteralExpr(operation.Offset!.Value))));
                             builder.Add(GenerateSwitch(ctx, operation, bsonType, bsonName));
                             break;
                         default:
-                            GeneratorDiagnostics.ReportGenerationContextTreeError();
+                            ReportGenerationContextTreeError();
                             break;
                     }
                 }
@@ -224,30 +223,48 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return builder.ToArray();
             }
-            else if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
+
+            if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
             {
                 return builder.ToArray();
             }
-            else if (TryGenerateTryParseBson(member, bsonName, builder))
+
+            if (TryGenerateTryParseBson(member, bsonName, builder))
             {
                 return builder.ToArray();
             }
-            GeneratorDiagnostics.ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
+            ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
             return default;
         }
         private static StatementSyntax[] GenerateRoot(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
         {
-            if (host.InnerOperations.Where(op => op.Type == OpCtxType.Condition).FirstOrDefault() != default)
+            if (host.InnerOperations.FirstOrDefault(op => op.Type == OpCtxType.Condition) != default)
             {
-                GeneratorDiagnostics.ReportGenerationContextTreeError(nameof(GenerateRoot));
+                ReportGenerationContextTreeError(nameof(GenerateRoot));
             }
             var sections = ImmutableList.CreateBuilder<SwitchSectionSyntax>();
             foreach (var operation in host.InnerOperations.Where(op => op.Type == OpCtxType.Case))
             {
-                var label = new SyntaxList<SwitchLabelSyntax>(SF.CaseSwitchLabel(NumericLiteralExpr(operation.Key.Value)));
                 sections.Add(GenerateCase(ctx, operation, bsonType, bsonName));
             }
-            return new[] { SwitchStatement(ElementAccessExpr(bsonName, NumericLiteralExpr(host.Offset.Value)), sections) };
+
+            var offset = host.Offset ?? 0;
+            if (host.Offset == 0)
+            {
+                return new StatementSyntax[]
+                {
+                    VarLocalDeclarationStatement(BsonNameLengthToken, BsonNameLengthExpr),
+                    SwitchStatement(GetSpanElementUnsafe(bsonName, host.Offset!.Value), sections)
+                };
+            }
+            return new StatementSyntax[]
+            {
+                VarLocalDeclarationStatement(BsonNameLengthToken, BsonNameLengthExpr),
+                IfStatement(
+                    condition: BinaryExprLessThan(BsonNameLengthToken, NumericLiteralExpr(offset)),
+                    statement: Block(IfNotReturnFalse(TrySkip(BsonTypeToken)), ContinueStatement)),
+                SwitchStatement(GetSpanElementUnsafe(bsonName, host.Offset!.Value), sections)
+            };
         }
     }
 }

@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   
   <PropertyGroup>
-    <TargetFrameworks>net5.0</TargetFrameworks>
+    <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>10</LangVersion>
     <OutputType>exe</OutputType>
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)Generated</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>portable</DebugType>
@@ -17,9 +17,9 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
-    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.12.1" />
-    <PackageReference Include="MongoDB.Driver" Version="2.12.0" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.1" />
+    <PackageReference Include="MongoDB.Driver" Version="2.15.0" />
   </ItemGroup>
   
   <ItemGroup>

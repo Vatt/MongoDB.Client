@@ -1,8 +1,7 @@
-﻿using MongoDB.Client.Bson.Document;
+﻿using System.Reflection;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Writer;
-using System;
-using System.Reflection;
 
 namespace MongoDB.Client.Bson.Serialization
 {
@@ -24,9 +23,9 @@ namespace MongoDB.Client.Bson.Serialization
                 IsSimpleBsonType = false;
                 return;
             }
-            if (typeof(T) == typeof(string) || typeof(T) == typeof(BsonDocument) ||
+            if (typeof(T) == typeof(string) || /*typeof(T) == typeof(BsonDocument) ||*/
                 typeof(T) == typeof(BsonArray) || typeof(T) == typeof(BsonObjectId) || typeof(T) == typeof(Guid) ||
-                typeof(T) == typeof(DateTimeOffset))
+                typeof(T) == typeof(DateTimeOffset) || typeof(T) == typeof(BsonTimestamp))
             {
                 TryParseFnPtr = default;
                 WriteFnPtr = default;
@@ -80,7 +79,8 @@ namespace MongoDB.Client.Bson.Serialization
             {
                 WriteFnPtr = (delegate*<ref BsonWriter, in T, void>)writeMethod.MethodHandle.GetFunctionPointer();
             }
-            if ((TryParseFnPtr != default && WriteFnPtr != default) || SerializersMap.TryGetSerializer<T>(out var _))
+            //if ((TryParseFnPtr != default && WriteFnPtr != default) || SerializersMap.TryGetSerializer<T>(out var _))
+            if (TryParseFnPtr != default && WriteFnPtr != default)
             {
                 IsSerializable = true;
                 IsSimpleBsonType = false;

@@ -1,9 +1,9 @@
-﻿using BenchmarkDotNet.Attributes;
-using MongoDB.Client.Tests.Models;
-using MongoDB.Driver;
-using System;
+﻿using System;
 using System.Net;
 using System.Threading.Tasks;
+using BenchmarkDotNet.Attributes;
+using MongoDB.Client.Tests.Models;
+using MongoDB.Driver;
 using BsonDocument = MongoDB.Client.Bson.Document.BsonDocument;
 
 namespace MongoDB.Client.Benchmarks

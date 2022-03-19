@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using MongoDB.Client.Authentication;
+﻿using System.Threading.Channels;
+using Microsoft.Extensions.Logging;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
@@ -7,11 +9,6 @@ using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Messages;
 using MongoDB.Client.Scheduler.Holders;
 using MongoDB.Client.Settings;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Channels;
-using System.Threading.Tasks;
 
 namespace MongoDB.Client.Scheduler
 {
@@ -23,17 +20,15 @@ namespace MongoDB.Client.Scheduler
         private readonly ILogger<StandaloneScheduler> _logger;
         //TODO: fix this
         //private readonly List<MongoConnection> _connections; 
-        internal readonly List<MongoConnection> _connections;
+        private readonly List<MongoConnection> _connections;
         private readonly Channel<MongoRequest> _channel;
-        private readonly Channel<MongoRequest> _findChannel;
         private readonly ChannelWriter<MongoRequest> _channelWriter;
-        private readonly ChannelWriter<MongoRequest> _cursorChannel;
         private readonly MongoClientSettings _settings;
         private readonly int _maxConnections;
         private static int _counter;
         private SemaphoreSlim _initLock = new SemaphoreSlim(1, 1);
 
-        public MongoClusterTime? ClusterTime { get; }
+        public MongoClusterTime? ClusterTime { get; protected set; }
 
         public MongoScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory, MongoClusterTime? clusterTime, ScramAuthenticator authenticator)
         {
@@ -41,9 +36,7 @@ namespace MongoDB.Client.Scheduler
             _logger = loggerFactory.CreateLogger<StandaloneScheduler>();
             var options = new BoundedChannelOptions(10);
             _channel = Channel.CreateBounded<MongoRequest>(options);
-            _findChannel = Channel.CreateBounded<MongoRequest>(options);
             _channelWriter = _channel.Writer;
-            _cursorChannel = _findChannel.Writer;
             _connections = new List<MongoConnection>();
             _settings = settings;
             _counter = 0;
@@ -80,7 +73,7 @@ namespace MongoDB.Client.Scheduler
                             _connections.Add(connection);
                         }
                     }
- 
+
                 }
                 finally
                 {
@@ -92,11 +85,11 @@ namespace MongoDB.Client.Scheduler
 
         private ValueTask<MongoConnection> CreateNewConnection(CancellationToken token)
         {
-            return _connectionFactory.CreateAsync(_settings, _authenticator, _channel.Reader, _findChannel.Reader, this, token);
+            return _connectionFactory.CreateAsync(_settings, _authenticator, _channel.Reader, this, token);
         }
 
 
-        public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token)
+        public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token) //where T : IBsonSerializer<T>
         {
             var request = MongoRequestPool.Get();
             var taskSrc = request.CompletionSource;
@@ -107,14 +100,17 @@ namespace MongoDB.Client.Scheduler
                 return protocol.WriteAsync(ProtocolWriters.FindMessageWriter, message, token);
             };
             request.RequestNumber = message.Header.RequestNumber;
-            await _cursorChannel.WriteAsync(request).ConfigureAwait(false);
+            if (_channelWriter.TryWrite(request) == false)
+            {
+                await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            }
             var cursor = (CursorResult<T>)await taskSrc.GetValueTask().ConfigureAwait(false);
             MongoRequestPool.Return(request);
             return cursor;
         }
 
 
-        public async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token)
+        public async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token) //where T : IBsonSerializer<T>
         {
             var request = MongoRequestPool.Get();
             var taskSource = request.CompletionSource;
@@ -124,7 +120,10 @@ namespace MongoDB.Client.Scheduler
             {
                 return InsertCallbackHolder<T>.WriteAsync(message, protocol, token);
             };
-            await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            if (_channelWriter.TryWrite(request) == false)
+            {
+                await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            }
             var result = (InsertResult)await taskSource.GetValueTask().ConfigureAwait(false);
             MongoRequestPool.Return(request);
 
@@ -147,7 +146,10 @@ namespace MongoDB.Client.Scheduler
             {
                 return protocol.WriteAsync(ProtocolWriters.DeleteMessageWriter, message, token);
             };
-            await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            if (_channelWriter.TryWrite(request) == false)
+            {
+                await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            }
             var deleteResult = (DeleteResult)await taskSource.GetValueTask().ConfigureAwait(false);
             MongoRequestPool.Return(request);
             return deleteResult!;
@@ -163,7 +165,10 @@ namespace MongoDB.Client.Scheduler
             {
                 return protocol.WriteAsync(ProtocolWriters.TransactionMessageWriter, message, token);
             };
-            await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            if (_channelWriter.TryWrite(request) == false)
+            {
+                await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            }
             var transactionResult = (TransactionResult)await taskSource.GetValueTask().ConfigureAwait(false);
             MongoRequestPool.Return(request);
             if (transactionResult!.Ok != 1)
@@ -172,7 +177,7 @@ namespace MongoDB.Client.Scheduler
             }
         }
 
-        public async ValueTask DropCollectionAsync(DropCollectionMessage message, CancellationToken cancellationToken)
+        public async ValueTask DropCollectionAsync(DropCollectionMessage message, CancellationToken token)
         {
             var taskSource = new ManualResetValueTaskSource<IParserResult>();
             var request = new MongoRequest(taskSource);
@@ -182,7 +187,10 @@ namespace MongoDB.Client.Scheduler
             {
                 return protocol.WriteAsync(ProtocolWriters.DropCollectionMessageWriter, message, token);
             };
-            await _channelWriter.WriteAsync(request, cancellationToken).ConfigureAwait(false);
+            if (_channelWriter.TryWrite(request) == false)
+            {
+                await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            }
             var result = (DropCollectionResult)await taskSource.GetValueTask().ConfigureAwait(false);
 
             if (result.Ok != 1)
@@ -192,7 +200,7 @@ namespace MongoDB.Client.Scheduler
         }
 
 
-        public async ValueTask CreateCollectionAsync(CreateCollectionMessage message, CancellationToken cancellationToken)
+        public async ValueTask CreateCollectionAsync(CreateCollectionMessage message, CancellationToken token)
         {
             var taskSource = new ManualResetValueTaskSource<IParserResult>();
             var request = new MongoRequest(taskSource);
@@ -202,7 +210,10 @@ namespace MongoDB.Client.Scheduler
             {
                 return protocol.WriteAsync(ProtocolWriters.CreateCollectionMessageWriter, message, token);
             };
-            await _channelWriter.WriteAsync(request, cancellationToken);
+            if (_channelWriter.TryWrite(request) == false)
+            {
+                await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            }
             var result = (CreateCollectionResult)await taskSource.GetValueTask().ConfigureAwait(false);
 
             if (result.Ok != 1)

@@ -1,11 +1,10 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Utils;
-using System;
-using System.Buffers;
+﻿using System.Buffers;
 using System.Buffers.Text;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
+using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Utils;
 
 namespace MongoDB.Client.Bson.Reader
 {
@@ -132,6 +131,11 @@ namespace MongoDB.Client.Bson.Reader
         {
             if (TryGetInt32(out int length))
             {
+                value = default;
+                if (_input.Remaining < length)
+                {
+                    return false;
+                }
                 var stringLength = length - 1;
                 if (_input.UnreadSpan.Length >= stringLength)
                 {
@@ -258,12 +262,13 @@ namespace MongoDB.Client.Bson.Reader
 
             switch (subtype)
             {
-                case 0:
+                //Generic or MD5 binary data 
+                case 0 or 5:
                     {
                         var data = new byte[len];
                         if (_input.TryCopyTo(data))
                         {
-                            value = BsonBinaryData.Create(data);
+                            value = BsonBinaryData.Create((BsonBinaryDataType)subtype, data);
                             _input.Advance(len);
                             return true;
                         }
@@ -272,7 +277,7 @@ namespace MongoDB.Client.Bson.Reader
                     }
                 case 4:
                     {
-                        if (_input.UnreadSpan.Length < len)
+                        if (_input.UnreadSpan.Length >= len)
                         {
                             value = BsonBinaryData.Create(new Guid(_input.UnreadSpan.Slice(0, len)));
                             _input.Advance(len);
@@ -365,6 +370,18 @@ namespace MongoDB.Client.Bson.Reader
 
 
         public bool TryGetTimestamp([MaybeNullWhen(false)] out BsonTimestamp value)
+        {
+            if (TryGetInt64(out long data))
+            {
+                value = new BsonTimestamp(data);
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
+
+        public bool TryGetTimestamp([MaybeNullWhen(false)] out BsonTimestamp? value)
         {
             if (TryGetInt64(out long data))
             {

@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Connections;
+﻿using System.Net;
+using Microsoft.AspNetCore.Connections;
 using MongoDB.Client.Authentication;
 using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol;
@@ -10,8 +10,6 @@ using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Messages;
 using MongoDB.Client.Protocol.Readers;
 using MongoDB.Client.Settings;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MongoDB.Client.Connection
 {
@@ -24,12 +22,15 @@ namespace MongoDB.Client.Connection
         internal ConnectionInfo? ConnectionInfo;
         private readonly ProtocolReader _protocolReader;
         private readonly ProtocolWriter _protocolWriter;
-        private readonly ConnectionContext _connection;
+        private readonly ConnectionContext _ctx;
         private CancellationTokenSource _shutdownCts = new CancellationTokenSource();
         private int _requestId = 0;
+        public EndPoint EndPoint { get; }
         public MongoServiceConnection(ConnectionContext connection)
         {
-            _connection = connection;
+            _ctx = connection;
+            EndPoint = connection.RemoteEndPoint!;
+            _ctx = connection;
             _protocolReader = connection.CreateReader();
             _protocolWriter = connection.CreateWriter();
         }
@@ -110,11 +111,12 @@ namespace MongoDB.Client.Connection
 
 
             async ValueTask<IParserResult> ParseAsync<T>(ProtocolReader reader, MongoResponseMessage mongoResponse)
+            //where T : IBsonSerializer<T>
             {
                 switch (mongoResponse)
                 {
                     case ReplyMessage replyMessage:
-                        var bodyReader = new ReplyBodyReader<T>((IGenericBsonSerializer<T>)new BsonDocumentSerializer(), replyMessage);
+                        var bodyReader = new ReplyBodyReader<T>(replyMessage);
                         var bodyResult = await reader.ReadAsync(bodyReader, default).ConfigureAwait(false);
                         reader.Advance();
                         return bodyResult.Message;
@@ -123,10 +125,12 @@ namespace MongoDB.Client.Connection
                 }
             }
         }
-
-        public ValueTask DisposeAsync()
+        public async ValueTask DisposeAsync()
         {
-            return _connection.DisposeAsync();
+            _shutdownCts.Cancel();
+            await _protocolReader.DisposeAsync().ConfigureAwait(false);
+            await _protocolWriter.DisposeAsync().ConfigureAwait(false);
+            await _ctx.DisposeAsync().ConfigureAwait(false);
         }
     }
 }

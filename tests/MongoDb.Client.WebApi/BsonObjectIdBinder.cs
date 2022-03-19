@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
 using MongoDB.Client.Bson.Document;
-using System;
-using System.Threading.Tasks;
 
 namespace MongoDb.Client.WebApi
 {

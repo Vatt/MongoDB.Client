@@ -341,3 +341,4 @@ healthchecksdb
 src/MongoDB.Client.Test/ReaderTestCollection.bson
 tests/MongoDB.Client.Tests/Serialization/Class1.cs
 tests/MongoDB.Client.Tests.Models/Class1.cs
+tests/MongoDB.Client.Tests.Models/1Class.cs

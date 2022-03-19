@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using System;
 
 namespace MongoDB.Client.Network.Transport.Sockets.Internal
 {

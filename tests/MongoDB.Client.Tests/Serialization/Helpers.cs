@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace MongoDB.Client.Tests.Serialization
+﻿namespace MongoDB.Client.Tests.Serialization
 {
     public static class Helpers
     {

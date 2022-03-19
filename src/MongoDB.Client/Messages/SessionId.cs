@@ -1,5 +1,4 @@
 ﻿using MongoDB.Client.Bson.Serialization.Attributes;
-using System;
 
 namespace MongoDB.Client.Messages
 {

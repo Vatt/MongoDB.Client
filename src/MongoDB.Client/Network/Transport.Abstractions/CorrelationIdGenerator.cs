@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-
 namespace MongoDB.Client.Network.Transport.Abstractions
 {
     internal static class CorrelationIdGenerator

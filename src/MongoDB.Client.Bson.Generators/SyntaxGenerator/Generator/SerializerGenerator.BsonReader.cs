@@ -59,6 +59,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetCStringAsSpan"), OutArgument(assignOrDecl));
         }
+        public static ExpressionSyntax TryGetCString(ExpressionSyntax assignOrDecl)
+        {
+            return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetCString"), OutArgument(assignOrDecl));
+        }
         public static ExpressionSyntax TryGetByte(ExpressionSyntax assignOrDecl)
         {
             return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetByte"), OutArgument(assignOrDecl));
@@ -67,13 +71,21 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryReadGeneric"), Argument(bsonType), OutArgument(assignOrDecl));
         }
-        public static ExpressionSyntax TryReadGenericNullable(TypeSyntax typeParam, SyntaxToken bsonType, ExpressionSyntax assignOrDecl)
+        public static ExpressionSyntax TryReadGenericNullable(SyntaxToken bsonType, ExpressionSyntax assignOrDecl)
         {
-            return InvocationExpr(IdentifierName(BsonReaderToken), GenericName(Identifier("TryReadGeneric"), typeParam), Argument(bsonType), OutArgument(assignOrDecl));
+            return InvocationExpr(IdentifierName(BsonReaderToken), Identifier("TryReadGenericNullable"), Argument(bsonType), OutArgument(assignOrDecl));
+        }
+        public static ExpressionSyntax TryReadObject(ExpressionSyntax bsonType, ExpressionSyntax assignOrDecl)
+        {
+            return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryReadObject"), Argument(bsonType), OutArgument(assignOrDecl));
         }
         public static ExpressionSyntax TrySkip(ExpressionSyntax bsonType)
         {
             return InvocationExpr(BsonReaderToken, SF.IdentifierName("TrySkip"), SF.Argument(bsonType));
+        }
+        public static ExpressionSyntax TrySkip(SyntaxToken bsonType)
+        {
+            return InvocationExpr(BsonReaderToken, SF.IdentifierName("TrySkip"), SF.Argument(IdentifierName(bsonType)));
         }
         public static ExpressionSyntax TryGetTimestamp(ExpressionSyntax assignOrDecl)
         {
@@ -83,7 +95,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetIntFromNameSpan"), Argument(nameSpan), Argument(NumericLiteralExpr(offset)), OutArgument(assignOrDecl));
         }
-
         public static ExpressionSyntax GetIntFromNameSpan(SyntaxToken nameSpan, int offset)
         {
             return InvocationExpr(BsonReaderToken, SF.IdentifierName("GetIntFromNameSpan"), Argument(nameSpan), Argument(NumericLiteralExpr(offset)));

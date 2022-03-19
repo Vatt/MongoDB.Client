@@ -1,6 +1,5 @@
-﻿using MongoDB.Client.Protocol.Core;
-using System;
-using System.Buffers;
+﻿using System.Buffers;
+using MongoDB.Client.Protocol.Core;
 
 
 namespace MongoDB.Client.Protocol.Readers

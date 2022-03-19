@@ -1,23 +1,18 @@
-﻿using MongoDB.Client.Bson.Serialization;
+﻿using System.Buffers;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Writer;
 using MongoDB.Client.Protocol.Core;
-using System.Buffers;
 
 namespace MongoDB.Client.Protocol.Writers
 {
     public class ReplyBodyWriter<T> : IMessageWriter<T>
+    //where T : IBsonSerializer<T>
     {
-        private readonly IGenericBsonSerializer<T> _serializer;
-
-        public ReplyBodyWriter(IGenericBsonSerializer<T> serializer)
-        {
-            _serializer = serializer;
-        }
-
-        public void WriteMessage(T message, IBufferWriter<byte> output)
+        public unsafe void WriteMessage(T message, IBufferWriter<byte> output)
         {
             var writer = new BsonWriter(output);
-            _serializer.WriteBson(ref writer, message);
+            //T.WriteBson(ref writer, message);
+            SerializerFnPtrProvider<T>.WriteFnPtr(ref writer, message);
         }
     }
 }

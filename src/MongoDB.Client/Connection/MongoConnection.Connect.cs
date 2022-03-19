@@ -1,30 +1,25 @@
 ﻿using Microsoft.AspNetCore.Connections;
 using MongoDB.Client.Authentication;
 using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Messages;
 using MongoDB.Client.Protocol.Readers;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MongoDB.Client.Connection
 {
     public sealed partial class MongoConnection : IMongoConnection
     {
+        internal ConnectionInfo? ConnectionInfo;
         private const string AdminDatabase = "admin.$cmd";
         private static readonly BsonDocument BuildInfo = new BsonDocument("buildInfo", 1);
-
-        internal ConnectionInfo ConnectionInfo;
-
-
         internal ValueTask<ConnectionInfo> StartAsync(ScramAuthenticator authenticator, ConnectionContext connection, CancellationToken cancellationToken = default)
         {
             return StartAsync(authenticator, connection.CreateReader(), connection.CreateWriter(), cancellationToken);
         }
+
 
 
         internal async ValueTask<ConnectionInfo> StartAsync(ScramAuthenticator authenticator, ProtocolReader reader, ProtocolWriter writer, CancellationToken cancellationToken)
@@ -33,10 +28,7 @@ namespace MongoDB.Client.Connection
             _protocolWriter = writer;
             _protocolListenerTask = StartProtocolListenerAsync();
             ConnectionInfo = await DoConnectAsync(cancellationToken).ConfigureAwait(false);
-
-
             _channelListenerTask = StartChannelListerAsync();
-            _channelFindListenerTask = StartFindChannelListerAsync();
             return ConnectionInfo;
             async Task<ConnectionInfo> DoConnectAsync(CancellationToken token)
             {
@@ -81,7 +73,8 @@ namespace MongoDB.Client.Connection
             _completions.GetOrAdd(completion.RequestNumber, completion);
             try
             {
-                await _protocolWriter.WriteUnsafeAsync(ProtocolWriters.QueryMessageWriter, message, cancellationToken).ConfigureAwait(false);
+                //await _protocolWriter.WriteUnsafeAsync(ProtocolWriters.QueryMessageWriter, message, cancellationToken).ConfigureAwait(false);
+                await _protocolWriter.WriteAsync(ProtocolWriters.QueryMessageWriter, message, cancellationToken).ConfigureAwait(false);
                 var response = await new ValueTask<IParserResult>(completion.CompletionSource, completion.CompletionSource.Version).ConfigureAwait(false);
 
                 if (response is QueryResult<TResp> queryResult)
@@ -99,11 +92,12 @@ namespace MongoDB.Client.Connection
             }
 
             async ValueTask<IParserResult> ParseAsync<T>(ProtocolReader reader, MongoResponseMessage mongoResponse)
+            //where T : IBsonSerializer<T>
             {
                 switch (mongoResponse)
                 {
                     case ReplyMessage replyMessage:
-                        var bodyReader = new ReplyBodyReader<T>((IGenericBsonSerializer<T>)new BsonDocumentSerializer(), replyMessage);
+                        var bodyReader = new ReplyBodyReader<T>(replyMessage);
                         var bodyResult = await reader.ReadAsync(bodyReader, default).ConfigureAwait(false);
                         reader.Advance();
                         return bodyResult.Message;

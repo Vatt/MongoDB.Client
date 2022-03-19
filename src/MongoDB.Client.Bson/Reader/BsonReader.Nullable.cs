@@ -1,15 +1,14 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Utils;
-using System;
-using System.Buffers;
+﻿using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Utils;
 
 namespace MongoDB.Client.Bson.Reader
 {
     public ref partial struct BsonReader
     {
-        
+
         public bool TryGetDateTimeWithBsonType(int bsonType, out DateTimeOffset? value)
         {
             switch (bsonType)
@@ -26,7 +25,7 @@ namespace MongoDB.Client.Bson.Reader
             }
         }
 
-        
+
         public bool TryGetUtcDatetime([MaybeNullWhen(false)] out DateTimeOffset? value)
         {
             if (TryGetInt64(out long data))
@@ -104,7 +103,7 @@ namespace MongoDB.Client.Bson.Reader
             date = DateTimeOffset.FromUnixTimeMilliseconds(longDate);
             return true;
         }
-        
+
         public bool TryGetObjectId(out BsonObjectId? value)
         {
             const int oidSize = 12;
@@ -138,8 +137,8 @@ namespace MongoDB.Client.Bson.Reader
             value = default;
             return false;
         }
-        
-        
+
+
         public bool TryGetGuidWithBsonType(int bsonType, out Guid? value)
         {
             if (bsonType == 5)
@@ -197,7 +196,7 @@ namespace MongoDB.Client.Bson.Reader
         }
 
 
-        
+
         public bool TryGetGuidFromString(out Guid? value)
         {
             if (TryGetString(out var data))
@@ -209,7 +208,7 @@ namespace MongoDB.Client.Bson.Reader
             return false;
         }
 
-        
+
         public bool TryGetInt32(out int? value)
         {
             if (_input.TryReadLittleEndian(out int temp))
@@ -222,7 +221,7 @@ namespace MongoDB.Client.Bson.Reader
         }
 
 
-        
+
         public bool TryGetInt64(out long? value)
         {
             if (_input.TryReadLittleEndian(out long temp))
@@ -234,7 +233,7 @@ namespace MongoDB.Client.Bson.Reader
             return false;
         }
 
-        
+
         public bool TryGetDouble(out double? value)
         {
             if (TryGetInt64(out long temp))
@@ -247,7 +246,7 @@ namespace MongoDB.Client.Bson.Reader
             return false;
         }
 
-        
+
         public bool TryGetBoolean(out bool? value)
         {
             if (TryGetByte(out var boolean))

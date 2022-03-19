@@ -3,6 +3,7 @@
 namespace MongoDB.Client.Scheduler
 {
     internal readonly struct FindResult<T>
+    //where T : IBsonSerializer<T>
     {
         public FindResult(CursorResult<T> cursorResult, MongoScheduler scheduler)
         {
@@ -10,7 +11,7 @@ namespace MongoDB.Client.Scheduler
             Scheduler = scheduler;
         }
 
-        public CursorResult<T> CursorResult { get;}
+        public CursorResult<T> CursorResult { get; }
         public MongoScheduler Scheduler { get; }
     }
 }

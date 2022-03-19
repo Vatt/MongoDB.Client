@@ -2,7 +2,6 @@
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol;
 using MongoDB.Client.Protocol.Core;
-using System.Threading.Tasks;
 
 namespace MongoDB.Client.Scheduler.Holders
 {

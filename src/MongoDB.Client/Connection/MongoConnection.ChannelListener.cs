@@ -1,6 +1,4 @@
 ﻿using MongoDB.Client.Exceptions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MongoDB.Client.Connection
 {
@@ -21,26 +19,18 @@ namespace MongoDB.Client.Connection
 
             while (!_shutdownCts.IsCancellationRequested)
             {
-                var request = await _channelReader.ReadAsync(_shutdownCts.Token).ConfigureAwait(false);
-                _completions.GetOrAdd(request.RequestNumber, request);
-                await request.WriteAsync!(_protocolWriter, _shutdownCts.Token).ConfigureAwait(false);
+                while (await _channelReader.WaitToReadAsync().ConfigureAwait(false))
+                {
+                    while (_channelReader.TryRead(out var request))
+                    {
+                        _completions.GetOrAdd(request.RequestNumber, request);
+                        await request.WriteAsync!(_protocolWriter, _shutdownCts.Token).ConfigureAwait(false);
+                    }
+                }
+                //var request = await _channelReader.ReadAsync(_shutdownCts.Token).ConfigureAwait(false);
+                //_completions.GetOrAdd(request.RequestNumber, request);
+                //await request.WriteAsync!(_protocolWriter, _shutdownCts.Token).ConfigureAwait(false);
             }
-        }
-
-        private async Task StartFindChannelListerAsync()
-        {
-            if (_protocolWriter is null)
-            {
-                ThrowHelper.ThrowNotInitialized();
-            }
-
-            while (!_shutdownCts.IsCancellationRequested)
-            {
-                var request = await _findReader.ReadAsync(_shutdownCts.Token).ConfigureAwait(false);
-                _completions.GetOrAdd(request.RequestNumber, request);
-                await request.WriteAsync!(_protocolWriter, _shutdownCts.Token).ConfigureAwait(false);
-            }
-
         }
     }
 }

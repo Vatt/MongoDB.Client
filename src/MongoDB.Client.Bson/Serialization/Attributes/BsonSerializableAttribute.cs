@@ -1,12 +1,10 @@
-﻿using System;
-
-namespace MongoDB.Client.Bson.Serialization.Attributes
+﻿namespace MongoDB.Client.Bson.Serialization.Attributes
 {
-    public enum GeneratorMode
+    [Flags]
+    public enum GeneratorMode : byte
     {
-        Default = 1,
-        IfConditions = 2,
-        
+        IfConditions = 1,
+        ConstuctorOnlyParameters = 2,
     }
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
     public sealed class BsonSerializableAttribute : Attribute
@@ -17,7 +15,7 @@ namespace MongoDB.Client.Bson.Serialization.Attributes
         }
         public BsonSerializableAttribute(GeneratorMode mode)
         {
-            
+
         }
     }
 }

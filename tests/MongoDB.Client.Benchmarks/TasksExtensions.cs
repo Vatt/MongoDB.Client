@@ -4,7 +4,7 @@ namespace MongoDB.Client.Benchmarks
 {
     public static class TasksExtensions
     {
-        public static async Task WhenAllExt<T>(this Task<T>[] tasks)
+        public static async Task WhenAllExt<T>(this Task[] tasks)
         {
             if (tasks.Length == 1)
             {

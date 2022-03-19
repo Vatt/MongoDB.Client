@@ -1,11 +1,10 @@
 ﻿using MongoDB.Client;
 using MongoDB.Client.Bson.Document;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace MongoDb.Client.WebApi.Mongo
 {
     public class BaseNewRepository<T> : IMongoRepository<T>
+    //where T : IBsonSerializer<T>
     {
         private readonly MongoCollection<T> _collection;
 

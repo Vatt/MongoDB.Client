@@ -1,9 +1,8 @@
-﻿using MongoDB.Client.Bson.Reader;
+﻿using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
+using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
-using System;
-using System.Buffers;
-using System.Diagnostics.CodeAnalysis;
 
 namespace MongoDB.Client.Protocol.Readers
 {

@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Connections;
-using System.Buffers;
+﻿using System.Buffers;
 using System.IO.Pipelines;
-using System.Threading;
+using Microsoft.AspNetCore.Connections;
 
 namespace MongoDB.Client.Protocol.Core
 {

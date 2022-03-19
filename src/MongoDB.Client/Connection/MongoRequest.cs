@@ -1,8 +1,5 @@
 ﻿using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MongoDB.Client.Connection
 {

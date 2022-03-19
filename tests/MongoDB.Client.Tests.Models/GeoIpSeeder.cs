@@ -1,5 +1,4 @@
 ﻿using MongoDB.Client.Bson.Document;
-using System.Collections.Generic;
 
 namespace MongoDB.Client.Tests.Models
 {

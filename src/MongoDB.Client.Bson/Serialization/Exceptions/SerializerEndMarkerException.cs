@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MongoDB.Client.Bson.Serialization.Exceptions
+﻿namespace MongoDB.Client.Bson.Serialization.Exceptions
 {
     public class SerializerEndMarkerException : Exception
     {

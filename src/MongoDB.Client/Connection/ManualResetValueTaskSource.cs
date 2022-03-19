@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using System.Threading.Tasks.Sources;
+﻿using System.Threading.Tasks.Sources;
 
 namespace MongoDB.Client.Connection
 {
