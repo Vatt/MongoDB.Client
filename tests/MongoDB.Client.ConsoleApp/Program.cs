@@ -178,7 +178,7 @@ namespace MongoDB.Client.ConsoleApp
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
             //host = "mongodb://mongo0.mshome.net/?maxPoolSize=1";// &clientType=experimental";
-            host = "mongodb://mongo1.mshome.net/?clientType=experimental&replicaSet=rs0&maxPoolSize=4";
+            host = "mongodb://mongo1.mshome.net/?clientType=experimental&replicaSet=rs0&maxPoolSize=1";
             //host = "mongodb://gamover-place/?maxPoolSize=1&clientType=experimental";
             var loggerFactory = LoggerFactory.Create(builder =>
             {
@@ -200,7 +200,7 @@ namespace MongoDB.Client.ConsoleApp
                 stopwatch.Restart();
                 try
                 {
-                    await bench.Run(false);
+                    await bench.Run(true);
                     stopwatch.Stop();
                 }
                 finally

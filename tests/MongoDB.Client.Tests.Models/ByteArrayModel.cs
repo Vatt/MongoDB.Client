@@ -26,9 +26,9 @@ namespace MongoDB.Client.Tests.Models
         }
         public ByteArrayModel(int a, int b, int c)
         {
-            this.ByteProp = null;
+            this.ByteProp = null!;
             this.MemoryByteProp = null;
-            this.MD5ByteProp = null;
+            this.MD5ByteProp = null!;
             this.MD5MemoryProp = null;
         }
         public static ByteArrayModel Create()

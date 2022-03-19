@@ -21,7 +21,6 @@ namespace MongoDB.Client.Connection
         private CancellationTokenSource _shutdownCts = new CancellationTokenSource();
         private Task? _protocolListenerTask;
         private Task? _channelListenerTask;
-        private Task? _channelFindListenerTask;
         private readonly ConcurrentQueue<ManualResetValueTaskSource<IParserResult>> _queue = new();
         private readonly MongoClientSettings _settings;
 
@@ -37,10 +36,6 @@ namespace MongoDB.Client.Connection
         public async ValueTask DisposeAsync()
         {
             _shutdownCts.Cancel();
-            if (_channelFindListenerTask is not null)
-            {
-                await _channelFindListenerTask.ConfigureAwait(false);
-            }
             if (_channelListenerTask is not null)
             {
                 await _channelListenerTask.ConfigureAwait(false);

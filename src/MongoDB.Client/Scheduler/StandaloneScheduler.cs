@@ -47,7 +47,8 @@ namespace MongoDB.Client.Scheduler
         //where T : IBsonSerializer<T>
         {
             var requestNum = scheduler.GetNextRequestNumber();
-            var requestDocument = new FindRequest(null, null, default, cursorId, null, collectionNamespace.DatabaseName, transaction.SessionId);
+            //var requestDocument = new FindRequest(null, null, default, cursorId, null, collectionNamespace.DatabaseName, transaction.SessionId);
+            var requestDocument = new FindRequest(null, null, default, cursorId, collectionNamespace.CollectionName, collectionNamespace.DatabaseName, transaction.SessionId);
             var request = new FindMessage(requestNum, requestDocument);
             return scheduler.GetCursorAsync<T>(request, token);
         }

@@ -68,7 +68,7 @@ namespace MongoDB.Client.Scheduler
             var secondariesBuilder = ImmutableArray.CreateBuilder<MongoScheduler>();
 
 
-            for (var i = 0; i < hosts.Count; i++)
+            for (var i = 0; i < hosts!.Count; i++)
             {
                 var host = hosts[i];
                 IMongoConnectionFactory connectionFactory = _settings.ClientType == ClientType.Default ? new MongoConnectionFactory(host, _loggerFactory) : new ExperimentalMongoConnectionFactory(host, _loggerFactory);
@@ -187,11 +187,11 @@ namespace MongoDB.Client.Scheduler
             {
                 case TransactionState.Starting:
                     transaction.State = TransactionState.InProgress;
-                    return new FindRequest(null, null, default, cursorId, null, collectionNamespace.DatabaseName, transaction.SessionId, clusterTime, transaction.TxNumber, true, false);
+                    return new FindRequest(null, null, default, cursorId, collectionNamespace.CollectionName, collectionNamespace.DatabaseName, transaction.SessionId, clusterTime, transaction.TxNumber, true, false);
                 case TransactionState.InProgress:
-                    return new FindRequest(null, null, default, cursorId, null, collectionNamespace.DatabaseName, transaction.SessionId, clusterTime, transaction.TxNumber, false);
+                    return new FindRequest(null, null, default, cursorId, collectionNamespace.CollectionName, collectionNamespace.DatabaseName, transaction.SessionId, clusterTime, transaction.TxNumber, false);
                 case TransactionState.Implicit:
-                    return new FindRequest(null, null, default, cursorId, null, collectionNamespace.DatabaseName, transaction.SessionId, transaction.TxNumber);
+                    return new FindRequest(null, null, default, cursorId, collectionNamespace.CollectionName, collectionNamespace.DatabaseName, transaction.SessionId);
                 case TransactionState.Committed:
                     return ThrowEx<FindRequest>("Transaction already commited");
                 case TransactionState.Aborted:
@@ -221,7 +221,8 @@ namespace MongoDB.Client.Scheduler
                 case TransactionState.InProgress:
                     return new InsertHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId, clusterTime, transaction.TxNumber, false);
                 case TransactionState.Implicit:
-                    return new InsertHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId, transaction.TxNumber);
+                    //return new InsertHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId, transaction.TxNumber);
+                    return new InsertHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId);
                 case TransactionState.Committed:
                     return ThrowEx<InsertHeader>("Transaction already commited");
                 case TransactionState.Aborted:
@@ -253,7 +254,8 @@ namespace MongoDB.Client.Scheduler
                 case TransactionState.InProgress:
                     return new DeleteHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId, clusterTime, transaction.TxNumber, false);
                 case TransactionState.Implicit:
-                    return new DeleteHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId, transaction.TxNumber);
+                    //return new DeleteHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId, transaction.TxNumber);
+                    return new DeleteHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId);
                 case TransactionState.Committed:
                     return ThrowEx<DeleteHeader>("Transaction already commited");
                 case TransactionState.Aborted:
