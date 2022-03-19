@@ -5,8 +5,10 @@ namespace MongoDB.Client.Tests.Client
 {
     public abstract class ClientTestBase
     {
-        //protected string Host { get; init; } = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
-        protected string Host { get; init; } = "mongo1.mshome.net";
+        protected string Host { get; init; } = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
+        protected string RsHost { get; init; } = Environment.GetEnvironmentVariable("MONGODB_RS_HOST") ?? "localhost";
+        protected string ShardedHost { get; init; } = Environment.GetEnvironmentVariable("MONGODB_SHARDED_HOST") ?? "localhost";
+        
         protected string DB { get; init; } = "TestDb";
         protected string Collection { get; init; } = "TestCollection";
 
