@@ -120,6 +120,10 @@ namespace MongoDB.Client.Bson.Reader
         {
             if (_input.TryReadTo(out value, EndMarker))
             {
+                //if (value.Length == 0)
+                //{
+                //    return false;
+                //}
                 return true;
             }
 

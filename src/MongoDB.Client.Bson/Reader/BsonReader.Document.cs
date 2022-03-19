@@ -152,7 +152,11 @@ namespace MongoDB.Client.Bson.Reader
 
             return true;
         }
-
+        //public BsonDocument ParseDocument()
+        //{
+        //    TryParseDocument(null, out BsonDocument document);
+        //    return document;
+        //}
 
         public bool TryParseDocument(out BsonDocument document)
         {
