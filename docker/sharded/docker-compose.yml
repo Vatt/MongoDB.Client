@@ -6,21 +6,21 @@ services:
     hostname: mongo-router01
     image: mongo:4.4
     container_name: mongo-router01
-    command: mongos --bind_ip_all --configdb rs-cfg/centos2.mshome.net:27026,centos2.mshome.net:27027,centos2.mshome.net:27028 --port 27017
+    command: mongos --bind_ip_all --configdb rs-cfg/mongo2.mshome.net:27026,mongo2.mshome.net:27027,mongo2.mshome.net:27028 --port 27017
     ports:
       - 27029:27017
   mongo-router02:
     hostname: mongo-router02
     image: mongo:4.4
     container_name: mongo-router02
-    command: mongos --bind_ip_all --configdb rs-cfg/centos2.mshome.net:27026,centos2.mshome.net:27027,centos2.mshome.net:27028 --port 27017
+    command: mongos --bind_ip_all --configdb rs-cfg/mongo2.mshome.net:27026,mongo2.mshome.net:27027,mongo2.mshome.net:27028 --port 27017
     ports:
       - 27030:27017   
   mongo-router03:
     hostname: mongo-router03
     image: mongo:4.4
     container_name: mongo-router03
-    command: mongos --bind_ip_all --configdb rs-cfg/centos2.mshome.net:27026,centos2.mshome.net:27027,centos2.mshome.net:27028 --port 27017
+    command: mongos --bind_ip_all --configdb rs-cfg/mongo2.mshome.net:27026,mongo2.mshome.net:27027,mongo2.mshome.net:27028 --port 27017
     ports:
       - 27031:27017          
 #config  

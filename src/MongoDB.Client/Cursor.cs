@@ -32,7 +32,7 @@ namespace MongoDB.Client
             {
                 ThrowHelper.CursorException(result.CursorResult.ErrorMessage);
             }
-            foreach (var item in result.CursorResult.MongoCursor.Items)
+            foreach (var item in result.CursorResult.MongoCursor.Items!)
             {
                 yield return item;
             }
@@ -47,7 +47,7 @@ namespace MongoDB.Client
                     ThrowHelper.CursorException(getMoreResult.ErrorMessage);
                 }
                 cursorId = getMoreResult.MongoCursor.Id;
-                foreach (var item in getMoreResult.MongoCursor.Items)
+                foreach (var item in getMoreResult.MongoCursor.Items!)
                 {
                     yield return item;
                 }

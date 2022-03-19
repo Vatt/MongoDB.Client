@@ -246,7 +246,7 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
         }
     }
 
-    public class GeneratorClasssTest : SerializationTestBase
+    public class GeneratorClassTest : SerializationTestBase
     {
         [Fact]
         public async Task ClassWithPrimaryCtorTest()
