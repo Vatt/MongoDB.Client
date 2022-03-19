@@ -68,7 +68,7 @@ namespace MongoDB.Client.Scheduler
             var secondariesBuilder = ImmutableArray.CreateBuilder<MongoScheduler>();
 
 
-            for (var i = 0; i < hosts.Count; i++)
+            for (var i = 0; i < hosts!.Count; i++)
             {
                 var host = hosts[i];
                 IMongoConnectionFactory connectionFactory = _settings.ClientType == ClientType.Default ? new MongoConnectionFactory(host, _loggerFactory) : new ExperimentalMongoConnectionFactory(host, _loggerFactory);

@@ -13,13 +13,13 @@ namespace MongoDB.Client.Messages
         private static ReadOnlySpan<byte> CursorResultoperationTime => new byte[13] { 111, 112, 101, 114, 97, 116, 105, 111, 110, 84, 105, 109, 101 };
         public static bool TryParseBson(ref MongoDB.Client.Bson.Reader.BsonReader reader, System.Collections.Generic.List<T> first, System.Collections.Generic.List<T> next, out MongoDB.Client.Messages.CursorResult<T> message)
         {
-            message = default;
-            MongoDB.Client.Messages.MongoCursor<T> MongoCursorMongoCursor = default;
+            message = default!;
+            MongoDB.Client.Messages.MongoCursor<T>? MongoCursorMongoCursor = default;
             double DoubleOk = default;
-            string StringErrorMessage = default;
+            string? StringErrorMessage = default;
             int Int32Code = default;
-            string StringCodeName = default;
-            MongoDB.Client.Messages.MongoClusterTime MongoClusterTimeClusterTime = default;
+            string? StringCodeName = default;
+            MongoDB.Client.Messages.MongoClusterTime? MongoClusterTimeClusterTime = default;
             MongoDB.Client.Bson.Document.BsonTimestamp? NullableOperationTime = default;
             if (!reader.TryGetInt32(out int docLength))
             {
@@ -189,7 +189,7 @@ namespace MongoDB.Client.Messages
                 throw new MongoDB.Client.Bson.Serialization.Exceptions.SerializerEndMarkerException(nameof(MongoDB.Client.Messages.CursorResult<T>), endMarker);
             }
 
-            message = new MongoDB.Client.Messages.CursorResult<T>(mongoCursor: MongoCursorMongoCursor, ok: DoubleOk, errorMessage: StringErrorMessage, code: Int32Code, codeName: StringCodeName, clusterTime: MongoClusterTimeClusterTime, operationTime: NullableOperationTime);
+            message = new MongoDB.Client.Messages.CursorResult<T>(mongoCursor: MongoCursorMongoCursor!, ok: DoubleOk, errorMessage: StringErrorMessage, code: Int32Code, codeName: StringCodeName, clusterTime: MongoClusterTimeClusterTime, operationTime: NullableOperationTime);
             return true;
         }
 

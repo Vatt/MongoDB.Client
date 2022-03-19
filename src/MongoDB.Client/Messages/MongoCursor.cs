@@ -76,7 +76,7 @@ namespace MongoDB.Client.Messages
         [BsonElement("nextBatch")]
         [BsonSerializer(typeof(CursorItemSerializer))]
         public List<T>? NextBatch { get; set; }
-        public List<T> Items { get; set; }
+        public List<T>? Items { get; set; }
         public MongoCursor(List<T> items)
         {
             Items = items;

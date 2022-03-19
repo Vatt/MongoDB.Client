@@ -11,9 +11,9 @@ namespace MongoDB.Client.Messages
         private static ReadOnlySpan<byte> MongoCursornextBatch => new byte[9] { 110, 101, 120, 116, 66, 97, 116, 99, 104 };
         public static bool TryParseBson(ref MongoDB.Client.Bson.Reader.BsonReader reader, System.Collections.Generic.List<T> first, System.Collections.Generic.List<T> next, out MongoDB.Client.Messages.MongoCursor<T> message)
         {
-            message = default;
+            message = default!;
             long Int64Id = default;
-            string StringNamespace = default;
+            string? StringNamespace = default;
             System.Collections.Generic.List<T> ListFirstBatch = first;
             System.Collections.Generic.List<T> ListNextBatch = next;
             if (!reader.TryGetInt32(out int docLength))
@@ -199,7 +199,7 @@ namespace MongoDB.Client.Messages
 
                 if (listBsonType == 10)
                 {
-                    internalList.Add(default);
+                    internalList!.Add(default!);
                     continue;
                 }
 
@@ -209,7 +209,7 @@ namespace MongoDB.Client.Messages
                 }
                 else
                 {
-                    internalList.Add(temp);
+                    internalList!.Add(temp);
                     continue;
                 }
             }

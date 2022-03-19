@@ -63,7 +63,7 @@ namespace MongoDB.Client.Connection
                 var configMessage = await SendQueryAsync<BsonDocument>(connectRequest, token).ConfigureAwait(false);
                 var buildInfoRequest = CreateQueryRequest(new BsonDocument("buildInfo", 1), GetNextRequestNumber());
                 var hell = await SendQueryAsync<BsonDocument>(buildInfoRequest, token).ConfigureAwait(false);
-                return new ConnectionInfo(configMessage[0], hell[0]);
+                return new ConnectionInfo(configMessage![0], hell![0]);
             }
         }
         private QueryMessage CreateQueryRequest(string database, BsonDocument document, int number)
