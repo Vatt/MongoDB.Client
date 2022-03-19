@@ -98,16 +98,17 @@ namespace MongoDB.Client.Benchmarks
         [Benchmark]
         public async Task ComplexBenchmark()
         {
+            var items = new DatabaseSeeder().GenerateSeed<T>(RequestsCount).ToArray();
             switch (ClientType)
             {
                 case ClientType.Old:
-                    await StartOld(_oldCollection, _items);
+                    await StartOld(_oldCollection, items);
                     break;
                 case ClientType.New:
-                    await StartNew(_collection, _items);
+                    await StartNew(_collection, items);
                     break;
                 case ClientType.NewExperimental:
-                    await StartNew(_collection, _items);
+                    await StartNew(_collection, items);
                     break;
                 default:
                     throw new NotSupportedException(ClientType.ToString());
