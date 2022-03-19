@@ -18,7 +18,6 @@ namespace MongoDB.Client.Protocol.Readers
         {
             var bsonReader = new BsonReader(input);
 
-
             if (InsertResult.TryParseBson(ref bsonReader, out message) == false)
             {
                 return false;

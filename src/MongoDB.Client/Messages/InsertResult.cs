@@ -15,8 +15,8 @@ namespace MongoDB.Client.Messages
         [BsonElement("writeErrors")]
         public List<InsertError>? WriteErrors { get; }
 
-        [BsonElement("opTime")]
-        public OpTime OpTime { get; }
+        //[BsonElement("opTime")]
+        //public OpTime OpTime { get; }
 
         [BsonElement("electionId")]
         public BsonObjectId ElectionId { get; }
@@ -27,12 +27,12 @@ namespace MongoDB.Client.Messages
         [BsonElement("operationTime")]
         public BsonTimestamp OperationTime { get; }
 
-        public InsertResult(int N, double Ok, List<InsertError>? WriteErrors, OpTime OpTime, BsonObjectId ElectionId, MongoClusterTime ClusterTime, BsonTimestamp OperationTime)
+        public InsertResult(int N, double Ok, List<InsertError>? WriteErrors, /*OpTime OpTime,*/ BsonObjectId ElectionId, MongoClusterTime ClusterTime, BsonTimestamp OperationTime)
         {
             this.N = N;
             this.Ok = Ok;
             this.WriteErrors = WriteErrors;
-            this.OpTime = OpTime;
+            //this.OpTime = OpTime;
             this.ElectionId = ElectionId;
             this.ClusterTime = ClusterTime;
             this.OperationTime = OperationTime;

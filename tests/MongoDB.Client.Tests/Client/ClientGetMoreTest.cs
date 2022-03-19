@@ -21,9 +21,17 @@ namespace MongoDB.Client.Tests.Client
             {
                 items[i] = item;
             }
-            var result = await CreateCollectionInsertFindDeleteDropCollectionAsync(items);
+            
+            var result = await CreateCollectionInsertFindDeleteDropCollectionAsync(items, StandaloneHost);
             Assert.True(items.Length == result.Count);
             foreach(var resultItem in result)
+            {
+                Assert.Equal(item, resultItem);
+            }
+
+            result = await CreateCollectionInsertFindDeleteDropCollectionAsync(items, RsHost);
+            Assert.True(items.Length == result.Count);
+            foreach (var resultItem in result)
             {
                 Assert.Equal(item, resultItem);
             }
