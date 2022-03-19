@@ -4,21 +4,21 @@ services:
 #routers
   mongo-router01:
     hostname: mongo-router01
-    image: mongo:4.4
+    image: mongo:focal
     container_name: mongo-router01
     command: mongos --bind_ip_all --configdb rs-cfg/mongo2.mshome.net:27026,mongo2.mshome.net:27027,mongo2.mshome.net:27028 --port 27017
     ports:
       - 27029:27017
   mongo-router02:
     hostname: mongo-router02
-    image: mongo:4.4
+    image: mongo:focal
     container_name: mongo-router02
     command: mongos --bind_ip_all --configdb rs-cfg/mongo2.mshome.net:27026,mongo2.mshome.net:27027,mongo2.mshome.net:27028 --port 27017
     ports:
       - 27030:27017   
   mongo-router03:
     hostname: mongo-router03
-    image: mongo:4.4
+    image: mongo:focal
     container_name: mongo-router03
     command: mongos --bind_ip_all --configdb rs-cfg/mongo2.mshome.net:27026,mongo2.mshome.net:27027,mongo2.mshome.net:27028 --port 27017
     ports:
@@ -28,21 +28,21 @@ services:
     hostname: mongo-cfg-a
     container_name: mongo-cfg-a
     command: mongod --port 27017 --configsvr --replSet rs-cfg
-    image: mongo:4.4
+    image: mongo:focal
     ports:
     - "27026:27017"
   mongo-cfg-b:
     hostname: mongo-cfg-b
     container_name: mongo-cfg-b
     command: mongod --port 27017 --configsvr --replSet rs-cfg
-    image: mongo:4.4
+    image: mongo:focal
     ports:
     - "27027:27017"
   mongo-cfg-c:
     hostname: mongo-cfg-c
     container_name: mongo-cfg-c
     command: mongod --port 27017 --configsvr --replSet rs-cfg
-    image: mongo:4.4
+    image: mongo:focal
     ports:
     - "27028:27017"
 #shards
@@ -51,21 +51,21 @@ services:
     hostname: mongo-shard01-a
     container_name: mongo-shard01-a
     command: mongod --bind_ip_all --port 27017 --shardsvr --replSet rs-shard01
-    image: mongo:4.4
+    image: mongo:focal
     ports:
     - "27017:27017"
   mongo-shard01-b:
     hostname: mongo-shard01-b
     container_name: mongo-shard01-b
     command: mongod --bind_ip_all --port 27017 --shardsvr --replSet rs-shard01
-    image: mongo:4.4
+    image: mongo:focal
     ports:
     - "27018:27017"
   mongo-shard01-c:
     hostname: mongo-shard01-c
     container_name: mongo-shard01-c
     command: mongod --bind_ip_all --port 27017 --shardsvr --replSet rs-shard01
-    image: mongo:4.4
+    image: mongo:focal
     ports:
     - "27019:27017"
 
@@ -74,21 +74,21 @@ services:
     hostname: mongo-shard02-a
     container_name: mongo-shard02-a
     command: mongod --bind_ip_all --port 27017 --shardsvr --replSet rs-shard02
-    image: mongo:4.4
+    image: mongo:focal
     ports:
     - "27020:27017"
   mongo-shard02-b:
     hostname: mongo-shard02-b
     container_name: mongo-shard02-b
     command: mongod --bind_ip_all --port 27017 --shardsvr --replSet rs-shard02
-    image: mongo:4.4
+    image: mongo:focal
     ports:
     - "27021:27017"
   mongo-shard02-c:
     hostname: mongo-shard02-c
     container_name: mongo-shard02-c
     command: mongod --bind_ip_all --port 27017 --shardsvr --replSet rs-shard02
-    image: mongo:4.4
+    image: mongo:focal
     ports:
     - "27022:27017"   
   #shard03
@@ -96,20 +96,20 @@ services:
     hostname: mongo-shard03-a
     container_name: mongo-shard03-a
     command: mongod --bind_ip_all --port 27017 --shardsvr --replSet rs-shard03
-    image: mongo:4.4
+    image: mongo:focal
     ports:
     - "27023:27017"
   mongo-shard03-b:
     hostname: mongo-shard03-b
     container_name: mongo-shard03-b
     command: mongod --bind_ip_all --port 27017 --shardsvr --replSet rs-shard03
-    image: mongo:4.4
+    image: mongo:focal
     ports:
     - "27024:27017"
   mongo-shard03-c:
     hostname: mongo-shard03-c
     container_name: mongo-shard03-c
     command: mongod --bind_ip_all --port 27017 --shardsvr --replSet rs-shard03
-    image: mongo:4.4
+    image: mongo:focal
     ports:
     - "27025:27017"  
