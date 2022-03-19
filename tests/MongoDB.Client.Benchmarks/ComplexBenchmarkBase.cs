@@ -18,7 +18,7 @@ namespace MongoDB.Client.Benchmarks
         private IMongoCollection<T> _oldCollection;
         private T[] _items;
 
-        [Params(1, 4, 8, 16)]
+        [Params(4)]
         public int NewClientMaxPoolSize { get; set; }
 
         [Params(1024)]
