@@ -20,17 +20,12 @@ namespace MongoDB.Client.Messages
         
         [BsonElement("errmsg")]
         public string? ErrorMessage { get; }
-
-        [BsonElement("operationTime")]
-        public BsonTimestamp OpTime { get; }
-
-        public UpdateResult( double ok, int n, int modified,  MongoClusterTime clusterTime, string errorMessage, BsonTimestamp opTime)
+        public UpdateResult( double ok, int n, int modified,  MongoClusterTime clusterTime, string errorMessage)
         {
             Modified = modified;
             Ok = ok;
             N = n;
             ClusterTime = clusterTime;
-            OpTime = opTime;
             ErrorMessage = errorMessage;
         }
     }

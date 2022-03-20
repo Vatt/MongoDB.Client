@@ -4,7 +4,6 @@ namespace MongoDB.Client.Tests.Client
 {
     public class ClientReplSetCommonTest : ClientCommonTestBase
     {
-        private static readonly string RsName =  "rs0"; 
         [Fact]
         public async Task ReplSetInsertTest()
         {

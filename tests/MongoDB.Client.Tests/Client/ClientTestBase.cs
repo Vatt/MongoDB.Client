@@ -15,6 +15,7 @@ namespace MongoDB.Client.Tests.Client
         protected string DB { get; init; } = "TestDb";
         protected string Collection { get; init; } = "TestCollection";
 
+        protected readonly string RsName =  "rs0"; 
         protected async Task<List<T>> InsertAsync<T>(IEnumerable<T> items, MongoCollection<T> collection, TransactionHandler? tx = null, bool txCommit = false)
         {
             List<T> result = default;
