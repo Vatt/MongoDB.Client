@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using Xunit;
 
@@ -20,13 +21,6 @@ namespace MongoDB.Client.Tests.Client
             for (int i = 0; i < items.Length; i++)
             {
                 items[i] = item;
-            }
-
-            var result = await CreateCollectionInsertFindDeleteDropCollectionAsync(items, RsHost, true);
-            Assert.True(items.Length == result.Count);
-            foreach (var resultItem in result)
-            {
-                Assert.Equal(item, resultItem);
             }
         }
     }
