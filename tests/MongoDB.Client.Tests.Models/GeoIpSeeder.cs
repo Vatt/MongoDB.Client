@@ -23,7 +23,9 @@ namespace MongoDB.Client.Tests.Models
                     regionName = "St.-Petersburg",
                     status = "success",
                     timezone = "Europe/Moscow",
-                    zip = 190000
+                    zip = 190000,
+                    Update = "old"
+                    
                 };
             }
         }

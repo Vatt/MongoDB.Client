@@ -27,5 +27,6 @@ namespace MongoDB.Client.Tests.Models
         public string isp { get; set; }
         public string org { get; set; }
         public string query { get; set; }
+        public string Update { get; set; }
     }
 }
