@@ -440,7 +440,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var sb = new StringBuilder(value.Length);
             foreach (var item in value)
             {
-                if (item == '(' || item == ')' || item == '$' || item == ' ')
+                if (item == '(' || item == ')' || item == '$' || item == ' ' || item == '-')
                 {
                     sb.Append('_');
                 }

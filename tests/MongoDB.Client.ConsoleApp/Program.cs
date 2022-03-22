@@ -2,22 +2,57 @@ using System.Diagnostics;
 using System.Net;
 using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Settings;
 using MongoDB.Client.Tests.Models;
 
 namespace MongoDB.Client.ConsoleApp
 {
+    [BsonSerializable]
+    public partial class TestModel
+    {
+        public int SomeId { get; set; }
+        public string Name { get; set; }
+        public TestModel()
+        {
+            Name = "Test";
+            SomeId = 42;
+        }
+    }
     class Program
     {
         static async Task Main(string[] args)
         {
-
-            await LoadTest<GeoIp>(1024 * 1024, new[] { 512 });
+            await TestUpdate();
+            //await LoadTest<GeoIp>(1024 * 1024, new[] { 512 });
             //await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, false);
             //await TestShardedCluster();
             //await TestTransaction();
             //await TestStandalone();
+        }
+
+        static async Task TestUpdate()
+        {
+            var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
+            host = "mongodb://mongo0.mshome.net/?maxPoolSize=1";// &clientType=experimental";
+            //host = "mongodb://mongo1.mshome.net/?clientType=experimental&replicaSet=rs0&maxPoolSize=4";;
+            //host = "mongodb://gamover-place/?maxPoolSize=1&clientType=experimental";
+            var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder
+                    .SetMinimumLevel(LogLevel.Information)
+                    .AddConsole();
+            });
+            var settings = MongoClientSettings.FromConnectionString(host);
+            var client = await MongoClient.CreateClient(settings, loggerFactory);
+            var db = client.GetDatabase("TestDb");
+            var collection = db.GetCollection<TestModel>("TestCollection");
+            await collection.InsertAsync(new TestModel());
+            await collection.InsertAsync(new TestModel());
+            await collection.InsertAsync(new TestModel());
+            var result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"),new BsonDocument("$set", new BsonDocument("SomeId", 24)));
+            await collection.DropAsync();
         }
         static async Task TestShardedCluster()
         {

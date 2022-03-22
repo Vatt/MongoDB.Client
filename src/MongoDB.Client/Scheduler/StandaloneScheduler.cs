@@ -75,6 +75,17 @@ namespace MongoDB.Client.Scheduler
             return _mongoScheduler.DeleteAsync(request, token);
         }
 
+        public ValueTask<UpdateResult> UpdateAsync(TransactionHandler transaction, BsonDocument filter, BsonDocument update, bool isMulty, CollectionNamespace collectionNamespace, CancellationToken token)
+        {
+            var requestNumber = _mongoScheduler.GetNextRequestNumber();
+            var updateHeader = new UpdateHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId);
+
+            var updateBody = new UpdateBody(filter, update, isMulty);
+
+            var request = new UpdateMessage(requestNumber, updateHeader, updateBody);
+            return _mongoScheduler.UpdateAsync(request, token);
+        }
+
         public ValueTask DropCollectionAsync(TransactionHandler transaction, CollectionNamespace collectionNamespace, CancellationToken token)
         {
             var requestNumber = _mongoScheduler.GetNextRequestNumber();

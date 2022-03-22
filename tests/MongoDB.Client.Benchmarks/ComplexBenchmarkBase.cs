@@ -149,8 +149,10 @@ namespace MongoDB.Client.Benchmarks
             static async Task Work(MongoCollection<T> collection, T item)
             {
                 var filter = new BsonDocument("_id", item.Id);
+                var update = new BsonDocument("$set", new BsonDocument("Update", "old"));
                 await collection.InsertAsync(item);
                 await collection.Find(filter).FirstOrDefaultAsync();
+                await collection.UpdateOneAsync(filter, update);
                 await collection.DeleteOneAsync(filter);
             }
 
@@ -203,8 +205,10 @@ namespace MongoDB.Client.Benchmarks
 
             static async Task Work(IMongoCollection<T> collection, T item)
             {
+                var update = new MongoDB.Bson.BsonDocument("$set", new MongoDB.Bson.BsonDocument("Update", "old"));
                 await collection.InsertOneAsync(item);
                 await collection.Find(i => i.OldId == item.OldId).FirstOrDefaultAsync();
+                await collection.UpdateOneAsync(i => i.OldId == item.OldId, new BsonDocumentUpdateDefinition<T>(update));
                 await collection.DeleteOneAsync(i => i.OldId == item.OldId);
             }
 

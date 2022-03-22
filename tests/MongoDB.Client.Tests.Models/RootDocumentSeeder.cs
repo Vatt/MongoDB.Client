@@ -50,7 +50,8 @@ namespace MongoDB.Client.Tests.Models
                 TextFieldOne = $"{i}_{i}_{i}",
                 TextFieldTwo = $"{i}-{i}-{i}",
                 TextFieldThree = $"{i}|{i}|{i}",
-                SomeEnumField = (SomeEnum)(i % 3)
+                SomeEnumField = (SomeEnum)(i % 3),
+                Update = "old"
             };
         }
 

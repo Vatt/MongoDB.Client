@@ -13,7 +13,8 @@ namespace MongoDB.Client.Tests.Models
                 {
                     Id = BsonObjectId.NewObjectId(),
                     OldId = ObjectId.GenerateNewId(),
-                    GeoIps = new List<GeoIpForMedium>()
+                    GeoIps = new List<GeoIpForMedium>(),
+                    Update = "old"
                 };
                 for (int j = 0; j < 50; j++)
                 {
