@@ -21,7 +21,7 @@ namespace MongoDB.Client.Messages
         public bool IsUpsert { get; }
 
         [BsonElement("collation")]
-        public BsonDocument? Collation { get; }
+        public Collation? Collation { get; }
         
         [BsonElement("arrayFilters")]
         [BsonWriteIgnoreIf("ArrayFilters is null")]
@@ -30,13 +30,12 @@ namespace MongoDB.Client.Messages
         [BsonElement("hint")]
         public BsonElement? Hint { get; }
         */
-        public UpdateBody(BsonDocument filter, BsonDocument update, bool isMulty, bool isUpsert = false, List<BsonDocument>? arrayFilters = null, BsonDocument? collation = null)
+        public UpdateBody(BsonDocument filter, BsonDocument update, bool isMulty, bool isUpsert = false, List<BsonDocument>? arrayFilters = null, Collation? collation = null)
         {
             Filter = filter;
             Update = update;
             IsMulty = isMulty;
             IsUpsert = isUpsert;
-            Collation = collation;
             Collation = collation;
             ArrayFilters = arrayFilters;
         }
