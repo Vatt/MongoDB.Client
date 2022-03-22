@@ -86,6 +86,38 @@ namespace MongoDB.Client.Scheduler
             var request = new DeleteMessage(requestNumber, deleteHeader, deleteBody);
             return scheduler.DeleteAsync(request, token);
         }
+
+        public ValueTask<UpdateResult> UpdateAsync(TransactionHandler transaction, BsonDocument filter, BsonDocument update, bool isMulty, CollectionNamespace collectionNamespace, CancellationToken token)
+        {
+            var scheduler = GetScheduler();
+            var lastPing = scheduler.LastPing!;
+            var requestNumber = scheduler.GetNextRequestNumber();
+            var updateHeader = CreateUpdateHeader(collectionNamespace, transaction, lastPing.ClusterTime);
+
+            var updateBody = new UpdateBody(filter, update,  isMulty);
+
+            var request = new UpdateMessage(requestNumber, updateHeader, updateBody);
+            return scheduler.UpdateAsync(request, token);
+        }
+        private UpdateHeader CreateUpdateHeader(CollectionNamespace collectionNamespace, TransactionHandler transaction, MongoClusterTime clusterTime)
+        {
+            switch (transaction.State)
+            {
+                case TransactionState.Starting:
+                    transaction.State = TransactionState.InProgress;
+                    return new UpdateHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId, clusterTime, transaction.TxNumber, true, false);
+                case TransactionState.InProgress:
+                    return new UpdateHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId, clusterTime, transaction.TxNumber, false);
+                case TransactionState.Implicit:
+                    return new UpdateHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId, transaction.TxNumber);
+                case TransactionState.Committed:
+                    return ThrowEx<UpdateHeader>("Transaction already commited");
+                case TransactionState.Aborted:
+                    return ThrowEx<UpdateHeader>("Transaction already aborted");
+                default:
+                    return ThrowEx<UpdateHeader>("Invalid transaction state");
+            }
+        }
         private DeleteHeader CreateDeleteHeader(CollectionNamespace collectionNamespace, TransactionHandler transaction, MongoClusterTime clusterTime)
         {
             switch (transaction.State)

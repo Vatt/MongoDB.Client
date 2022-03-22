@@ -154,7 +154,24 @@ namespace MongoDB.Client.Scheduler
             MongoRequestPool.Return(request);
             return deleteResult!;
         }
-
+        public async ValueTask<UpdateResult> UpdateAsync(UpdateMessage message, CancellationToken token)
+        {
+            var request = MongoRequestPool.Get();//new DeleteMongoRequest(message, taskSource);
+            var taskSource = request.CompletionSource;
+            request.RequestNumber = message.Header.RequestNumber;
+            request.ParseAsync = UpdateCallbackHolder.UpdateParseAsync;
+            request.WriteAsync = (protocol, token) =>
+            {
+                return protocol.WriteAsync(ProtocolWriters.UpdateMessageWriter, message, token);
+            };
+            if (_channelWriter.TryWrite(request) == false)
+            {
+                await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
+            }
+            var deleteResult = (UpdateResult)await taskSource.GetValueTask().ConfigureAwait(false);
+            MongoRequestPool.Return(request);
+            return deleteResult!;
+        }
         public async ValueTask TransactionAsync(TransactionMessage message, CancellationToken token)
         {
             var request = MongoRequestPool.Get();

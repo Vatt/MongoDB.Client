@@ -23,7 +23,7 @@ namespace MongoDB.Client.Tests.Models
         public int IntField { get; set; }
 
         public double DoubleField { get; set; }
-
+        public string Update { get; set; }
         public List<FirstLevelDocument> InnerDocuments { get; set; }
 
         public SomeEnum SomeEnumField { get; set; }

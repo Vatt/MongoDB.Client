@@ -91,6 +91,32 @@ namespace MongoDB.Client
             return _scheduler.DeleteAsync(transaction, filter, limit, Namespace, cancellationToken);
         }
 
+
+        public ValueTask<UpdateResult> UpdateOneAsync(BsonDocument filter, BsonDocument update, CancellationToken cancellationToken = default)
+        {
+            return UpdateOneAsync(TransactionHandler.CreateImplicit(_scheduler), filter, update, cancellationToken);
+        }
+
+        public ValueTask<UpdateResult> UpdateOneAsync(TransactionHandler transaction, BsonDocument filter, BsonDocument update, CancellationToken cancellationToken = default)
+        {
+            return UpdateAsync(transaction, filter, update, false, cancellationToken);
+        }
+
+        public ValueTask<UpdateResult> UpdateManyAsync(BsonDocument filter, BsonDocument update, CancellationToken cancellationToken = default)
+        {
+            return UpdateManyAsync(TransactionHandler.CreateImplicit(_scheduler), filter, update, cancellationToken);
+        }
+
+        public ValueTask<UpdateResult> UpdateManyAsync(TransactionHandler transaction, BsonDocument filter, BsonDocument update, CancellationToken cancellationToken = default)
+        {
+            return UpdateAsync(transaction, filter, update, true, cancellationToken);
+        }
+
+        private ValueTask<UpdateResult> UpdateAsync(TransactionHandler transaction, BsonDocument filter, BsonDocument update, bool isMulty,  CancellationToken cancellationToken = default)
+        {
+            return _scheduler.UpdateAsync(transaction, filter, update, isMulty, Namespace, cancellationToken);
+        }
+
         internal ValueTask DropAsync(CancellationToken cancellationToken = default)
         {
             return DropAsync(TransactionHandler.CreateImplicit(_scheduler), cancellationToken);

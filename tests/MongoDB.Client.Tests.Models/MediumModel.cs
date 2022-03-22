@@ -13,7 +13,7 @@ namespace MongoDB.Client.Tests.Models
         [MongoDB.Bson.Serialization.Attributes.BsonId]
         [BsonIgnore]
         public ObjectId OldId { get; set; }
-
+        public string Update { get; set; }
         public List<GeoIpForMedium> GeoIps { get; set; }
     }
 
