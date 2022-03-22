@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -96,13 +97,19 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         .AddRange(GenerateReadStringReprEnumMethods(ctx))
                         .AddRange(GenerateWriteStringReprEnumMethods(ctx));
                     declaration = SF.RecordDeclaration(
-                        default,
-                        modifiers,
-                        decl.Keyword,
-                        Identifier(SelfName(ctx.Declaration)),
-                        default, default, /*SF.BaseList(SeparatedList(SerializerBaseType(ctx)))*/default, default,
-                        OpenBraceToken(), members, CloseBraceToken(), default);
-
+                        kind: decl.Kind(),
+                        attributeLists: default,
+                        modifiers: modifiers,
+                        keyword: decl.Keyword,
+                        classOrStructKeyword: decl.Kind() == SyntaxKind.RecordStructDeclaration ? SF.ParseToken("struct") : default,//SF.ParseToken("class"),
+                        identifier: Identifier(SelfName(ctx.Declaration)),
+                        typeParameterList: default,
+                        parameterList: default,
+                        baseList:default,// SF.BaseList(SeparatedList(SerializerBaseType(ctx))),
+                        constraintClauses: default,
+                        openBraceToken: OpenBraceToken(),
+                        members: members,
+                        closeBraceToken: CloseBraceToken(), default);
                     break;
             }
             return SF.NamespaceDeclaration(SF.ParseName(ctx.Declaration.ContainingNamespace.ToString())).AddMembers(ProcessNested(declaration, ctx.Declaration.ContainingSymbol));
