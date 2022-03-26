@@ -152,7 +152,7 @@ namespace MongoDB.Client.Benchmarks
                 var update = new BsonDocument("$set", new BsonDocument("Update", "old"));
                 await collection.InsertAsync(item);
                 await collection.Find(filter).FirstOrDefaultAsync();
-                await collection.UpdateOneAsync(filter, update);
+                //await collection.UpdateOneAsync(filter, update);
                 await collection.DeleteOneAsync(filter);
             }
 

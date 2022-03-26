@@ -17,8 +17,8 @@ namespace MongoDB.Client.Tests.Client
         public async Task ReplSetTransactionSimpleTest()
         {
             var name = "TransactionSimple" + DateTimeOffset.UtcNow;
-            var update = new BsonDocument("$set", new BsonDocument("A", "UPDATED"));
             var item = new TransactionTestModel("TransactionTestModelA", "TransactionTestModelB", "TransactionTestModelC", 42, 42);
+            var update = Update.Set(new TransactionTestModel("UPDATED", "TransactionTestModelB", "TransactionTestModelC", 42, 42));
             var items = new TransactionTestModel[1024];
             for (int i = 0; i < items.Length; i++)
             {

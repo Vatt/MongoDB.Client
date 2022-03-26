@@ -103,7 +103,7 @@ namespace MongoDB.Client.Tests.Client
             return (result, before, after);
         }
         
-        protected async Task<(UpdateResult result, List<T> before, List<T> after)> UpdateOneAsync<T>(IEnumerable<T> insertItems, BsonDocument filter, BsonDocument update, MongoCollection<T> collection, TransactionHandler? tx = null, bool txCommit = false)
+        protected async Task<(UpdateResult result, List<T> before, List<T> after)> UpdateOneAsync<T>(IEnumerable<T> insertItems, BsonDocument filter, Update update, MongoCollection<T> collection, TransactionHandler? tx = null, bool txCommit = false)
         {
             UpdateResult result = default;
             List<T> after = default;
@@ -126,7 +126,7 @@ namespace MongoDB.Client.Tests.Client
             }
             return (result, before, after);
         }
-        protected async Task<(UpdateResult result, List<T> before, List<T> after)> UpdateManyAsync<T>(IEnumerable<T> insertItems, BsonDocument filter, BsonDocument update, MongoCollection<T> collection, TransactionHandler? tx = null, bool txCommit = false)
+        protected async Task<(UpdateResult result, List<T> before, List<T> after)> UpdateManyAsync<T>(IEnumerable<T> insertItems, BsonDocument filter, Update update, MongoCollection<T> collection, TransactionHandler? tx = null, bool txCommit = false)
         {
             UpdateResult result = default;
             List<T> after = default;

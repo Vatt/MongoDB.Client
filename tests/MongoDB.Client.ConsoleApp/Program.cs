@@ -11,16 +11,24 @@ namespace MongoDB.Client.ConsoleApp
 {
 
     [BsonSerializable]
-    public partial class TestModel
+    public readonly partial struct TestModel
     {
-        public int SomeId { get; set; }
-        public string Name { get; set; }
-        public TestModel()
+        public int SomeId { get; }
+        public string Name { get; }
+        public TestModel(string name, int someId)
         {
-            Name = "Test";
-            SomeId = 42;
+            Name = name;
+            SomeId = someId;
         }
     }
+    [BsonSerializable]
+    public readonly partial record struct UpdateDoc(int SomeId);
+    
+    [BsonSerializable]
+    public readonly partial record struct SetOnInsertUpdateDoc(int SOMEID);
+    
+    [BsonSerializable]
+    public readonly partial record struct RenameDoc(string SomeId);
     class Program
     {
         static async Task Main(string[] args)
@@ -34,6 +42,7 @@ namespace MongoDB.Client.ConsoleApp
             //await TestStandalone();
         }
 
+     
         static async Task TestUpdate()
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
@@ -50,10 +59,17 @@ namespace MongoDB.Client.ConsoleApp
             var client = await MongoClient.CreateClient(settings, loggerFactory);
             var db = client.GetDatabase("TestDb");
             var collection = db.GetCollection<TestModel>("TestCollection");
-            await collection.InsertAsync(new TestModel());
-            await collection.InsertAsync(new TestModel());
-            await collection.InsertAsync(new TestModel());
-            var result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"),new BsonDocument("$set", new BsonDocument("SomeId", 24)));
+            await collection.InsertAsync(new TestModel("Test", 42));
+            await collection.InsertAsync(new TestModel("Test", 42));
+            await collection.InsertAsync(new TestModel("Test", 42));
+            var result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Set(new UpdateDoc(24)));
+            result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Inc(new UpdateDoc(24)));
+            result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Max(new UpdateDoc(49)));
+            result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Min(new UpdateDoc(21)));
+            result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Mul(new UpdateDoc(2)));
+            result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test1"), Update.SetOnInsert(new UpdateDoc(24)), new UpdateOptions(true));
+            result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test2"), Update.SetOnInsert(new SetOnInsertUpdateDoc(2)), new UpdateOptions(true));
+            result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Rename(new RenameDoc("SOME_ID")));
             await collection.DropAsync();
         }
         static async Task TestShardedCluster()
