@@ -4,7 +4,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 namespace MongoDB.Client.Tests.Models
 {
     [BsonSerializable]
-    public partial class GeoIp : IIdentified
+    public partial class GeoIp : IIdentified, IUpdatable
     {
         [BsonId]
         [MongoDB.Bson.Serialization.Attributes.BsonIgnore]
