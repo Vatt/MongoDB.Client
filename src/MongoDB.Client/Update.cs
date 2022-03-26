@@ -1,4 +1,5 @@
-﻿using MongoDB.Client.Bson.Document;
+﻿using System.Linq.Expressions;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Bson.Writer;
@@ -43,7 +44,7 @@ namespace MongoDB.Client
         private static ReadOnlySpan<byte> UpdateRename => new byte[7]{36, 114, 101, 110, 97, 109, 101};
         private static ReadOnlySpan<byte> UpdateSetOnInsert => new byte[12]{36, 115, 101, 116, 79, 110, 73, 110, 115, 101, 114, 116};
         private static ReadOnlySpan<byte> UpdateSet => new byte[4]{36, 115, 101, 116};
-        private static ReadOnlySpan<byte> UpdateUnset => new byte[12]{36, 115, 101, 116, 79, 110, 73, 110, 115, 101, 114, 116};
+        private static ReadOnlySpan<byte> UpdateUnset => new byte[6]{36, 117, 110, 115, 101, 116};
 
         private readonly DocWriter _writer;
         private readonly UpdateType _type;
@@ -55,6 +56,7 @@ namespace MongoDB.Client
         }
         public static Update Set<T>(T value) => new Update(UpdateType.Set, MakeWriter(value));
         public static Update Unset<T>(T value) => new Update(UpdateType.Unset, MakeWriter(value));
+        public static Update Unset(string name) => Unset(new BsonDocument(name, ""));
         public static Update Inc<T>(T value) => new Update(UpdateType.Inc, MakeWriter(value));
         public static Update Max<T>(T value) => new Update(UpdateType.Max, MakeWriter(value));
         public static Update Min<T>(T value) => new Update(UpdateType.Min, MakeWriter(value));

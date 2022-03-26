@@ -1,5 +1,9 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
@@ -29,6 +33,9 @@ namespace MongoDB.Client.ConsoleApp
     
     [BsonSerializable]
     public readonly partial record struct RenameDoc(string SomeId);
+    
+    [BsonSerializable]
+    public readonly partial record struct UnsetDoc(string SOMEID, string Name);
     class Program
     {
         static async Task Main(string[] args)
@@ -68,8 +75,10 @@ namespace MongoDB.Client.ConsoleApp
             result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Min(new UpdateDoc(21)));
             result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Mul(new UpdateDoc(2)));
             result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test1"), Update.SetOnInsert(new UpdateDoc(24)), new UpdateOptions(true));
-            result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test2"), Update.SetOnInsert(new SetOnInsertUpdateDoc(2)), new UpdateOptions(true));
-            result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Rename(new RenameDoc("SOME_ID")));
+            result = await collection.UpdateOneAsync(new BsonDocument("Name", "Test2"), Update.SetOnInsert(new SetOnInsertUpdateDoc(2)), new UpdateOptions(true));
+            result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Rename(new RenameDoc("SOMEID")));
+            result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Unset(new UnsetDoc("", "")));
+            //result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Unset("Name"));
             await collection.DropAsync();
         }
         static async Task TestShardedCluster()
