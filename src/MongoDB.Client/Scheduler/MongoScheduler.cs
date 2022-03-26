@@ -164,9 +164,10 @@ namespace MongoDB.Client.Scheduler
             {
                 await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
             }
-            var deleteResult = (UpdateResult)await taskSource.GetValueTask().ConfigureAwait(false);
+            var updateResult = (UpdateResult)await taskSource.GetValueTask().ConfigureAwait(false);
             MongoRequestPool.Return(request);
-            return deleteResult!;
+            
+            return updateResult.ErrorMessage is null ? updateResult : ThrowHelper.UpdateException<UpdateResult>(updateResult.ErrorMessage);
         }
         public async ValueTask TransactionAsync(TransactionMessage message, CancellationToken token)
         {
