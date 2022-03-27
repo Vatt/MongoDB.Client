@@ -607,5 +607,71 @@ namespace MongoDB.Client.Tests.Client
                 return doc;
             }
         }
+        public async Task UpdateMany_SetOnInsert(MongoClient client)
+        {
+            var items = new[] { MakeBsonDoc(), MakeBsonDoc() };
+            var db = client.GetDatabase(DB);
+            var collection = db.GetCollection<BsonDocument>("UpdateSetOnInsertCollection" + DateTimeOffset.UtcNow);
+            var update = Update.SetOnInsert(new BsonDocument("NewField", 42));
+            var (result, before, after) = await UpdateManyAsync(items, new BsonDocument("SomeInt", 12), update, collection, new UpdateOptions(true));
+            Assert.True(result.Upserted?.Count == 1);
+            Assert.True(after.Count == before.Count + 1);
+            Assert.Equal(12, (int)after[2]["SomeInt"].Value);
+            Assert.Equal(42, (int)after[2]["NewField"].Value);
+            Assert.Equal(3, after[2].Count);
+            await collection.DropAsync();
+            BsonDocument MakeBsonDoc()
+            {
+                var doc = new BsonDocument("SomeInt", 10);
+                doc.Add("SomeString", "test");
+                return doc;
+            }
+        }
+        public async Task UpdateOne_Rename(MongoClient client)
+        {
+            var items = new[] { MakeBsonDoc(), MakeBsonDoc() };
+            var db = client.GetDatabase(DB);
+            var collection = db.GetCollection<BsonDocument>("UpdateRenameCollection" + DateTimeOffset.UtcNow);
+            var update = Update.Rename(new BsonDocument("SomeInt", "RenamedField"));
+            var (result, before, after) = await UpdateOneAsync(items, BsonDocument.Empty, update, collection);
+            Assert.Equal(1, result.Modified);
+
+            Assert.True(after[0][2].Name.Equals("RenamedField"));
+            Assert.Equal(10, (int)after[0][2].Value);
+
+            Assert.True(after[1][1].Name.Equals("SomeInt"));
+            Assert.Equal(10, (int)after[1][1].Value);
+
+            await collection.DropAsync();
+            BsonDocument MakeBsonDoc()
+            {
+                var doc = new BsonDocument("SomeInt", 10);
+                doc.Add("SomeString", "test");
+                return doc;
+            }
+        }
+        public async Task UpdateMany_Rename(MongoClient client)
+        {
+            var items = new[] { MakeBsonDoc(), MakeBsonDoc() };
+            var db = client.GetDatabase(DB);
+            var collection = db.GetCollection<BsonDocument>("UpdateRenameCollection" + DateTimeOffset.UtcNow);
+            var update = Update.Rename(new BsonDocument("SomeInt", "RenamedField"));
+            var (result, before, after) = await UpdateManyAsync(items, BsonDocument.Empty, update, collection);
+            Assert.Equal(2, result.Modified);
+
+            Assert.True(after[0][2].Name.Equals("RenamedField"));
+            Assert.Equal(10, (int)after[0][2].Value);
+
+            Assert.True(after[1][2].Name.Equals("RenamedField"));
+            Assert.Equal(10, (int)after[1][2].Value);
+
+            await collection.DropAsync();
+            BsonDocument MakeBsonDoc()
+            {
+                var doc = new BsonDocument("SomeInt", 10);
+                doc.Add("SomeString", "test");
+                return doc;
+            }
+        }
     }
 }

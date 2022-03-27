@@ -30,10 +30,10 @@ namespace MongoDB.Client.Messages
         public int Modified { get; }
 
         [BsonElement("upserted")]
-        public List<Upserted> Upserted { get; }
+        public List<Upserted>? Upserted { get; }
 
         [BsonElement("$clusterTime")]
-        public MongoClusterTime ClusterTime { get; }
+        public MongoClusterTime? ClusterTime { get; }
         
         [BsonElement("errmsg")]
         public string? ErrorMessage { get; }

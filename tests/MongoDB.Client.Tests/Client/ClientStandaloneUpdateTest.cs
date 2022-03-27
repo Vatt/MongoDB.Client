@@ -100,5 +100,23 @@ namespace MongoDB.Client.Tests.Client
             var client = await CreateStandaloneClient(1);
             await UpdateOne_SetOnInsert(client);
         }
+        [Fact]
+        public async Task StandaloneUpdateMany_SetOnInsert()
+        {
+            var client = await CreateStandaloneClient(1);
+            await UpdateMany_SetOnInsert(client);
+        }
+        [Fact]
+        public async Task StandaloneUpdateOne_Rename()
+        {
+            var client = await CreateStandaloneClient(1);
+            await UpdateOne_Rename(client);
+        }
+        [Fact]
+        public async Task StandaloneUpdateMany_Rename()
+        {
+            var client = await CreateStandaloneClient(1);
+            await UpdateMany_Rename(client);
+        }
     }
 }

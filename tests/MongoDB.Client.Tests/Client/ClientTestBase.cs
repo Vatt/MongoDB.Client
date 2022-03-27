@@ -156,7 +156,7 @@ namespace MongoDB.Client.Tests.Client
             return MongoClient.CreateClient(connectionStr);
         }
 
-        protected Task<MongoClient> CreateReplSetClient(int connPoolSize, string rsName)
+        protected Task<MongoClient> CreateReplSetClient(int connPoolSize, string rsName = "rs0")
         {
             var connectionStr = $"mongodb://{RsHost}/?replicaSet={rsName}&maxPoolSize={connPoolSize}";
             return MongoClient.CreateClient(connectionStr);
