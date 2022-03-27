@@ -43,6 +43,7 @@ namespace MongoDB.Client.Tests.Client
             Assert.Equal(1, result.N);
             Assert.Equal(1, after.Count(x => x.StringField.Equals("UPDATED")));
             Assert.Equal(1, after.Count(x => x.StringField.Equals("42")));
+            await collection.DropAsync();
         }
         protected async Task UpdateManyTest(MongoClient client)
         {
