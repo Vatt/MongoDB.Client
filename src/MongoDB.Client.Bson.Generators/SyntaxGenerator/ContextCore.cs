@@ -11,9 +11,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         {
             IfConditions = 1,
             ConstuctorOnlyParameters = 2,
+            SkipTryParseBson = 4,
+            SkipWriteBson = 8,
         }
         public bool IfConditions { get; set; }
         public bool ConstructorOnlyParameters { get; }
+        public bool GenerateTryParseBson { get; }
+        public bool GenerateWriteBson { get; }
         public GeneratorMode(byte byteMode)
         {
             PrivateMode mode = (PrivateMode)byteMode;
@@ -22,11 +26,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             //ConstructorOnlyParameters = (mode | PrivateMode.ConstuctorOnlyParameters) == PrivateMode.ConstuctorOnlyParameters;   
             IfConditions = mode.HasFlag(PrivateMode.IfConditions);
             ConstructorOnlyParameters = mode.HasFlag(PrivateMode.ConstuctorOnlyParameters);
+            GenerateTryParseBson = mode.HasFlag(PrivateMode.SkipTryParseBson) == false;
+            GenerateWriteBson = mode.HasFlag(PrivateMode.SkipWriteBson) == false;
         }
         public GeneratorMode()
         {
             IfConditions = false;
             ConstructorOnlyParameters = false;
+            GenerateTryParseBson = true;
+            GenerateWriteBson = true;
         }
     }
     internal class ContextCore

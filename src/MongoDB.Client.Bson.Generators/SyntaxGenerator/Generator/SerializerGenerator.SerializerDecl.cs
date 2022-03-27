@@ -51,6 +51,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             MemberDeclarationSyntax declaration = default;
             SyntaxTokenList modifiers;
+            var mode = ctx.GeneratorMode;
+            if (mode.GenerateTryParseBson == false && mode.GenerateWriteBson == false)
+            {
+                ReportSkipFlagsError(ctx.Declaration);
+                return null;
+            }
             if (ctx.Declaration.TypeKind == TypeKind.Struct && ctx.Declaration.IsReadOnly)
             {
                 modifiers = new(PublicKeyword(), ReadOnlyKeyword(), PartialKeyword());
@@ -58,6 +64,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             else
             {
                 modifiers = new(PublicKeyword(), PartialKeyword());
+            }
+            List<MemberDeclarationSyntax> methods = new();
+            if (ctx.GeneratorMode.GenerateTryParseBson)
+            {
+                methods.Add(TryParseMethod(ctx));
+            }
+            if (ctx.GeneratorMode.GenerateWriteBson)
+            {
+                methods.Add(WriteMethod(ctx));
             }
             switch (ctx.DeclarationNode)
             {
@@ -67,8 +82,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         //.AddBaseListTypes(SerializerBaseType(ctx))
                         .AddMembers(GenerateStaticNamesSpans(ctx))
                         .AddMembers(GenerateEnumsStaticNamesSpansIfHave(ctx))
-                        .AddMembers(TryParseMethod(ctx))
-                        .AddMembers(WriteMethod(ctx))
+                        .AddMembers(methods.ToArray())
                         .AddMembers(GenerateCollectionMethods(ctx))
                         .AddMembers(GenerateReadStringReprEnumMethods(ctx))
                         .AddMembers(GenerateWriteStringReprEnumMethods(ctx));
@@ -79,18 +93,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         //.AddBaseListTypes(SerializerBaseType(ctx))
                         .AddMembers(GenerateStaticNamesSpans(ctx))
                         .AddMembers(GenerateEnumsStaticNamesSpansIfHave(ctx))
-                        .AddMembers(TryParseMethod(ctx))
-                        .AddMembers(WriteMethod(ctx))
+                        .AddMembers(methods.ToArray())
                         .AddMembers(GenerateCollectionMethods(ctx))
                         .AddMembers(GenerateReadStringReprEnumMethods(ctx))
                         .AddMembers(GenerateWriteStringReprEnumMethods(ctx));
                     break;
                 case RecordDeclarationSyntax decl:
                     var members = new SyntaxList<MemberDeclarationSyntax>()
-                        .AddRange(new List<MemberDeclarationSyntax>
-                        {
-                            TryParseMethod(ctx), WriteMethod(ctx)
-                        })
+                        .AddRange(methods)
                         .AddRange(GenerateStaticNamesSpans(ctx))
                         .AddRange(GenerateEnumsStaticNamesSpansIfHave(ctx))
                         .AddRange(GenerateCollectionMethods(ctx))
