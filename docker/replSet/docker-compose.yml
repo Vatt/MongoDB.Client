@@ -4,7 +4,7 @@ services:
   mongo-rs0:
     hostname: mongo-rs0
     container_name: mongo-rs0
-    image: mongo:focal
+    image: mongo:4.4
     ports:
     - "27017:27017"
     entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
@@ -12,7 +12,7 @@ services:
   mongo-rs1:
     hostname: mongo-rs1
     container_name: mongo-rs1
-    image: mongo:focal
+    image: mongo:4.4
     ports:
     - "27018:27017"
     entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
@@ -20,7 +20,29 @@ services:
   mongo-rs2:
     hostname: mongo-rs2
     container_name: mongo-rs2
-    image: mongo:focal
+    image: mongo:4.4
     ports:
     - "27019:27017"
     entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
+
+  mongoinit:
+    image: mongo:4.4
+    restart: "no"
+    depends_on:
+      - mongo-rs0
+      - mongo-rs1
+      - mongo-rs2
+    command: >
+          mongo --host mongo-rs0:27017 --eval 
+          '
+          rs.initiate(
+              {
+                  _id: "rs0",
+                  members: [
+                    {_id:0, host: "host.docker.internal:27017"},
+                    {_id:1, host: "host.docker.internal:27018"},
+                    {_id:2, host: "host.docker.internal:27019"}
+                  ]
+              }
+          )
+          '             
