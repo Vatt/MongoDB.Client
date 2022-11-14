@@ -9,7 +9,7 @@ using MongoDB.Client.Protocol.Messages;
 namespace MongoDB.Client.Protocol.Writers
 {
     internal class InsertMessageWriterUnsafe<T> : IMessageWriter<InsertMessage<T>>
-    //where T : IBsonSerializer<T>
+        where T : IBsonSerializer<T>
     {
         public unsafe void WriteMessage(InsertMessage<T> message, IBufferWriter<byte> output)
         {
@@ -48,8 +48,7 @@ namespace MongoDB.Client.Protocol.Writers
 
             foreach (var item in message.Items)
             {
-                //T.WriteBson(ref writer, item);
-                SerializerFnPtrProvider<T>.WriteFnPtr(ref writer, item);
+                T.WriteBson(ref writer, item);
             }
 
             writer.Commit();
