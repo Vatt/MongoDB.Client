@@ -10,7 +10,7 @@ using MongoDB.Client.Messages;
 namespace MongoDB.Client.Protocol.Readers
 {
     internal class FindMsgType0BodyReaderUnsafe<T> : MsgBodyReader<T>
-    //where T : IBsonSerializer<T>
+        where T : IBsonSerializer<T>
     {
         private long _modelsReaded;
         private long _payloadLength;
@@ -82,9 +82,8 @@ namespace MongoDB.Client.Protocol.Readers
                     {
                         bool tryParseResult = default;
                         T? item = default;
-                        //tryParseResult = T.TryParseBson(ref bsonReader, out item);
-                        tryParseResult = SerializerFnPtrProvider<T>.TryParseFnPtr(ref bsonReader, out item);
-                        if (tryParseResult)
+                        //tryParseResult = SerializerFnPtrProvider<T>.TryParseFnPtr(ref bsonReader, out item);
+                        if (T.TryParseBson(ref bsonReader, out item))
                         {
                             items.Add(item);
                             _modelsReaded += bsonReader.BytesConsumed - checkpoint;

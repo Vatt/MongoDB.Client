@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net;
 using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Settings;
@@ -176,7 +177,8 @@ namespace MongoDB.Client.ConsoleApp
             Console.WriteLine();
         }
 
-        static async Task ReplicaSetConenctionTest<T>(int requestCount, IEnumerable<int> parallelism, bool useTransaction) where T : IIdentified//, IBsonSerializer<T>
+        static async Task ReplicaSetConenctionTest<T>(int requestCount, IEnumerable<int> parallelism, bool useTransaction) 
+            where T : IIdentified, IBsonSerializer<T>
         {
             var loggerFactory = LoggerFactory.Create(builder =>
             {
@@ -209,7 +211,8 @@ namespace MongoDB.Client.ConsoleApp
                 Console.WriteLine($"End: {item}. Elapsed: {stopwatch.Elapsed}");
             }
         }
-        static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelism) where T : IIdentified//, IBsonSerializer<T>
+        static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelism) 
+            where T : IIdentified, IBsonSerializer<T>
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
             host = $"mongodb://{host}/?clientType=experimental&replicaSet=rs0&maxPoolSize=4";

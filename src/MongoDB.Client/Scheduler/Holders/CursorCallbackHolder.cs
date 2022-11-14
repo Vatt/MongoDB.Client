@@ -1,11 +1,12 @@
-﻿using MongoDB.Client.Exceptions;
+﻿using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
 
 namespace MongoDB.Client.Scheduler.Holders
 {
-    internal static partial class CursorCallbackHolder<T> //where T : IBsonSerializer<T>
+    internal static partial class CursorCallbackHolder<T> where T : IBsonSerializer<T>
     {
 
         static unsafe CursorCallbackHolder()
