@@ -180,7 +180,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         explicitInterfaceSpecifier: default,
                         identifier: member.StaticSpanNameToken,
                         accessorList: default,
-                        expressionBody: SF.ArrowExpressionClause(SingleDimensionByteArrayCreation(bytes.Length, SeparatedList(bytes.ToArray().Select(NumericLiteralExpr)))),
+                        expressionBody: SF.ArrowExpressionClause(Utf8StringLiteralExpression(member.BsonElementValue)),
                         initializer: default,
                         semicolonToken: SemicolonToken()));
             }
@@ -212,7 +212,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     foreach (var enumMember in typedMetadata.GetMembers().Where(sym => sym.Kind == SymbolKind.Field))
                     {
                         var (bsonValue, bsonAlias) = GetMemberAlias(enumMember);
-                        var bytes = Encoding.UTF8.GetBytes(bsonValue);
                         declarations.Add(
                             SF.PropertyDeclaration(
                                 attributeLists: default,
@@ -221,7 +220,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                 explicitInterfaceSpecifier: default,
                                 identifier: StaticEnumFieldNameToken(typedMetadata, bsonAlias),
                                 accessorList: default,
-                                expressionBody: SF.ArrowExpressionClause(SingleDimensionByteArrayCreation(bytes.Length, SeparatedList(bytes.Select(NumericLiteralExpr)))),
+                                expressionBody: SF.ArrowExpressionClause(Utf8StringLiteralExpression(bsonValue)),
                                 initializer: default,
                                 semicolonToken: SemicolonToken()));
                     }
