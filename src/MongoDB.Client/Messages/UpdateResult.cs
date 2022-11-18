@@ -3,7 +3,9 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Messages
 {
-    [BsonSerializable(GeneratorMode.SkipWriteBson)]
+    //TODO: не сочетается с интерфейсом IBsonSerializer
+    //[BsonSerializable(GeneratorMode.SkipWriteBson)]
+    [BsonSerializable]
     public partial class Upserted
     {
         [BsonElement("index")]
@@ -17,7 +19,9 @@ namespace MongoDB.Client.Messages
             Id = id;
         }
     }
-    [BsonSerializable(GeneratorMode.SkipWriteBson)]
+    //TODO: не сочетается с интерфейсом IBsonSerializer
+    //[BsonSerializable(GeneratorMode.SkipWriteBson)]
+    [BsonSerializable]
     public partial class UpdateResult : IParserResult
     {
         [BsonElement("ok")]

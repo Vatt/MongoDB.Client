@@ -22,7 +22,7 @@ namespace MongoDB.Client
             BypassDocumentValidation = bypassDocumentValidation;
         }
     }
-    public class Update
+    public class Update : IBsonSerializer<Update>
     {
         private delegate void DocWriter(ref BsonWriter writer);
         private delegate void TypeNameWriter(ref BsonWriter writer);
@@ -61,7 +61,7 @@ namespace MongoDB.Client
         public static Update Mul<T>(T value) => new Update(UpdateMulTypeNameWriter, MakeWriter(value));
         public static Update SetOnInsert<T>(T value) => new Update(UpdateSetOnInsertTypeNameWriter, MakeWriter(value));
         public static Update Rename<T>(T value) => new Update(UpdateRenameTypeNameWriter, MakeWriter(value));
-        public static void WriteBson(ref MongoDB.Client.Bson.Writer.BsonWriter writer, in MongoDB.Client.Update message)
+        public static void WriteBson(ref BsonWriter writer, in Update message)
         {
             var checkpoint = writer.Written;
             var reserved = writer.Reserve(4);
