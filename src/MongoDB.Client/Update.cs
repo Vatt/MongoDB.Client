@@ -52,15 +52,16 @@ namespace MongoDB.Client
             _writer = writer;
             _typeNameWrtier = typeNameWrtier;
         }
-        public static Update Set<T>(T value) => new Update(UpdateSetTypeNameWriter, MakeWriter(value));
-        public static Update Unset<T>(T value) => new Update(UpdateUnsetTypeNameWriter, MakeWriter(value));
+        public static Update Set<T>(T value) => new(UpdateSetTypeNameWriter, MakeWriter(value));
+        public static Update Unset<T>(T value) => new(UpdateUnsetTypeNameWriter, MakeWriter(value));
         public static Update Unset(string name) => Unset(new BsonDocument(name, ""));
-        public static Update Inc<T>(T value) => new Update(UpdateIncTypeNameWriter, MakeWriter(value));
-        public static Update Max<T>(T value) => new Update(UpdateMaxTypeNameWriter, MakeWriter(value));
-        public static Update Min<T>(T value) => new Update(UpdateMinTypeNameWriter, MakeWriter(value));
-        public static Update Mul<T>(T value) => new Update(UpdateMulTypeNameWriter, MakeWriter(value));
-        public static Update SetOnInsert<T>(T value) => new Update(UpdateSetOnInsertTypeNameWriter, MakeWriter(value));
-        public static Update Rename<T>(T value) => new Update(UpdateRenameTypeNameWriter, MakeWriter(value));
+        public static Update Inc<T>(T value) => new(UpdateIncTypeNameWriter, MakeWriter(value));
+        public static Update Max<T>(T value) => new(UpdateMaxTypeNameWriter, MakeWriter(value));
+        public static Update Min<T>(T value) => new(UpdateMinTypeNameWriter, MakeWriter(value));
+        public static Update Mul<T>(T value) => new(UpdateMulTypeNameWriter, MakeWriter(value));
+        public static Update SetOnInsert<T>(T value) => new(UpdateSetOnInsertTypeNameWriter, MakeWriter(value));
+        public static Update Rename<T>(T value) => new(UpdateRenameTypeNameWriter, MakeWriter(value));
+        //public static Update From(BsonDocument document) => 
         public static void WriteBson(ref BsonWriter writer, in Update message)
         {
             var checkpoint = writer.Written;

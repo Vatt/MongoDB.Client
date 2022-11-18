@@ -54,16 +54,13 @@ namespace MongoDB.Client.ConsoleApp
         static async Task TestUpdate()
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
-            host = "mongodb://mongo0.mshome.net/?maxPoolSize=1";// &clientType=experimental";
-            //host = "mongodb://mongo1.mshome.net/?clientType=experimental&replicaSet=rs0&maxPoolSize=4";;
-            //host = "mongodb://gamover-place/?maxPoolSize=1&clientType=experimental";
             var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder
                     .SetMinimumLevel(LogLevel.Information)
                     .AddConsole();
             });
-            var settings = MongoClientSettings.FromConnectionString(host);
+            var settings = MongoClientSettings.FromConnectionString($"mongodb://{host}");
             var client = await MongoClient.CreateClient(settings, loggerFactory);
             var db = client.GetDatabase("TestDb");
             var collection = db.GetCollection<TestModel>("TestCollection");
@@ -79,7 +76,7 @@ namespace MongoDB.Client.ConsoleApp
             result = await collection.UpdateOneAsync(new BsonDocument("Name", "Test2"), Update.SetOnInsert(new SetOnInsertUpdateDoc(2)), new UpdateOptions(true));
             result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Rename(new RenameDoc("SOMEID")));
             result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Unset(new UnsetDoc("", "")));
-            //result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Unset("Name"));
+            result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Unset("Name"));
             await collection.DropAsync();
         }
         static async Task TestShardedCluster()
