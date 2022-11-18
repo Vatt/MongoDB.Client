@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
 using Xunit.Sdk;
 
@@ -17,6 +18,7 @@ namespace MongoDB.Client.Tests.Client
 
         protected readonly string RsName =  "rs0"; 
         protected async Task<List<T>> InsertAsync<T>(IEnumerable<T> items, MongoCollection<T> collection, TransactionHandler? tx = null, bool txCommit = false)
+            where T : IBsonSerializer<T>
         {
             List<T> result = default;
             if (tx != null)
@@ -37,6 +39,7 @@ namespace MongoDB.Client.Tests.Client
             return result;
         }
         protected async Task<List<T>> FindAsync<T>(IEnumerable<T> insertItems, BsonDocument filter, MongoCollection<T> collection, TransactionHandler? tx = null, bool txCommit = false)
+            where T : IBsonSerializer<T>
         {
             List<T> result = default;
             if (tx != null)
@@ -57,6 +60,7 @@ namespace MongoDB.Client.Tests.Client
         }
 
         protected async Task<(DeleteResult result, List<T> before, List<T> after)> DeleteOneAsync<T>(IEnumerable<T> insertItems, BsonDocument filter, MongoCollection<T> collection, TransactionHandler? tx = null, bool txCommit = false)
+            where T : IBsonSerializer<T>
         {
             DeleteResult result = default;
             List<T> after = default;
@@ -80,6 +84,7 @@ namespace MongoDB.Client.Tests.Client
             return (result, before, after);
         }
         protected async Task<(DeleteResult result, List<T> before, List<T> after)> DeleteManyAsync<T>(IEnumerable<T> insertItems, BsonDocument filter, MongoCollection<T> collection, TransactionHandler? tx = null, bool txCommit = false)
+            where T : IBsonSerializer<T>
         {
             DeleteResult result = default;
             List<T> after = default;
