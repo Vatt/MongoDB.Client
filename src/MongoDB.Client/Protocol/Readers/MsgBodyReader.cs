@@ -1,5 +1,6 @@
 ﻿using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Utils;
@@ -7,7 +8,7 @@ using MongoDB.Client.Utils;
 namespace MongoDB.Client.Protocol.Readers
 {
     internal abstract class MsgBodyReader<T> : IMessageReader<CursorResult<T>>
-    //where T : IBsonSerializer<T>
+        where T : IBsonSerializer<T>
     {
         protected readonly CursorResult<T> _cursorResult;
         protected readonly ResponseMsgMessage Message;

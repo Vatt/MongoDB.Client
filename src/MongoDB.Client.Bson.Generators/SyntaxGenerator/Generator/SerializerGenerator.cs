@@ -297,7 +297,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.LiteralExpression(SyntaxKind.CharacterLiteralExpression, SF.Literal(value));
         }
-
+        public static LiteralExpressionSyntax Utf8StringLiteralExpression(string value)
+        {
+            return SF.LiteralExpression(SyntaxKind.Utf8StringLiteralExpression, SF.ParseToken($"\"{value}\"u8"));
+        }
         public static IdentifierNameSyntax IdentifierName(SyntaxToken token)
         {
             return SF.IdentifierName(token);

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net;
 using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Settings;
@@ -24,8 +25,8 @@ namespace MongoDB.Client.ConsoleApp
     {
         static async Task Main(string[] args)
         {
-            await TestUpdate();
-            //await LoadTest<GeoIp>(1024 * 1024, new[] { 512 });
+            //await TestUpdate();
+            await LoadTest<GeoIp>(1024, new[] { 512 });
             //await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, false);
             //await TestShardedCluster();
             //await TestTransaction();
@@ -176,7 +177,8 @@ namespace MongoDB.Client.ConsoleApp
             Console.WriteLine();
         }
 
-        static async Task ReplicaSetConenctionTest<T>(int requestCount, IEnumerable<int> parallelism, bool useTransaction) where T : IIdentified//, IBsonSerializer<T>
+        static async Task ReplicaSetConenctionTest<T>(int requestCount, IEnumerable<int> parallelism, bool useTransaction) 
+            where T : IIdentified, IBsonSerializer<T>
         {
             var loggerFactory = LoggerFactory.Create(builder =>
             {
@@ -209,12 +211,11 @@ namespace MongoDB.Client.ConsoleApp
                 Console.WriteLine($"End: {item}. Elapsed: {stopwatch.Elapsed}");
             }
         }
-        static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelism) where T : IIdentified//, IBsonSerializer<T>
+        static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelism) 
+            where T : IIdentified, IBsonSerializer<T>
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
-            //host = "mongodb://mongo0.mshome.net/?maxPoolSize=1";// &clientType=experimental";
-            host = "mongodb://mongo1.mshome.net/?clientType=experimental&replicaSet=rs0&maxPoolSize=4";
-            //host = "mongodb://gamover-place/?maxPoolSize=1&clientType=experimental";
+            host = $"mongodb://{host}/?clientType=experimental&replicaSet=rs0&maxPoolSize=4";
             var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder

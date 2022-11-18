@@ -64,7 +64,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 case ClassDeclarationSyntax:
                     declaration = SF.ClassDeclaration(SelfName(ctx.Declaration))
                         .WithModifiers(modifiers)
-                        //.AddBaseListTypes(SerializerBaseType(ctx))
+                        .AddBaseListTypes(SerializerBaseType(ctx))
                         .AddMembers(GenerateStaticNamesSpans(ctx))
                         .AddMembers(GenerateEnumsStaticNamesSpansIfHave(ctx))
                         .AddMembers(TryParseMethod(ctx))
@@ -76,7 +76,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 case StructDeclarationSyntax:
                     declaration = SF.StructDeclaration(SelfName(ctx.Declaration))
                         .WithModifiers(modifiers)
-                        //.AddBaseListTypes(SerializerBaseType(ctx))
+                        .AddBaseListTypes(SerializerBaseType(ctx))
                         .AddMembers(GenerateStaticNamesSpans(ctx))
                         .AddMembers(GenerateEnumsStaticNamesSpansIfHave(ctx))
                         .AddMembers(TryParseMethod(ctx))
@@ -105,7 +105,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         identifier: Identifier(SelfName(ctx.Declaration)),
                         typeParameterList: default,
                         parameterList: default,
-                        baseList:default,// SF.BaseList(SeparatedList(SerializerBaseType(ctx))),
+                        baseList: SF.BaseList(SeparatedList(SerializerBaseType(ctx))),
                         constraintClauses: default,
                         openBraceToken: OpenBraceToken(),
                         members: members,
@@ -129,7 +129,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                          new(PublicKeyword(), PartialKeyword()),
                          RecordKeyword(),
                          Identifier(SelfName(namedSym)),
-                         default, default, /*SF.BaseList(SeparatedList(SerializerBaseType(symbol)))*/default, default,
+                         default, default, SF.BaseList(SeparatedList(SerializerBaseType(symbol))), default,
                          OpenBraceToken(), new SyntaxList<MemberDeclarationSyntax>().Add(member), CloseBraceToken(), default);
                     //((RecordDeclarationSyntax)decl).AddTypeParameterListParameters
                     return ProcessNested(decl, symbol.ContainingSymbol);
@@ -141,7 +141,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         namedSym = (INamedTypeSymbol)symbol;
                         TypeParameterSyntax[] typeParams = namedSym.TypeArguments.IsEmpty ? null : namedSym.TypeArguments.Select(x => TypeParameter(x)).ToArray();
                         decl = SF.ClassDeclaration(symbol.Name)
-                            //.AddBaseListTypes(SerializerBaseType(symbol))
+                            .AddBaseListTypes(SerializerBaseType(symbol))
                             .AddModifiers(PublicKeyword(), PartialKeyword())
                             .AddMembers(member);
                         if (typeParams is not null)
@@ -154,7 +154,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         namedSym = (INamedTypeSymbol)symbol;
                         typeParams = namedSym.TypeArguments.IsEmpty ? null : namedSym.TypeArguments.Select(x => TypeParameter(x)).ToArray();
                         decl = SF.StructDeclaration(symbol.Name)
-                            //.AddBaseListTypes(SerializerBaseType(symbol))
+                            .AddBaseListTypes(SerializerBaseType(symbol))
                             .AddModifiers(PublicKeyword(), StaticKeyword())
                             .AddMembers(member);
                         if (typeParams is not null)
@@ -180,7 +180,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         explicitInterfaceSpecifier: default,
                         identifier: member.StaticSpanNameToken,
                         accessorList: default,
-                        expressionBody: SF.ArrowExpressionClause(SingleDimensionByteArrayCreation(bytes.Length, SeparatedList(bytes.ToArray().Select(NumericLiteralExpr)))),
+                        expressionBody: SF.ArrowExpressionClause(Utf8StringLiteralExpression(member.BsonElementValue)),
                         initializer: default,
                         semicolonToken: SemicolonToken()));
             }
@@ -212,7 +212,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     foreach (var enumMember in typedMetadata.GetMembers().Where(sym => sym.Kind == SymbolKind.Field))
                     {
                         var (bsonValue, bsonAlias) = GetMemberAlias(enumMember);
-                        var bytes = Encoding.UTF8.GetBytes(bsonValue);
                         declarations.Add(
                             SF.PropertyDeclaration(
                                 attributeLists: default,
@@ -221,7 +220,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                 explicitInterfaceSpecifier: default,
                                 identifier: StaticEnumFieldNameToken(typedMetadata, bsonAlias),
                                 accessorList: default,
-                                expressionBody: SF.ArrowExpressionClause(SingleDimensionByteArrayCreation(bytes.Length, SeparatedList(bytes.Select(NumericLiteralExpr)))),
+                                expressionBody: SF.ArrowExpressionClause(Utf8StringLiteralExpression(bsonValue)),
                                 initializer: default,
                                 semicolonToken: SemicolonToken()));
                     }

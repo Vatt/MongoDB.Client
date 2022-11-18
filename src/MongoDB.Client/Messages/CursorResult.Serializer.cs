@@ -1,8 +1,9 @@
 ﻿using MongoDB.Client.Bson.Reader;
+using MongoDB.Client.Bson.Serialization;
 
 namespace MongoDB.Client.Messages
 {
-    public partial class CursorResult<T>
+    public partial class CursorResult<T> where T : IBsonSerializer<T>
     {
         private static ReadOnlySpan<byte> CursorResultcursor => new byte[6] { 99, 117, 114, 115, 111, 114 };
         private static ReadOnlySpan<byte> CursorResultok => new byte[2] { 111, 107 };

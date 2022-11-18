@@ -1,13 +1,14 @@
 ﻿using System.Collections;
 using System.Diagnostics;
 using MongoDB.Client.Bson.Reader;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Utils;
 using MongoDB.Client.Bson.Writer;
 
 namespace MongoDB.Client.Bson.Document
 {
     [DebuggerTypeProxy(typeof(CollectionDebugView<>))]
-    public class BsonDocument : IEnumerable<BsonElement>, IEquatable<BsonDocument>//, IBsonSerializer<BsonDocument>
+    public class BsonDocument : IEnumerable<BsonElement>, IEquatable<BsonDocument>, IBsonSerializer<BsonDocument>
     {
         public static BsonDocument Empty => new BsonDocument();
 
