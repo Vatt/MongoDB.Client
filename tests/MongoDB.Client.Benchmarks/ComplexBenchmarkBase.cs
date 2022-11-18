@@ -3,7 +3,9 @@ using System.Linq;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using Microsoft.Diagnostics.Tracing.Parsers.MicrosoftWindowsTCPIP;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Tests.Models;
 using MongoDB.Driver;
@@ -12,8 +14,18 @@ using OldClient = MongoDB.Driver.MongoClient;
 
 namespace MongoDB.Client.Benchmarks
 {
+    [BsonSerializable]
+    public readonly partial struct UpdateDoc
+    {
+        public string Update { get; }
+
+        public UpdateDoc(string update)
+        {
+            Update = update;
+        }
+    }
     [MemoryDiagnoser]
-    public class ComplexBenchmarkBase<T> where T : IIdentified, IBsonSerializer<T>
+    public class ComplexBenchmarkBase<T> where T : IIdentified, IUpdatable, IBsonSerializer<T>
     {
         private MongoCollection<T> _collection;
         private IMongoCollection<T> _oldCollection;
@@ -27,7 +39,7 @@ namespace MongoDB.Client.Benchmarks
 
         [Params(/*1, 4, 8, 16, 32, 64, 128,*/ 256)] public int Parallelism { get; set; }
 
-        [Params(ClientType.Old, ClientType.New, ClientType.NewExperimental/*ClientType.New*/)]
+        [Params(ClientType.Old, /*ClientType.New,*/ ClientType.NewExperimental/*ClientType.New*/)]
         public ClientType ClientType { get; set; }
 
         [GlobalSetup]
@@ -150,10 +162,9 @@ namespace MongoDB.Client.Benchmarks
             static async Task Work(MongoCollection<T> collection, T item)
             {
                 var filter = new BsonDocument("_id", item.Id);
-                var update = new BsonDocument("$set", new BsonDocument("Update", "old"));
                 await collection.InsertAsync(item);
                 await collection.Find(filter).FirstOrDefaultAsync();
-                await collection.UpdateOneAsync(filter, update);
+                await collection.UpdateOneAsync(filter, Update.Set(new UpdateDoc("old")));
                 await collection.DeleteOneAsync(filter);
             }
 
@@ -176,7 +187,6 @@ namespace MongoDB.Client.Benchmarks
                 }
             }
         }
-
         private async Task StartOld(IMongoCollection<T> collection, T[] items)
         {
             if (Parallelism == 1)
@@ -206,10 +216,9 @@ namespace MongoDB.Client.Benchmarks
 
             static async Task Work(IMongoCollection<T> collection, T item)
             {
-                var update = new MongoDB.Bson.BsonDocument("$set", new MongoDB.Bson.BsonDocument("Update", "old"));
                 await collection.InsertOneAsync(item);
                 await collection.Find(i => i.OldId == item.OldId).FirstOrDefaultAsync();
-                await collection.UpdateOneAsync(i => i.OldId == item.OldId, new BsonDocumentUpdateDefinition<T>(update));
+                await collection.UpdateOneAsync(i => i.OldId == item.OldId, Builders<T>.Update.Set(x => x.Update, "old"));
                 await collection.DeleteOneAsync(i => i.OldId == item.OldId);
             }
 

@@ -32,7 +32,9 @@ namespace MongoDB.Client.Tests.Client
         {
             var model = CommonModel.Create();
             var items = new[] {model, model};
-            var update = new BsonDocument("$set", new BsonDocument("StringField", "UPDATED"));
+            var updateDoc = CommonModel.Create();
+            updateDoc.StringField = "UPDATED";
+            var update = Update.Set(updateDoc);
             var db = client.GetDatabase(DB);
             var collection = db.GetCollection<CommonModel>("UpdateOneCollection" + DateTimeOffset.UtcNow);
             var (result, before, after) = await UpdateOneAsync(items, BsonDocument.Empty, update, collection);
@@ -41,12 +43,15 @@ namespace MongoDB.Client.Tests.Client
             Assert.Equal(1, result.N);
             Assert.Equal(1, after.Count(x => x.StringField.Equals("UPDATED")));
             Assert.Equal(1, after.Count(x => x.StringField.Equals("42")));
+            await collection.DropAsync();
         }
         protected async Task UpdateManyTest(MongoClient client)
         {
             var model = CommonModel.Create();
             var items = new[] {model, model, model, model, model, model, model, model, model, model, model};
-            var update = new BsonDocument("$set", new BsonDocument("StringField", "UPDATED"));
+            var updateDoc = CommonModel.Create();
+            updateDoc.StringField = "UPDATED";
+            var update = Update.Set(updateDoc);
             var db = client.GetDatabase(DB);
             var collection = db.GetCollection<CommonModel>("UpdateManyCollection" + DateTimeOffset.UtcNow);
             var (result, before, after) = await UpdateManyAsync(items, BsonDocument.Empty, update, collection);

@@ -87,14 +87,16 @@ namespace MongoDB.Client.Scheduler
             return scheduler.DeleteAsync(request, token);
         }
 
-        public ValueTask<UpdateResult> UpdateAsync(TransactionHandler transaction, BsonDocument filter, BsonDocument update, bool isMulty, CollectionNamespace collectionNamespace, CancellationToken token)
+        public ValueTask<UpdateResult> UpdateAsync(TransactionHandler transaction, BsonDocument filter, Update update, bool isMulty, CollectionNamespace collectionNamespace, UpdateOptions? options, CancellationToken token)
         {
             var scheduler = GetScheduler();
             var lastPing = scheduler.LastPing!;
             var requestNumber = scheduler.GetNextRequestNumber();
             var updateHeader = CreateUpdateHeader(collectionNamespace, transaction, lastPing.ClusterTime);
 
-            var updateBody = new UpdateBody(filter, update,  isMulty);
+            var updateBody = options == null
+                ? new UpdateBody(filter, update, isMulty)
+                : new UpdateBody(filter, update, isMulty, options.IsUpsert, options.ArrayFilters, options.Collation);
 
             var request = new UpdateMessage(requestNumber, updateHeader, updateBody);
             return scheduler.UpdateAsync(request, token);

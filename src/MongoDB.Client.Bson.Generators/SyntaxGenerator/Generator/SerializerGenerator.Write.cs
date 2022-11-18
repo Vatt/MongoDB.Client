@@ -40,7 +40,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
                 TryGetBsonWriteIgnoreIfAttr(member, out var condition);
 
-                if (member.BsonElementAlias.Equals("_id", System.StringComparison.InvariantCulture) && IsBsonObjectId(trueType))
+                if (member.BsonElementAlias.Equals("_id", StringComparison.InvariantCulture) && IsBsonObjectId(trueType) && member.IsReadOnly == false)
                 {
                     inner.IfStatement(
                             BinaryExprEqualsEquals(writeTarget, Default(TypeFullName(trueType))),

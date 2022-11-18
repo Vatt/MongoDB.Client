@@ -108,7 +108,7 @@ namespace MongoDB.Client.Tests.Client
             return (result, before, after);
         }
         
-        protected async Task<(UpdateResult result, List<T> before, List<T> after)> UpdateOneAsync<T>(IEnumerable<T> insertItems, BsonDocument filter, BsonDocument update, MongoCollection<T> collection, TransactionHandler? tx = null, bool txCommit = false)
+        protected async Task<(UpdateResult result, List<T> before, List<T> after)> UpdateOneAsync<T>(IEnumerable<T> insertItems, BsonDocument filter, Update update, MongoCollection<T> collection, UpdateOptions? options = null, TransactionHandler? tx = null, bool txCommit = false)
             where T : IBsonSerializer<T>
         {
             UpdateResult result = default;
@@ -117,7 +117,7 @@ namespace MongoDB.Client.Tests.Client
             if (tx != null)
             {
                 before =  await InsertAsync(insertItems, collection, tx, txCommit);
-                result = await collection.UpdateOneAsync(tx, filter, update);
+                result = await collection.UpdateOneAsync(tx, filter, update, options);
                 after = await collection.Find(tx, BsonDocument.Empty).ToListAsync();
                 if (txCommit)
                 {
@@ -127,13 +127,13 @@ namespace MongoDB.Client.Tests.Client
             else
             {
                 before =  await InsertAsync(insertItems, collection);
-                result = await collection.UpdateOneAsync(filter, update);
+                result = await collection.UpdateOneAsync(filter, update, options);
                 after = await collection.Find(BsonDocument.Empty).ToListAsync();
             }
             return (result, before, after);
         }
-        protected async Task<(UpdateResult result, List<T> before, List<T> after)> UpdateManyAsync<T>(IEnumerable<T> insertItems, BsonDocument filter, BsonDocument update, MongoCollection<T> collection, TransactionHandler? tx = null, bool txCommit = false)
-            where T : IBsonSerializer<T>
+        protected async Task<(UpdateResult result, List<T> before, List<T> after)> UpdateManyAsync<T>(IEnumerable<T> insertItems, BsonDocument filter, Update update, MongoCollection<T> collection, UpdateOptions? options = null, TransactionHandler? tx = null, bool txCommit = false)
+             where T : IBsonSerializer<T>
         {
             UpdateResult result = default;
             List<T> after = default;
@@ -141,7 +141,7 @@ namespace MongoDB.Client.Tests.Client
             if (tx != null)
             {
                 before =  await InsertAsync(insertItems, collection, tx, txCommit);
-                result = await collection.UpdateManyAsync(tx, filter, update);
+                result = await collection.UpdateManyAsync(tx, filter, update, options);
                 after = await collection.Find(tx, BsonDocument.Empty).ToListAsync();
                 if (txCommit)
                 {
@@ -151,7 +151,7 @@ namespace MongoDB.Client.Tests.Client
             else
             {
                 before =  await InsertAsync(insertItems, collection);
-                result = await collection.UpdateManyAsync(filter, update);
+                result = await collection.UpdateManyAsync(filter, update, options);
                 after = await collection.Find(BsonDocument.Empty).ToListAsync();
             }
             return (result, before, after);
@@ -163,7 +163,7 @@ namespace MongoDB.Client.Tests.Client
             return MongoClient.CreateClient(connectionStr);
         }
 
-        protected Task<MongoClient> CreateReplSetClient(int connPoolSize, string rsName)
+        protected Task<MongoClient> CreateReplSetClient(int connPoolSize, string rsName = "rs0")
         {
             var connectionStr = $"mongodb://{RsHost}/?replicaSet={rsName}&maxPoolSize={connPoolSize}";
             return MongoClient.CreateClient(connectionStr);
