@@ -139,7 +139,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                          new(PublicKeyword(), PartialKeyword()),
                          RecordKeyword(),
                          Identifier(SelfName(namedSym)),
-                         default, default, SF.BaseList(SeparatedList(SerializerBaseType(symbol))), default,
+                         default, default, /*SF.BaseList(SeparatedList(SerializerBaseType(symbol)))*/default, default,
                          OpenBraceToken(), new SyntaxList<MemberDeclarationSyntax>().Add(member), CloseBraceToken(), default);
                     //((RecordDeclarationSyntax)decl).AddTypeParameterListParameters
                     return ProcessNested(decl, symbol.ContainingSymbol);
@@ -151,7 +151,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         namedSym = (INamedTypeSymbol)symbol;
                         TypeParameterSyntax[] typeParams = namedSym.TypeArguments.IsEmpty ? null : namedSym.TypeArguments.Select(x => TypeParameter(x)).ToArray();
                         decl = SF.ClassDeclaration(symbol.Name)
-                            .AddBaseListTypes(SerializerBaseType(symbol))
+                            //.AddBaseListTypes(SerializerBaseType(symbol))
                             .AddModifiers(PublicKeyword(), PartialKeyword())
                             .AddMembers(member);
                         if (typeParams is not null)
@@ -164,7 +164,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         namedSym = (INamedTypeSymbol)symbol;
                         typeParams = namedSym.TypeArguments.IsEmpty ? null : namedSym.TypeArguments.Select(x => TypeParameter(x)).ToArray();
                         decl = SF.StructDeclaration(symbol.Name)
-                            .AddBaseListTypes(SerializerBaseType(symbol))
+                            //.AddBaseListTypes(SerializerBaseType(symbol))
                             .AddModifiers(PublicKeyword(), StaticKeyword())
                             .AddMembers(member);
                         if (typeParams is not null)
@@ -199,7 +199,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         static MemberDeclarationSyntax[] GenerateEnumsStaticNamesSpansIfHave(ContextCore ctx)
         {
             var declarations = new List<MemberDeclarationSyntax>();
-            var declared = new HashSet<ISymbol>();
+            var declared = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
             foreach (var member in ctx.Members)
             {
                 var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);

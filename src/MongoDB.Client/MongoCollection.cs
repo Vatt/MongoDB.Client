@@ -98,12 +98,12 @@ namespace MongoDB.Client
             return UpdateOneAsync(TransactionHandler.CreateImplicit(_scheduler), filter, update, options, cancellationToken);
         }
 
-        public ValueTask<UpdateResult> UpdateOneAsync(TransactionHandler transaction, BsonDocument filter, Update update,  UpdateOptions? options = null, CancellationToken cancellationToken = default)
+        public ValueTask<UpdateResult> UpdateOneAsync(TransactionHandler transaction, BsonDocument filter, Update update, UpdateOptions? options = null, CancellationToken cancellationToken = default)
         {
             return UpdateAsync(transaction, filter, update, false, options, cancellationToken);
         }
 
-        public ValueTask<UpdateResult> UpdateManyAsync(BsonDocument filter, Update update,  UpdateOptions? options = null,CancellationToken cancellationToken = default)
+        public ValueTask<UpdateResult> UpdateManyAsync(BsonDocument filter, Update update,  UpdateOptions? options = null, CancellationToken cancellationToken = default)
         {
             return UpdateManyAsync(TransactionHandler.CreateImplicit(_scheduler), filter, update, options, cancellationToken);
         }

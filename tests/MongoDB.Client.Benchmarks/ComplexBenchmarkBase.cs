@@ -25,7 +25,7 @@ namespace MongoDB.Client.Benchmarks
         }
     }
     [MemoryDiagnoser]
-    public class ComplexBenchmarkBase<T> where T : IIdentified, IBsonSerializer<T>
+    public class ComplexBenchmarkBase<T> where T : IIdentified, IUpdatable, IBsonSerializer<T>
     {
         private MongoCollection<T> _collection;
         private IMongoCollection<T> _oldCollection;
