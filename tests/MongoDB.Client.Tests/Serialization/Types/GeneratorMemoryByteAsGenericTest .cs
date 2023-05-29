@@ -97,7 +97,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
             return hash.ToHashCode();
         }
     }
-    [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
+    [BsonSerializable(GeneratorMode.ConstructorOnlyParameters)]
     public partial class MemoryByteAsGenericModel : GeneratorTypeTestModelBase<Memory<byte>, Memory<byte>?>, IEquatable<MemoryByteAsGenericModel>
     {
         public MemoryByteAsGenericModel(

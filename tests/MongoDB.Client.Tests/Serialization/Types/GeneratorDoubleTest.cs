@@ -5,7 +5,7 @@ using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization.Types
 {
-    [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
+    [BsonSerializable(GeneratorMode.ConstructorOnlyParameters)]
     public partial class DoubleModel : GeneratorTypeTestModelBase<double, double?>, IEquatable<DoubleModel>
     {
         public DoubleModel(

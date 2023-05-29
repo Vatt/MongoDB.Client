@@ -13,7 +13,7 @@ namespace MongoDB.Client.Tests.Models
             E = ee;
         }
     }
-    [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters | GeneratorMode.IfConditions)]
+    [BsonSerializable(GeneratorMode.ConstructorOnlyParameters | GeneratorMode.IfConditions)]
     public partial class ConstrcutorOnlyModel : ConstrcutorOnlyModelBase, IEquatable<ConstrcutorOnlyModel>
     {
         public SomeEnum? SomeEnum { get; }
