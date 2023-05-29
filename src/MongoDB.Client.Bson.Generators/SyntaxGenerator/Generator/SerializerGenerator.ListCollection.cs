@@ -42,7 +42,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         SECTIONS:
             sections.Add(SwitchSection(SimpleMemberAccess(StateNameToken(ctx.Root), NameOfEnumCollectionStatesToken, InitialEnumStateToken), 
                 Block(
-                    IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(ListReadContext.DocLenToken))),
+                    //IfNotReturnFalse(TryGetInt32(IntVariableDeclarationExpr(ListReadContext.DocLenToken))),
+                    IfNotReturnFalse(TryGetInt32(StateDocLenMemberAccess)),
                     SimpleAssignExprStatement(CollectionLowStateMemberAccess(ctx), ObjectCreation(ConstructCollectionType(trueType))),
                     AddAssignmentExprStatement(StateConsumedMemberAccess, SizeOfInt32Expr),
                     BreakStatement)));
@@ -110,6 +111,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                        //VarLocalDeclarationStatement(LocalDocLenToken, SimpleMemberAccess(StateToken, DocLenToken)),
                        //VarLocalDeclarationStatement(LocalCollectionToken, SimpleMemberAccess(StateToken, CollectionToken)),
                        VarLocalDeclarationStatement(SmallConsumedToken, StateConsumedMemberAccess),
+                       VarLocalDeclarationStatement(LocalConsumedToken, NumericLiteralExpr(0)),
+                       VarLocalDeclarationStatement(ListDocLenToken, StateDocLenMemberAccess),
                        SF.WhileStatement(
                            condition:
                                BinaryExprLessThan(
@@ -135,7 +138,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                        IfStatement(
                            BinaryExprNotEquals(ListReadContext.EndMarkerToken, NumericLiteralExpr((byte)'\x00')),
                            Block(Statement(SerializerEndMarkerException(ctx.Root.Declaration, IdentifierName(ListReadContext.EndMarkerToken))))),
-                       SimpleAssignExprStatement(ListReadContext.OutMessageToken, ListReadContext.TempCollectionToken),
                        ReturnTrueStatement
                        ));
         }

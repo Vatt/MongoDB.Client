@@ -351,7 +351,7 @@ namespace MongoDB.Client.Protocol.Readers
                 timestamp = default;
                 return false;
             }
-            if (MongoClusterTime.TryParseBson(ref reader, out clusterTime) == false)
+            if (MongoClusterTime.TryParseBson(ref reader, out var clusterTimeState, out var position) == false)
             {
                 clusterTime = default;
                 timestamp = default;
@@ -365,9 +365,10 @@ namespace MongoDB.Client.Protocol.Readers
             }
             if (reader.TryGetTimestamp(out timestamp) == false)
             {
+                clusterTime = default;
                 return false;
             }
-
+            clusterTime = MongoClusterTime.CreateMessage(clusterTimeState);
             return true;
         }
 

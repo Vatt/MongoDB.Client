@@ -48,6 +48,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static SyntaxToken CollectionStateArgumentToken => Identifier("Argument");
         public static SyntaxToken TypedStateToken => Identifier("typedState");
         public static SyntaxToken DocLenToken => Identifier("DocLen");
+        public static SyntaxToken ListDocLenToken => Identifier("listDocLength");
         public static SyntaxToken ConsumedToken => Identifier("Consumed");
         public static SyntaxToken CollectionToken => Identifier("Collection");
         public static SyntaxToken LocalCollectionToken => Identifier("collection");

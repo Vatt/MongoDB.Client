@@ -25,11 +25,11 @@ namespace MongoDB.Client.Protocol.Readers
             var bsonReader = new BsonReader(input);
             while (_result.Count < _replyMessage.ReplyHeader.NumberReturned)
             {
-                if (T.TryParseBson(ref bsonReader, out var item))
+                if (T.TryParseBson(ref bsonReader, out var item, out var position))
                 {
-                    _result.Add(item);
-                    consumed = bsonReader.Position;
-                    examined = bsonReader.Position;
+                    _result.Add(T.CreateMessage(item));//TODO: fix this
+                    consumed = position;
+                    examined = position;
                 }
                 else
                 {

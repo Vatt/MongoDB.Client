@@ -32,26 +32,32 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         private static List<StatementSyntax> InitStateStatements()
         {
-            List<StatementSyntax> statements = new();
-            statements.Add(IfNotReturnFalse(InvocationExpr(IdentifierName(TryParsePrologueToken), RefArgument(BsonReaderToken), Argument(TypedStateToken))));
-            statements.Add(IfNotReturnFalse(InvocationExpr(IdentifierName(TryParseMainLoopToken), RefArgument(BsonReaderToken), Argument(TypedStateToken), OutArgument(PositionToken))));
-            statements.Add(IfNotReturnFalse(InvocationExpr(IdentifierName(TryParseEpilogueToken), RefArgument(BsonReaderToken), Argument(TypedStateToken))));
-            statements.Add(BreakStatement);
+            List<StatementSyntax> statements = new()
+            {
+                IfNotReturnFalse(InvocationExpr(IdentifierName(TryParsePrologueToken), RefArgument(BsonReaderToken), Argument(TypedStateToken))),
+                IfNotReturnFalse(InvocationExpr(IdentifierName(TryParseMainLoopToken), RefArgument(BsonReaderToken), Argument(TypedStateToken), OutArgument(PositionToken))),
+                IfNotReturnFalse(InvocationExpr(IdentifierName(TryParseEpilogueToken), RefArgument(BsonReaderToken), Argument(TypedStateToken))),
+                BreakStatement
+            };
             return statements;
         }
         private static List<StatementSyntax> MainLoopStateStatements()
         {
-            List<StatementSyntax> statements = new();
-            statements.Add(IfNotReturnFalse(InvocationExpr(IdentifierName(TryParseMainLoopToken), RefArgument(BsonReaderToken), Argument(TypedStateToken), OutArgument(PositionToken))));
-            statements.Add(IfNotReturnFalse(InvocationExpr(IdentifierName(TryParseEpilogueToken), RefArgument(BsonReaderToken), Argument(TypedStateToken))));
-            statements.Add(BreakStatement);
+            List<StatementSyntax> statements = new()
+            {
+                IfNotReturnFalse(InvocationExpr(IdentifierName(TryParseMainLoopToken), RefArgument(BsonReaderToken), Argument(TypedStateToken), OutArgument(PositionToken))),
+                IfNotReturnFalse(InvocationExpr(IdentifierName(TryParseEpilogueToken), RefArgument(BsonReaderToken), Argument(TypedStateToken))),
+                BreakStatement
+            };
             return statements;
         }
         private static List<StatementSyntax> EndMarkerStateStatements()
         {
-            List<StatementSyntax> statements = new();
-            statements.Add(IfNotReturnFalse(InvocationExpr(IdentifierName(TryParseEpilogueToken), RefArgument(BsonReaderToken), Argument(TypedStateToken))));
-            statements.Add(BreakStatement);
+            List<StatementSyntax> statements = new()
+            {
+                IfNotReturnFalse(InvocationExpr(IdentifierName(TryParseEpilogueToken), RefArgument(BsonReaderToken), Argument(TypedStateToken))),
+                BreakStatement
+            };
             return statements;
         }
         private static List<SwitchSectionSyntax> InProgressStates(ContextCore ctx)
@@ -73,10 +79,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static MethodDeclarationSyntax TryContinueParseMethod(ContextCore ctx)
         {
             List<StatementSyntax> statements = new();
-            var switchSections = new List<SwitchSectionSyntax>();
-            switchSections.Add(SwitchSection(SimpleMemberAccess(NameOfEnumStatesToken(ctx), InitialEnumStateToken), Block(InitStateStatements())));
-            switchSections.Add(SwitchSection(SimpleMemberAccess(NameOfEnumStatesToken(ctx), MainLoopEnumStateToken), Block(MainLoopStateStatements())));
-            switchSections.Add(SwitchSection(SimpleMemberAccess(NameOfEnumStatesToken(ctx), EndMarkerEnumStateToken), Block(EndMarkerStateStatements())));
+            var switchSections = new List<SwitchSectionSyntax>
+            {
+                SwitchSection(SimpleMemberAccess(NameOfEnumStatesToken(ctx), InitialEnumStateToken), Block(InitStateStatements())),
+                SwitchSection(SimpleMemberAccess(NameOfEnumStatesToken(ctx), MainLoopEnumStateToken), Block(MainLoopStateStatements())),
+                SwitchSection(SimpleMemberAccess(NameOfEnumStatesToken(ctx), EndMarkerEnumStateToken), Block(EndMarkerStateStatements()))
+            };
             switchSections.AddRange(InProgressStates(ctx));
             //foreach (var member in ctx.Members)
             //{
@@ -131,11 +139,13 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         private static MethodDeclarationSyntax TryParseEpilogue(ContextCore ctx)
         {
-            List<StatementSyntax> statements = new();
-            statements.Add(IfStatement(TryGetByte(VarVariableDeclarationExpr(EndMarkerToken)), Block(SimpleAssignExpr(TypedStateStateAccess, SimpleMemberAccess(NameOfEnumStatesToken(ctx), EndMarkerEnumStateToken)), ReturnFalseStatement)));
-            statements.Add(AddAssignmentExprStatement(TypedStateConsumedMemberAccess, NumericLiteralExpr(1)));
-            statements.Add(IfStatement(BinaryExprNotEquals(EndMarkerToken, NumericLiteralExpr((byte)'\x00')), Block(SerializerEndMarkerException(ctx.Declaration, IdentifierName(EndMarkerToken)))));
-            statements.Add(ReturnTrueStatement);
+            List<StatementSyntax> statements = new()
+            {
+                IfStatement(TryGetByte(VarVariableDeclarationExpr(EndMarkerToken)), Block(SimpleAssignExpr(TypedStateStateAccess, SimpleMemberAccess(NameOfEnumStatesToken(ctx), EndMarkerEnumStateToken)), ReturnFalseStatement)),
+                AddAssignmentExprStatement(TypedStateConsumedMemberAccess, NumericLiteralExpr(1)),
+                IfStatement(BinaryExprNotEquals(EndMarkerToken, NumericLiteralExpr((byte)'\x00')), Block(SerializerEndMarkerException(ctx.Declaration, IdentifierName(EndMarkerToken)))),
+                ReturnTrueStatement
+            };
 
 
             return SF.MethodDeclaration(

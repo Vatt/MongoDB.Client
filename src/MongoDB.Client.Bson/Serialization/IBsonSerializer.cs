@@ -1,4 +1,5 @@
-﻿using MongoDB.Client.Bson.Reader;
+﻿using System;
+using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Writer;
 
 namespace MongoDB.Client.Bson.Serialization

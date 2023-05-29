@@ -179,12 +179,16 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             var operation = InvocationExpr(IdentifierName(callType.ToString()), methodToken,
                                            RefArgument(BsonReaderToken),
-                                           //OutArgument(TypedVariableDeclarationExpr(TypeFullName(outArgType),
-                                           Argument(SimpleMemberAccess(StateToken, CollectionStateArgumentToken)),
+                                           continueGeneration ? Argument(SimpleMemberAccess(StateToken, CollectionStateArgumentToken)) : OutArgument(SimpleMemberAccess(StateToken, CollectionStateArgumentToken)),
                                            OutArgument(PositionToken));
             if (inSwitch)
             {
-                builder.IfNotReturnFalseElse
+                builder.IfNotReturnFalseElse(operation, Block(
+                                           InvocationExprStatement(CollectionLowStateMemberAccess(ctx), CollectionAddToken, Argument(CreateMessageFromState(outArgType, CollectionStateArgumentAccess))),
+                                           SimpleAssignExprStatement(CollectionStateArgumentAccess, NullLiteralExpr()),
+                                           AddAssignmentExprStatement(StateConsumedMemberAccess, BinaryExprMinus(ReaderBytesConsumedExpr, StartCheckpointToken)),
+                                           BreakStatement
+                                           ));
             }
             else
             {
@@ -194,7 +198,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                           @else: continueGeneration ? Block(InvocationExprStatement(CollectionLowStateMemberAccess(ctx), CollectionAddToken, Argument(CreateMessageFromState(typeSym, CollectionStateArgumentAccess))),
                                                             AddAssignmentExprStatement(StateConsumedMemberAccess, BinaryExprMinus(ReaderBytesConsumedExpr, StartCheckpointToken)),
                                                             BreakStatement) :
-                                                      Block(InvocationExprStatement(CollectionLowStateMemberAccess(ctx), CollectionAddToken, Argument(CollectionStateArgumentAccess)),
+                                                      Block(InvocationExprStatement(CollectionLowStateMemberAccess(ctx), CollectionAddToken, Argument(CreateMessageFromState(outArgType, CollectionStateArgumentAccess))),
                                                       SimpleAssignExprStatement(CollectionStateArgumentAccess, NullLiteralExpr()),
                                                       ContinueStatement));
             }

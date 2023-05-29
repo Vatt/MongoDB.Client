@@ -51,6 +51,11 @@ namespace MongoDB.Client.Messages
         {
             MongoCursor = mongoCursor;
         }
+        //TODO: remove this
+        public CursorResult()
+        {
+
+        }
         public CursorResult(MongoCursor<T> mongoCursor, double ok, string? errorMessage, int code, string? codeName, MongoClusterTime? clusterTime, BsonTimestamp? operationTime)
         {
             MongoCursor = mongoCursor;
@@ -81,6 +86,10 @@ namespace MongoDB.Client.Messages
 
         [BsonIgnore]
         public List<T> Items { get; set; }
+        public MongoCursor()
+        {
+
+        }
         public MongoCursor(List<T> items)
         {
             Items = items;

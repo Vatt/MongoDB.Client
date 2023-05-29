@@ -27,16 +27,16 @@ namespace MongoDB.Client.Protocol.Writers
 
             writer.WriteByte((byte)PayloadType.Type0);
 
-#if DEBUG
-            var buffer = new Utils.ArrayBufferWriter();
-            var writer2 = new BsonWriter(buffer);
-            InsertHeader.WriteBson(ref writer2, message.InsertHeader);
-            var reader = new BsonReader(buffer.GetSequesnce());
-            BsonDocument.TryParseBson(ref reader, out var bsonDoc);
-            var bson = bsonDoc.ToString();
-            System.Console.WriteLine("Insert");
-            System.Console.WriteLine(bson);
-#endif
+//#if DEBUG
+//            var buffer = new Utils.ArrayBufferWriter();
+//            var writer2 = new BsonWriter(buffer);
+//            InsertHeader.WriteBson(ref writer2, message.InsertHeader);
+//            var reader = new BsonReader(buffer.GetSequesnce());
+//            BsonDocument.TryParseBson(ref reader, out var bsonDoc);
+//            var bson = bsonDoc.ToString();
+//            System.Console.WriteLine("Insert");
+//            System.Console.WriteLine(bson);
+//#endif
 
             InsertHeader.WriteBson(ref writer, message.InsertHeader);
 

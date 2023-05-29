@@ -115,7 +115,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                             TryParseMethod(ctx),
                             TryParsePrologueMethod(ctx), 
                             TryParseEpilogue(ctx), 
-                            TryParseMainLoop(ctx)})
+                            TryParseMainLoop(ctx)
+                        })
                         .AddRange(GenerateStaticNamesSpans(ctx))
                         .AddRange(GenerateEnumsStaticNamesSpansIfHave(ctx))
                         .AddRange(GenerateCollectionMethods(ctx))

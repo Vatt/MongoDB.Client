@@ -13,8 +13,9 @@ namespace MongoDB.Client.Protocol.Readers
         {
             message = default;
             var bsonReader = new BsonReader(input);
-            if (MongoPingMessage.TryParseBson(ref bsonReader, out message))
+            if (MongoPingMessage.TryParseBson(ref bsonReader, out var messageState, out var position))
             {
+                message = MongoPingMessage.CreateMessage(messageState);
                 consumed = bsonReader.Position;
                 examined = bsonReader.Position;
                 return true;

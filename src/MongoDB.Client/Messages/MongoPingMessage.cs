@@ -12,9 +12,10 @@ namespace MongoDB.Client.Messages
     {
         private static readonly byte ColonChar = (byte)':';
 
-        public static bool TryParseBson(ref Bson.Reader.BsonReader reader, [MaybeNullWhen(false)] out EndPoint message)
+        public static bool TryParseBson(ref Bson.Reader.BsonReader reader, [MaybeNullWhen(false)] out EndPoint message, out SequencePosition position)
         {
             message = default;
+            position = reader.Position;
             if (!reader.TryGetStringAsSpan(out var temp))
             {
                 return false;
@@ -29,6 +30,7 @@ namespace MongoDB.Client.Messages
                 var hostStr = Encoding.UTF8.GetString(host);
                 var portStr = Encoding.UTF8.GetString(port);
                 message = new DnsEndPoint(hostStr, int.Parse(portStr));
+                position = reader.Position;
                 return true;
             }
         }

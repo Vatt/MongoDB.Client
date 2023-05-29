@@ -18,11 +18,13 @@ namespace MongoDB.Client.Protocol.Readers
             var bsonReader = new BsonReader(input);
 
 
-            if (TransactionResult.TryParseBson(ref bsonReader, out message) == false)
+            if (TransactionResult.TryParseBson(ref bsonReader, out var state, out var position) == false)
             {
+                message = default;
                 return false;
             }
 
+            message = TransactionResult.CreateMessage(state);
             consumed = bsonReader.Position;
             examined = bsonReader.Position;
             return true;
