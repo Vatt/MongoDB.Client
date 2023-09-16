@@ -29,7 +29,7 @@ namespace MongoDB.Client.Protocol.Core
             _semaphore = semaphore;
         }
 
-        public async ValueTask WriteUnsafeAsync<TWriteMessage>(IMessageWriter<TWriteMessage> writer, TWriteMessage protocolMessage, CancellationToken cancellationToken = default)
+        public async ValueTask WriteAsync<TWriteMessage>(IMessageWriter<TWriteMessage> writer, TWriteMessage protocolMessage, CancellationToken cancellationToken = default)
         {
             if (_disposed)
             {
@@ -49,9 +49,9 @@ namespace MongoDB.Client.Protocol.Core
             {
                 _disposed = true;
             }
-
         }
-        public async ValueTask WriteAsync<TWriteMessage>(IMessageWriter<TWriteMessage> writer, TWriteMessage protocolMessage, CancellationToken cancellationToken = default)
+
+        public async ValueTask WriteAsync2<TWriteMessage>(IMessageWriter<TWriteMessage> writer, TWriteMessage protocolMessage, CancellationToken cancellationToken = default)
         {
             await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 

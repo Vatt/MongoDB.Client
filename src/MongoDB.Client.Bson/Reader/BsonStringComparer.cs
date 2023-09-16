@@ -8,7 +8,7 @@ namespace MongoDB.Client.Bson.Reader
 {
     public static class BsonStringComparer
     {
-        public static unsafe bool SequenceEqual1(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
+        public static bool SequenceEqual1(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
         {
             if (value.Length != 1)
             {
@@ -18,7 +18,7 @@ namespace MongoDB.Client.Bson.Reader
             return value[0] == mask[0];
         }
 
-        public static unsafe bool SequenceEqual2(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
+        public static bool SequenceEqual2(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
         {
             if (value.Length != 2)
             {
@@ -30,7 +30,7 @@ namespace MongoDB.Client.Bson.Reader
             return first == second;
         }
 
-        public static unsafe bool SequenceEqual3(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
+        public static bool SequenceEqual3(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
         {
             if (value.Length != 3)
             {
@@ -43,7 +43,7 @@ namespace MongoDB.Client.Bson.Reader
             return diff == 0;
         }
 
-        public static unsafe bool SequenceEqual4(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
+        public static bool SequenceEqual4(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
         {
             if (value.Length != 4)
             {
@@ -55,7 +55,7 @@ namespace MongoDB.Client.Bson.Reader
             return first == second;
         }
 
-        public static unsafe bool SequenceEqual5(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
+        public static bool SequenceEqual5(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
         {
             if (value.Length != mask.Length)
             {
@@ -69,7 +69,7 @@ namespace MongoDB.Client.Bson.Reader
             return diff == 0;
         }
 
-        public static unsafe bool SequenceEqual8(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
+        public static bool SequenceEqual8(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
         {
             if (value.Length != 8)
             {
@@ -83,7 +83,7 @@ namespace MongoDB.Client.Bson.Reader
             return differentBits == 0;
         }
 
-        public static unsafe bool SequenceEqual9(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
+        public static bool SequenceEqual9(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
         {
             if (value.Length != mask.Length)
             {
@@ -99,7 +99,7 @@ namespace MongoDB.Client.Bson.Reader
             return differentBits == 0;
         }
 
-        public static unsafe bool SequenceEqual16(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
+        public static bool SequenceEqual16(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
         {
             var length = value.Length;
             if (length != 16)
@@ -129,7 +129,7 @@ namespace MongoDB.Client.Bson.Reader
             }
         }
 
-        public static unsafe bool SequenceEqual17(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
+        public static bool SequenceEqual17(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
         {
             var length = value.Length;
             if (length != mask.Length)
@@ -173,7 +173,7 @@ namespace MongoDB.Client.Bson.Reader
             }
         }
 
-        public static unsafe bool SequenceEqual32(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
+        public static bool SequenceEqual32(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
         {
             var length = value.Length;
             if (length != 32)
@@ -216,7 +216,7 @@ namespace MongoDB.Client.Bson.Reader
             }
         }
 
-        public static unsafe bool SequenceEqual33(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
+        public static bool SequenceEqual33(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
         {
             var length = value.Length;
             if (length != mask.Length)
@@ -275,7 +275,7 @@ namespace MongoDB.Client.Bson.Reader
             }
         }
 
-        public static unsafe bool SequenceEqual64(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
+        public static bool SequenceEqual64(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
         {
             var length = value.Length;
             if (length != mask.Length)
@@ -334,7 +334,7 @@ namespace MongoDB.Client.Bson.Reader
         }
 
 
-        public static unsafe bool SequenceEqual65(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
+        public static bool SequenceEqual65(this ReadOnlySpan<byte> value, ReadOnlySpan<byte> mask)
         {
             return value.SequenceEqual(mask);
         }
