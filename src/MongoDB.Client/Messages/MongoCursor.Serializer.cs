@@ -15,9 +15,11 @@ namespace MongoDB.Client.Messages
     {
         public enum State
         {
+            Prologue = 1,
             MainLoop,
             FirstBatch,
-            NextBatch
+            NextBatch,
+            Epilogue
         }
         public struct CursorState
         {
@@ -32,7 +34,7 @@ namespace MongoDB.Client.Messages
 
             public CursorState()
             {
-                State = State.MainLoop;
+                State = State.Epilogue;
             }
         }
         private static ReadOnlySpan<byte> MongoCursorid => "id"u8;
@@ -42,31 +44,72 @@ namespace MongoDB.Client.Messages
 
         public static bool TryParseBson(ref BsonReader reader, ref CursorState message)
         {
+
+            
             switch (message.State)
             {
+                case State.Prologue:
+                    if (!reader.TryGetInt32(out message.DocLength))
+                    {
+                        return false;
+                    }
+                    
+                    goto case State.MainLoop;
                 case State.MainLoop:
-                    return TryParseMainLoop(ref reader, ref message);
+                    message.State = State.MainLoop;
+
+                    if (TryParseMainLoop(ref reader, ref message) is false)
+                    {
+                        return false;
+                    }
+
+                    goto case State.Epilogue;
                 case State.FirstBatch:
-                    return TryParseFirstBatch(ref reader, ref message);
+                    if (TryParseFirstBatch(ref reader, ref message) is false)
+                    {
+                        return false;
+                    }
+
+                    goto case State.MainLoop;
                 case State.NextBatch:
-                    return TryParseNextBatch(ref reader, ref message);
+                    if (TryParseNextBatch(ref reader, ref message))
+                    {
+                        return false;
+                    }
+
+                    goto case State.MainLoop;
+                case State.Epilogue:
+                    message.State = State.Epilogue;
+
+                    if (!reader.TryGetByte(out var endMarker))
+                    {
+                        return false;
+                    }
+
+                    if (endMarker != 0)
+                    {
+                        throw new SerializerEndMarkerException(nameof(MongoCursor<T>), endMarker);
+                    }
+
+                    break;
                 default:
                     throw new InvalidOperationException($"Undefined State value in {nameof(MongoCursor<T>)}");
             }
+
+            return true;
         }
 
 
         private static bool TryParseMainLoop(ref BsonReader reader, ref CursorState message)
         {
-            if (!reader.TryGetInt32(out message.DocLength))
-            {
-                return false;
-            }
+
 
             var unreaded = reader.Remaining + sizeof(int);
             var docLength = message.DocLength;
             while (unreaded - reader.Remaining < docLength - 1)
             {
+                message.Position = reader.Position;
+
                 if (!reader.TryGetByte(out var bsonType))
                 {
                     return false;
@@ -168,16 +211,6 @@ namespace MongoDB.Client.Messages
                 }
             }
 
-            if (!reader.TryGetByte(out var endMarker))
-            {
-                return false;
-            }
-
-            if (endMarker != 0)
-            {
-                throw new SerializerEndMarkerException(nameof(MongoCursor<T>), endMarker);
-            }
-
             return true;
         }
 
@@ -196,15 +229,18 @@ namespace MongoDB.Client.Messages
             }
             state.State = State.FirstBatch;
             state.BatchRemaining -= sizeof(int);
-ELEMENTS:
-            var checkpoint = reader.Position.GetInteger();
+        ELEMENTS:
+            var checkpoint = reader.Remaining;
 
-            if (TryParseElements(ref reader, internalList, state.BatchRemaining, out state.Position) is false)
+            var isComplete = TryParseElements(ref reader, internalList, state.BatchRemaining, out state.Position);
+
+            state.BatchRemaining -= (int)(checkpoint - reader.Remaining);
+
+            if (isComplete is false)
             {
+                
                 return false;
             }
-
-            state.BatchRemaining -= reader.Position.GetInteger() - checkpoint;
 
             if (!reader.TryGetByte(out var listEndMarker))
             {
@@ -268,11 +304,11 @@ ELEMENTS:
             position = reader.Position;
             var internalList = list;
 
-            var listUnreaded = reader.Remaining + sizeof(int);
-            while (listUnreaded - reader.Remaining < listRemaining - 1)
+            //while (listUnreaded - reader.Remaining < listRemaining - 1)
+            while (listRemaining > 1)
             {
                 position = reader.Position;
-
+                var checkpoint = reader.Remaining;
                 if (!reader.TryGetByte(out var listBsonType))
                 {
                     return false;
@@ -285,18 +321,27 @@ ELEMENTS:
 
                 if (listBsonType == 10)
                 {
+                    listRemaining -= (int)(checkpoint - reader.Remaining);
                     internalList.Add(default);
                     continue;
                 }
+                try
+                {
+                    if (!reader.TryReadGeneric(listBsonType, out T temp))
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        listRemaining -= (int)(checkpoint - reader.Remaining);
 
-                if (!reader.TryReadGeneric(listBsonType, out T temp))
-                {
-                    return false;
+                        internalList.Add(temp);
+                        continue;
+                    }
                 }
-                else
+                catch
                 {
-                    internalList.Add(temp);
-                    continue;
+                    Debugger.Break();
                 }
             }
 

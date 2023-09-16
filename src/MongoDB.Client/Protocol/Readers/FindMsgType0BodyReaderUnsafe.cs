@@ -14,7 +14,7 @@ namespace MongoDB.Client.Protocol.Readers
         where T : IBsonSerializer<T>
     {
         private long _payloadLength;
-
+        private CursorResult<T>.CursorResultState state;
 
         public FindMsgType0BodyReaderUnsafe(ResponseMsgMessage message)
             : base(message)
@@ -29,17 +29,22 @@ namespace MongoDB.Client.Protocol.Readers
             ref SequencePosition examined,
             [MaybeNullWhen(false)] out CursorResult<T> message)
         {
-            message = new CursorResult<T>();
+            message = default;
+            state ??= new CursorResult<T>.CursorResultState();
             var bsonReader = new BsonReader(input);
 
-            if (CursorResult<T>.TryParseBson(ref bsonReader, out message))
+            if (CursorResult<T>.TryParseBson(ref bsonReader, state) is false)
             {
-                //consumed = message.MongoCursor.Position;
-                return true;
+                consumed = state.Position;
+                examined = consumed;
+
+                return false;
             }
 
-            //consumed = message.MongoCursor.Position;
-            return false;
+            consumed = state.Position;
+            examined = consumed;
+
+            return true;
         }
     }
 }
