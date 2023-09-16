@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Sockets;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using MongoDB.Client.Network.Transport.Sockets.Internal;
 
 namespace MongoDB.Client.Network.Transport.Sockets
@@ -15,7 +14,7 @@ namespace MongoDB.Client.Network.Transport.Sockets
         private readonly MemoryPool<byte> _memoryPool;
         private readonly SocketsTrace _trace;
 
-        public SocketConnectionFactory(IOptions<SocketTransportOptions> options, ILoggerFactory loggerFactory)
+        public SocketConnectionFactory(SocketTransportOptions options, ILoggerFactory loggerFactory)
         {
             if (options == null)
             {
@@ -27,8 +26,8 @@ namespace MongoDB.Client.Network.Transport.Sockets
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _options = options.Value;
-            _memoryPool = options.Value.MemoryPoolFactory();
+            _options = options;
+            _memoryPool = options.MemoryPoolFactory();
             var logger = loggerFactory.CreateLogger("MongoDB.Client.Network.Transport.Sockets");
             _trace = new SocketsTrace(logger);
         }

@@ -2,7 +2,6 @@
 using System.Net;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using MongoDB.Client.Network.Transport.Sockets;
 namespace MongoDB.Client.Network
 {
@@ -12,7 +11,7 @@ namespace MongoDB.Client.Network
 
         public NetworkConnectionFactory(ILoggerFactory loggerFactory)
         {
-            _factory = new SocketConnectionFactory(Options.Create(new SocketTransportOptions()), loggerFactory);
+            _factory = new SocketConnectionFactory(new SocketTransportOptions(), loggerFactory);
         }
 
         public ValueTask<ConnectionContext> ConnectAsync(EndPoint endPoint, CancellationToken cancellationToken = default)

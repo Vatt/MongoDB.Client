@@ -14,7 +14,7 @@ namespace MongoDB.Client.Protocol.Core
         private bool _isThisCompleted;
         private bool _isCanceled;
         private bool _isCompleted;
-        private readonly ConsumableArrayBufferWriter _backlog = new ConsumableArrayBufferWriter();
+        private readonly ConsumableArrayBufferWriter _backlog = new ConsumableArrayBufferWriter(4 * 1024);
         private bool _allExamined;
         private bool _advanced = true;
         public MessagePipeReader(PipeReader reader, IMessageReader<ReadOnlySequence<byte>> messageReader)
@@ -185,7 +185,7 @@ namespace MongoDB.Client.Protocol.Core
             {
                 if (!buffer.IsEmpty)
                 {
-                    throw new InvalidDataException("Connection terminated while reading a message.");
+                    ThrowInvalidDataExceptiond();
                 }
 
                 _message = new ReadOnlySequence<byte>(_backlog.WrittenMemory);
@@ -202,6 +202,11 @@ namespace MongoDB.Client.Protocol.Core
         private static void ThrowReadAfterCompleted()
         {
             throw new InvalidOperationException("Reading is not allowed after reader was completed.");
+        }
+
+        private static void ThrowInvalidDataExceptiond()
+        {
+            throw new InvalidDataException("Connection terminated while reading a message.");
         }
     }
 }
