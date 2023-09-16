@@ -17,7 +17,7 @@ namespace MongoDB.Client.Protocol.Readers
         public MsgBodyReader(ResponseMsgMessage message)
         {
             Message = message;
-            _cursorResult = new CursorResult<T>(new MongoCursor<T>(ListsPool<T>.Pool.Get()));
+            //_cursorResult = new CursorResult<T>(new MongoCursor<T>(ListsPool<T>.Pool.Get()));
         }
 
         protected void Advance(long count)

@@ -33,12 +33,12 @@ namespace MongoDB.Client
             {
                 ThrowHelper.CursorException(result.CursorResult.ErrorMessage);
             }
-            foreach (var item in result.CursorResult.MongoCursor.Items!)
+            foreach (var item in result.CursorResult.MongoCursor.FirstBatch!)
             {
                 yield return item;
             }
 
-            ListsPool<T>.Pool.Return(result.CursorResult.MongoCursor.Items);
+            ListsPool<T>.Pool.Return(result.CursorResult.MongoCursor.FirstBatch);
             long cursorId = result.CursorResult.MongoCursor.Id;
             while (cursorId != 0)
             {
@@ -48,11 +48,11 @@ namespace MongoDB.Client
                     ThrowHelper.CursorException(getMoreResult.ErrorMessage);
                 }
                 cursorId = getMoreResult.MongoCursor.Id;
-                foreach (var item in getMoreResult.MongoCursor.Items!)
+                foreach (var item in getMoreResult.MongoCursor.NextBatch!)
                 {
                     yield return item;
                 }
-                ListsPool<T>.Pool.Return(getMoreResult.MongoCursor.Items);
+                ListsPool<T>.Pool.Return(getMoreResult.MongoCursor.NextBatch);
             }
         }
         //public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken)
