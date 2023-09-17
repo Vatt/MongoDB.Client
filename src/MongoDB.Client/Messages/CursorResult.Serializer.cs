@@ -33,7 +33,7 @@ namespace MongoDB.Client.Messages
             public CursorResultState()
             {
                 CursorState = new();
-                State = State.MainLoop;
+                State = State.Prologue;
             }
         }
         private static ReadOnlySpan<byte> CursorResultcursor => "cursor"u8;

@@ -34,7 +34,7 @@ namespace MongoDB.Client.Messages
 
             public CursorState()
             {
-                State = State.Epilogue;
+                State = State.Prologue;
             }
         }
         private static ReadOnlySpan<byte> MongoCursorid => "id"u8;
