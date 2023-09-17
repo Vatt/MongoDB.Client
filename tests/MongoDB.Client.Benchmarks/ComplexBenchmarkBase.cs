@@ -143,7 +143,7 @@ namespace MongoDB.Client.Benchmarks
                 var tasks = new Task[Parallelism];
                 for (int i = 0; i < Parallelism; i++)
                 {
-                    tasks[i] = Worker(collection, channel.Reader);
+                    tasks[i] = Task.Run(() => Worker(collection, channel.Reader));
                 }
 
                 foreach (var item in items)
@@ -152,7 +152,6 @@ namespace MongoDB.Client.Benchmarks
                     {
                         await channel.Writer.WriteAsync(item);
                     }
-
                 }
 
                 channel.Writer.Complete();
@@ -170,20 +169,9 @@ namespace MongoDB.Client.Benchmarks
 
             static async Task Worker(MongoCollection<T> collection, ChannelReader<T> reader)
             {
-                try
+                await foreach (var item in reader.ReadAllAsync())
                 {
-                    while (true)
-                    {
-                        if (reader.TryRead(out var item) == false)
-                        {
-                            item = await reader.ReadAsync();
-                        }
-                        await Work(collection, item);
-                    }
-                }
-                catch (ChannelClosedException)
-                {
-                    // channel complete
+                    await Work(collection, item);
                 }
             }
         }
@@ -202,7 +190,7 @@ namespace MongoDB.Client.Benchmarks
                 var tasks = new Task[Parallelism];
                 for (int i = 0; i < Parallelism; i++)
                 {
-                    tasks[i] = Worker(collection, channel.Reader);
+                    tasks[i] = Task.Run(() => Worker(collection, channel.Reader));
                 }
 
                 foreach (var item in items)
@@ -224,17 +212,9 @@ namespace MongoDB.Client.Benchmarks
 
             static async Task Worker(IMongoCollection<T> collection, ChannelReader<T> reader)
             {
-                try
+                await foreach (var item in reader.ReadAllAsync()) 
                 {
-                    while (true)
-                    {
-                        var item = await reader.ReadAsync();
-                        await Work(collection, item);
-                    }
-                }
-                catch (ChannelClosedException)
-                {
-                    // channel complete
+                    await Work(collection, item);
                 }
             }
         }
