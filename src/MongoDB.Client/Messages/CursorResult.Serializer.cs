@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
@@ -58,7 +59,9 @@ namespace MongoDB.Client.Messages
                     {
                         return false;
                     }
-                    message.DocRemaining -= 4;
+
+                    message.DocRemaining -= sizeof(int);
+
                     goto case State.MainLoop;
                 case State.MainLoop:
                     message.State = State.MainLoop;
@@ -71,14 +74,16 @@ namespace MongoDB.Client.Messages
                     goto case State.Epilogue;
                 case State.MongoCursor:
                     var checkpoint = reader.BytesConsumed;
-                    if (MongoCursor<T>.TryParseBson(ref reader, ref message.CursorState) is false)
+                    var isCursorComplete = MongoCursor<T>.TryParseBson(ref reader, ref message.CursorState);
+
+                    message.Position = reader.Position;
+                    message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
+
+                    if (isCursorComplete is false)
                     {
-                        message.Position = reader.Position;
-                        message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
+   
                         return false;
                     }
-                    message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
-                    message.Position = reader.Position;
 
                     goto case State.MainLoop;
                 case State.Epilogue:
@@ -90,7 +95,7 @@ namespace MongoDB.Client.Messages
                         return false;
                     }
 
-                    message.DocRemaining -= 1;
+                    message.DocRemaining -= sizeof(byte);
 
                     if (endMarker != 0)
                     {
@@ -139,7 +144,6 @@ namespace MongoDB.Client.Messages
                             {
                                 if (!reader.TryGetString(out message.ErrorMessage))
                                 {
-                                    message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
                                     return false;
                                 }
 
@@ -157,7 +161,6 @@ namespace MongoDB.Client.Messages
                             {
                                 if (!MongoClusterTime.TryParseBson(ref reader, out message.ClusterTime))
                                 {
-                                    message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
                                     return false;
                                 }
 
@@ -182,17 +185,19 @@ namespace MongoDB.Client.Messages
                                     {
                                         if (bsonName.SequenceEqual5(CursorResultcursor))
                                         {
+                                            var isCursorComplete = MongoCursor<T>.TryParseBson(ref reader, ref message.CursorState);
+                                            
+                                            message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
 
-                                            if (!MongoCursor<T>.TryParseBson(ref reader, ref message.CursorState))
+                                            if (!isCursorComplete)
                                             {
                                                 message.Position = message.CursorState.Position;
                                                 message.State = State.MongoCursor;
-                                                message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
+                                                
 
                                                 return false;
                                             }
 
-                                            message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
                                             continue;
                                         }
 

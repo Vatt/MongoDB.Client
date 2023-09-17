@@ -49,6 +49,7 @@ namespace MongoDB.Client.Messages
                     {
                         return false;
                     }
+
                     message.DocRemaining -= sizeof(int);
                     goto case State.MainLoop;
                 case State.MainLoop:
@@ -62,21 +63,25 @@ namespace MongoDB.Client.Messages
                     goto case State.Epilogue;
                 case State.FirstBatch:
                     var checkpoint = reader.BytesConsumed;
-                    if (TryParseFirstBatch(ref reader, ref message) is false)
+                    var isFirstBatchComplete = TryParseFirstBatch(ref reader, ref message);
+                    message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
+
+                    if (isFirstBatchComplete is false)
                     {
-                        message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
                         return false;
                     }
-                    message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
+
                     goto case State.MainLoop;
                 case State.NextBatch:
                     checkpoint = reader.BytesConsumed;
-                    if (TryParseNextBatch(ref reader, ref message) is false)
+                    var isNextBatchComplete = TryParseNextBatch(ref reader, ref message);
+                    message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
+
+                    if (isNextBatchComplete is false)
                     {
-                        message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
                         return false;
                     }
-                    message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
+
                     goto case State.MainLoop;
                 case State.Epilogue:
                     message.State = State.Epilogue;
@@ -154,13 +159,14 @@ namespace MongoDB.Client.Messages
                             {
 
                                 message.FirstBatch = new();
+                                var isBatchComplete = TryParseFirstBatch(ref reader, ref message);
+                                message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
 
-                                if (!TryParseFirstBatch(ref reader, ref message))
+                                if (!isBatchComplete)
                                 {
-                                    message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
                                     return false;
                                 }
-                                message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
+
                                 continue;
                             }
 
@@ -197,13 +203,14 @@ namespace MongoDB.Client.Messages
                                         if (bsonName.SequenceEqual9(MongoCursornextBatch))
                                         {
                                             message.NextBatch = new();
+                                            var isBatchComplete = TryParseNextBatch(ref reader, ref message);
+                                            message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
 
-                                            if (!TryParseNextBatch(ref reader, ref message))
-                                            {
-                                                message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
+                                            if (!isBatchComplete)
+                                            { 
                                                 return false;
                                             }
-                                            message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
+
                                             continue;
                                         }
 
