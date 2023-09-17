@@ -6,12 +6,13 @@ using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Exceptions;
 using System.Diagnostics;
 using System.Reflection.PortableExecutable;
+using MongoDB.Client.Protocol.Readers;
 
 #nullable disable
 
 namespace MongoDB.Client.Messages
 {
-    public partial class MongoCursor<T>
+    public partial class MongoCursor<T> where T : IBsonSerializer<T>
     {
         public enum State
         {
@@ -53,7 +54,7 @@ namespace MongoDB.Client.Messages
                     {
                         return false;
                     }
-                    
+
                     goto case State.MainLoop;
                 case State.MainLoop:
                     message.State = State.MainLoop;
@@ -65,11 +66,13 @@ namespace MongoDB.Client.Messages
 
                     goto case State.Epilogue;
                 case State.FirstBatch:
+                    var checkpoint = reader.BytesConsumed;
                     if (TryParseFirstBatch(ref reader, ref message) is false)
                     {
+                        message.DocLength -= (int)(reader.BytesConsumed - checkpoint);
                         return false;
                     }
-
+                    message.DocLength -= (int)(reader.BytesConsumed - checkpoint);
                     goto case State.MainLoop;
                 case State.NextBatch:
                     if (TryParseNextBatch(ref reader, ref message))
@@ -85,6 +88,9 @@ namespace MongoDB.Client.Messages
                     {
                         return false;
                     }
+                    message.DocLength -= sizeof(byte);
+
+                    Debug.Assert(message.DocLength is 0);
 
                     if (endMarker != 0)
                     {
@@ -102,13 +108,10 @@ namespace MongoDB.Client.Messages
 
         private static bool TryParseMainLoop(ref BsonReader reader, ref CursorState message)
         {
-
-
-            var unreaded = reader.Remaining + sizeof(int);
-            var docLength = message.DocLength;
-            while (unreaded - reader.Remaining < docLength - 1)
+            while (message.DocLength > 1)
             {
                 message.Position = reader.Position;
+                var checkpoint = reader.BytesConsumed;
 
                 if (!reader.TryGetByte(out var bsonType))
                 {
@@ -122,6 +125,7 @@ namespace MongoDB.Client.Messages
 
                 if (bsonType == 10)
                 {
+                    message.DocLength -= (int)(reader.BytesConsumed - checkpoint);
                     continue;
                 }
 
@@ -137,6 +141,7 @@ namespace MongoDB.Client.Messages
                                     return false;
                                 }
 
+                                message.DocLength -= (int)(reader.BytesConsumed - checkpoint);
                                 continue;
                             }
 
@@ -151,9 +156,10 @@ namespace MongoDB.Client.Messages
 
                                 if (!TryParseFirstBatch(ref reader, ref message))
                                 {
+                                    message.DocLength -= (int)(reader.BytesConsumed - checkpoint);
                                     return false;
                                 }
-
+                                message.DocLength -= (int)(reader.BytesConsumed - checkpoint);
                                 continue;
                             }
 
@@ -178,6 +184,7 @@ namespace MongoDB.Client.Messages
                                                 return false;
                                             }
 
+                                            message.DocLength -= (int)(reader.BytesConsumed - checkpoint);
                                             continue;
                                         }
 
@@ -189,6 +196,7 @@ namespace MongoDB.Client.Messages
                                         if (bsonName.SequenceEqual9(MongoCursornextBatch))
                                         {
                                             message.NextBatch = new();
+
                                             if (!TryParseNextBatch(ref reader, ref message))
                                             {
                                                 return false;
@@ -208,6 +216,10 @@ namespace MongoDB.Client.Messages
                 if (!reader.TrySkip(bsonType))
                 {
                     return false;
+                }
+                else
+                {
+                    message.DocLength -= (int)(reader.BytesConsumed - checkpoint);
                 }
             }
 
@@ -230,15 +242,12 @@ namespace MongoDB.Client.Messages
             state.State = State.FirstBatch;
             state.BatchRemaining -= sizeof(int);
         ELEMENTS:
-            var checkpoint = reader.Remaining;
+            var checkpoint = reader.BytesConsumed;
 
-            var isComplete = TryParseElements(ref reader, internalList, state.BatchRemaining, out state.Position);
-
-            state.BatchRemaining -= (int)(checkpoint - reader.Remaining);
+            var isComplete = TryParseElements(ref reader, internalList, ref state.BatchRemaining, out state.Position);
 
             if (isComplete is false)
             {
-                
                 return false;
             }
 
@@ -247,7 +256,7 @@ namespace MongoDB.Client.Messages
                 return false;
             }
 
-            state.BatchRemaining = -1;
+            state.BatchRemaining -= 1;
 
             Debug.Assert(state.BatchRemaining is 0);
 
@@ -273,22 +282,27 @@ namespace MongoDB.Client.Messages
             }
             state.State = State.NextBatch;
             state.BatchRemaining -= sizeof(int);
+            state.DocLength -= sizeof(int);
         ELEMENTS:
-            var checkpoint = reader.Position.GetInteger();
+            var checkpoint = reader.BytesConsumed;
 
-            if (TryParseElements(ref reader, internalList, state.BatchRemaining, out state.Position) is false)
+            var isComplete = TryParseElements(ref reader, internalList, ref state.BatchRemaining, out state.Position);
+
+            state.DocLength -= (int)(reader.BytesConsumed - checkpoint);
+
+            if (isComplete is false)
             {
+
                 return false;
             }
-
-            state.BatchRemaining -= reader.Position.GetInteger() - checkpoint;
 
             if (!reader.TryGetByte(out var listEndMarker))
             {
                 return false;
             }
 
-            state.BatchRemaining = -1;
+            state.BatchRemaining -= 1;
+            state.DocLength -= 1;
 
             Debug.Assert(state.BatchRemaining is 0);
 
@@ -299,16 +313,15 @@ namespace MongoDB.Client.Messages
 
             return true;
         }
-        private static bool TryParseElements(ref BsonReader reader, List<T> list, int listRemaining, out SequencePosition position)
+        private static bool TryParseElements(ref BsonReader reader, List<T> list, ref int listRemaining, out SequencePosition position)
         {
             position = reader.Position;
             var internalList = list;
 
-            //while (listUnreaded - reader.Remaining < listRemaining - 1)
             while (listRemaining > 1)
             {
                 position = reader.Position;
-                var checkpoint = reader.Remaining;
+                var checkpoint = reader.BytesConsumed;
                 if (!reader.TryGetByte(out var listBsonType))
                 {
                     return false;
@@ -321,28 +334,26 @@ namespace MongoDB.Client.Messages
 
                 if (listBsonType == 10)
                 {
-                    listRemaining -= (int)(checkpoint - reader.Remaining);
+                    listRemaining -= (int)(reader.BytesConsumed - checkpoint);
                     internalList.Add(default);
                     continue;
                 }
-                try
+                if (reader.TryPeekInt32(out var nextElemSize) is false || reader.Remaining < nextElemSize)
                 {
-                    if (!reader.TryReadGeneric(listBsonType, out T temp))
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        listRemaining -= (int)(checkpoint - reader.Remaining);
+                    return false;
+                }
+                if (!T.TryParseBson(ref reader, out T temp))
+                {
+                    return false;
+                }
+                else
+                {
+                    listRemaining -= (int)(reader.BytesConsumed - checkpoint);
 
-                        internalList.Add(temp);
-                        continue;
-                    }
+                    internalList.Add(temp);
+                    continue;
                 }
-                catch
-                {
-                    Debugger.Break();
-                }
+
             }
 
             position = reader.Position;

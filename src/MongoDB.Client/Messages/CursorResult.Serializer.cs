@@ -9,7 +9,7 @@ using MongoDB.Client.Bson.Document;
 
 namespace MongoDB.Client.Messages
 {
-    public partial class CursorResult<T>
+    public partial class CursorResult<T> where T : IBsonSerializer<T>
     {
         public enum State
         {
@@ -34,6 +34,12 @@ namespace MongoDB.Client.Messages
             {
                 CursorState = new();
                 State = State.Prologue;
+            }
+            public CursorResult<T> CreateMessage()
+            {
+                var cursor = new MongoCursor<T>(CursorState.Id, CursorState.Namespace, CursorState.FirstBatch, CursorState.NextBatch);
+
+                return new CursorResult<T>(cursor, Ok, ErrorMessage, Code, CodeName, ClusterTime, OperationTime);
             }
         }
         private static ReadOnlySpan<byte> CursorResultcursor => "cursor"u8;

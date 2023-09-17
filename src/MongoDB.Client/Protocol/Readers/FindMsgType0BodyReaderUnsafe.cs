@@ -44,6 +44,8 @@ namespace MongoDB.Client.Protocol.Readers
             consumed = state.Position;
             examined = consumed;
 
+            message = state.CreateMessage();
+
             return true;
         }
     }

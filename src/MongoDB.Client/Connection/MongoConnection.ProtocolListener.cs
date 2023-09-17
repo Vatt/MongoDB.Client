@@ -59,7 +59,7 @@ namespace MongoDB.Client.Connection
                         }
                         catch (Exception e)
                         {
-                            // read rest of the responce
+                            // read rest of the response
                             request.CompletionSource.SetException(e);
                         }
                     }

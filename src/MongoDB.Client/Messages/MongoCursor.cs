@@ -46,7 +46,7 @@ namespace MongoDB.Client.Messages
         [BsonElement("operationTime")]
         public BsonTimestamp? OperationTime { get; set; }
 
-        public CursorResult()
+        internal CursorResult()
         {
             _cursorState = new();
         }
