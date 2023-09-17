@@ -1,7 +1,4 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Tests.Models;
-using Xunit;
-using CommonModel = MongoDB.Client.Tests.Models.CommonModel;
+﻿using Xunit;
 
 namespace MongoDB.Client.Tests.Client
 {

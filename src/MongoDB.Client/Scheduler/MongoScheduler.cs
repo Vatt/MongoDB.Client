@@ -1,5 +1,4 @@
 ﻿using System.Threading.Channels;
-using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
@@ -16,8 +15,7 @@ namespace MongoDB.Client.Scheduler
     {
         private readonly IMongoConnectionFactory _connectionFactory;
         private readonly ILogger<StandaloneScheduler> _logger;
-        //TODO: fix this
-        //private readonly List<MongoConnection> _connections; 
+
         private readonly List<MongoConnection> _connections;
         private readonly Channel<MongoRequest> _channel;
         private readonly ChannelWriter<MongoRequest> _channelWriter;
@@ -70,7 +68,6 @@ namespace MongoDB.Client.Scheduler
                             _connections.Add(connection);
                         }
                     }
-
                 }
                 finally
                 {
@@ -263,11 +260,20 @@ namespace MongoDB.Client.Scheduler
         public async ValueTask DisposeAsync()
         {
             _channelWriter.Complete();
-            foreach (var connection in _connections)
+            await _initLock.WaitAsync().ConfigureAwait(false);
+            try
             {
-                await connection.DisposeAsync().ConfigureAwait(false);
+                foreach (var connection in _connections)
+                {
+                    await connection.DisposeAsync().ConfigureAwait(false);
+                }
+                _connections.Clear();
             }
-            _connections.Clear();
+            finally
+            {
+                _initLock.Release();
+            }
+
             _initLock.Dispose();
         }
     }
