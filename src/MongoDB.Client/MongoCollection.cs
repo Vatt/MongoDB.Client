@@ -1,4 +1,5 @@
 ﻿using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Scheduler;
@@ -6,7 +7,7 @@ using MongoDB.Client.Utils;
 
 namespace MongoDB.Client
 {
-    public class MongoCollection<T> //where T : IBsonSerializer<T>
+    public class MongoCollection<T> where T : IBsonSerializer<T>
     {
         private readonly IMongoScheduler _scheduler;
 
@@ -92,29 +93,29 @@ namespace MongoDB.Client
         }
 
 
-        public ValueTask<UpdateResult> UpdateOneAsync(BsonDocument filter, BsonDocument update, CancellationToken cancellationToken = default)
+        public ValueTask<UpdateResult> UpdateOneAsync(BsonDocument filter, Update update,  UpdateOptions? options = null, CancellationToken cancellationToken = default)
         {
-            return UpdateOneAsync(TransactionHandler.CreateImplicit(_scheduler), filter, update, cancellationToken);
+            return UpdateOneAsync(TransactionHandler.CreateImplicit(_scheduler), filter, update, options, cancellationToken);
         }
 
-        public ValueTask<UpdateResult> UpdateOneAsync(TransactionHandler transaction, BsonDocument filter, BsonDocument update, CancellationToken cancellationToken = default)
+        public ValueTask<UpdateResult> UpdateOneAsync(TransactionHandler transaction, BsonDocument filter, Update update, UpdateOptions? options = null, CancellationToken cancellationToken = default)
         {
-            return UpdateAsync(transaction, filter, update, false, cancellationToken);
+            return UpdateAsync(transaction, filter, update, false, options, cancellationToken);
         }
 
-        public ValueTask<UpdateResult> UpdateManyAsync(BsonDocument filter, BsonDocument update, CancellationToken cancellationToken = default)
+        public ValueTask<UpdateResult> UpdateManyAsync(BsonDocument filter, Update update,  UpdateOptions? options = null, CancellationToken cancellationToken = default)
         {
-            return UpdateManyAsync(TransactionHandler.CreateImplicit(_scheduler), filter, update, cancellationToken);
+            return UpdateManyAsync(TransactionHandler.CreateImplicit(_scheduler), filter, update, options, cancellationToken);
         }
 
-        public ValueTask<UpdateResult> UpdateManyAsync(TransactionHandler transaction, BsonDocument filter, BsonDocument update, CancellationToken cancellationToken = default)
+        public ValueTask<UpdateResult> UpdateManyAsync(TransactionHandler transaction, BsonDocument filter, Update update, UpdateOptions? options = null, CancellationToken cancellationToken = default)
         {
-            return UpdateAsync(transaction, filter, update, true, cancellationToken);
+            return UpdateAsync(transaction, filter, update, true, options, cancellationToken);
         }
 
-        private ValueTask<UpdateResult> UpdateAsync(TransactionHandler transaction, BsonDocument filter, BsonDocument update, bool isMulty,  CancellationToken cancellationToken = default)
+        private ValueTask<UpdateResult> UpdateAsync(TransactionHandler transaction, BsonDocument filter, Update update, bool isMulty, UpdateOptions? options = null, CancellationToken cancellationToken = default)
         {
-            return _scheduler.UpdateAsync(transaction, filter, update, isMulty, Namespace, cancellationToken);
+            return _scheduler.UpdateAsync(transaction, filter, update, isMulty, Namespace, options, cancellationToken);
         }
 
         internal ValueTask DropAsync(CancellationToken cancellationToken = default)

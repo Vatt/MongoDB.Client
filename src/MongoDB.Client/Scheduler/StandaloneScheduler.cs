@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using MongoDB.Client.Authentication;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Messages;
@@ -34,7 +35,7 @@ namespace MongoDB.Client.Scheduler
         }
 
         public async ValueTask<FindResult<T>> FindAsync<T>(BsonDocument filter, int limit, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)
-        //where T : IBsonSerializer<T>
+            where T : IBsonSerializer<T>
         {
             var requestNum = _mongoScheduler.GetNextRequestNumber();
             var requestDocument = new FindRequest(collectionNamespace.CollectionName, filter, limit, default, null, collectionNamespace.DatabaseName, transaction.SessionId);
@@ -45,7 +46,7 @@ namespace MongoDB.Client.Scheduler
 
 
         public ValueTask<CursorResult<T>> GetMoreAsync<T>(MongoScheduler scheduler, long cursorId, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)
-        //where T : IBsonSerializer<T>
+            where T : IBsonSerializer<T>
         {
             var requestNum = scheduler.GetNextRequestNumber();
             //var requestDocument = new FindRequest(null, null, default, cursorId, null, collectionNamespace.DatabaseName, transaction.SessionId);
@@ -56,7 +57,7 @@ namespace MongoDB.Client.Scheduler
 
 
         public ValueTask InsertAsync<T>(TransactionHandler transaction, IEnumerable<T> items, CollectionNamespace collectionNamespace, CancellationToken token)
-        //where T : IBsonSerializer<T>
+            where T : IBsonSerializer<T>
         {
             var requestNumber = _mongoScheduler.GetNextRequestNumber();
             var insertHeader = new InsertHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId);
@@ -76,12 +77,14 @@ namespace MongoDB.Client.Scheduler
             return _mongoScheduler.DeleteAsync(request, token);
         }
 
-        public ValueTask<UpdateResult> UpdateAsync(TransactionHandler transaction, BsonDocument filter, BsonDocument update, bool isMulty, CollectionNamespace collectionNamespace, CancellationToken token)
+        public ValueTask<UpdateResult> UpdateAsync(TransactionHandler transaction, BsonDocument filter, Update update, bool isMulty, CollectionNamespace collectionNamespace,  UpdateOptions? options, CancellationToken token)
         {
             var requestNumber = _mongoScheduler.GetNextRequestNumber();
             var updateHeader = new UpdateHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId);
 
-            var updateBody = new UpdateBody(filter, update, isMulty);
+            var updateBody = options == null
+                ? new UpdateBody(filter, update, isMulty)
+                : new UpdateBody(filter, update, isMulty, options.IsUpsert, options.ArrayFilters, options.Collation);
 
             var request = new UpdateMessage(requestNumber, updateHeader, updateBody);
             return _mongoScheduler.UpdateAsync(request, token);

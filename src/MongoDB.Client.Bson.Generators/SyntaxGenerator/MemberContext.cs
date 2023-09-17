@@ -16,17 +16,21 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         internal SyntaxToken StaticSpanNameToken { get; }
         internal SyntaxToken AssignedVariableToken { get; }
         internal Memory<byte> ByteName { get; }
+        internal bool IsReadOnly { get; }
         public MemberContext(ContextCore root, ISymbol memberSym)
         {
             Root = root;
             NameSym = memberSym;
+
             switch (NameSym)
             {
                 case IFieldSymbol field:
                     TypeSym = field.Type;
+                    IsReadOnly = field.IsReadOnly;
                     break;
                 case IPropertySymbol prop:
                     TypeSym = prop.Type;
+                    IsReadOnly = prop.IsReadOnly;
                     break;
                 default: break;
             }
@@ -57,6 +61,5 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             }
             ByteName = Encoding.UTF8.GetBytes(BsonElementValue);
         }
-
     }
 }

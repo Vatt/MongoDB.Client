@@ -59,23 +59,21 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var name = $"Write{UnwrapTypeName(type)}";
             return Identifier(name);
         }
-        public static MethodDeclarationSyntax[] CollectionMethods(MemberContext member, ITypeSymbol type)
+        public static List<MethodDeclarationSyntax> CollectionMethods(MemberContext member, ITypeSymbol type)
         {
+            var mode = member.Root.GeneratorMode;
+            var methods = new List<MethodDeclarationSyntax>();
             if (IsListCollection(type))
             {
-                return new[]
-                {
-                    TryParseListCollectionMethod(member, type),
-                    WriteListCollectionMethod(member, type)
-                };
+                if (mode.GenerateTryParseBson) methods.Add(TryParseListCollectionMethod(member, type));
+                if (mode.GenerateWriteBson) methods.Add(WriteListCollectionMethod(member, type));
+                return methods;
             }
             if (IsDictionaryCollection(type))
             {
-                return new[]
-                {
-                    TryParseDictionaryMethod(member, type),
-                    WriteDictionaryMethod(member, type)
-                };
+                if (mode.GenerateTryParseBson) methods.Add(TryParseDictionaryMethod(member, type));
+                if (mode.GenerateWriteBson) methods.Add(WriteDictionaryMethod(member, type));
+                return methods;
             }
 
             ReportUnsuporterTypeError(member.NameSym, member.TypeSym);

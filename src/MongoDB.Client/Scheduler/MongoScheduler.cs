@@ -2,6 +2,7 @@
 using MongoDB.Client.Authentication;
 ﻿using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
@@ -89,7 +90,8 @@ namespace MongoDB.Client.Scheduler
         }
 
 
-        public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token) //where T : IBsonSerializer<T>
+        public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token) 
+            where T : IBsonSerializer<T>
         {
             var request = MongoRequestPool.Get();
             var taskSrc = request.CompletionSource;
@@ -110,7 +112,8 @@ namespace MongoDB.Client.Scheduler
         }
 
 
-        public async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token) //where T : IBsonSerializer<T>
+        public async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token) 
+            where T : IBsonSerializer<T>
         {
             var request = MongoRequestPool.Get();
             var taskSource = request.CompletionSource;
@@ -168,9 +171,10 @@ namespace MongoDB.Client.Scheduler
             {
                 await _channelWriter.WriteAsync(request, token).ConfigureAwait(false);
             }
-            var deleteResult = (UpdateResult)await taskSource.GetValueTask().ConfigureAwait(false);
+            var updateResult = (UpdateResult)await taskSource.GetValueTask().ConfigureAwait(false);
             MongoRequestPool.Return(request);
-            return deleteResult!;
+            
+            return updateResult.ErrorMessage is null ? updateResult : ThrowHelper.UpdateException<UpdateResult>(updateResult.ErrorMessage);
         }
         public async ValueTask TransactionAsync(TransactionMessage message, CancellationToken token)
         {

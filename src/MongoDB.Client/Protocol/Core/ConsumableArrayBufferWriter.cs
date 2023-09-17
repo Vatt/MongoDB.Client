@@ -35,7 +35,7 @@ namespace MongoDB.Client.Protocol.Core
         {
             if (initialCapacity <= 0)
             {
-                throw new ArgumentException(nameof(initialCapacity));
+                ThrowArgumentExcemption(nameof(initialCapacity));
             }
 
             _buffer = ArrayPool<byte>.Shared.Rent(initialCapacity);
@@ -98,16 +98,19 @@ namespace MongoDB.Client.Protocol.Core
         {
             if (count < 0)
             {
-                throw new ArgumentException(nameof(count));
+                ThrowArgumentExcemption(nameof(count));
+                return;
             }
 
             if (_index > _buffer.Length - count)
             {
-                throw new InvalidOperationException($"BufferWriter advanced too far. Capacity: {_buffer.Length}");
+                ThrowInvalidOperationException($"BufferWriter advanced too far. Capacity: {_buffer.Length}");
             }
 
             _index += count;
         }
+
+
 
         /// <summary>
         /// Notifies <see cref="ConsumableArrayBufferWriter{byte}"/> that <paramref name="count"/> amount of data was consumed from the output <see cref="Span{byte}"/>/<see cref="Memory{byte}"/ and can be overwritten>
@@ -125,12 +128,12 @@ namespace MongoDB.Client.Protocol.Core
         {
             if (count < 0)
             {
-                throw new ArgumentException(nameof(count));
+                ThrowArgumentExcemption(nameof(count));
             }
 
             if (_consumedCount > _index - count)
             {
-                throw new InvalidOperationException($"More data consumed from BufferWriter than was written.");
+                ThrowInvalidOperationException("More data consumed from BufferWriter than was written.");
             }
 
             var newConsumedCount = _consumedCount + count;
@@ -201,7 +204,7 @@ namespace MongoDB.Client.Protocol.Core
         {
             if (sizeHint < 0)
             {
-                throw new ArgumentException(nameof(sizeHint));
+                ThrowArgumentExcemption(nameof(sizeHint));
             }
 
             if (sizeHint == 0)
@@ -251,6 +254,16 @@ namespace MongoDB.Client.Protocol.Core
         private void ReturnBuffer()
         {
             ArrayPool<byte>.Shared.Return(_buffer);
+        }
+
+        private static void ThrowArgumentExcemption(string paramName)
+        {
+            throw new ArgumentException(paramName);
+        }
+
+        private static void ThrowInvalidOperationException(string message)
+        {
+            throw new InvalidOperationException(message);
         }
     }
 }

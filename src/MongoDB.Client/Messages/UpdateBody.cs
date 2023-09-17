@@ -12,7 +12,7 @@ namespace MongoDB.Client.Messages
         
         [BsonElement("u")]
         [BsonWriteIgnoreIf("Update is null")]
-        public BsonDocument Update { get; }
+        public Update Update { get; }
 
         [BsonElement("multi")]
         public bool IsMulty { get; }
@@ -30,7 +30,7 @@ namespace MongoDB.Client.Messages
         [BsonElement("hint")]
         public BsonElement? Hint { get; }
         */
-        public UpdateBody(BsonDocument filter, BsonDocument update, bool isMulty, bool isUpsert = false, List<BsonDocument>? arrayFilters = null, Collation? collation = null)
+        public UpdateBody(BsonDocument filter, Update update, bool isMulty, bool isUpsert = false, List<BsonDocument>? arrayFilters = null, Collation? collation = null)
         {
             Filter = filter;
             Update = update;

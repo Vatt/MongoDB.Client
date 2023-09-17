@@ -13,10 +13,17 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static readonly string UnsuportedByteArrayReprError = "MONGO07";
         private static readonly string MatchConstructorParametersError = "MONGO08";
         private static readonly string DictionaryKeyTypeError = "MONGO09";
+        private static readonly string SkipFlagsError = "MONGO10";
         //public static void Init(GeneratorExecutionContext ctx)
         //{
         //    _ctx = ctx;
         //}
+        public static void ReportSkipFlagsError(ISymbol sym)
+        {
+            var message = "Skip flags in BsonSerializableAttribute error";
+            ExecutionContext.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(SkipFlagsError, "Generation failed",
+                message, "SourceGenerator", DiagnosticSeverity.Error, true), sym.Locations[0]));
+        }
         public static void ReportDictionaryKeyTypeError(ISymbol sym)
         {
             var message = "The dictionary only supports the string key parameter";

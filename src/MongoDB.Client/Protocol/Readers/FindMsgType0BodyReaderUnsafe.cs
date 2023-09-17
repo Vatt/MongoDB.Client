@@ -10,7 +10,7 @@ using MongoDB.Client.Messages;
 namespace MongoDB.Client.Protocol.Readers
 {
     internal class FindMsgType0BodyReaderUnsafe<T> : MsgBodyReader<T>
-    //where T : IBsonSerializer<T>
+        where T : IBsonSerializer<T>
     {
         private long _modelsReaded;
         private long _payloadLength;
@@ -82,9 +82,8 @@ namespace MongoDB.Client.Protocol.Readers
                     {
                         bool tryParseResult = default;
                         T? item = default;
-                        //tryParseResult = T.TryParseBson(ref bsonReader, out item);
-                        tryParseResult = SerializerFnPtrProvider<T>.TryParseFnPtr(ref bsonReader, out item);
-                        if (tryParseResult)
+                        //tryParseResult = SerializerFnPtrProvider<T>.TryParseFnPtr(ref bsonReader, out item);
+                        if (T.TryParseBson(ref bsonReader, out item))
                         {
                             items.Add(item);
                             _modelsReaded += bsonReader.BytesConsumed - checkpoint;
@@ -148,7 +147,7 @@ namespace MongoDB.Client.Protocol.Readers
 #if DEBUG
             string? name;
 #else
-            ReadOnlySpan<byte> name;
+            scoped ReadOnlySpan<byte> name = default;
 #endif
 
             modelsLength = 0;
@@ -264,12 +263,12 @@ namespace MongoDB.Client.Protocol.Readers
             return ThrowHelper.MissedDocumentEndMarkerException<bool>();
         }
 
-        private bool TryReadCursorEnd(ref BsonReader reader, long checkpoint)
+        private bool TryReadCursorEnd(scoped ref BsonReader reader, long checkpoint)
         {
 #if DEBUG
             string? name;
 #else
-            ReadOnlySpan<byte> name;
+            scoped ReadOnlySpan<byte> name = default;
 #endif
             if (TryGetName(ref reader, out name) == false) { return false; }
             if (TryParseValue(ref reader, name, out _, out _) == false) { return false; }
@@ -307,7 +306,7 @@ namespace MongoDB.Client.Protocol.Readers
 #if DEBUG
             string? name;
 #else
-            ReadOnlySpan<byte> name;
+            scoped ReadOnlySpan<byte> name = default;
 #endif
             if (TryGetName(ref reader, out name) == false)
             {
@@ -338,7 +337,7 @@ namespace MongoDB.Client.Protocol.Readers
 #if DEBUG
         private bool TryParseValue(ref BsonReader reader, string name, out bool hasItems, out int modelsLength)
 #else
-        private bool TryParseValue(ref BsonReader reader, ReadOnlySpan<byte> name, out bool hasItems, out int modelsLength)
+        private bool TryParseValue(scoped ref BsonReader reader, scoped ReadOnlySpan<byte> name, out bool hasItems, out int modelsLength)
 #endif
         {
             hasItems = false;
@@ -407,7 +406,7 @@ namespace MongoDB.Client.Protocol.Readers
             return name.SequenceEqual(other);
         }
 
-        private static bool TryGetName(ref BsonReader breader, out ReadOnlySpan<byte> name)
+        private static bool TryGetName(scoped ref BsonReader breader, scoped out ReadOnlySpan<byte> name)
         {
             if (!breader.TryGetByte(out _)) { name = default; return false; }
             if (!breader.TryGetCStringAsSpan(out name)) { return false; }

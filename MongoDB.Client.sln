@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30523.141
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34024.191
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MongoDB.Client.Bson", "src\MongoDB.Client.Bson\MongoDB.Client.Bson.csproj", "{85E0CD89-F8AF-4CE2-9C2B-EFDB693F2E6C}"
 EndProject

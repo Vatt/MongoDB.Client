@@ -10,12 +10,11 @@ namespace MongoDB.Client.Messages
     public unsafe static class CursorItemSerializer
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe bool TryParseBson<T>(ref BsonReader reader, out T item) //where T : IBsonSerializer<T>
+        public static unsafe bool TryParseBson<T>(ref BsonReader reader, out T item) where T : IBsonSerializer<T>
         {
-            return SerializerFnPtrProvider<T>.TryParseFnPtr(ref reader, out item);
-            //return T.TryParseBson(ref reader, out item);
+            return T.TryParseBson(ref reader, out item);
         }
-        public static void WriteBson<T>(ref BsonWriter writer, in T message, out byte bsonType) //where T : IBsonSerializer<T>
+        public static void WriteBson<T>(ref BsonWriter writer, in T message, out byte bsonType) where T : IBsonSerializer<T>
         {
             throw new NotImplementedException(nameof(CursorItemSerializer));
         }

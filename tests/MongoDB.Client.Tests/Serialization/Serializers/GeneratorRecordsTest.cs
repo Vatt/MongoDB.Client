@@ -1,4 +1,5 @@
-﻿using MongoDB.Client.Bson.Serialization.Attributes;
+﻿using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization.Attributes;
 using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization.Serializers
@@ -32,7 +33,7 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
         [BsonConstructor]
         public RecordWithPrimaryCtor(int a, int b, int c, int d)
         {
-            A = d;
+            A = a;
             B = b;
             C = c;
             D = d;
@@ -113,6 +114,10 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
             C = c;
         }
     }
+    [BsonSerializable]
+    public partial record struct RecordStruct(int A, int B, int C);
+    [BsonSerializable]
+    public partial record class RecordClass(int A, int B, int C);
 
     public class GeneratorRecordsTest : SerializationTestBase
     {
@@ -188,6 +193,22 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
         {
             var model = new GetOnlyRecordWithFreeField(1, 2, 3);
             model.D = 42;
+            var result = await RoundTripAsync(model);
+            var bson = await RoundTripWithBsonAsync(model);
+            Assert.Equal(model, result);
+        }
+        [Fact]
+        public async Task RecordStructTest()
+        {
+            var model = new RecordStruct(1, 2, 3);
+            var result = await RoundTripAsync(model);
+            var bson = await RoundTripWithBsonAsync(model);
+            Assert.Equal(model, result);
+        }
+        [Fact]
+        public async Task RecordClassTest()
+        {
+            var model = new RecordClass(1, 2, 3);
             var result = await RoundTripAsync(model);
             var bson = await RoundTripWithBsonAsync(model);
             Assert.Equal(model, result);

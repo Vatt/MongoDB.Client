@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -50,6 +51,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             MemberDeclarationSyntax declaration = default;
             SyntaxTokenList modifiers;
+            var mode = ctx.GeneratorMode;
+            if (mode.GenerateTryParseBson == false && mode.GenerateWriteBson == false)
+            {
+                ReportSkipFlagsError(ctx.Declaration);
+                return null;
+            }
             if (ctx.Declaration.TypeKind == TypeKind.Struct && ctx.Declaration.IsReadOnly)
             {
                 modifiers = new(PublicKeyword(), ReadOnlyKeyword(), PartialKeyword());
@@ -58,16 +65,24 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 modifiers = new(PublicKeyword(), PartialKeyword());
             }
+            List<MemberDeclarationSyntax> methods = new();
+            if (ctx.GeneratorMode.GenerateTryParseBson)
+            {
+                methods.Add(TryParseMethod(ctx));
+            }
+            if (ctx.GeneratorMode.GenerateWriteBson)
+            {
+                methods.Add(WriteMethod(ctx));
+            }
             switch (ctx.DeclarationNode)
             {
                 case ClassDeclarationSyntax:
                     declaration = SF.ClassDeclaration(SelfName(ctx.Declaration))
                         .WithModifiers(modifiers)
-                        //.AddBaseListTypes(SerializerBaseType(ctx))
+                        .AddBaseListTypes(SerializerBaseType(ctx))
                         .AddMembers(GenerateStaticNamesSpans(ctx))
                         .AddMembers(GenerateEnumsStaticNamesSpansIfHave(ctx))
-                        .AddMembers(TryParseMethod(ctx))
-                        .AddMembers(WriteMethod(ctx))
+                        .AddMembers(methods.ToArray())
                         .AddMembers(GenerateCollectionMethods(ctx))
                         .AddMembers(GenerateReadStringReprEnumMethods(ctx))
                         .AddMembers(GenerateWriteStringReprEnumMethods(ctx));
@@ -75,34 +90,36 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 case StructDeclarationSyntax:
                     declaration = SF.StructDeclaration(SelfName(ctx.Declaration))
                         .WithModifiers(modifiers)
-                        //.AddBaseListTypes(SerializerBaseType(ctx))
+                        .AddBaseListTypes(SerializerBaseType(ctx))
                         .AddMembers(GenerateStaticNamesSpans(ctx))
                         .AddMembers(GenerateEnumsStaticNamesSpansIfHave(ctx))
-                        .AddMembers(TryParseMethod(ctx))
-                        .AddMembers(WriteMethod(ctx))
+                        .AddMembers(methods.ToArray())
                         .AddMembers(GenerateCollectionMethods(ctx))
                         .AddMembers(GenerateReadStringReprEnumMethods(ctx))
                         .AddMembers(GenerateWriteStringReprEnumMethods(ctx));
                     break;
                 case RecordDeclarationSyntax decl:
                     var members = new SyntaxList<MemberDeclarationSyntax>()
-                        .AddRange(new List<MemberDeclarationSyntax>
-                        {
-                            TryParseMethod(ctx), WriteMethod(ctx)
-                        })
+                        .AddRange(methods)
                         .AddRange(GenerateStaticNamesSpans(ctx))
                         .AddRange(GenerateEnumsStaticNamesSpansIfHave(ctx))
                         .AddRange(GenerateCollectionMethods(ctx))
                         .AddRange(GenerateReadStringReprEnumMethods(ctx))
                         .AddRange(GenerateWriteStringReprEnumMethods(ctx));
                     declaration = SF.RecordDeclaration(
-                        default,
-                        modifiers,
-                        decl.Keyword,
-                        Identifier(SelfName(ctx.Declaration)),
-                        default, default, /*SF.BaseList(SeparatedList(SerializerBaseType(ctx)))*/default, default,
-                        OpenBraceToken(), members, CloseBraceToken(), default);
-
+                        kind: decl.Kind(),
+                        attributeLists: default,
+                        modifiers: modifiers,
+                        keyword: decl.Keyword,
+                        classOrStructKeyword: decl.Kind() == SyntaxKind.RecordStructDeclaration ? SF.ParseToken("struct") : default,//SF.ParseToken("class"),
+                        identifier: Identifier(SelfName(ctx.Declaration)),
+                        typeParameterList: default,
+                        parameterList: default,
+                        baseList: SF.BaseList(SeparatedList(SerializerBaseType(ctx))),
+                        constraintClauses: default,
+                        openBraceToken: OpenBraceToken(),
+                        members: members,
+                        closeBraceToken: CloseBraceToken(), default);
                     break;
             }
             return SF.NamespaceDeclaration(SF.ParseName(ctx.Declaration.ContainingNamespace.ToString())).AddMembers(ProcessNested(declaration, ctx.Declaration.ContainingSymbol));
@@ -173,7 +190,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                         explicitInterfaceSpecifier: default,
                         identifier: member.StaticSpanNameToken,
                         accessorList: default,
-                        expressionBody: SF.ArrowExpressionClause(SingleDimensionByteArrayCreation(bytes.Length, SeparatedList(bytes.ToArray().Select(NumericLiteralExpr)))),
+                        expressionBody: SF.ArrowExpressionClause(Utf8StringLiteralExpression(member.BsonElementValue)),
                         initializer: default,
                         semicolonToken: SemicolonToken()));
             }
@@ -182,7 +199,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         static MemberDeclarationSyntax[] GenerateEnumsStaticNamesSpansIfHave(ContextCore ctx)
         {
             var declarations = new List<MemberDeclarationSyntax>();
-            var declared = new HashSet<ISymbol>();
+            var declared = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
             foreach (var member in ctx.Members)
             {
                 var trueType = ExtractTypeFromNullableIfNeed(member.TypeSym);
@@ -205,7 +222,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     foreach (var enumMember in typedMetadata.GetMembers().Where(sym => sym.Kind == SymbolKind.Field))
                     {
                         var (bsonValue, bsonAlias) = GetMemberAlias(enumMember);
-                        var bytes = Encoding.UTF8.GetBytes(bsonValue);
                         declarations.Add(
                             SF.PropertyDeclaration(
                                 attributeLists: default,
@@ -214,7 +230,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                 explicitInterfaceSpecifier: default,
                                 identifier: StaticEnumFieldNameToken(typedMetadata, bsonAlias),
                                 accessorList: default,
-                                expressionBody: SF.ArrowExpressionClause(SingleDimensionByteArrayCreation(bytes.Length, SeparatedList(bytes.Select(NumericLiteralExpr)))),
+                                expressionBody: SF.ArrowExpressionClause(Utf8StringLiteralExpression(bsonValue)),
                                 initializer: default,
                                 semicolonToken: SemicolonToken()));
                     }

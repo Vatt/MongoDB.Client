@@ -1,7 +1,12 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Settings;
@@ -9,21 +14,34 @@ using MongoDB.Client.Tests.Models;
 
 namespace MongoDB.Client.ConsoleApp
 {
+
     [BsonSerializable]
-    public partial class TestModel
+    public readonly partial struct TestModel
     {
-        public int SomeId { get; set; }
-        public string Name { get; set; }
-        public TestModel()
+        public int SomeId { get; }
+        public string Name { get; }
+        public TestModel(string name, int someId)
         {
-            Name = "Test";
-            SomeId = 42;
+            Name = name;
+            SomeId = someId;
         }
     }
+    [BsonSerializable]
+    public readonly partial record struct UpdateDoc(int SomeId);
+    
+    [BsonSerializable]
+    public readonly partial record struct SetOnInsertUpdateDoc(int SOMEID);
+    
+    [BsonSerializable]
+    public readonly partial record struct RenameDoc(string SomeId);
+    
+    [BsonSerializable]
+    public readonly partial record struct UnsetDoc(string SOMEID, string Name);
     class Program
     {
         static async Task Main(string[] args)
         {
+            //var update = Update<TestModel>.Set(new {SomeId = 22});
             await TestUpdate();
             //await LoadTest<GeoIp>(1024 * 1024, new[] { 512 });
             //await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, false);
@@ -32,26 +50,33 @@ namespace MongoDB.Client.ConsoleApp
             //await TestStandalone();
         }
 
+     
         static async Task TestUpdate()
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
-            host = "mongodb://mongo0.mshome.net/?maxPoolSize=1";// &clientType=experimental";
-            //host = "mongodb://mongo1.mshome.net/?clientType=experimental&replicaSet=rs0&maxPoolSize=4";;
-            //host = "mongodb://gamover-place/?maxPoolSize=1&clientType=experimental";
             var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder
                     .SetMinimumLevel(LogLevel.Information)
                     .AddConsole();
             });
-            var settings = MongoClientSettings.FromConnectionString(host);
+            var settings = MongoClientSettings.FromConnectionString($"mongodb://{host}");
             var client = await MongoClient.CreateClient(settings, loggerFactory);
             var db = client.GetDatabase("TestDb");
             var collection = db.GetCollection<TestModel>("TestCollection");
-            await collection.InsertAsync(new TestModel());
-            await collection.InsertAsync(new TestModel());
-            await collection.InsertAsync(new TestModel());
-            var result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"),new BsonDocument("$set", new BsonDocument("SomeId", 24)));
+            await collection.InsertAsync(new TestModel("Test", 42));
+            await collection.InsertAsync(new TestModel("Test", 42));
+            await collection.InsertAsync(new TestModel("Test", 42));
+            var result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Set(new UpdateDoc(24)));
+            result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Inc(new UpdateDoc(24)));
+            result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Max(new UpdateDoc(49)));
+            result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Min(new UpdateDoc(21)));
+            result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Mul(new UpdateDoc(2)));
+            result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test1"), Update.SetOnInsert(new UpdateDoc(24)), new UpdateOptions(true));
+            result = await collection.UpdateOneAsync(new BsonDocument("Name", "Test2"), Update.SetOnInsert(new SetOnInsertUpdateDoc(2)), new UpdateOptions(true));
+            result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Rename(new RenameDoc("SOMEID")));
+            result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Unset(new UnsetDoc("", "")));
+            result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Unset("Name"));
             await collection.DropAsync();
         }
         static async Task TestShardedCluster()
@@ -176,7 +201,8 @@ namespace MongoDB.Client.ConsoleApp
             Console.WriteLine();
         }
 
-        static async Task ReplicaSetConenctionTest<T>(int requestCount, IEnumerable<int> parallelism, bool useTransaction) where T : IIdentified//, IBsonSerializer<T>
+        static async Task ReplicaSetConenctionTest<T>(int requestCount, IEnumerable<int> parallelism, bool useTransaction) 
+            where T : IIdentified, IBsonSerializer<T>
         {
             var loggerFactory = LoggerFactory.Create(builder =>
             {
@@ -209,12 +235,11 @@ namespace MongoDB.Client.ConsoleApp
                 Console.WriteLine($"End: {item}. Elapsed: {stopwatch.Elapsed}");
             }
         }
-        static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelism) where T : IIdentified//, IBsonSerializer<T>
+        static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelisms) 
+            where T : IIdentified, IBsonSerializer<T>
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
-            //host = "mongodb://mongo0.mshome.net/?maxPoolSize=1";// &clientType=experimental";
-            host = "mongodb://mongo1.mshome.net/?clientType=experimental&replicaSet=rs0&maxPoolSize=4";
-            //host = "mongodb://gamover-place/?maxPoolSize=1&clientType=experimental";
+            host = $"mongodb://{host}/?clientType=experimental&replicaSet=rs0&maxPoolSize=4";
             var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder
@@ -226,16 +251,16 @@ namespace MongoDB.Client.ConsoleApp
             var db = client.GetDatabase("TestDb");
             var stopwatch = new Stopwatch();
             Console.WriteLine(typeof(T).Name);
-            foreach (var item in parallelism)
+            foreach (var parallelism in parallelisms)
             {
-                Console.WriteLine("Start: " + item);
-                var bench = new ComplexBenchmarkBase<T>(db, item, requestCount);
+                Console.WriteLine("Start: " + parallelism);
+                var bench = new ComplexBenchmarkBase<T>(db, parallelism, requestCount);
                 await bench.Setup();
 
                 stopwatch.Restart();
                 try
                 {
-                    await bench.Run(true);
+                    await bench.Run(false);
                     stopwatch.Stop();
                 }
                 finally
@@ -243,7 +268,7 @@ namespace MongoDB.Client.ConsoleApp
                     await bench.Clean();
                 }
 
-                Console.WriteLine($"End: {item}. Elapsed: {stopwatch.Elapsed}");
+                Console.WriteLine($"End: {parallelism}. Elapsed: {stopwatch.Elapsed}");
             }
 
             Console.WriteLine("Done");
