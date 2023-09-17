@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
@@ -28,13 +24,13 @@ namespace MongoDB.Client.ConsoleApp
     }
     [BsonSerializable]
     public readonly partial record struct UpdateDoc(int SomeId);
-    
+
     [BsonSerializable]
     public readonly partial record struct SetOnInsertUpdateDoc(int SOMEID);
-    
+
     [BsonSerializable]
     public readonly partial record struct RenameDoc(string SomeId);
-    
+
     [BsonSerializable]
     public readonly partial record struct UnsetDoc(string SOMEID, string Name);
     class Program
@@ -50,7 +46,7 @@ namespace MongoDB.Client.ConsoleApp
             //await TestStandalone();
         }
 
-     
+
         static async Task TestUpdate()
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
@@ -201,7 +197,7 @@ namespace MongoDB.Client.ConsoleApp
             Console.WriteLine();
         }
 
-        static async Task ReplicaSetConenctionTest<T>(int requestCount, IEnumerable<int> parallelism, bool useTransaction) 
+        static async Task ReplicaSetConenctionTest<T>(int requestCount, IEnumerable<int> parallelism, bool useTransaction)
             where T : IIdentified, IBsonSerializer<T>
         {
             var loggerFactory = LoggerFactory.Create(builder =>
@@ -235,7 +231,7 @@ namespace MongoDB.Client.ConsoleApp
                 Console.WriteLine($"End: {item}. Elapsed: {stopwatch.Elapsed}");
             }
         }
-        static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelism) 
+        static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelism)
             where T : IIdentified, IBsonSerializer<T>
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";

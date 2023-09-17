@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Buffers.Binary;
+﻿using System.Diagnostics;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
-using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Serialization.Exceptions;
 
 #nullable disable
 
@@ -23,7 +22,7 @@ namespace MongoDB.Client.Messages
             public State State;
             public SequencePosition Position;
             public MongoCursor<T>.CursorState CursorState;
-            public int DocLength;
+            public int DocRemaining;
             public double Ok;
             public string ErrorMessage;
             public int Code;
@@ -55,10 +54,11 @@ namespace MongoDB.Client.Messages
             switch (message.State)
             {
                 case State.Prologue:
-                    if (!reader.TryGetInt32(out message.DocLength))
+                    if (!reader.TryGetInt32(out message.DocRemaining))
                     {
                         return false;
                     }
+                    message.DocRemaining -= 4;
                     goto case State.MainLoop;
                 case State.MainLoop:
                     message.State = State.MainLoop;
@@ -67,44 +67,53 @@ namespace MongoDB.Client.Messages
                     {
                         return false;
                     }
-                    
+
                     goto case State.Epilogue;
                 case State.MongoCursor:
+                    var checkpoint = reader.BytesConsumed;
                     if (MongoCursor<T>.TryParseBson(ref reader, ref message.CursorState) is false)
                     {
                         message.Position = reader.Position;
+                        message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
                         return false;
                     }
-                    
+                    message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
                     message.Position = reader.Position;
-                    
+
                     goto case State.MainLoop;
                 case State.Epilogue:
                     message.State = State.Epilogue;
+                    message.Position = reader.Position;
 
                     if (!reader.TryGetByte(out var endMarker))
                     {
                         return false;
                     }
 
+                    message.DocRemaining -= 1;
+
                     if (endMarker != 0)
                     {
-                        throw new Bson.Serialization.Exceptions.SerializerEndMarkerException(nameof(CursorResult<T>), endMarker);
+                        throw new SerializerEndMarkerException(nameof(CursorResult<T>), endMarker);
                     }
+
+                    Debug.Assert(message.DocRemaining is 0);
 
                     break;
                 default:
                     throw new InvalidOperationException($"Undefined State value in {nameof(CursorResult<T>)}");
             }
 
+            message.Position = reader.Position;
             return true;
         }
         public static bool TryParseMainLoop(ref BsonReader reader, CursorResultState message)
         {
-
-            var unreaded = reader.Remaining + sizeof(int);
-            while (unreaded - reader.Remaining < message.DocLength - 1)
+            while (message.DocRemaining > 1)
             {
+                message.Position = reader.Position;
+                var checkpoint = reader.BytesConsumed;
+
                 if (!reader.TryGetByte(out var bsonType))
                 {
                     return false;
@@ -117,6 +126,7 @@ namespace MongoDB.Client.Messages
 
                 if (bsonType == 10)
                 {
+                    message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
                     continue;
                 }
 
@@ -129,8 +139,11 @@ namespace MongoDB.Client.Messages
                             {
                                 if (!reader.TryGetString(out message.ErrorMessage))
                                 {
+                                    message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
                                     return false;
                                 }
+
+                                message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
 
                                 continue;
                             }
@@ -144,8 +157,11 @@ namespace MongoDB.Client.Messages
                             {
                                 if (!MongoClusterTime.TryParseBson(ref reader, out message.ClusterTime))
                                 {
+                                    message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
                                     return false;
                                 }
+
+                                message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
 
                                 continue;
                             }
@@ -166,13 +182,17 @@ namespace MongoDB.Client.Messages
                                     {
                                         if (bsonName.SequenceEqual5(CursorResultcursor))
                                         {
+
                                             if (!MongoCursor<T>.TryParseBson(ref reader, ref message.CursorState))
                                             {
                                                 message.Position = message.CursorState.Position;
                                                 message.State = State.MongoCursor;
+                                                message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
+
                                                 return false;
                                             }
 
+                                            message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
                                             continue;
                                         }
 
@@ -198,6 +218,7 @@ namespace MongoDB.Client.Messages
                                                 return false;
                                             }
 
+                                            message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
                                             continue;
                                         }
 
@@ -226,6 +247,7 @@ namespace MongoDB.Client.Messages
                                                 return false;
                                             }
 
+                                            message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
                                             continue;
                                         }
 
@@ -241,6 +263,7 @@ namespace MongoDB.Client.Messages
                                                 return false;
                                             }
 
+                                            message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
                                             continue;
                                         }
 
@@ -255,6 +278,10 @@ namespace MongoDB.Client.Messages
                 if (!reader.TrySkip(bsonType))
                 {
                     return false;
+                }
+                else
+                {
+                    message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
                 }
             }
 

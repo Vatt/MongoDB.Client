@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
-using MongoDB.Client.Utils;
 
 namespace MongoDB.Client.Protocol.Readers
 {

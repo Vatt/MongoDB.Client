@@ -11,7 +11,7 @@ namespace MongoDB.Client.ConsoleApp
 
     public static class InMemorySerialization
     {
-        public static async Task<T> RoundTripAsync<T>(T message) 
+        public static async Task<T> RoundTripAsync<T>(T message)
             where T : IBsonSerializer<T>
         {
             var pipe = new Pipe(new PipeOptions(pauseWriterThreshold: long.MaxValue, resumeWriterThreshold: long.MaxValue));
@@ -28,7 +28,7 @@ namespace MongoDB.Client.ConsoleApp
             await WriteAsync<T>(pipe.Writer, message);
             return await ReadAsync<BsonDocument>(pipe.Reader);
         }
-        public static async Task<T> ReadAsync<T>(PipeReader input) 
+        public static async Task<T> ReadAsync<T>(PipeReader input)
             where T : IBsonSerializer<T>
         {
             var reader = new ProtocolReader(input);
@@ -40,7 +40,7 @@ namespace MongoDB.Client.ConsoleApp
         }
 
 
-        public static async Task WriteAsync<T>(PipeWriter output, T message) 
+        public static async Task WriteAsync<T>(PipeWriter output, T message)
             where T : IBsonSerializer<T>
         {
             var writer = new ProtocolWriter(output);

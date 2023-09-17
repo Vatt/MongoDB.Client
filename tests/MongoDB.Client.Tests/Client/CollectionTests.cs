@@ -14,7 +14,7 @@ namespace MongoDB.Client.Tests.Client
             var db = client.GetDatabase(DB);
             await db.CreateCollectionAsync("StandaloneCreateCollectionTest");
             var collection = db.GetCollection<TestBson>(DB);
-            var result = await InsertAsync(new List<TestBson> {new(1)}, collection);
+            var result = await InsertAsync(new List<TestBson> { new(1) }, collection);
             Assert.Single(result);
             Assert.Equal(1, result[0].A);
         }

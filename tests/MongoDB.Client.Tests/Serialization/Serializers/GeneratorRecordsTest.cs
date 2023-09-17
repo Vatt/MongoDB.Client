@@ -1,5 +1,4 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization.Attributes;
+﻿using MongoDB.Client.Bson.Serialization.Attributes;
 using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization.Serializers

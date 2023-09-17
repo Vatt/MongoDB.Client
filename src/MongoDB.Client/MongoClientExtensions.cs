@@ -5,14 +5,14 @@ namespace MongoDB.Client
 {
     public static class MongoClientExtensions
     {
-        public static async ValueTask<List<T>> ToListAsync<T>(this ValueTask<CursorResult<T>> cursorTask) 
+        public static async ValueTask<List<T>> ToListAsync<T>(this ValueTask<CursorResult<T>> cursorTask)
             where T : IBsonSerializer<T>
         {
             var cursorResult = await cursorTask.ConfigureAwait(false);
             return cursorResult.MongoCursor.ToList();
         }
 
-        public static async ValueTask<T?> FirstOrDefaultAsync<T>(this ValueTask<CursorResult<T>> cursorTask) 
+        public static async ValueTask<T?> FirstOrDefaultAsync<T>(this ValueTask<CursorResult<T>> cursorTask)
             where T : IBsonSerializer<T>
         {
             var cursorResult = await cursorTask.ConfigureAwait(false);
@@ -22,7 +22,7 @@ namespace MongoDB.Client
             return first is not null ? first.FirstOrDefault() : next!.FirstOrDefault();
         }
 
-        public static List<T> ToList<T>(this MongoCursor<T> mongoCursor) 
+        public static List<T> ToList<T>(this MongoCursor<T> mongoCursor)
             where T : IBsonSerializer<T>
         {
             var cursor = mongoCursor;
