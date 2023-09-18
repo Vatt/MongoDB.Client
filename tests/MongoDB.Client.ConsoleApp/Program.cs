@@ -235,7 +235,7 @@ namespace MongoDB.Client.ConsoleApp
                 Console.WriteLine($"End: {item}. Elapsed: {stopwatch.Elapsed}");
             }
         }
-        static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelism) 
+        static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelisms) 
             where T : IIdentified, IBsonSerializer<T>
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
