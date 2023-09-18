@@ -2,6 +2,7 @@
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Exceptions;
+using MongoDB.Client.Protocol.Readers;
 
 #nullable disable
 
@@ -24,9 +25,13 @@ namespace MongoDB.Client.Messages
             public string Namespace;
             public List<T> FirstBatch;
             public List<T> NextBatch;
-            public int BatchRemaining;
-            public int DocRemaining;
+            public int BatchLength;
+            public int BatchReadded;
+            public int DocLength;
+            public int DocReadded;
             public SequencePosition Position;
+
+            public MongoCursor<T> CreateCursor() => new MongoCursor<T>(Id, Namespace, FirstBatch, NextBatch);
 
             public CursorState()
             {
@@ -45,12 +50,13 @@ namespace MongoDB.Client.Messages
             switch (message.State)
             {
                 case State.Prologue:
-                    if (!reader.TryGetInt32(out message.DocRemaining))
+                    if (!reader.TryGetInt32(out message.DocLength))
                     {
                         return false;
                     }
 
-                    message.DocRemaining -= sizeof(int);
+                    message.DocReadded += sizeof(int);
+
                     goto case State.MainLoop;
                 case State.MainLoop:
                     message.State = State.MainLoop;
@@ -62,20 +68,24 @@ namespace MongoDB.Client.Messages
 
                     goto case State.Epilogue;
                 case State.FirstBatch:
-                    var checkpoint = reader.BytesConsumed;
+                    var checkpoint = message.BatchReadded;
+
                     var isFirstBatchComplete = TryParseFirstBatch(ref reader, ref message);
-                    message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
+
+                    message.DocReadded += message.BatchReadded - checkpoint;
 
                     if (isFirstBatchComplete is false)
                     {
                         return false;
-                    }
+                    }                 
 
                     goto case State.MainLoop;
                 case State.NextBatch:
-                    checkpoint = reader.BytesConsumed;
+                    checkpoint = message.BatchReadded;
+
                     var isNextBatchComplete = TryParseNextBatch(ref reader, ref message);
-                    message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
+
+                    message.DocReadded += message.BatchReadded - checkpoint;
 
                     if (isNextBatchComplete is false)
                     {
@@ -92,9 +102,9 @@ namespace MongoDB.Client.Messages
                         return false;
                     }
 
-                    message.DocRemaining -= sizeof(byte);
+                    message.DocReadded += sizeof(byte);
 
-                    Debug.Assert(message.DocRemaining is 0);
+                    Debug.Assert(message.DocLength - message.DocReadded is 0);
 
                     if (endMarker != 0)
                     {
@@ -113,10 +123,11 @@ namespace MongoDB.Client.Messages
 
         private static bool TryParseMainLoop(ref BsonReader reader, ref CursorState message)
         {
-            while (message.DocRemaining > 1)
+            var docLength = message.DocLength;
+            while (docLength - message.DocReadded > 1)
             {
-                message.Position = reader.Position;
                 var checkpoint = reader.BytesConsumed;
+                message.Position = reader.Position;
 
                 if (!reader.TryGetByte(out var bsonType))
                 {
@@ -130,7 +141,7 @@ namespace MongoDB.Client.Messages
 
                 if (bsonType == 10)
                 {
-                    message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
+                    message.DocReadded += (int)(reader.BytesConsumed - checkpoint);
                     continue;
                 }
 
@@ -146,7 +157,7 @@ namespace MongoDB.Client.Messages
                                     return false;
                                 }
 
-                                message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
+                                message.DocReadded += (int)(reader.BytesConsumed - checkpoint);
                                 continue;
                             }
 
@@ -159,13 +170,16 @@ namespace MongoDB.Client.Messages
                             {
 
                                 message.FirstBatch = new();
+                                var check = reader.BytesConsumed - checkpoint;
+
                                 var isBatchComplete = TryParseFirstBatch(ref reader, ref message);
-                                message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
+
+                                message.DocReadded += (int)(message.BatchReadded + check);
 
                                 if (!isBatchComplete)
                                 {
                                     return false;
-                                }
+                                }                               
 
                                 continue;
                             }
@@ -191,7 +205,8 @@ namespace MongoDB.Client.Messages
                                                 return false;
                                             }
 
-                                            message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
+                                            message.DocReadded += (int)(reader.BytesConsumed - checkpoint);
+
                                             continue;
                                         }
 
@@ -203,13 +218,16 @@ namespace MongoDB.Client.Messages
                                         if (bsonName.SequenceEqual9(MongoCursornextBatch))
                                         {
                                             message.NextBatch = new();
+                                            var check = reader.BytesConsumed - checkpoint;
+
                                             var isBatchComplete = TryParseNextBatch(ref reader, ref message);
-                                            message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
+
+                                            message.DocReadded += (int)(message.BatchReadded + check);
 
                                             if (!isBatchComplete)
                                             { 
                                                 return false;
-                                            }
+                                            }                                          
 
                                             continue;
                                         }
@@ -228,7 +246,7 @@ namespace MongoDB.Client.Messages
                 }
                 else
                 {
-                    message.DocRemaining -= (int)(reader.BytesConsumed - checkpoint);
+                    message.DocReadded += (int)(reader.BytesConsumed - checkpoint);
                 }
             }
 
@@ -244,16 +262,16 @@ namespace MongoDB.Client.Messages
                 goto ELEMENTS;
             }
 
-            if (!reader.TryGetInt32(out state.BatchRemaining))
+            if (!reader.TryGetInt32(out state.BatchLength))
             {
                 return false;
             }
             state.State = State.FirstBatch;
-            state.BatchRemaining -= sizeof(int);
+            state.BatchReadded += sizeof(int);
         ELEMENTS:
             var checkpoint = reader.BytesConsumed;
 
-            var isComplete = TryParseElements(ref reader, internalList, ref state.BatchRemaining, out state.Position);
+            var isComplete = TryParseElements(ref reader, internalList, ref state.BatchLength, ref state.BatchReadded, out state.Position);
 
             if (isComplete is false)
             {
@@ -265,9 +283,9 @@ namespace MongoDB.Client.Messages
                 return false;
             }
 
-            state.BatchRemaining -= 1;
+            state.BatchReadded += sizeof(byte);
 
-            Debug.Assert(state.BatchRemaining is 0);
+            Debug.Assert(state.BatchLength - state.BatchReadded is 0);
 
             if (listEndMarker != 0)
             {
@@ -285,16 +303,16 @@ namespace MongoDB.Client.Messages
                 goto ELEMENTS;
             }
 
-            if (!reader.TryGetInt32(out state.BatchRemaining))
+            if (!reader.TryGetInt32(out state.BatchLength))
             {
                 return false;
             }
             state.State = State.NextBatch;
-            state.BatchRemaining -= sizeof(int);
+            state.BatchReadded += sizeof(int);
         ELEMENTS:
             var checkpoint = reader.BytesConsumed;
 
-            var isComplete = TryParseElements(ref reader, internalList, ref state.BatchRemaining, out state.Position);
+            var isComplete = TryParseElements(ref reader, internalList, ref state.BatchLength, ref state.BatchReadded, out state.Position);
 
             if (isComplete is false)
             {
@@ -306,9 +324,9 @@ namespace MongoDB.Client.Messages
                 return false;
             }
 
-            state.BatchRemaining -= 1;
+            state.BatchReadded += sizeof(byte);
 
-            Debug.Assert(state.BatchRemaining is 0);
+            Debug.Assert(state.BatchLength - state.BatchReadded is 0);
 
             if (listEndMarker != 0)
             {
@@ -317,12 +335,12 @@ namespace MongoDB.Client.Messages
 
             return true;
         }
-        private static bool TryParseElements(ref BsonReader reader, List<T> list, ref int listRemaining, out SequencePosition position)
+        private static bool TryParseElements(ref BsonReader reader, List<T> list, ref int batchLength, ref int batchReadded, out SequencePosition position)
         {
             position = reader.Position;
             var internalList = list;
 
-            while (listRemaining > 1)
+            while (batchLength - batchReadded > 1)
             {
                 position = reader.Position;
                 var checkpoint = reader.BytesConsumed;
@@ -338,7 +356,7 @@ namespace MongoDB.Client.Messages
 
                 if (listBsonType == 10)
                 {
-                    listRemaining -= (int)(reader.BytesConsumed - checkpoint);
+                    batchReadded += (int)(reader.BytesConsumed - checkpoint);
                     internalList.Add(default);
                     continue;
                 }
@@ -352,7 +370,7 @@ namespace MongoDB.Client.Messages
                 }
                 else
                 {
-                    listRemaining -= (int)(reader.BytesConsumed - checkpoint);
+                    batchReadded += (int)(reader.BytesConsumed - checkpoint);
 
                     internalList.Add(temp);
                     continue;
