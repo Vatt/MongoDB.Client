@@ -30,15 +30,15 @@ namespace MongoDB.Client.Benchmarks
         private IMongoCollection<T> _oldCollection;
         private T[] _items;
 
-        [Params(4)]
+        [Params(1)]
         public int NewClientMaxPoolSize { get; set; }
 
         [Params(1024)]
         public int RequestsCount { get; set; }
 
-        [Params(/*1, 4, 8, 16, 32, 64, 128,*/ 256)] public int Parallelism { get; set; }
+        [Params(/*1, 4, 8, 16, 32, 64, 128,*/ 20)] public int Parallelism { get; set; }
 
-        [Params(ClientType.Old, /*ClientType.New,*/ ClientType.NewExperimental/*ClientType.New*/)]
+        [Params(ClientType.NewExperimental)]
         public ClientType ClientType { get; set; }
 
         [GlobalSetup]

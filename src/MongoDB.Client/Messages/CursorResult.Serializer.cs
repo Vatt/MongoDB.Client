@@ -72,7 +72,7 @@ namespace MongoDB.Client.Messages
                     var checkpoint = message.CursorState.DocReadded;
                     var isCursorComplete = MongoCursor<T>.TryParseBson(ref reader, ref message.CursorState);
 
-                    message.Position = reader.Position;
+                    message.Position = message.CursorState.Position;
                     message.DocReadded += message.CursorState.DocReadded - checkpoint;
 
                     if (isCursorComplete is false)
@@ -182,9 +182,9 @@ namespace MongoDB.Client.Messages
                                     {
                                         if (bsonName.SequenceEqual5(CursorResultcursor))
                                         {
-                                            var check = (int)(reader.BytesConsumed - checkpoint);
+                                            var beforeCursor = (int)(reader.BytesConsumed - checkpoint);
                                             var isCursorComplete = MongoCursor<T>.TryParseBson(ref reader, ref message.CursorState);
-                                            message.DocReadded += message.CursorState.DocReadded + check;
+                                            message.DocReadded += message.CursorState.DocReadded + beforeCursor;
 
                                             if (!isCursorComplete)
                                             {

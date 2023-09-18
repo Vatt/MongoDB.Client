@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.IO.Pipelines;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Exceptions;
@@ -170,11 +171,12 @@ namespace MongoDB.Client.Messages
                             {
 
                                 message.FirstBatch = new();
-                                var check = reader.BytesConsumed - checkpoint;
+
+                                var beforeBatch = reader.BytesConsumed - checkpoint;
 
                                 var isBatchComplete = TryParseFirstBatch(ref reader, ref message);
 
-                                message.DocReadded += (int)(message.BatchReadded + check);
+                                message.DocReadded += (int)(message.BatchReadded + beforeBatch);
 
                                 if (!isBatchComplete)
                                 {
@@ -218,11 +220,12 @@ namespace MongoDB.Client.Messages
                                         if (bsonName.SequenceEqual9(MongoCursornextBatch))
                                         {
                                             message.NextBatch = new();
-                                            var check = reader.BytesConsumed - checkpoint;
+
+                                            var beforeBatch = reader.BytesConsumed - checkpoint;
 
                                             var isBatchComplete = TryParseNextBatch(ref reader, ref message);
 
-                                            message.DocReadded += (int)(message.BatchReadded + check);
+                                            message.DocReadded += (int)(message.BatchReadded + beforeBatch);
 
                                             if (!isBatchComplete)
                                             { 
@@ -269,8 +272,6 @@ namespace MongoDB.Client.Messages
             state.State = State.FirstBatch;
             state.BatchReadded += sizeof(int);
         ELEMENTS:
-            var checkpoint = reader.BytesConsumed;
-
             var isComplete = TryParseElements(ref reader, internalList, ref state.BatchLength, ref state.BatchReadded, out state.Position);
 
             if (isComplete is false)
@@ -291,6 +292,8 @@ namespace MongoDB.Client.Messages
             {
                 throw new SerializerEndMarkerException(nameof(MongoCursor<T>), listEndMarker);
             }
+
+            state.Position = reader.Position;
 
             return true;
         }
@@ -310,8 +313,6 @@ namespace MongoDB.Client.Messages
             state.State = State.NextBatch;
             state.BatchReadded += sizeof(int);
         ELEMENTS:
-            var checkpoint = reader.BytesConsumed;
-
             var isComplete = TryParseElements(ref reader, internalList, ref state.BatchLength, ref state.BatchReadded, out state.Position);
 
             if (isComplete is false)
@@ -333,17 +334,19 @@ namespace MongoDB.Client.Messages
                 throw new SerializerEndMarkerException(nameof(MongoCursor<T>), listEndMarker);
             }
 
+            state.Position = reader.Position;
+            
             return true;
         }
         private static bool TryParseElements(ref BsonReader reader, List<T> list, ref int batchLength, ref int batchReadded, out SequencePosition position)
         {
-            position = reader.Position;
             var internalList = list;
 
             while (batchLength - batchReadded > 1)
             {
                 position = reader.Position;
                 var checkpoint = reader.BytesConsumed;
+
                 if (!reader.TryGetByte(out var listBsonType))
                 {
                     return false;
