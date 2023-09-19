@@ -177,12 +177,12 @@ namespace MongoDB.Client.Messages
 
                                 message.DocReadded += (int)(message.BatchReadded + beforeBatch);
 
-                                message.State = State.MainLoop;
-
                                 if (!isBatchComplete)
                                 {
                                     return false;
                                 }
+
+                                message.State = State.MainLoop;
 
                                 continue;
                             }
@@ -228,12 +228,12 @@ namespace MongoDB.Client.Messages
 
                                             message.DocReadded += (int)(message.BatchReadded + beforeBatch);
 
-                                            message.State = State.MainLoop;
-
                                             if (!isBatchComplete)
                                             {
                                                 return false;
                                             }
+                                            
+                                            message.State = State.MainLoop;
 
                                             continue;
                                         }

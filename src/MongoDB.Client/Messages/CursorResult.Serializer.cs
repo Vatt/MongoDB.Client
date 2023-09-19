@@ -193,6 +193,7 @@ namespace MongoDB.Client.Messages
 
                                                 return false;
                                             }
+
                                             message.State = State.MainLoop;
 
                                             continue;
@@ -221,6 +222,7 @@ namespace MongoDB.Client.Messages
                                             }
 
                                             message.DocReadded += (int)(reader.BytesConsumed - checkpoint);
+
                                             continue;
                                         }
 
@@ -250,6 +252,7 @@ namespace MongoDB.Client.Messages
                                             }
 
                                             message.DocReadded += (int)(reader.BytesConsumed - checkpoint);
+
                                             continue;
                                         }
 
@@ -266,6 +269,7 @@ namespace MongoDB.Client.Messages
                                             }
 
                                             message.DocReadded += (int)(reader.BytesConsumed - checkpoint);
+
                                             continue;
                                         }
 
