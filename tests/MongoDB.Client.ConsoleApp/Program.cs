@@ -247,10 +247,10 @@ namespace MongoDB.Client.ConsoleApp
             var db = client.GetDatabase("TestDb");
             var stopwatch = new Stopwatch();
             Console.WriteLine(typeof(T).Name);
-            foreach (var parallelism in parallelisms)
+            foreach (var item in parallelism)
             {
-                Console.WriteLine("Start: " + parallelism);
-                var bench = new ComplexBenchmarkBase<T>(db, parallelism, requestCount);
+                Console.WriteLine("Start: " + item);
+                var bench = new ComplexBenchmarkBase<T>(db, item, requestCount);
                 await bench.Setup();
 
                 stopwatch.Restart();
