@@ -58,7 +58,7 @@ namespace MongoDB.Client.ConsoleApp
             }
             else
             {
-                var channel = Channel.CreateBounded<T>(new BoundedChannelOptions(Parallelism*2) { SingleWriter = true });
+                var channel = Channel.CreateBounded<T>(new BoundedChannelOptions(Parallelism * 2) { SingleWriter = true });
                 //var channel = Channel.CreateUnbounded<T>(new UnboundedChannelOptions { SingleWriter = true });
                 var tasks = new Task[Parallelism];
                 for (int i = 0; i < Parallelism; i++)

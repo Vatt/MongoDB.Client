@@ -39,7 +39,7 @@ namespace MongoDB.Client.ConsoleApp
         {
             //var update = Update<TestModel>.Set(new {SomeId = 22});
             //await TestUpdate();
-            await LoadTest<GeoIp>(1024*10, new[] { 512 });
+            await LoadTest<IntSimpleModel>(1024 * 10, new[] { 512 });
             //await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, false);
             //await TestShardedCluster();
             //await TestTransaction();
@@ -231,7 +231,7 @@ namespace MongoDB.Client.ConsoleApp
                 Console.WriteLine($"End: {item}. Elapsed: {stopwatch.Elapsed}");
             }
         }
-        static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelisms) 
+        static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelisms)
             where T : IIdentified, IBsonSerializer<T>
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";

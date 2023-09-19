@@ -76,7 +76,7 @@ namespace MongoDB.Client.Messages
                     if (isFirstBatchComplete is false)
                     {
                         return false;
-                    }                 
+                    }
 
                     goto case State.MainLoop;
                 case State.NextBatch:
@@ -177,10 +177,12 @@ namespace MongoDB.Client.Messages
 
                                 message.DocReadded += (int)(message.BatchReadded + beforeBatch);
 
+                                message.State = State.MainLoop;
+
                                 if (!isBatchComplete)
                                 {
                                     return false;
-                                }                               
+                                }
 
                                 continue;
                             }
@@ -226,10 +228,12 @@ namespace MongoDB.Client.Messages
 
                                             message.DocReadded += (int)(message.BatchReadded + beforeBatch);
 
+                                            message.State = State.MainLoop;
+
                                             if (!isBatchComplete)
-                                            { 
+                                            {
                                                 return false;
-                                            }                                          
+                                            }
 
                                             continue;
                                         }
@@ -340,7 +344,7 @@ namespace MongoDB.Client.Messages
             }
 
             position = reader.Position;
-            
+
             return true;
         }
         private static bool TryParseElements(ref BsonReader reader, List<T> list, ref int batchLength, ref int batchReadded, out SequencePosition position)

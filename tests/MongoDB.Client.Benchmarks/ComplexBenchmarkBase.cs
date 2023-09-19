@@ -211,7 +211,7 @@ namespace MongoDB.Client.Benchmarks
 
             static async Task Worker(IMongoCollection<T> collection, ChannelReader<T> reader)
             {
-                await foreach (var item in reader.ReadAllAsync()) 
+                await foreach (var item in reader.ReadAllAsync())
                 {
                     await Work(collection, item);
                 }

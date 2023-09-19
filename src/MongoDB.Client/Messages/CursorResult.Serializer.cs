@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
@@ -77,7 +76,7 @@ namespace MongoDB.Client.Messages
 
                     if (isCursorComplete is false)
                     {
-   
+
                         return false;
                     }
 
@@ -183,15 +182,18 @@ namespace MongoDB.Client.Messages
                                         if (bsonName.SequenceEqual5(CursorResultcursor))
                                         {
                                             var beforeCursor = (int)(reader.BytesConsumed - checkpoint);
+
                                             var isCursorComplete = MongoCursor<T>.TryParseBson(ref reader, ref message.CursorState, out message.Position);
+
                                             message.DocReadded += message.CursorState.DocReadded + beforeCursor;
 
                                             if (!isCursorComplete)
                                             {
-                                                message.State = State.MongoCursor;                                              
+                                                message.State = State.MongoCursor;
 
                                                 return false;
                                             }
+                                            message.State = State.MainLoop;
 
                                             continue;
                                         }
