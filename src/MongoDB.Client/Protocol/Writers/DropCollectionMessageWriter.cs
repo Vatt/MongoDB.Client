@@ -11,10 +11,10 @@ namespace MongoDB.Client.Protocol.Writers
     {
         public void WriteMessage(DropCollectionMessage message, IBufferWriter<byte> output)
         {
-            var span = output.GetSpan();
             var writer = new BsonWriter(output);
+            var span = writer.Reserve(4);
 
-            writer.WriteInt32(0); // size
+            //writer.WriteInt32(0); // size
             writer.WriteInt32(message.Header.RequestNumber);
             writer.WriteInt32(0); // responseTo
             writer.WriteInt32((int)message.Header.Opcode);
@@ -26,7 +26,7 @@ namespace MongoDB.Client.Protocol.Writers
             DropCollectionHeader.WriteBson(ref writer, message.DropCollectionHeader);
 
             writer.Commit();
-            BinaryPrimitives.WriteInt32LittleEndian(span, writer.Written);
+            span.Write(writer.Written);
         }
 
 

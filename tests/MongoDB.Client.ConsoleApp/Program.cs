@@ -247,16 +247,16 @@ namespace MongoDB.Client.ConsoleApp
             var db = client.GetDatabase("TestDb");
             var stopwatch = new Stopwatch();
             Console.WriteLine(typeof(T).Name);
-            foreach (var item in parallelism)
+            foreach (var parallelism in parallelisms)
             {
-                Console.WriteLine("Start: " + item);
-                var bench = new ComplexBenchmarkBase<T>(db, item, requestCount);
+                Console.WriteLine("Start: " + parallelism);
+                var bench = new ComplexBenchmarkBase<T>(db, parallelism, requestCount);
                 await bench.Setup();
 
                 stopwatch.Restart();
                 try
                 {
-                    await bench.Run(true);
+                    await bench.Run(false);
                     stopwatch.Stop();
                 }
                 finally
@@ -264,7 +264,7 @@ namespace MongoDB.Client.ConsoleApp
                     await bench.Clean();
                 }
 
-                Console.WriteLine($"End: {item}. Elapsed: {stopwatch.Elapsed}");
+                Console.WriteLine($"End: {parallelism}. Elapsed: {stopwatch.Elapsed}");
             }
 
             Console.WriteLine("Done");

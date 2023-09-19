@@ -58,16 +58,20 @@ namespace MongoDB.Client.ConsoleApp
             }
             else
             {
-                var channel = Channel.CreateBounded<T>(new BoundedChannelOptions(1) { SingleWriter = true });
+                var channel = Channel.CreateBounded<T>(new BoundedChannelOptions(Parallelism*2) { SingleWriter = true });
+                //var channel = Channel.CreateUnbounded<T>(new UnboundedChannelOptions { SingleWriter = true });
                 var tasks = new Task[Parallelism];
                 for (int i = 0; i < Parallelism; i++)
                 {
-                    tasks[i] = Worker(collection, channel.Reader, useTransaction);
+                    tasks[i] = Task.Run(() => Worker(collection, channel.Reader, useTransaction));
                 }
 
                 foreach (var item in items)
                 {
-                    await channel.Writer.WriteAsync(item);
+                    if (channel.Writer.TryWrite(item) == false)
+                    {
+                        await channel.Writer.WriteAsync(item);
+                    }
                 }
 
                 channel.Writer.Complete();
@@ -95,25 +99,9 @@ namespace MongoDB.Client.ConsoleApp
 
             static async Task Worker(MongoCollection<T> collection, ChannelReader<T> reader, bool useTransaction)
             {
-                try
+                await foreach (var item in reader.ReadAllAsync())
                 {
-                    while (true)
-                    {
-                        var item = await reader.ReadAsync();
-                        try
-                        {
-                            await Work(collection, item, useTransaction);
-                        }
-                        catch (Exception)
-                        {
-                            // skip
-                        }
-
-                    }
-                }
-                catch (ChannelClosedException)
-                {
-                    // channel complete
+                    await Work(collection, item, useTransaction);
                 }
             }
         }
