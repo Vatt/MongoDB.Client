@@ -12,9 +12,7 @@ namespace MongoDB.Client.Bson.Reader
     {
         private const byte EndMarker = (byte)'\x00';
 
-
         private SequenceReader<byte> _input;
-        public SequencePosition End => _input.Sequence.End;
         public long BytesConsumed => _input.Consumed;
 
         public SequencePosition Position => _input.Position;

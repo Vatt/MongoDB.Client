@@ -34,7 +34,7 @@ namespace MongoDB.Client.Protocol.Readers
             var isComplete = CursorResult<T>.TryParseBson(ref bsonReader, state);
 
             consumed = state.Position;
-            examined = bsonReader.End;
+            examined = input.End;
 
             if (isComplete is false)
             {
