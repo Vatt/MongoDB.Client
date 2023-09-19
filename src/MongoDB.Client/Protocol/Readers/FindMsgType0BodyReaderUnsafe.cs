@@ -17,6 +17,7 @@ namespace MongoDB.Client.Protocol.Readers
             : base(message)
         {
             _payloadLength = message.Header.MessageLength;
+            state = new CursorResult<T>.CursorResultState();
         }
 
 
@@ -27,21 +28,18 @@ namespace MongoDB.Client.Protocol.Readers
             [MaybeNullWhen(false)] out CursorResult<T> message)
         {
             message = default;
-            state ??= new CursorResult<T>.CursorResultState();
+
             var bsonReader = new BsonReader(input);
-            
-            //BsonDocument.TryParseBson(ref bsonReader, out var doc);
 
-            if (CursorResult<T>.TryParseBson(ref bsonReader, state) is false)
-            {
-                consumed = state.Position;
-                examined = consumed;
-
-                return false;
-            }
+            var isComplete = CursorResult<T>.TryParseBson(ref bsonReader, state);
 
             consumed = state.Position;
-            examined = consumed;
+            examined = bsonReader.End;
+
+            if (isComplete is false)
+            {
+                return false;
+            }
 
             message = state.CreateMessage();
 

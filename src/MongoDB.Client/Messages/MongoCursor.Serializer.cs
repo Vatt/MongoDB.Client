@@ -1,9 +1,7 @@
 ﻿using System.Diagnostics;
-using System.IO.Pipelines;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Exceptions;
-using MongoDB.Client.Protocol.Readers;
 
 #nullable disable
 
@@ -105,7 +103,7 @@ namespace MongoDB.Client.Messages
 
                     message.DocReadded += sizeof(byte);
 
-                    Debug.Assert(message.DocLength - message.DocReadded is 0);
+                    Debug.Assert(message.DocLength == message.DocReadded);
 
                     if (endMarker != 0)
                     {
@@ -291,7 +289,7 @@ namespace MongoDB.Client.Messages
 
             state.BatchReadded += sizeof(byte);
 
-            Debug.Assert(state.BatchLength - state.BatchReadded is 0);
+            Debug.Assert(state.BatchLength == state.BatchReadded);
 
             if (listEndMarker != 0)
             {
@@ -334,7 +332,7 @@ namespace MongoDB.Client.Messages
 
             state.BatchReadded += sizeof(byte);
 
-            Debug.Assert(state.BatchLength - state.BatchReadded is 0);
+            Debug.Assert(state.BatchLength == state.BatchReadded);
 
             if (listEndMarker != 0)
             {

@@ -98,7 +98,7 @@ namespace MongoDB.Client.Messages
                         throw new SerializerEndMarkerException(nameof(CursorResult<T>), endMarker);
                     }
 
-                    Debug.Assert(message.DocLength - message.DocReadded is 0);
+                    Debug.Assert(message.DocLength == message.DocReadded);
 
                     break;
                 default:

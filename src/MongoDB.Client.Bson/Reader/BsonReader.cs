@@ -14,7 +14,7 @@ namespace MongoDB.Client.Bson.Reader
 
 
         private SequenceReader<byte> _input;
-
+        public SequencePosition End => _input.Sequence.End;
         public long BytesConsumed => _input.Consumed;
 
         public SequencePosition Position => _input.Position;
