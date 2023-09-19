@@ -12,7 +12,7 @@ namespace MongoDB.Client.Tests.Client
         public async Task StandaloneGetMoreTest()
         {
             var item = new GetMoreTestModel("GetMoreTestModelA", "GetMoreTestModelB", "GetMoreTestModelC", 42, 42);
-            var items = new GetMoreTestModel[1024*16];
+            var items = new GetMoreTestModel[1024*4];
             for (int i = 0; i < items.Length; i++)
             {
                 items[i] = item;

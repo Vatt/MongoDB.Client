@@ -1,5 +1,6 @@
 ﻿using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
@@ -28,6 +29,8 @@ namespace MongoDB.Client.Protocol.Readers
             message = default;
             state ??= new CursorResult<T>.CursorResultState();
             var bsonReader = new BsonReader(input);
+            
+            //BsonDocument.TryParseBson(ref bsonReader, out var doc);
 
             if (CursorResult<T>.TryParseBson(ref bsonReader, state) is false)
             {

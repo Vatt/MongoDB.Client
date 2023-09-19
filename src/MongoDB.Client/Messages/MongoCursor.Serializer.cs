@@ -30,7 +30,6 @@ namespace MongoDB.Client.Messages
             public int BatchReadded;
             public int DocLength;
             public int DocReadded;
-            public SequencePosition Position;
 
             public MongoCursor<T> CreateCursor() => new MongoCursor<T>(Id, Namespace, FirstBatch, NextBatch);
 
@@ -44,9 +43,10 @@ namespace MongoDB.Client.Messages
         private static ReadOnlySpan<byte> MongoCursorfirstBatch => "firstBatch"u8;
         private static ReadOnlySpan<byte> MongoCursornextBatch => "nextBatch"u8;
 
-        public static bool TryParseBson(ref BsonReader reader, ref CursorState message)
+        public static bool TryParseBson(ref BsonReader reader, ref CursorState message, out SequencePosition position)
         {
 
+            position = reader.Position;
 
             switch (message.State)
             {
@@ -62,7 +62,7 @@ namespace MongoDB.Client.Messages
                 case State.MainLoop:
                     message.State = State.MainLoop;
 
-                    if (TryParseMainLoop(ref reader, ref message) is false)
+                    if (TryParseMainLoop(ref reader, ref message, out position) is false)
                     {
                         return false;
                     }
@@ -71,7 +71,7 @@ namespace MongoDB.Client.Messages
                 case State.FirstBatch:
                     var checkpoint = message.BatchReadded;
 
-                    var isFirstBatchComplete = TryParseFirstBatch(ref reader, ref message);
+                    var isFirstBatchComplete = TryParseFirstBatch(ref reader, ref message, out position);
 
                     message.DocReadded += message.BatchReadded - checkpoint;
 
@@ -84,7 +84,7 @@ namespace MongoDB.Client.Messages
                 case State.NextBatch:
                     checkpoint = message.BatchReadded;
 
-                    var isNextBatchComplete = TryParseNextBatch(ref reader, ref message);
+                    var isNextBatchComplete = TryParseNextBatch(ref reader, ref message, out position);
 
                     message.DocReadded += message.BatchReadded - checkpoint;
 
@@ -96,7 +96,7 @@ namespace MongoDB.Client.Messages
                     goto case State.MainLoop;
                 case State.Epilogue:
                     message.State = State.Epilogue;
-                    message.Position = reader.Position;
+                    position = reader.Position;
 
                     if (!reader.TryGetByte(out var endMarker))
                     {
@@ -117,18 +117,19 @@ namespace MongoDB.Client.Messages
                     throw new InvalidOperationException($"Undefined State value in {nameof(MongoCursor<T>)}");
             }
 
-            message.Position = reader.Position;
+            position = reader.Position;
+
             return true;
         }
 
 
-        private static bool TryParseMainLoop(ref BsonReader reader, ref CursorState message)
+        private static bool TryParseMainLoop(ref BsonReader reader, ref CursorState message, out SequencePosition position)
         {
             var docLength = message.DocLength;
             while (docLength - message.DocReadded > 1)
             {
                 var checkpoint = reader.BytesConsumed;
-                message.Position = reader.Position;
+                position = reader.Position;
 
                 if (!reader.TryGetByte(out var bsonType))
                 {
@@ -174,7 +175,7 @@ namespace MongoDB.Client.Messages
 
                                 var beforeBatch = reader.BytesConsumed - checkpoint;
 
-                                var isBatchComplete = TryParseFirstBatch(ref reader, ref message);
+                                var isBatchComplete = TryParseFirstBatch(ref reader, ref message, out position);
 
                                 message.DocReadded += (int)(message.BatchReadded + beforeBatch);
 
@@ -223,7 +224,7 @@ namespace MongoDB.Client.Messages
 
                                             var beforeBatch = reader.BytesConsumed - checkpoint;
 
-                                            var isBatchComplete = TryParseNextBatch(ref reader, ref message);
+                                            var isBatchComplete = TryParseNextBatch(ref reader, ref message, out position);
 
                                             message.DocReadded += (int)(message.BatchReadded + beforeBatch);
 
@@ -253,12 +254,15 @@ namespace MongoDB.Client.Messages
                 }
             }
 
+            position = reader.Position;
+
             return true;
         }
 
-        private static bool TryParseFirstBatch(ref BsonReader reader, ref CursorState state)
+        private static bool TryParseFirstBatch(ref BsonReader reader, ref CursorState state, out SequencePosition position)
         {
             var internalList = state.FirstBatch;
+            position = reader.Position;
 
             if (state.State is State.FirstBatch)
             {
@@ -271,8 +275,9 @@ namespace MongoDB.Client.Messages
             }
             state.State = State.FirstBatch;
             state.BatchReadded += sizeof(int);
+
         ELEMENTS:
-            var isComplete = TryParseElements(ref reader, internalList, ref state.BatchLength, ref state.BatchReadded, out state.Position);
+            var isComplete = TryParseElements(ref reader, internalList, ref state.BatchLength, ref state.BatchReadded, out position);
 
             if (isComplete is false)
             {
@@ -293,13 +298,14 @@ namespace MongoDB.Client.Messages
                 throw new SerializerEndMarkerException(nameof(MongoCursor<T>), listEndMarker);
             }
 
-            state.Position = reader.Position;
+            position = reader.Position;
 
             return true;
         }
-        private static bool TryParseNextBatch(ref BsonReader reader, ref CursorState state)
+        private static bool TryParseNextBatch(ref BsonReader reader, ref CursorState state, out SequencePosition position)
         {
             var internalList = state.NextBatch;
+            position = reader.Position;
 
             if (state.State is State.NextBatch)
             {
@@ -312,8 +318,9 @@ namespace MongoDB.Client.Messages
             }
             state.State = State.NextBatch;
             state.BatchReadded += sizeof(int);
+
         ELEMENTS:
-            var isComplete = TryParseElements(ref reader, internalList, ref state.BatchLength, ref state.BatchReadded, out state.Position);
+            var isComplete = TryParseElements(ref reader, internalList, ref state.BatchLength, ref state.BatchReadded, out position);
 
             if (isComplete is false)
             {
@@ -334,7 +341,7 @@ namespace MongoDB.Client.Messages
                 throw new SerializerEndMarkerException(nameof(MongoCursor<T>), listEndMarker);
             }
 
-            state.Position = reader.Position;
+            position = reader.Position;
             
             return true;
         }

@@ -70,9 +70,9 @@ namespace MongoDB.Client.Messages
                     goto case State.Epilogue;
                 case State.MongoCursor:
                     var checkpoint = message.CursorState.DocReadded;
-                    var isCursorComplete = MongoCursor<T>.TryParseBson(ref reader, ref message.CursorState);
 
-                    message.Position = message.CursorState.Position;
+                    var isCursorComplete = MongoCursor<T>.TryParseBson(ref reader, ref message.CursorState, out message.Position);
+
                     message.DocReadded += message.CursorState.DocReadded - checkpoint;
 
                     if (isCursorComplete is false)
@@ -183,14 +183,12 @@ namespace MongoDB.Client.Messages
                                         if (bsonName.SequenceEqual5(CursorResultcursor))
                                         {
                                             var beforeCursor = (int)(reader.BytesConsumed - checkpoint);
-                                            var isCursorComplete = MongoCursor<T>.TryParseBson(ref reader, ref message.CursorState);
+                                            var isCursorComplete = MongoCursor<T>.TryParseBson(ref reader, ref message.CursorState, out message.Position);
                                             message.DocReadded += message.CursorState.DocReadded + beforeCursor;
 
                                             if (!isCursorComplete)
                                             {
-                                                message.Position = message.CursorState.Position;
-                                                message.State = State.MongoCursor;
-                                                
+                                                message.State = State.MongoCursor;                                              
 
                                                 return false;
                                             }
