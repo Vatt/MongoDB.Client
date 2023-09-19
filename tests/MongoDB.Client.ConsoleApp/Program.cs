@@ -231,7 +231,7 @@ namespace MongoDB.Client.ConsoleApp
                 Console.WriteLine($"End: {item}. Elapsed: {stopwatch.Elapsed}");
             }
         }
-        static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelism)
+        static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelisms) 
             where T : IIdentified, IBsonSerializer<T>
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
@@ -247,10 +247,10 @@ namespace MongoDB.Client.ConsoleApp
             var db = client.GetDatabase("TestDb");
             var stopwatch = new Stopwatch();
             Console.WriteLine(typeof(T).Name);
-            foreach (var item in parallelism)
+            foreach (var parallelism in parallelisms)
             {
-                Console.WriteLine("Start: " + item);
-                var bench = new ComplexBenchmarkBase<T>(db, item, requestCount);
+                Console.WriteLine("Start: " + parallelism);
+                var bench = new ComplexBenchmarkBase<T>(db, parallelism, requestCount);
                 await bench.Setup();
 
                 stopwatch.Restart();
