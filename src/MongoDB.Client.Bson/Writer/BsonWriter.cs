@@ -299,6 +299,7 @@ namespace MongoDB.Client.Bson.Writer
                     GetNextSpan(4096);
                 }
             } while (!chars.IsEmpty);
+            WriteByte(EndMarker);
         }
 
 
