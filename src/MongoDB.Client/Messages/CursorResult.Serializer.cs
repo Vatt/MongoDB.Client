@@ -3,6 +3,8 @@ using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Exceptions;
+using MongoDB.Client.Protocol.Readers;
+using Sprache;
 
 #nullable disable
 
@@ -21,7 +23,7 @@ namespace MongoDB.Client.Messages
         {
             public State State;
             public SequencePosition Position;
-            public MongoCursor<T>.CursorState CursorState;
+            public volatile MongoCursor<T>.CursorState CursorState;
             public int DocLength;
             public int DocReadded;
             public double Ok;
@@ -50,6 +52,7 @@ namespace MongoDB.Client.Messages
             switch (message.State)
             {
                 case State.Prologue:
+                    message.Position = reader.Position;
                     if (!reader.TryGetInt32(out message.DocLength))
                     {
                         return false;
@@ -60,7 +63,7 @@ namespace MongoDB.Client.Messages
                     goto case State.MainLoop;
                 case State.MainLoop:
                     message.State = State.MainLoop;
-
+                    message.Position = reader.Position;
                     if (TryParseMainLoop(ref reader, message) is false)
                     {
                         return false;
@@ -68,6 +71,7 @@ namespace MongoDB.Client.Messages
 
                     goto case State.Epilogue;
                 case State.MongoCursor:
+                    message.Position = reader.Position;
                     var checkpoint = message.CursorState.DocReadded;
 
                     var isCursorComplete = MongoCursor<T>.TryParseBson(ref reader, ref message.CursorState, out message.Position);
@@ -109,7 +113,8 @@ namespace MongoDB.Client.Messages
         }
         public static bool TryParseMainLoop(ref BsonReader reader, CursorResultState message)
         {
-            var docLength = message.DocLength;
+            var docLength = message.DocLength; 
+            message.Position = reader.Position;
             while (docLength - message.DocReadded > 1)
             {
                 message.Position = reader.Position;
@@ -290,6 +295,8 @@ namespace MongoDB.Client.Messages
                     message.DocReadded += (int)(reader.BytesConsumed - checkpoint);
                 }
             }
+
+            message.State = State.Epilogue;
 
             return true;
         }

@@ -10,7 +10,7 @@ namespace MongoDB.Client.Protocol.Readers
         where T : IBsonSerializer<T>
     {
         private long _payloadLength;
-        private CursorResult<T>.CursorResultState state;
+        private volatile CursorResult<T>.CursorResultState state;
 
         public FindMsgType0BodyReaderUnsafe(ResponseMsgMessage message)
             : base(message)
@@ -33,7 +33,8 @@ namespace MongoDB.Client.Protocol.Readers
             var isComplete = CursorResult<T>.TryParseBson(ref bsonReader, state);
 
             consumed = state.Position;
-            examined = input.End;
+            examined = consumed;
+            //examined = input.End;
 
             if (isComplete is false)
             {

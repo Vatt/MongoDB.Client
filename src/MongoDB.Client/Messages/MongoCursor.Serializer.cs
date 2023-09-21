@@ -17,7 +17,7 @@ namespace MongoDB.Client.Messages
             NextBatch,
             Epilogue
         }
-        public struct CursorState
+        public class CursorState
         {
             public State State;
             public long Id;
@@ -49,6 +49,7 @@ namespace MongoDB.Client.Messages
             switch (message.State)
             {
                 case State.Prologue:
+                    position = reader.Position;
                     if (!reader.TryGetInt32(out message.DocLength))
                     {
                         return false;
@@ -59,7 +60,7 @@ namespace MongoDB.Client.Messages
                     goto case State.MainLoop;
                 case State.MainLoop:
                     message.State = State.MainLoop;
-
+                    position = reader.Position;
                     if (TryParseMainLoop(ref reader, ref message, out position) is false)
                     {
                         return false;
@@ -68,7 +69,7 @@ namespace MongoDB.Client.Messages
                     goto case State.Epilogue;
                 case State.FirstBatch:
                     var checkpoint = message.BatchReadded;
-
+                    position = reader.Position;
                     var isFirstBatchComplete = TryParseFirstBatch(ref reader, ref message, out position);
 
                     message.DocReadded += message.BatchReadded - checkpoint;
@@ -81,7 +82,7 @@ namespace MongoDB.Client.Messages
                     goto case State.MainLoop;
                 case State.NextBatch:
                     checkpoint = message.BatchReadded;
-
+                    position = reader.Position;
                     var isNextBatchComplete = TryParseNextBatch(ref reader, ref message, out position);
 
                     message.DocReadded += message.BatchReadded - checkpoint;
@@ -124,6 +125,7 @@ namespace MongoDB.Client.Messages
         private static bool TryParseMainLoop(ref BsonReader reader, ref CursorState message, out SequencePosition position)
         {
             var docLength = message.DocLength;
+            position = reader.Position;
             while (docLength - message.DocReadded > 1)
             {
                 var checkpoint = reader.BytesConsumed;
@@ -258,6 +260,8 @@ namespace MongoDB.Client.Messages
 
             position = reader.Position;
 
+            message.State = State.Epilogue;
+
             return true;
         }
 
@@ -277,7 +281,11 @@ namespace MongoDB.Client.Messages
             }
             state.State = State.FirstBatch;
             state.BatchReadded += sizeof(int);
-
+            
+            if (state.BatchLength - state.BatchReadded is 1)
+            {
+                goto EPILOGUE;
+            }
         ELEMENTS:
             var isComplete = TryParseElements(ref reader, internalList, ref state.BatchLength, ref state.BatchReadded, out position);
 
@@ -285,7 +293,7 @@ namespace MongoDB.Client.Messages
             {
                 return false;
             }
-
+        EPILOGUE:
             if (!reader.TryGetByte(out var listEndMarker))
             {
                 return false;
@@ -318,9 +326,14 @@ namespace MongoDB.Client.Messages
             {
                 return false;
             }
+
             state.State = State.NextBatch;
             state.BatchReadded += sizeof(int);
 
+            if (state.BatchLength - state.BatchReadded is 1)
+            {
+                goto EPILOGUE;
+            }
         ELEMENTS:
             var isComplete = TryParseElements(ref reader, internalList, ref state.BatchLength, ref state.BatchReadded, out position);
 
@@ -329,6 +342,7 @@ namespace MongoDB.Client.Messages
                 return false;
             }
 
+        EPILOGUE:
             if (!reader.TryGetByte(out var listEndMarker))
             {
                 return false;
@@ -350,7 +364,7 @@ namespace MongoDB.Client.Messages
         private static bool TryParseElements(ref BsonReader reader, List<T> list, ref int batchLength, ref int batchReadded, out SequencePosition position)
         {
             var internalList = list;
-
+            position = reader.Position;
             while (batchLength - batchReadded > 1)
             {
                 position = reader.Position;
