@@ -80,12 +80,10 @@ namespace MongoDB.Client.Protocol.Readers
 #endif
                     if (bsonReader.TryPeekInt32(out int modelLength) && bsonReader.Remaining >= modelLength)
                     {
-                        bool tryParseResult = default;
-                        T? item = default;
                         //tryParseResult = SerializerFnPtrProvider<T>.TryParseFnPtr(ref bsonReader, out item);
-                        if (T.TryParseBson(ref bsonReader, out item))
+                        if (T.TryParseBson(ref bsonReader, out var item))
                         {
-                            items.Add(item);
+                            items!.Add(item);
                             _modelsReaded += bsonReader.BytesConsumed - checkpoint;
                             Advance(bsonReader.BytesConsumed - checkpoint);
                             consumed = bsonReader.Position;
