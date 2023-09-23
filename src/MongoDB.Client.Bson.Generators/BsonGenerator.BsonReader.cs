@@ -1,12 +1,12 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
+namespace MongoDB.Client.Bson.Generators
 {
-    internal static partial class SerializerGenerator
+    public partial class BsonGenerator
     {
-        public static readonly MemberAccessExpressionSyntax ReaderRemainingExpr = SimpleMemberAccess(BsonReaderToken, IdentifierName("Remaining"));
-        public static readonly ExpressionSyntax TrySkipCStringExpr = InvocationExpr(BsonReaderToken, SF.IdentifierName("TrySkipCString"));
+        public static MemberAccessExpressionSyntax ReaderRemainingExpr => SimpleMemberAccess(BsonReaderToken, IdentifierName("Remaining"));
+        public static ExpressionSyntax TrySkipCStringExpr => InvocationExpr(BsonReaderToken, SF.IdentifierName("TrySkipCString"));
         public static ExpressionSyntax TryGetDouble(ExpressionSyntax assignOrDecl)
         {
             return InvocationExpr(BsonReaderToken, IdentifierName("TryGetDouble"), OutArgument(assignOrDecl));

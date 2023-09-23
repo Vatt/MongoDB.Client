@@ -19,7 +19,7 @@ namespace MongoDB.Client.Tests.Client
 
         public static FirstDoc Create()
         {
-            List<SecondDoc> documents = new() {SecondDoc.Create(20), SecondDoc.Create(20), SecondDoc.Create(20)};
+            List<SecondDoc> documents = new() { SecondDoc.Create(20), SecondDoc.Create(20), SecondDoc.Create(20) };
             return new()
             {
                 Id = BsonObjectId.NewObjectId(),
@@ -52,7 +52,7 @@ namespace MongoDB.Client.Tests.Client
             return HashCode.Combine(Id, TextFieldOne, TextFieldTwo, TextFieldThree, IntField, Documents);
         }
     }
-    
+
     [BsonSerializable]
     public partial class SecondDoc : IEquatable<SecondDoc>
     {
@@ -62,8 +62,8 @@ namespace MongoDB.Client.Tests.Client
 
         public static SecondDoc Create(int value)
         {
-            List<ThirdDoc> documents = new() {ThirdDoc.Create(3.0), ThirdDoc.Create(3.0), ThirdDoc.Create(3.0) };
-            return new() {TextField = "SecodDocTextField", IntField = value, Documents = documents};
+            List<ThirdDoc> documents = new() { ThirdDoc.Create(3.0), ThirdDoc.Create(3.0), ThirdDoc.Create(3.0) };
+            return new() { TextField = "SecodDocTextField", IntField = value, Documents = documents };
         }
 
         public override bool Equals(object obj)
@@ -84,7 +84,7 @@ namespace MongoDB.Client.Tests.Client
             return HashCode.Combine(TextField, IntField, Documents);
         }
     }
-    
+
     [BsonSerializable]
     public partial class ThirdDoc : IEquatable<ThirdDoc>
     {
@@ -93,7 +93,7 @@ namespace MongoDB.Client.Tests.Client
 
         public static ThirdDoc Create(double value)
         {
-            return new() {TextField = "ThirdDocTextField", DoubleField = value};
+            return new() { TextField = "ThirdDocTextField", DoubleField = value };
         }
 
         public override bool Equals(object obj)
@@ -123,7 +123,7 @@ namespace MongoDB.Client.Tests.Client
 
         public static UpdatedFirstDoc Create()
         {
-            List<UpatedSecondDoc> documents = new() {UpatedSecondDoc.Create(), UpatedSecondDoc.Create()};
+            List<UpatedSecondDoc> documents = new() { UpatedSecondDoc.Create(), UpatedSecondDoc.Create() };
             return new()
             {
                 TextFieldOne = "UpdatedOne",
@@ -141,8 +141,8 @@ namespace MongoDB.Client.Tests.Client
 
         public static UpatedSecondDoc Create()
         {
-            List<UpdatedThirdDoc> documents = new() {UpdatedThirdDoc.Create(), UpdatedThirdDoc.Create()};
-            return new() {TextField = "UpdatedSecodDocTextField", Documents = documents};
+            List<UpdatedThirdDoc> documents = new() { UpdatedThirdDoc.Create(), UpdatedThirdDoc.Create() };
+            return new() { TextField = "UpdatedSecodDocTextField", Documents = documents };
         }
     }
 
@@ -152,15 +152,15 @@ namespace MongoDB.Client.Tests.Client
         public string TextField { get; set; }
         public static UpdatedThirdDoc Create()
         {
-            return new() {TextField = "UpdatedThirdDocTextField"};
+            return new() { TextField = "UpdatedThirdDocTextField" };
         }
     }
     public partial class ClientUpdateTestBase : ClientTestBase
     {
-        
+
         public async Task UpdateOne_Set_UpdateDoc(MongoClient client)
         {
-            var items = new[] {FirstDoc.Create(), FirstDoc.Create()};
+            var items = new[] { FirstDoc.Create(), FirstDoc.Create() };
             var update = Update.Set(UpdatedFirstDoc.Create());
             var filter = BsonDocument.Empty;
             var db = client.GetDatabase(DB);
@@ -227,7 +227,7 @@ namespace MongoDB.Client.Tests.Client
             }
             await collection.DropAsync();
         }
-        
+
         public async Task UpdateDocuments_Insert_Find_UpdateOneSet_SameModel(MongoClient client)
         {
             var items = new[] { FirstDoc.Create(), FirstDoc.Create() };
@@ -235,14 +235,14 @@ namespace MongoDB.Client.Tests.Client
             var collection = db.GetCollection<FirstDoc>("UpdateSetCollectionSameModel" + DateTimeOffset.UtcNow);
             var before = await InsertAsync(items, collection);
             UpdateFirstDocuments(before);
-            foreach(var item in before)
+            foreach (var item in before)
             {
                 var filter = new BsonDocument("_id", item.Id);
                 await collection.UpdateOneAsync(filter, Update.Set(item));
             }
             var after = await collection.Find(BsonDocument.Empty).ToListAsync();
             Assert.True(items.Length == after.Count);
-            foreach(var first in after)
+            foreach (var first in after)
             {
                 Assert.True(first.Documents.Count == 3);
                 Assert.Equal("UpdatedOne", first.TextFieldOne);

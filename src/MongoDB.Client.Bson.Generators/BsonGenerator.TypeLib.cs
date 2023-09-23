@@ -1,9 +1,8 @@
-﻿using System.Text;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
-namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
+namespace MongoDB.Client.Bson.Generators
 {
-    internal static partial class SerializerGenerator
+    public partial class BsonGenerator
     {
         public static INamedTypeSymbol System_Object => Compilation.GetSpecialType(SpecialType.System_Object);
         public static INamedTypeSymbol System_Byte => Compilation.GetSpecialType(SpecialType.System_Byte);

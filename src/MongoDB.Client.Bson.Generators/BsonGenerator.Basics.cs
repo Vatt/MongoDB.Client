@@ -3,22 +3,22 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
+namespace MongoDB.Client.Bson.Generators
 {
-    internal static partial class SerializerGenerator
+    public partial class BsonGenerator
     {
-        public static readonly TypeSyntax VarType = SF.ParseTypeName("var");
-        public static readonly ExpressionSyntax NewBsonObjectIdExpr = InvocationExpr(TypeFullName(BsonObjectId), SF.IdentifierName("NewObjectId"));
-        public static readonly ExpressionSyntax BsonNameLengthExpr = SimpleMemberAccess(BsonNameToken, Identifier("Length"));
-        public static readonly SyntaxToken BsonNameLengthToken = Identifier("bsonNameLength");
-        public static readonly GenericNameSyntax ReadOnlySpanByteName = GenericName(Identifier("ReadOnlySpan"), BytePredefinedType());
-        public static readonly GenericNameSyntax SpanByteName = GenericName(Identifier("Span"), BytePredefinedType());
-        public static readonly ContinueStatementSyntax ContinueStatement = SF.ContinueStatement();
-        public static readonly StatementSyntax ReturnTrueStatement = ReturnStatement(SF.LiteralExpression(SyntaxKind.TrueLiteralExpression));
-        public static readonly StatementSyntax ReturnFalseStatement = ReturnStatement(SF.LiteralExpression(SyntaxKind.FalseLiteralExpression));
-        public static readonly StatementSyntax ReturnNothingStatement = ReturnStatement();
-        public static readonly SizeOfExpressionSyntax SizeOfInt32Expr = SizeOf(IntPredefinedType());
-        public static readonly BreakStatementSyntax BreakStatement = SF.BreakStatement();
+        public static TypeSyntax VarType => SF.ParseTypeName("var");
+        public static ExpressionSyntax NewBsonObjectIdExpr => InvocationExpr(TypeFullName(BsonObjectId), SF.IdentifierName("NewObjectId"));
+        public static ExpressionSyntax BsonNameLengthExpr => SimpleMemberAccess(BsonNameToken, Identifier("Length"));
+        public static SyntaxToken BsonNameLengthToken => Identifier("bsonNameLength");
+        public static GenericNameSyntax ReadOnlySpanByteName => GenericName(Identifier("ReadOnlySpan"), BytePredefinedType());
+        public static GenericNameSyntax SpanByteName => GenericName(Identifier("Span"), BytePredefinedType());
+        public static ContinueStatementSyntax ContinueStatement => SF.ContinueStatement();
+        public static StatementSyntax ReturnTrueStatement => ReturnStatement(SF.LiteralExpression(SyntaxKind.TrueLiteralExpression));
+        public static StatementSyntax ReturnFalseStatement => ReturnStatement(SF.LiteralExpression(SyntaxKind.FalseLiteralExpression));
+        public static StatementSyntax ReturnNothingStatement => ReturnStatement();
+        public static SizeOfExpressionSyntax SizeOfInt32Expr => SizeOf(IntPredefinedType());
+        public static BreakStatementSyntax BreakStatement => SF.BreakStatement();
         public static SyntaxToken SequenceEqualToken => SF.Identifier("SequenceEqual");
         public static ITypeSymbol ExtractTypeFromNullableIfNeed(ITypeSymbol original)
         {
@@ -46,7 +46,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 //var extractedElementType = ExtractTypeFromNullableIfNeed(arraySym.ElementType);
                 //return BsonSerializerGenerator.Compilation.CreateArrayTypeSymbol(extractedElementType, 1);
-                return BsonSerializerGenerator.Compilation.CreateArrayTypeSymbol(arraySym.ElementType, 1);
+                return Compilation.CreateArrayTypeSymbol(arraySym.ElementType, 1);
             }
 
             return original;
@@ -69,7 +69,401 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             //return InvocationExpr(IdentifierName(spanName), SF.Identifier("SequenceEqual" + equalNum), SF.Argument(IdentifierName(otherSpanName)));
             return InvocationExpr(IdentifierName(spanName), SequenceEqualToken, SF.Argument(IdentifierName(otherSpanName)));
         }
+        public static readonly LiteralExpressionSyntax TrueLiteralExpr = SF.LiteralExpression(SyntaxKind.TrueLiteralExpression);
+        public static readonly LiteralExpressionSyntax FalseLiteralExpr = SF.LiteralExpression(SyntaxKind.FalseLiteralExpression);
+        public static StatementSyntax[] Statements(params ExpressionSyntax[] expressions)
+        {
+            return expressions.Select(expr => Statement(expr)).ToArray();
+        }
+        public static StatementSyntax[] Statements(List<ExpressionSyntax> expressions)
+        {
+            return expressions.Select(expr => Statement(expr)).ToArray();
+        }
+        public static StatementSyntax[] Statements(params StatementSyntax[] statements)
+        {
+            return statements;
+        }
+        public static StatementSyntax[] Statements(StatementSyntax first, params StatementSyntax[] statements)
+        {
+            var array = new StatementSyntax[statements.Length + 1];
+            array[0] = first;
 
+            for (int i = 0; i < statements.Length; i++)
+            {
+                array[i + 1] = statements[i];
+            }
+
+            return array;
+        }
+        public static StatementSyntax Statement(ExpressionSyntax expr)
+        {
+            return SF.ExpressionStatement(expr);
+        }
+        public static ObjectCreationExpressionSyntax ObjectCreation(TypeSyntax type, params ArgumentSyntax[] args)
+        {
+            return SF.ObjectCreationExpression(type, args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args), default);
+        }
+        public static ObjectCreationExpressionSyntax ObjectCreation(INamedTypeSymbol sym, params ArgumentSyntax[] args)
+        {
+            ITypeSymbol trueType = sym.Name.Equals("Nullable") ? sym.TypeParameters[0] : sym;
+
+            return SF.ObjectCreationExpression(SF.ParseTypeName(trueType.ToString()), args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args), default);
+        }
+        public static MemberAccessExpressionSyntax SimpleMemberAccess(ExpressionSyntax source, IdentifierNameSyntax member)
+        {
+            return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member);
+        }
+        public static MemberAccessExpressionSyntax SimpleMemberAccess(ExpressionSyntax source, SimpleNameSyntax member)
+        {
+            return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member);
+        }
+        public static MemberAccessExpressionSyntax SimpleMemberAccess(ExpressionSyntax source, GenericNameSyntax member)
+        {
+            return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member);
+        }
+        public static MemberAccessExpressionSyntax SimpleMemberAccess(ExpressionSyntax source, SyntaxToken member)
+        {
+            return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, IdentifierName(member));
+        }
+        public static MemberAccessExpressionSyntax SimpleMemberAccess(SyntaxToken source, SyntaxToken member)
+        {
+            return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName(source), IdentifierName(member));
+        }
+        public static MemberAccessExpressionSyntax SimpleMemberAccess(SyntaxToken source, IdentifierNameSyntax member)
+        {
+            return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName(source), member);
+        }
+        public static MemberAccessExpressionSyntax SimpleMemberAccess(ExpressionSyntax source, IdentifierNameSyntax member1, IdentifierNameSyntax member2)
+        {
+            var first = SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member1);
+
+            return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, first, member2);
+        }
+        public static ExpressionStatementSyntax InvocationExprStatement(SyntaxToken source, SyntaxToken member, params ArgumentSyntax[] args)
+        {
+            return SF.ExpressionStatement(InvocationExpr(source, member, args));
+        }
+        public static ExpressionStatementSyntax InvocationExprStatement(ExpressionSyntax source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
+        {
+            return SF.ExpressionStatement(InvocationExpr(source, member, args));
+        }
+        public static ExpressionStatementSyntax InvocationExprStatement(ExpressionSyntax source, SyntaxToken member, params ArgumentSyntax[] args)
+        {
+            return SF.ExpressionStatement(InvocationExpr(source, member, args));
+        }
+        public static ExpressionStatementSyntax InvocationExprStatement(SyntaxToken source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
+        {
+            return SF.ExpressionStatement(InvocationExpr(IdentifierName(source), member, args));
+        }
+        public static ExpressionStatementSyntax InvocationExprStatement(IdentifierNameSyntax member, params ArgumentSyntax[] args)
+        {
+            return SF.ExpressionStatement(InvocationExpr(member, args));
+        }
+        public static ExpressionStatementSyntax InvocationExprStatement(SyntaxToken member, params ArgumentSyntax[] args)
+        {
+            return SF.ExpressionStatement(InvocationExpr(IdentifierName(member), args));
+        }
+        public static ExpressionSyntax InvocationExpr(SyntaxToken source, SyntaxToken member, params ArgumentSyntax[] args)
+        {
+            return InvocationExpr(IdentifierName(source), IdentifierName(member), args);
+        }
+        public static ExpressionSyntax InvocationExpr(SyntaxToken source, GenericNameSyntax member, params ArgumentSyntax[] args)
+        {
+            return SF.InvocationExpression(SimpleMemberAccess(IdentifierName(source), member), SF.ArgumentList().AddArguments(args));
+        }
+        public static ExpressionSyntax InvocationExpr(ExpressionSyntax source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
+        {
+            return SF.InvocationExpression(SimpleMemberAccess(source, member), args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args));
+        }
+        public static ExpressionSyntax InvocationExpr(ExpressionSyntax source, SyntaxToken member, params ArgumentSyntax[] args)
+        {
+            return SF.InvocationExpression(SimpleMemberAccess(source, member), args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args));
+        }
+        public static ExpressionSyntax InvocationExpr(SyntaxToken source, IdentifierNameSyntax member, params ArgumentSyntax[] args)
+        {
+            return SF.InvocationExpression(SimpleMemberAccess(source, member), args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args));
+        }
+        public static ExpressionSyntax InvocationExpr(ISymbol source, SyntaxToken member, params ArgumentSyntax[] args)
+        {
+            return SF.InvocationExpression(SimpleMemberAccess(IdentifierName(source), IdentifierName(member)), args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args));
+        }
+        public static InvocationExpressionSyntax InvocationExpr(ExpressionSyntax source, SimpleNameSyntax member, params ArgumentSyntax[] args)
+        {
+            return SF.InvocationExpression(SimpleMemberAccess(source, member), args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args));
+        }
+        public static ExpressionSyntax InvocationExpr(IdentifierNameSyntax member, params ArgumentSyntax[] args)
+        {
+            return SF.InvocationExpression(member, args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args));
+        }
+        public static GenericNameSyntax GenericName(SyntaxToken name, params TypeSyntax[] types)
+        {
+            var typeList = SF.TypeArgumentList().AddArguments(types);
+
+            return SF.GenericName(name, typeList);
+        }
+        public static ArgumentSyntax OutArgument(ExpressionSyntax expr, NameColonSyntax colonName = default)
+        {
+            return SF.Argument(colonName, SF.Token(SyntaxKind.OutKeyword), expr);
+        }
+        public static ArgumentSyntax OutArgument(SyntaxToken token, NameColonSyntax colonName = default)
+        {
+            return OutArgument(IdentifierName(token), colonName);
+        }
+        public static ArgumentSyntax Argument(SyntaxToken token, NameColonSyntax colonName = default)
+        {
+            return SF.Argument(colonName, default, IdentifierName(token));
+        }
+        public static ArgumentSyntax Argument(ExpressionSyntax expr, NameColonSyntax colonName = default)
+        {
+            return SF.Argument(colonName, default, expr);
+        }
+        public static ArgumentSyntax InArgument(ExpressionSyntax expr, NameColonSyntax colonName = default)
+        {
+            return SF.Argument(colonName, SF.Token(SyntaxKind.InKeyword), expr);
+        }
+        public static ArgumentSyntax InArgument(SyntaxToken expr, NameColonSyntax colonName = default)
+        {
+            return SF.Argument(colonName, SF.Token(SyntaxKind.InKeyword), IdentifierName(expr));
+        }
+        public static ArgumentSyntax RefArgument(SyntaxToken token, NameColonSyntax colonName = default)
+        {
+            return SF.Argument(colonName, SF.Token(SyntaxKind.RefKeyword), IdentifierName(token));
+        }
+        public static ArgumentSyntax RefArgument(ExpressionSyntax expr, NameColonSyntax colonName = default)
+        {
+            return SF.Argument(colonName, SF.Token(SyntaxKind.RefKeyword), expr);
+        }
+        public static ParameterSyntax OutParameter(TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax @default = default)
+        {
+            return SF.Parameter(
+                attributeLists: default,
+                modifiers: SyntaxTokenList(SF.Token(SyntaxKind.OutKeyword)),
+                identifier: identifier,
+                type: type,
+                @default: @default);
+        }
+        public static ParameterSyntax Parameter(TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax @default = default)
+        {
+            return SF.Parameter(
+                attributeLists: default,
+                modifiers: default,
+                identifier: identifier,
+                type: type,
+                @default: @default);
+        }
+        public static ParameterSyntax InParameter(TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax @default = default)
+        {
+            return SF.Parameter(
+                attributeLists: default,
+                modifiers: SyntaxTokenList(SF.Token(SyntaxKind.InKeyword)),
+                identifier: identifier,
+                type: type,
+                @default: @default);
+        }
+        public static ParameterSyntax RefParameter(TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax @default = default)
+        {
+            return SF.Parameter(
+                attributeLists: default,
+                modifiers: SyntaxTokenList(SF.Token(SyntaxKind.RefKeyword)),
+                identifier: identifier,
+                type: type,
+                @default: @default);
+        }
+
+        public static ParameterListSyntax ParameterList(params ParameterSyntax[] parameters)
+        {
+            return SF.ParameterList().AddParameters(parameters);
+        }
+        public static SyntaxToken ByteKeyword()
+        {
+            return SF.Token(SyntaxKind.ByteKeyword);
+        }
+        public static SyntaxToken BoolKeyword()
+        {
+            return SF.Token(SyntaxKind.BoolKeyword);
+        }
+        public static SyntaxToken VoidKeyword()
+        {
+            return SF.Token(SyntaxKind.VoidKeyword);
+        }
+        public static SyntaxToken IntKeyword()
+        {
+            return SF.Token(SyntaxKind.IntKeyword);
+        }
+        public static SyntaxToken LongKeyword()
+        {
+            return SF.Token(SyntaxKind.LongKeyword);
+        }
+        public static SyntaxToken PublicKeyword()
+        {
+            return SF.Token(SyntaxKind.PublicKeyword);
+        }
+        public static SyntaxToken PrivateKeyword()
+        {
+            return SF.Token(SyntaxKind.PrivateKeyword);
+        }
+        public static SyntaxToken PartialKeyword()
+        {
+            return SF.Token(SyntaxKind.PartialKeyword);
+        }
+        public static SyntaxToken RecordKeyword()
+        {
+            return SF.Token(SyntaxKind.RecordKeyword);
+        }
+        public static SyntaxToken StaticKeyword()
+        {
+            return SF.Token(SyntaxKind.StaticKeyword);
+        }
+        public static SyntaxToken SealedKeyword()
+        {
+            return SF.Token(SyntaxKind.SealedKeyword);
+        }
+        public static SyntaxToken ReadOnlyKeyword()
+        {
+            return SF.Token(SyntaxKind.ReadOnlyKeyword);
+        }
+        public static PredefinedTypeSyntax IntPredefinedType()
+        {
+            return SF.PredefinedType(IntKeyword());
+        }
+        public static PredefinedTypeSyntax NativeIntPredefinedType()
+        {
+            return SF.PredefinedType(IntKeyword());
+        }
+        public static PredefinedTypeSyntax LongPredefinedType()
+        {
+            return SF.PredefinedType(LongKeyword());
+        }
+        public static PredefinedTypeSyntax BytePredefinedType()
+        {
+            return SF.PredefinedType(ByteKeyword());
+        }
+        public static PredefinedTypeSyntax BoolPredefinedType()
+        {
+            return SF.PredefinedType(BoolKeyword());
+        }
+        public static PredefinedTypeSyntax VoidPredefinedType()
+        {
+            return SF.PredefinedType(VoidKeyword());
+        }
+        public static LiteralExpressionSyntax DefaultLiteralExpr()
+        {
+            return SF.LiteralExpression(SyntaxKind.DefaultLiteralExpression);
+        }
+        public static LiteralExpressionSyntax NullLiteralExpr()
+        {
+            return SF.LiteralExpression(SyntaxKind.NullLiteralExpression);
+        }
+        public static LiteralExpressionSyntax NumericLiteralExpr(int value)
+        {
+            return SF.LiteralExpression(SyntaxKind.NumericLiteralExpression, SF.Literal(value));
+        }
+        public static LiteralExpressionSyntax NumericLiteralExpr(byte value)
+        {
+            return SF.LiteralExpression(SyntaxKind.NumericLiteralExpression, SF.Literal(value));
+        }
+        public static LiteralExpressionSyntax CharacterLiteralExpr(char value)
+        {
+            return SF.LiteralExpression(SyntaxKind.CharacterLiteralExpression, SF.Literal(value));
+        }
+        public static LiteralExpressionSyntax Utf8StringLiteralExpression(string value)
+        {
+            return SF.LiteralExpression(SyntaxKind.Utf8StringLiteralExpression, SF.ParseToken($"\"{value}\"u8"));
+        }
+        public static IdentifierNameSyntax IdentifierName(SyntaxToken token)
+        {
+            return SF.IdentifierName(token);
+        }
+        public static IdentifierNameSyntax IdentifierName(string name)
+        {
+            return SF.IdentifierName(name);
+        }
+        public static SyntaxToken Identifier(string name)
+        {
+            return SF.Identifier(name);
+        }
+        public static IdentifierNameSyntax IdentifierName(ISymbol sym)
+        {
+            return SF.IdentifierName(sym.Name);
+        }
+        public static IdentifierNameSyntax IdentifierFullName(ISymbol sym)
+        {
+            return IdentifierName(sym.ToString());
+        }
+
+        public static SyntaxToken TokenName(ISymbol sym)
+        {
+            return Identifier(sym.Name);
+        }
+
+        public static SyntaxToken SemicolonToken()
+        {
+            return SF.Token(SyntaxKind.SemicolonToken);
+        }
+        public static SyntaxToken OpenBraceToken()
+        {
+            return SF.Token(SyntaxKind.OpenBraceToken);
+        }
+        public static SyntaxToken CloseBraceToken()
+        {
+            return SF.Token(SyntaxKind.CloseBraceToken);
+        }
+        public static SyntaxToken TokenFullName(ISymbol sym)
+        {
+            return Identifier(sym.ToString());
+        }
+        public static TypeSyntax TypeFullName(ISymbol sym)
+        {
+            //TODO: FIX THIS SHIT
+            ISymbol trueType = sym.Name.Equals("Nullable") ? ((INamedTypeSymbol)sym).TypeParameters[0] : sym;
+
+            return SF.ParseTypeName(trueType.ToString());
+        }
+        public static TypeParameterSyntax TypeParameter(ITypeSymbol sym)
+        {
+            return SF.TypeParameter(sym.Name);
+        }
+        public static ExpressionStatementSyntax SimpleAssignExprStatement(ExpressionSyntax left, ExpressionSyntax right)
+        {
+            return SF.ExpressionStatement(SimpleAssignExpr(left, right));
+        }
+        public static ExpressionStatementSyntax SimpleAssignExprStatement(SyntaxToken left, SyntaxToken right)
+        {
+            return SF.ExpressionStatement(SimpleAssignExpr(IdentifierName(left), IdentifierName(right)));
+        }
+        public static ExpressionStatementSyntax SimpleAssignExprStatement(SyntaxToken left, ExpressionSyntax right)
+        {
+            return SF.ExpressionStatement(SimpleAssignExpr(IdentifierName(left), right));
+        }
+        public static ExpressionStatementSyntax SimpleAssignExprStatement(ExpressionSyntax left, SyntaxToken right)
+        {
+            return SF.ExpressionStatement(SimpleAssignExpr(left, right));
+        }
+        public static AssignmentExpressionSyntax SimpleAssignExpr(ExpressionSyntax left, ExpressionSyntax right)
+        {
+            return SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, left, right);
+        }
+        public static AssignmentExpressionSyntax SimpleAssignExpr(SyntaxToken left, ExpressionSyntax right)
+        {
+            return SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, IdentifierName(left), right);
+        }
+        public static AssignmentExpressionSyntax SimpleAssignExpr(ExpressionSyntax left, SyntaxToken right)
+        {
+            return SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, left, IdentifierName(right));
+        }
+        public static ArrayCreationExpressionSyntax SingleDimensionArrayCreation(TypeSyntax arrayType, int size, InitializerExpressionSyntax initializer = default)
+        {
+            var rank = new SyntaxList<ArrayRankSpecifierSyntax>(SF.ArrayRankSpecifier().AddSizes(NumericLiteralExpr(size)));
+
+            return SF.ArrayCreationExpression(SF.ArrayType(arrayType, rank), initializer);
+        }
+
+        public static StackAllocArrayCreationExpressionSyntax StackAllocByteArray(int size)
+        {
+            var rank = new SyntaxList<ArrayRankSpecifierSyntax>(SF.ArrayRankSpecifier().AddSizes(NumericLiteralExpr(size)));
+
+            return SF.StackAllocArrayCreationExpression(SF.ArrayType(BytePredefinedType(), rank));
+        }
         public static DeclarationExpressionSyntax VarValueTupleDeclarationExpr(params SyntaxToken[] tokens)
         {
             var designation = SF.ParenthesizedVariableDesignation(new SeparatedSyntaxList<VariableDesignationSyntax>().AddRange(tokens.Select(SF.SingleVariableDesignation)));

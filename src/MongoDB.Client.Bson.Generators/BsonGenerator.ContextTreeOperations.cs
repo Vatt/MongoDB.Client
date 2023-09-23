@@ -2,9 +2,9 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
+namespace MongoDB.Client.Bson.Generators
 {
-    internal static partial class SerializerGenerator
+    public partial class BsonGenerator
     {
         public enum OpCtxType
         {
@@ -243,7 +243,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static StatementSyntax[] GenerateCondition(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
         {
             var builder = new List<StatementSyntax>();
-            
+
             var member = host.Member;
 
             if (TryGenerateParseEnum(member.ByteName.Length, member.StaticSpanNameToken, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))

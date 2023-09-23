@@ -25,7 +25,7 @@ namespace MongoDB.Client.Tests.Models
                     timezone = "Europe/Moscow",
                     zip = 190000,
                     Update = "old"
-                    
+
                 };
             }
         }

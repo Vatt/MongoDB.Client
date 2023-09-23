@@ -1,9 +1,6 @@
-﻿using System.Net;
-using System.Text;
-using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
-using Xunit.Sdk;
 
 namespace MongoDB.Client.Tests.Client
 {
@@ -12,11 +9,11 @@ namespace MongoDB.Client.Tests.Client
         protected string StandaloneHost { get; } = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
         protected string RsHost { get; } = Environment.GetEnvironmentVariable("MONGODB_RS_HOST") ?? "localhost";
         protected string ShardedHost { get; } = Environment.GetEnvironmentVariable("MONGODB_SHARDED_HOST") ?? "localhost";
-        
+
         protected string DB { get; init; } = "TestDb";
         protected string Collection { get; init; } = "TestCollection";
 
-        protected readonly string RsName =  "rs0"; 
+        protected readonly string RsName = "rs0";
         protected async Task<List<T>> InsertAsync<T>(IEnumerable<T> items, MongoCollection<T> collection, TransactionHandler? tx = null, bool txCommit = false)
             where T : IBsonSerializer<T>
         {
@@ -29,7 +26,7 @@ namespace MongoDB.Client.Tests.Client
                 {
                     await tx.CommitAsync();
                 }
-                
+
             }
             else
             {
@@ -107,7 +104,7 @@ namespace MongoDB.Client.Tests.Client
             }
             return (result, before, after);
         }
-        
+
         protected async Task<(UpdateResult result, List<T> before, List<T> after)> UpdateOneAsync<T>(IEnumerable<T> insertItems, BsonDocument filter, Update update, MongoCollection<T> collection, UpdateOptions? options = null, TransactionHandler? tx = null, bool txCommit = false)
             where T : IBsonSerializer<T>
         {
@@ -116,7 +113,7 @@ namespace MongoDB.Client.Tests.Client
             List<T> before = default;
             if (tx != null)
             {
-                before =  await InsertAsync(insertItems, collection, tx, txCommit);
+                before = await InsertAsync(insertItems, collection, tx, txCommit);
                 result = await collection.UpdateOneAsync(tx, filter, update, options);
                 after = await collection.Find(tx, BsonDocument.Empty).ToListAsync();
                 if (txCommit)
@@ -126,7 +123,7 @@ namespace MongoDB.Client.Tests.Client
             }
             else
             {
-                before =  await InsertAsync(insertItems, collection);
+                before = await InsertAsync(insertItems, collection);
                 result = await collection.UpdateOneAsync(filter, update, options);
                 after = await collection.Find(BsonDocument.Empty).ToListAsync();
             }
@@ -140,7 +137,7 @@ namespace MongoDB.Client.Tests.Client
             List<T> before = default;
             if (tx != null)
             {
-                before =  await InsertAsync(insertItems, collection, tx, txCommit);
+                before = await InsertAsync(insertItems, collection, tx, txCommit);
                 result = await collection.UpdateManyAsync(tx, filter, update, options);
                 after = await collection.Find(tx, BsonDocument.Empty).ToListAsync();
                 if (txCommit)
@@ -150,7 +147,7 @@ namespace MongoDB.Client.Tests.Client
             }
             else
             {
-                before =  await InsertAsync(insertItems, collection);
+                before = await InsertAsync(insertItems, collection);
                 result = await collection.UpdateManyAsync(filter, update, options);
                 after = await collection.Find(BsonDocument.Empty).ToListAsync();
             }

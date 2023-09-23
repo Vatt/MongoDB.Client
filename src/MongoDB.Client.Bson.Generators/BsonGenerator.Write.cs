@@ -1,11 +1,10 @@
-﻿using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
+namespace MongoDB.Client.Bson.Generators
 {
-    internal static partial class SerializerGenerator
+    public partial class BsonGenerator
     {
         private static MethodDeclarationSyntax WriteMethod(ContextCore ctx)
         {
@@ -172,12 +171,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
 
             int repr = GetEnumRepresentation(member.NameSym);
-            
+
             if (repr == -1)
-            { 
+            {
                 repr = 2;
             }
-            
+
             if (repr != 1)
             {
                 statements = new()
@@ -207,7 +206,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var bsonTypeToken = Identifier($"bsonTypeTemp{bsonTypeCnt++}");
             var bsonReserved = Identifier($"bsonTypeReserved{reservedCnt++}");
             var trueType = ExtractTypeFromNullableIfNeed(typeSym);
-            
+
             if (IsBsonSerializable(trueType))
             {
                 expressions = new()
@@ -227,7 +226,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     InvocationExprStatement(IdentifierName(extSym.ToString()), WriteBsonToken, RefArgument(BsonWriterToken), Argument(writeTarget), OutArgument(VarVariableDeclarationExpr(bsonTypeToken))),
                     Statement(ReservedWriteByte(bsonReserved, bsonTypeToken))
                 };
-                
+
                 return true;
             }
 
@@ -288,25 +287,25 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 expr = Write_Type_Name_Value(bsonName, writeTarget);
                 return true;
             }
-            
+
             if (IsBsonArray(typeSymbol))
             {
                 expr = Write_Type_Name_Value(bsonName, writeTarget);
                 return true;
             }
-            
+
             if (IsBsonObjectId(typeSymbol))
             {
                 expr = Write_Type_Name_Value(bsonName, writeTarget);
                 return true;
             }
-            
+
             if (IsGuid(typeSymbol))
             {
                 expr = Write_Type_Name_Value(bsonName, writeTarget);
                 return true;
             }
-            
+
             if (IsDateTimeOffset(typeSymbol))
             {
                 expr = Write_Type_Name_Value(bsonName, writeTarget);

@@ -26,10 +26,10 @@ namespace MongoDB.Client.Messages
     {
         [BsonElement("ok")]
         public double Ok { get; }
-        
+
         [BsonElement("n")]
         public int N { get; }
-        
+
         [BsonElement("nModified")]
         public int Modified { get; }
 
@@ -38,10 +38,10 @@ namespace MongoDB.Client.Messages
 
         [BsonElement("$clusterTime")]
         public MongoClusterTime? ClusterTime { get; }
-        
+
         [BsonElement("errmsg")]
         public string? ErrorMessage { get; }
-        public UpdateResult( double ok, int n, int modified, List<Upserted> upserted, MongoClusterTime clusterTime, string errorMessage)
+        public UpdateResult(double ok, int n, int modified, List<Upserted> upserted, MongoClusterTime clusterTime, string errorMessage)
         {
             Upserted = upserted;
             Modified = modified;

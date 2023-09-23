@@ -1,9 +1,7 @@
-﻿using System;
-using System.Buffers;
+﻿using System.Buffers;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Writer;
-using Sprache;
 using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization;

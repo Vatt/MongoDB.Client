@@ -12,7 +12,7 @@ namespace MongoDB.Client.Protocol.Writers
         {
             var writer = new BsonWriter(output);
             var firstSpan = writer.Reserve(4);
-            
+
 
             //writer.WriteInt32(0); // size
             writer.WriteInt32(message.Header.RequestNumber);

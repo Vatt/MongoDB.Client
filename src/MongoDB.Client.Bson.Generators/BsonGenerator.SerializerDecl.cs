@@ -3,9 +3,9 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
+namespace MongoDB.Client.Bson.Generators
 {
-    internal static partial class SerializerGenerator
+    public partial class BsonGenerator
     {
         public static SyntaxToken TryGetSerializerToken = Identifier("TryGetSerializer");
         public static ExpressionSyntax SerializerMapId = IdentifierName("MongoDB.Client.Bson.Serialization.SerializersMap");
@@ -128,7 +128,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     return member;
                 }
 
-                if (symbol is INamedTypeSymbol namedSym && namedSym.GetMembers().Any(x => x.Kind == SymbolKind.Property && x.Name.Equals("EqualityContract", System.StringComparison.InvariantCulture) && x.IsImplicitlyDeclared)) // record shit check
+                if (symbol is INamedTypeSymbol namedSym && namedSym.GetMembers().Any(x => x.Kind == SymbolKind.Property && x.Name.Equals("EqualityContract", StringComparison.InvariantCulture) && x.IsImplicitlyDeclared)) // record shit check
                 {
                     TypeParameterSyntax[] typeParams = namedSym.TypeArguments.IsEmpty ? null : namedSym.TypeArguments.Select(x => TypeParameter(x)).ToArray();
 

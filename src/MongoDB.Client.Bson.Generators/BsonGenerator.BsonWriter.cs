@@ -2,12 +2,12 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
+namespace MongoDB.Client.Bson.Generators
 {
-    internal static partial class SerializerGenerator
+    public partial class BsonGenerator
     {
-        public static readonly MemberAccessExpressionSyntax WriterWrittenExpr = SimpleMemberAccess(BsonWriterToken, IdentifierName("Written"));
-        public static readonly ExpressionSyntax WriterCommitExpr = InvocationExpr(BsonWriterToken, IdentifierName("Commit"));
+        public static MemberAccessExpressionSyntax WriterWrittenExpr => SimpleMemberAccess(BsonWriterToken, IdentifierName("Written"));
+        public static ExpressionSyntax WriterCommitExpr => InvocationExpr(BsonWriterToken, IdentifierName("Commit"));
         public static ExpressionSyntax Write_Type_Name_Value(ExpressionSyntax name, ExpressionSyntax value)
         {
             return InvocationExpr(BsonWriterToken, IdentifierName("Write_Type_Name_Value"), Argument(name), Argument(value));

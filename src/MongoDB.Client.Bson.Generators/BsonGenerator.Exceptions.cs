@@ -2,9 +2,9 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
+namespace MongoDB.Client.Bson.Generators
 {
-    internal static partial class SerializerGenerator
+    public partial class BsonGenerator
     {
         private static readonly TypeSyntax SerializerEndMarkerExceptionSyntax = SF.ParseTypeName("MongoDB.Client.Bson.Serialization.Exceptions.SerializerEndMarkerException");
         public static ThrowExpressionSyntax SerializerEndMarkerException(ISymbol symbol, ExpressionSyntax endMarker)

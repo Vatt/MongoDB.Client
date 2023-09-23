@@ -1,11 +1,10 @@
 ﻿using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator;
 
-namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
+namespace MongoDB.Client.Bson.Generators
 {
-    internal class MemberContext
+    public class MemberContext
     {
         internal ContextCore Root { get; }
         internal ISymbol NameSym { get; }
@@ -40,27 +39,27 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                 TypeGenericArgs = namedType.TypeArguments.IsEmpty ? null : namedType.TypeArguments;
             }
 
-            (BsonElementValue, BsonElementAlias) = SerializerGenerator.GetMemberAlias(NameSym);
+            (BsonElementValue, BsonElementAlias) = BsonGenerator.GetMemberAlias(NameSym);
 
-            StaticSpanNameToken = SerializerGenerator.Identifier($"{Root.Declaration.Name}{BsonElementAlias}");
+            StaticSpanNameToken = BsonGenerator.Identifier($"{Root.Declaration.Name}{BsonElementAlias}");
 
-            var trueType = SerializerGenerator.ExtractTypeFromNullableIfNeed(TypeSym);
-            
+            var trueType = BsonGenerator.ExtractTypeFromNullableIfNeed(TypeSym);
+
             if (trueType.IsReferenceType)
             {
-                if (trueType.Equals(SerializerGenerator.ArrayByteTypeSym, SymbolEqualityComparer.Default))
+                if (trueType.Equals(BsonGenerator.ArrayByteTypeSym, SymbolEqualityComparer.Default))
                 {
-                    AssignedVariableToken = SerializerGenerator.Identifier($"ByteArray{NameSym.Name}");
+                    AssignedVariableToken = BsonGenerator.Identifier($"ByteArray{NameSym.Name}");
                 }
                 else
                 {
-                    AssignedVariableToken = SerializerGenerator.Identifier($"{trueType.Name}{NameSym.Name}");
+                    AssignedVariableToken = BsonGenerator.Identifier($"{trueType.Name}{NameSym.Name}");
                 }
 
             }
             else
             {
-                AssignedVariableToken = SerializerGenerator.Identifier($"{TypeSym.Name}{NameSym.Name}");
+                AssignedVariableToken = BsonGenerator.Identifier($"{TypeSym.Name}{NameSym.Name}");
             }
 
             ByteName = Encoding.UTF8.GetBytes(BsonElementValue);

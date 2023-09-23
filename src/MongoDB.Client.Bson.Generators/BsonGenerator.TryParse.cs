@@ -1,11 +1,10 @@
-﻿using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
+namespace MongoDB.Client.Bson.Generators
 {
-    internal static partial class SerializerGenerator
+    public partial class BsonGenerator
     {
         private readonly struct ReadOperationContext
         {
@@ -191,8 +190,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             if (operation != default)
             {
                 statements.Add(IfStatement(condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken, member.ByteName.Length),
-                                           statement: tempVar != null 
-                                                       ? Block(IfNotReturnFalse(operation), SimpleAssignExprStatement(member.AssignedVariableToken, tempVar), ContinueStatement) 
+                                           statement: tempVar != null
+                                                       ? Block(IfNotReturnFalse(operation), SimpleAssignExprStatement(member.AssignedVariableToken, tempVar), ContinueStatement)
                                                        : Block(IfNotReturnFalse(operation), ContinueStatement)));
                 return true;
             }
@@ -225,7 +224,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                                RefArgument(BsonReaderToken),
                                                OutArgument(member.AssignedVariableToken));
 
-                builder.Add(IfStatement(condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken, member.ByteName.Length), 
+                builder.Add(IfStatement(condition: SpanSequenceEqual(bsonName, member.StaticSpanNameToken, member.ByteName.Length),
                                         statement: Block(IfNotReturnFalse(condition), ContinueStatement)));
 
                 return true;
@@ -296,9 +295,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 case SpecialType.System_Object:
                     expr = TryReadObject(bsonType, variable);
                     return true;
-                //case SpecialType.System_DateTime:
-                //    expr = TryGetDateTimeWithBsonType(bsonType, variable);
-                //    return true;
+                    //case SpecialType.System_DateTime:
+                    //    expr = TryGetDateTimeWithBsonType(bsonType, variable);
+                    //    return true;
             }
 
             if (IsArrayByteOrMemoryByte(typeSymbol))

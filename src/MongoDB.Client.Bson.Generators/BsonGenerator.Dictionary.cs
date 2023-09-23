@@ -1,9 +1,9 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
+namespace MongoDB.Client.Bson.Generators
 {
-    internal static partial class SerializerGenerator
+    public partial class BsonGenerator
     {
         public static void ExtractDictionaryTypeArgs(INamedTypeSymbol type, out ITypeSymbol keyTypeArg, out ITypeSymbol valueTypeArg)
         {
@@ -99,7 +99,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                    IfStatement(
                                        condition: BinaryExprEqualsEquals(DictionaryBsonTypeToken, NumericLiteralExpr(10)),
                                        statement: Block(
-                                           InvocationExprStatement(InternalDictionaryToken, 
+                                           InvocationExprStatement(InternalDictionaryToken,
                                                                    CollectionAddToken,
                                                                    Argument(DictionaryBsonNameToken), Argument(DefaultLiteralExpr())),
                                            ContinueStatement
@@ -125,7 +125,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var valueToken = Identifier("value");
 
             ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
-            
+
             ExtractDictionaryTypeArgs(trueType as INamedTypeSymbol, out _, out var typeArg);
 
             var writeOperations = new List<StatementSyntax>();

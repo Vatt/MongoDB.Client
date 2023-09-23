@@ -3,10 +3,9 @@ using System.Linq;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
-using Microsoft.Diagnostics.Tracing.Parsers.MicrosoftWindowsTCPIP;
 using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Tests.Models;
 using MongoDB.Driver;
 using NewClient = MongoDB.Client.MongoClient;
@@ -212,7 +211,7 @@ namespace MongoDB.Client.Benchmarks
 
             static async Task Worker(IMongoCollection<T> collection, ChannelReader<T> reader)
             {
-                await foreach (var item in reader.ReadAllAsync()) 
+                await foreach (var item in reader.ReadAllAsync())
                 {
                     await Work(collection, item);
                 }
