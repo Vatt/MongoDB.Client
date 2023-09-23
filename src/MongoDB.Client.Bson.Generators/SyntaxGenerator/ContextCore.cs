@@ -10,7 +10,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         private enum PrivateMode : byte
         {
             IfConditions = 1,
-            ConstuctorOnlyParameters = 2,
+            ConstructorParamenters = 2,
             SkipTryParseBson = 4,
             SkipWriteBson = 8,
         }
@@ -25,7 +25,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             //IfConditions = (mode | PrivateMode.IfConditions) == PrivateMode.IfConditions;
             //ConstructorOnlyParameters = (mode | PrivateMode.ConstuctorOnlyParameters) == PrivateMode.ConstuctorOnlyParameters;   
             IfConditions = mode.HasFlag(PrivateMode.IfConditions);
-            ConstructorOnlyParameters = mode.HasFlag(PrivateMode.ConstuctorOnlyParameters);
+            ConstructorOnlyParameters = mode.HasFlag(PrivateMode.ConstructorParamenters);
             GenerateTryParseBson = mode.HasFlag(PrivateMode.SkipTryParseBson) == false;
             GenerateWriteBson = mode.HasFlag(PrivateMode.SkipWriteBson) == false;
         }

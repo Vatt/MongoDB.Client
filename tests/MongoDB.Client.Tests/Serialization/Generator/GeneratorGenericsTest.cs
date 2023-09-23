@@ -107,7 +107,7 @@ namespace MongoDB.Client.Tests.Serialization.Generator
             throw new NotImplementedException();
         }
     }
-    [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
+    [BsonSerializable(GeneratorMode.ConstructorParameters)]
     public partial class GenericTypeTestModel : GeneratorTypeTestModelBase<GenericTypedef, GenericTypedef?>, IEquatable<GenericTypeTestModel>
     {
         public GenericTypeTestModel(

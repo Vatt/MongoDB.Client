@@ -90,7 +90,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
             return HashCode.Combine(Enum, EnumList);
         }
     }
-    [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
+    [BsonSerializable(GeneratorMode.ConstructorParameters)]
     public partial class StringEnumModel : IEquatable<StringEnumModel>
     {
         protected BsonElementType BsonType;
@@ -207,7 +207,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
             throw new NotImplementedException();
         }
     }
-    [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
+    [BsonSerializable(GeneratorMode.ConstructorParameters)]
     public partial class Int64EnumModel : IEquatable<Int64EnumModel>
     {
         protected BsonElementType BsonType;
@@ -342,7 +342,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
             return Equals(obj as Int64EnumModel);
         }
     }
-    [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
+    [BsonSerializable(GeneratorMode.ConstructorParameters)]
     public partial class Int32EnumModel : GeneratorTypeTestModelBase<TestEnum, TestEnum?>, IEquatable<Int32EnumModel>
     {
         public Int32EnumModel(
