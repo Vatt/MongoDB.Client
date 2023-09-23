@@ -15,10 +15,10 @@ namespace MongoDB.Client.Protocol.Readers
             [MaybeNullWhen(false)] out UpdateResult message)
         {
             var bsonReader = new BsonReader(input);
-//#if DEBUG
-//            bsonReader.TryParseDocument(out var doc);
-//            bsonReader = new BsonReader(input);
-//#endif
+            //#if DEBUG
+            //            bsonReader.TryParseDocument(out var doc);
+            //            bsonReader = new BsonReader(input);
+            //#endif
             if (UpdateResult.TryParseBson(ref bsonReader, out message) == false)
             {
                 return false;

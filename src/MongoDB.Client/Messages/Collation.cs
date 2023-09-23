@@ -6,7 +6,7 @@ namespace MongoDB.Client.Messages
     public enum CollationCaseFirst
     {
         [BsonElement("lower")]
-        Lower, 
+        Lower,
         [BsonElement("off")]
         Off,
         [BsonElement("upper")]
@@ -42,31 +42,31 @@ namespace MongoDB.Client.Messages
     {
         [BsonElement("locale")]
         public string Locale { get; init; }
-        
+
         [BsonElement("caseLevel")]
-        public bool? CaseLevel { get; init;}
-        
+        public bool? CaseLevel { get; init; }
+
         [BsonElement("caseFirst")]
         [BsonEnum(EnumRepresentation.String)]
-        public CollationCaseFirst CaseFirst { get; init;}
-        
+        public CollationCaseFirst CaseFirst { get; init; }
+
         [BsonElement("strength")]
         [BsonEnum(EnumRepresentation.Int32)]
-        public CollationStrength Strength { get; init;}
-        
+        public CollationStrength Strength { get; init; }
+
         [BsonElement("numericOrdering")]
-        public bool? NumericOrdering { get; init;}
-        
+        public bool? NumericOrdering { get; init; }
+
         [BsonElement("alternate")]
         [BsonEnum(EnumRepresentation.String)]
-        public CollationAlternate Alternate { get; init;}
-        
+        public CollationAlternate Alternate { get; init; }
+
         [BsonElement("maxVariable")]
         [BsonEnum(EnumRepresentation.String)]
-        public CollationMaxVariable MaxVariable { get; init;}
-        
+        public CollationMaxVariable MaxVariable { get; init; }
+
         [BsonElement("backwards")]
-        public bool? Backwards { get; init;}
+        public bool? Backwards { get; init; }
 
         public Collation(string locale, bool? caseLevel, CollationCaseFirst caseFirst, CollationStrength strength, bool? numericOrdering, CollationAlternate alternate, CollationMaxVariable maxVariable, bool? backwards)
         {

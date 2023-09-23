@@ -1,9 +1,8 @@
-﻿using System.Text;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
-namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
+namespace MongoDB.Client.Bson.Generators
 {
-    internal static partial class SerializerGenerator
+    public partial class BsonGenerator
     {
         public static INamedTypeSymbol System_Object => Compilation.GetSpecialType(SpecialType.System_Object);
         public static INamedTypeSymbol System_Byte => Compilation.GetSpecialType(SpecialType.System_Byte);
@@ -29,33 +28,6 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static INamedTypeSymbol System_Collections_Generic_KeyValuePair => Compilation.GetTypeByMetadataName("System.Collections.Generic.KeyValuePair`2")!;
         public static ITypeSymbol ArrayByteTypeSym => Compilation.CreateArrayTypeSymbol(System_Byte);
         public static ITypeSymbol MemoryByteTypeSym => System_Memory.Construct(System_Byte);
-        public static bool TryGetMetadata(ITypeSymbol source, out ISymbol result)
-        {
-            var str = source.ToString();
-            result = Compilation.GetTypeByMetadataName(str);
-            if (result != null)
-            {
-                return true;
-            }
-            while (true)
-            {
-                var last = str.LastIndexOf('.');
-                if (last == -1)
-                {
-                    break;
-                }
-                StringBuilder builder = new StringBuilder(str);
-                str = builder.Replace('.', '+', last, 1).ToString();
-
-                result = Compilation.GetTypeByMetadataName(str);
-                if (result != null)
-                {
-                    return true;
-                }
-
-            }
-            return false;
-        }
         public static bool IsArrayByteOrMemoryByte(ISymbol sym)
         {
             return sym.Equals(ArrayByteTypeSym, SymbolEqualityComparer.Default) ||
@@ -75,11 +47,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return false;
             }
+
             return symbol.OriginalDefinition.Equals(System_Collections_Generic_List_T, SymbolEqualityComparer.Default) ||
                    symbol.OriginalDefinition.Equals(System_Collections_Generic_IList_T, SymbolEqualityComparer.Default) ||
                    symbol.OriginalDefinition.Equals(System_Collections_Generic_IReadOnlyList_T, SymbolEqualityComparer.Default);
         }
-
         public static bool IsCollection(ISymbol symbol)
         {
             return IsListCollection(symbol) || IsDictionaryCollection(symbol);
@@ -97,6 +69,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 var named = symbol as INamedTypeSymbol;
                 var typeArgument = named!.TypeArguments[0];
+
                 if (typeArgument.OriginalDefinition.Equals(System_Collections_Generic_KeyValuePair, SymbolEqualityComparer.Default))
                 {
                     return false;
@@ -106,6 +79,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -116,15 +90,19 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return false;
             }
+
             var named = symbol as INamedTypeSymbol;
+
             if (named is null)
             {
                 return false;
             }
+
             if (named.TypeArguments[0].OriginalDefinition.Equals(System_Collections_Generic_KeyValuePair, SymbolEqualityComparer.Default))
             {
                 return true;
             }
+
             return false;
         }
         public static bool IsDictionaryCollection(ISymbol symbol)
@@ -135,16 +113,19 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return true;
             }
+
             if (symbol.OriginalDefinition.Equals(System_Collections_Generic_ICollection_T, SymbolEqualityComparer.Default) ||
                 symbol.OriginalDefinition.Equals(System_Collections_Generic_IReadOnlyCollection_T, SymbolEqualityComparer.Default))
             {
                 var named = symbol as INamedTypeSymbol;
                 var ta = named!.TypeArguments[0];
+
                 if (ta.OriginalDefinition.Equals(System_Collections_Generic_KeyValuePair, SymbolEqualityComparer.Default))
                 {
                     return true;
                 }
             }
+
             return false;
         }
         public static bool IsBsonObjectId(ISymbol sym)

@@ -11,7 +11,7 @@ namespace MongoDB.Client.Tests.Client
             var model = CommonModel.Create();
             var db = client.GetDatabase(DB);
             var collection = db.GetCollection<CommonModel>("InsertTestCollection" + DateTimeOffset.UtcNow);
-            var result = await InsertAsync(new[] {model}, collection);
+            var result = await InsertAsync(new[] { model }, collection);
             Assert.True(result.Count == 1);
             Assert.Equal(model, result[0]);
             await collection.DropAsync();
@@ -22,7 +22,7 @@ namespace MongoDB.Client.Tests.Client
             var model = CommonModel.Create();
             var db = client.GetDatabase(DB);
             var collection = db.GetCollection<CommonModel>("InsertTestCollection" + DateTimeOffset.UtcNow);
-            var result = await FindAsync(new[] {model}, BsonDocument.Empty, collection);
+            var result = await FindAsync(new[] { model }, BsonDocument.Empty, collection);
             Assert.True(result.Count == 1);
             Assert.Equal(model, result[0]);
             await collection.DropAsync();
@@ -31,7 +31,7 @@ namespace MongoDB.Client.Tests.Client
         protected async Task UpdateOneTest(MongoClient client)
         {
             var model = CommonModel.Create();
-            var items = new[] {model, model};
+            var items = new[] { model, model };
             var updateDoc = CommonModel.Create();
             updateDoc.StringField = "UPDATED";
             var update = Update.Set(updateDoc);
@@ -48,7 +48,7 @@ namespace MongoDB.Client.Tests.Client
         protected async Task UpdateManyTest(MongoClient client)
         {
             var model = CommonModel.Create();
-            var items = new[] {model, model, model, model, model, model, model, model, model, model, model};
+            var items = new[] { model, model, model, model, model, model, model, model, model, model, model };
             var updateDoc = CommonModel.Create();
             updateDoc.StringField = "UPDATED";
             var update = Update.Set(updateDoc);
@@ -64,7 +64,7 @@ namespace MongoDB.Client.Tests.Client
         protected async Task DeleteOneTest(MongoClient client)
         {
             var model = CommonModel.Create();
-            var items = new[] {model, model};
+            var items = new[] { model, model };
             var delete = BsonDocument.Empty;
             var db = client.GetDatabase(DB);
             var collection = db.GetCollection<CommonModel>("DeleteOneCollection" + DateTimeOffset.UtcNow);
@@ -77,7 +77,7 @@ namespace MongoDB.Client.Tests.Client
         protected async Task DeleteManyTest(MongoClient client)
         {
             var model = CommonModel.Create();
-            var items = new[] {model, model, model, model, model, model, model, model, model, model, model};
+            var items = new[] { model, model, model, model, model, model, model, model, model, model, model };
             var delete = BsonDocument.Empty;
             var db = client.GetDatabase(DB);
             var collection = db.GetCollection<CommonModel>("DeleteManyCollection" + DateTimeOffset.UtcNow);

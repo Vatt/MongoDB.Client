@@ -84,7 +84,7 @@ namespace MongoDB.Client.Scheduler
         }
 
 
-        public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token) 
+        public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token)
             where T : IBsonSerializer<T>
         {
             var request = MongoRequestPool.Get();
@@ -106,7 +106,7 @@ namespace MongoDB.Client.Scheduler
         }
 
 
-        public async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token) 
+        public async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token)
             where T : IBsonSerializer<T>
         {
             var request = MongoRequestPool.Get();
@@ -167,7 +167,7 @@ namespace MongoDB.Client.Scheduler
             }
             var updateResult = (UpdateResult)await taskSource.GetValueTask().ConfigureAwait(false);
             MongoRequestPool.Return(request);
-            
+
             return updateResult.ErrorMessage is null ? updateResult : ThrowHelper.UpdateException<UpdateResult>(updateResult.ErrorMessage);
         }
         public async ValueTask TransactionAsync(TransactionMessage message, CancellationToken token)
