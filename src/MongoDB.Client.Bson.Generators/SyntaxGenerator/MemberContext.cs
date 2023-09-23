@@ -41,8 +41,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             }
 
             (BsonElementValue, BsonElementAlias) = SerializerGenerator.GetMemberAlias(NameSym);
+
             StaticSpanNameToken = SerializerGenerator.Identifier($"{Root.Declaration.Name}{BsonElementAlias}");
+
             var trueType = SerializerGenerator.ExtractTypeFromNullableIfNeed(TypeSym);
+            
             if (trueType.IsReferenceType)
             {
                 if (trueType.Equals(SerializerGenerator.ArrayByteTypeSym, SymbolEqualityComparer.Default))
@@ -59,6 +62,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             {
                 AssignedVariableToken = SerializerGenerator.Identifier($"{TypeSym.Name}{NameSym.Name}");
             }
+
             ByteName = Encoding.UTF8.GetBytes(BsonElementValue);
         }
     }

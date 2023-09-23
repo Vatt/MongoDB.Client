@@ -15,8 +15,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 return false;
             }
             var localReadEnumVar = Identifier($"{readTarget.ToString()}EnumTemp");
+
             int repr = GetEnumRepresentation(nameSym);
-            if (repr == -1) { repr = 2; }
+
+            if (repr == -1)
+            { 
+                repr = 2;
+            }
+
             if (repr != 1)
             {
                 result =
@@ -56,6 +62,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             List<MethodDeclarationSyntax> methods = new();
             HashSet<ISymbol> alreadyCreated = new(SymbolEqualityComparer.Default);
+
             foreach (var member in ctx.Members.Where(member => ExtractTypeFromNullableIfNeed(member.TypeSym).TypeKind == TypeKind.Enum))
             {
                 var repr = GetEnumRepresentation(member.NameSym);
@@ -67,12 +74,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
                 }
             }
+
             return methods.ToArray();
         }
         private static MethodDeclarationSyntax[] GenerateReadStringReprEnumMethods(ContextCore ctx)
         {
             List<MethodDeclarationSyntax> methods = new();
             var alreadyCreated = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
+
             foreach (var member in ctx.Members.Where(member => ExtractTypeFromNullableIfNeed(member.TypeSym).TypeKind == TypeKind.Enum))
             {
                 var repr = GetEnumRepresentation(member.NameSym);
@@ -83,6 +92,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     alreadyCreated.Add(member.TypeSym);
                 }
             }
+
             return methods.ToArray();
         }
         private static MethodDeclarationSyntax ReadStringReprEnumMethod(MemberContext ctx)
@@ -91,16 +101,20 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var trueType = ExtractTypeFromNullableIfNeed(ctx.TypeSym);
             var repr = GetEnumRepresentation(ctx.NameSym);
             var alreadyCreated = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
+
             if (repr != 1)
             {
                 return default;
             }
+
             var stringData = Identifier("stringData");
+
             List<StatementSyntax> statements = new()
             {
                 SimpleAssignExprStatement(outMessage, DefaultLiteralExpr()),
                 IfNotReturnFalse(TryGetStringAsSpan(VarVariableDeclarationExpr(stringData)))
             };
+
             foreach (var member in trueType.GetMembers().Where(sym => sym.Kind == SymbolKind.Field))
             {
                 var (_, alias) = GetMemberAlias(member);
@@ -113,7 +127,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                             ReturnTrueStatement
                             )));
             }
+
             statements.Add(ReturnTrueStatement);
+
             return SF.MethodDeclaration(
                     attributeLists: default,
                     modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()),
@@ -138,18 +154,21 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return default;
             }
-            var sections = ImmutableList.CreateBuilder<SwitchSectionSyntax>();
+
+            var sections = new List<SwitchSectionSyntax>();
+
             foreach (var member in trueType.GetMembers().Where(sym => sym.Kind == SymbolKind.Field))
             {
                 var (_, alias) = GetMemberAlias(member);
                 var label = IdentifierName(member.ToString());
-                sections.SwitchSection(label, Block(
-                            //Write_Type_Name(2, spanNameArg),
-                            WriteString(StaticEnumFieldNameToken(trueType, alias)),
-                            ReturnNothingStatement
-                    ));
-
+                sections.Add(
+                    SwitchSection(label, Block(
+                                               //Write_Type_Name(2, spanNameArg),
+                                               WriteString(StaticEnumFieldNameToken(trueType, alias)),
+                                               ReturnNothingStatement
+                    )));
             }
+
             return SF.MethodDeclaration(
                     attributeLists: default,
                     modifiers: SyntaxTokenList(PrivateKeyword(), StaticKeyword()),

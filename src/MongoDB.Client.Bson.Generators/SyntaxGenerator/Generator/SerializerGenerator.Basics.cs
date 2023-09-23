@@ -28,6 +28,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 {
                     return original;
                 }
+
                 if (namedType.IsReferenceType)
                 {
                     if (namedType.IsGenericType)
@@ -47,25 +48,26 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                 //return BsonSerializerGenerator.Compilation.CreateArrayTypeSymbol(extractedElementType, 1);
                 return BsonSerializerGenerator.Compilation.CreateArrayTypeSymbol(arraySym.ElementType, 1);
             }
+
             return original;
         }
         public static ExpressionSyntax SpanSequenceEqual(SyntaxToken spanName, SyntaxToken otherSpanName, int aliasNameLength)
         {
-            var equalNum = aliasNameLength switch
-            {
-                < 5 => aliasNameLength,
-                < 8 => 5,
-                8 => 8,
-                < 16 => 9,
-                16 => 16,
-                < 32 => 17,
-                32 => 32,
-                < 64 => 33,
-                64 => 64,
-                _ => 65
-            };
-            return InvocationExpr(IdentifierName(spanName), SF.Identifier("SequenceEqual" + equalNum), SF.Argument(IdentifierName(otherSpanName)));
-            // return InvocationExpr(IdentifierName(spanName), SequenceEqualToken, SF.Argument(IdentifierName(otherSpanName)));
+            //var equalNum = aliasNameLength switch
+            //{
+            //    < 5 => aliasNameLength,
+            //    < 8 => 5,
+            //    8 => 8,
+            //    < 16 => 9,
+            //    16 => 16,
+            //    < 32 => 17,
+            //    32 => 32,
+            //    < 64 => 33,
+            //    64 => 64,
+            //    _ => 65
+            //};
+            //return InvocationExpr(IdentifierName(spanName), SF.Identifier("SequenceEqual" + equalNum), SF.Argument(IdentifierName(otherSpanName)));
+            return InvocationExpr(IdentifierName(spanName), SequenceEqualToken, SF.Argument(IdentifierName(otherSpanName)));
         }
 
         public static DeclarationExpressionSyntax VarValueTupleDeclarationExpr(params SyntaxToken[] tokens)
@@ -339,9 +341,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return SF.Block(first).AddStatements(buider.ToArray());
         }
-        public static BlockSyntax Block(ImmutableList<StatementSyntax>.Builder builder)
+        public static BlockSyntax Block(List<StatementSyntax> satatements)
         {
-            return Block(builder.ToArray());
+            return Block(satatements.ToArray());
         }
         public static BlockSyntax Block(ImmutableList<StatementSyntax>.Builder builder, ExpressionSyntax expr)
         {

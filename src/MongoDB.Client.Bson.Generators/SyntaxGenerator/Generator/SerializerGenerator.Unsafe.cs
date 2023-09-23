@@ -27,11 +27,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return MemoryMarshalGetReference(span);
             }
-            return InvocationExpr(
-                UnsafeToken,
-                UnsafeAddToken,
-                RefArgument(MemoryMarshalGetReference(span)),
-                Argument(CastToNInt(NumericLiteralExpr(index))));
+
+            return InvocationExpr(UnsafeToken,
+                                  UnsafeAddToken,
+                                  RefArgument(MemoryMarshalGetReference(span)),
+                                  Argument(CastToNInt(NumericLiteralExpr(index))));
         }
     }
 }

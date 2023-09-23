@@ -10,29 +10,28 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         private enum PrivateMode : byte
         {
             IfConditions = 1,
-            ConstructorParamenters = 2,
+            ConstructorParameters = 2,
             SkipTryParseBson = 4,
             SkipWriteBson = 8,
         }
         public bool IfConditions { get; set; }
-        public bool ConstructorOnlyParameters { get; }
+        public bool ConstructorParameters { get; }
         public bool GenerateTryParseBson { get; }
         public bool GenerateWriteBson { get; }
         public GeneratorMode(byte byteMode)
         {
             PrivateMode mode = (PrivateMode)byteMode;
 
-            //IfConditions = (mode | PrivateMode.IfConditions) == PrivateMode.IfConditions;
-            //ConstructorOnlyParameters = (mode | PrivateMode.ConstuctorOnlyParameters) == PrivateMode.ConstuctorOnlyParameters;   
+
             IfConditions = mode.HasFlag(PrivateMode.IfConditions);
-            ConstructorOnlyParameters = mode.HasFlag(PrivateMode.ConstructorParamenters);
+            ConstructorParameters = mode.HasFlag(PrivateMode.ConstructorParameters);
             GenerateTryParseBson = mode.HasFlag(PrivateMode.SkipTryParseBson) == false;
             GenerateWriteBson = mode.HasFlag(PrivateMode.SkipWriteBson) == false;
         }
         public GeneratorMode()
         {
             IfConditions = false;
-            ConstructorOnlyParameters = false;
+            ConstructorParameters = false;
             GenerateTryParseBson = true;
             GenerateWriteBson = true;
         }
@@ -53,9 +52,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             {
                 string name = GenericArgs.HasValue ? Declaration.Name + string.Join(string.Empty, GenericArgs.Value) : Declaration.Name;
                 ISymbol sym = Declaration;
+
                 while (sym.ContainingSymbol.Kind != SymbolKind.Namespace)
                 {
                     string generics = string.Empty;
+
                     if (sym.ContainingSymbol is INamedTypeSymbol namedType)
                     {
                         if (namedType.TypeArguments.IsEmpty == false)
@@ -63,9 +64,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                             generics = string.Join(string.Empty, namedType.TypeArguments);
                         }
                     }
+
                     name += "." + sym.ContainingSymbol.Name + generics;
                     sym = sym.ContainingSymbol;
                 }
+
                 return SerializerGenerator.Identifier($"{name}.g");
             }
         }
@@ -78,6 +81,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             DeclarationNode = node;
             Members = new List<MemberContext>();
             GenericArgs = Declaration.TypeArguments.IsEmpty ? null : Declaration.TypeArguments;
+
             if (SerializerGenerator.TryFindPrimaryConstructor(Declaration, node, out var constructor))
             {
                 if (constructor!.Parameters.Length != 0)
@@ -85,13 +89,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     ConstructorParams = constructor.Parameters;
                 }
             }
+
             if (ConstructorParams.HasValue)
             {
-                ConstructorParamsBinds = MatchContructorArguments();
+                ConstructorParamsBinds = MatchConstructorArguments();
             }
+
             GeneratorMode = SerializerGenerator.GetGeneratorMode(symbol);
 
-            if (GeneratorMode.ConstructorOnlyParameters)
+            if (GeneratorMode.ConstructorParameters)
             {
                 CreateContructorOnlyMembers();
             }
@@ -105,12 +111,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                 GeneratorMode.IfConditions = true;
             }
         }
-        private Dictionary<ISymbol, string> MatchContructorArguments()
+        private Dictionary<ISymbol, string> MatchConstructorArguments()
         {
             var binds = new Dictionary<ISymbol, string>(SymbolEqualityComparer.IncludeNullability);
+
             foreach (var param in ConstructorParams)
             {
                 var member = FindMemberByName(Declaration, param.Name);
+
                 if (member is null)
                 {
                     SerializerGenerator.ReportMatchConstructorParametersError(Declaration);
@@ -132,10 +140,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                 {
                     continue;
                 }
+
                 if (CheckAccessibility(member) && NameEquals(member.Name, name))
                 {
                     return member;
                 }
+
                 if (CheckGetAccessibility(member) && NameEquals(member.Name, name))
                 {
                     return member;
@@ -158,6 +168,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
                     Members.Add(new MemberContext(this, member));
                     continue;
                 }
+
                 if (CheckGetAccessibility(member) && ConstructorContains(member.Name))
                 {
                     Members.Add(new MemberContext(this, member));
@@ -185,16 +196,18 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         private static bool NameEquals(string symName, string paramName)
         {
             var fmtParamName = paramName.ToUpper().Replace("_", string.Empty);
+
             return symName.ToUpper().Equals(fmtParamName);
         }
         public bool MembersContains(IParameterSymbol parameter, out ISymbol symbol)
         {
             symbol = Declaration.GetMembers()
-                .Where(sym => IsBadMemberSym(sym) == false)
-                .FirstOrDefault(sym => CheckGetAccessibility(sym) &&
-                                       ExtractTypeFromSymbol(sym, out var type) &&
-                                       NameEquals(sym.Name, parameter.Name) &&
-                                       type.Equals(parameter.Type, SymbolEqualityComparer.Default));
+                                .Where(sym => IsBadMemberSym(sym) == false)
+                                .FirstOrDefault(sym => CheckGetAccessibility(sym) &&
+                                                       ExtractTypeFromSymbol(sym, out var type) &&
+                                                       NameEquals(sym.Name, parameter.Name) &&
+                                                       type.Equals(parameter.Type, SymbolEqualityComparer.Default));
+
             if (symbol is not null)
             {
                 return true;
@@ -211,11 +224,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
         {
             var baseSym = symbol.BaseType;
             result = symbol.GetMembers()
-                .Where(sym => IsBadMemberSym(sym) == false)
-                .FirstOrDefault(sym => CheckGetAccessibility(sym) &&
-                                       ExtractTypeFromSymbol(sym, out var type) &&
-                                       NameEquals(sym.Name, parameter.Name) &&
-                                       type.Equals(parameter.Type, SymbolEqualityComparer.Default));
+                           .Where(sym => IsBadMemberSym(sym) == false)
+                           .FirstOrDefault(sym => CheckGetAccessibility(sym) &&
+                                                  ExtractTypeFromSymbol(sym, out var type) &&
+                                                  NameEquals(sym.Name, parameter.Name) &&
+                                                  type.Equals(parameter.Type, SymbolEqualityComparer.Default));
+            
             if (result is not null)
             {
                 return true;
@@ -233,6 +247,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             if (ConstructorParams.HasValue)
             {
                 var param = ConstructorParams.Value.FirstOrDefault(param => NameEquals(name, param.Name));
+                
                 return param != null;
             }
 
@@ -291,7 +306,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator
             return false;
         }
 
-        /*private Dictionary<ISymbol, string> MatchContructorArguments()
+        /*private Dictionary<ISymbol, string> MatchConstructorArguments()
         {
             IEnumerable<ConstructorDeclarationSyntax> ctors = default;
             ConstructorDeclarationSyntax primaryCtor = default;

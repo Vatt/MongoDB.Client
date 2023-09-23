@@ -15,6 +15,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             return expressions.Select(expr => Statement(expr)).ToArray();
         }
+        public static StatementSyntax[] Statements(List<ExpressionSyntax> expressions)
+        {
+            return expressions.Select(expr => Statement(expr)).ToArray();
+        }
         public static StatementSyntax[] Statements(params StatementSyntax[] statements)
         {
             return statements;
@@ -23,10 +27,12 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             var array = new StatementSyntax[statements.Length + 1];
             array[0] = first;
+
             for (int i = 0; i < statements.Length; i++)
             {
                 array[i + 1] = statements[i];
             }
+
             return array;
         }
         public static StatementSyntax Statement(ExpressionSyntax expr)
@@ -40,6 +46,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static ObjectCreationExpressionSyntax ObjectCreation(INamedTypeSymbol sym, params ArgumentSyntax[] args)
         {
             ITypeSymbol trueType = sym.Name.Equals("Nullable") ? sym.TypeParameters[0] : sym;
+
             return SF.ObjectCreationExpression(SF.ParseTypeName(trueType.ToString()), args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args), default);
         }
         public static MemberAccessExpressionSyntax SimpleMemberAccess(ExpressionSyntax source, IdentifierNameSyntax member)
@@ -69,6 +76,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static MemberAccessExpressionSyntax SimpleMemberAccess(ExpressionSyntax source, IdentifierNameSyntax member1, IdentifierNameSyntax member2)
         {
             var first = SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, source, member1);
+
             return SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, first, member2);
         }
         public static ExpressionStatementSyntax InvocationExprStatement(SyntaxToken source, SyntaxToken member, params ArgumentSyntax[] args)
@@ -130,6 +138,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static GenericNameSyntax GenericName(SyntaxToken name, params TypeSyntax[] types)
         {
             var typeList = SF.TypeArgumentList().AddArguments(types);
+
             return SF.GenericName(name, typeList);
         }
         public static ArgumentSyntax OutArgument(ExpressionSyntax expr, NameColonSyntax colonName = default)
@@ -347,13 +356,8 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             //TODO: FIX THIS SHIT
             ISymbol trueType = sym.Name.Equals("Nullable") ? ((INamedTypeSymbol)sym).TypeParameters[0] : sym;
+
             return SF.ParseTypeName(trueType.ToString());
-        }
-        public static TypeSyntax TypeName(ITypeSymbol sym)
-        {
-            //TODO: FIX THIS SHIT
-            ITypeSymbol trueType = sym.Name.Equals("Nullable") ? ((INamedTypeSymbol)sym).TypeParameters[0] : sym;
-            return SF.ParseTypeName(trueType.Name);
         }
         public static TypeParameterSyntax TypeParameter(ITypeSymbol sym)
         {
@@ -390,12 +394,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static ArrayCreationExpressionSyntax SingleDimensionArrayCreation(TypeSyntax arrayType, int size, InitializerExpressionSyntax initializer = default)
         {
             var rank = new SyntaxList<ArrayRankSpecifierSyntax>(SF.ArrayRankSpecifier().AddSizes(NumericLiteralExpr(size)));
+
             return SF.ArrayCreationExpression(SF.ArrayType(arrayType, rank), initializer);
         }
 
         public static StackAllocArrayCreationExpressionSyntax StackAllocByteArray(int size)
         {
             var rank = new SyntaxList<ArrayRankSpecifierSyntax>(SF.ArrayRankSpecifier().AddSizes(NumericLiteralExpr(size)));
+
             return SF.StackAllocArrayCreationExpression(SF.ArrayType(BytePredefinedType(), rank));
         }
     }

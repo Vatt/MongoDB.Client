@@ -9,6 +9,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         public static string UnwrapTypeName(ITypeSymbol type)
         {
             string name = type.Name;
+
             if (type is INamedTypeSymbol namedType)
             {
                 foreach (var arg in namedType.TypeArguments)
@@ -27,7 +28,9 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static NameSyntax ConstructCollectionType(ISymbol sym)
         {
             Debug.Assert(IsCollection(sym));
+
             var typed = sym as INamedTypeSymbol;
+
             if (IsDictionaryCollection(sym))
             {
                 ExtractDictionaryTypeArgs(typed, out var keyArg, out var typeArg);
@@ -47,36 +50,44 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             Debug.Assert(IsCollection(typeSymbol));
             Debug.Assert(typeSymbol is INamedTypeSymbol);
+
             var type = typeSymbol as INamedTypeSymbol;
             var name = $"TryParse{UnwrapTypeName(type)}";
+
             return Identifier(name);
         }
         public static SyntaxToken CollectionWriteMethodName(ITypeSymbol typeSymbol)
         {
             Debug.Assert(IsCollection(typeSymbol));
             Debug.Assert(typeSymbol is INamedTypeSymbol);
+
             var type = typeSymbol as INamedTypeSymbol;
             var name = $"Write{UnwrapTypeName(type)}";
+
             return Identifier(name);
         }
         public static List<MethodDeclarationSyntax> CollectionMethods(MemberContext member, ITypeSymbol type)
         {
             var mode = member.Root.GeneratorMode;
             var methods = new List<MethodDeclarationSyntax>();
+
             if (IsListCollection(type))
             {
                 if (mode.GenerateTryParseBson) methods.Add(TryParseListCollectionMethod(member, type));
                 if (mode.GenerateWriteBson) methods.Add(WriteListCollectionMethod(member, type));
+
                 return methods;
             }
             if (IsDictionaryCollection(type))
             {
                 if (mode.GenerateTryParseBson) methods.Add(TryParseDictionaryMethod(member, type));
                 if (mode.GenerateWriteBson) methods.Add(WriteDictionaryMethod(member, type));
+
                 return methods;
             }
 
-            ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
+            ReportUnsupportedTypeError(member.NameSym, member.TypeSym);
+
             return default;
         }
 
@@ -84,15 +95,19 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         {
             List<MethodDeclarationSyntax> methods = new();
             HashSet<ITypeSymbol> declared = new(SymbolEqualityComparer.Default);
+
             foreach (var member in ctx.Members.Where(x => IsCollection(x.TypeSym)))
             {
                 var type = member.TypeSym as INamedTypeSymbol;
+
                 if (type is null && declared.Contains(type, SymbolEqualityComparer.Default) is false)
                 {
                     methods.AddRange(CollectionMethods(member, member.TypeSym));
                     declared.Add(type);
+
                     continue;
                 }
+
                 while (true)
                 {
                     if (declared.Contains(type, SymbolEqualityComparer.Default) is false)
@@ -120,10 +135,15 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     }
                 }
             }
+
             return methods.ToArray();
         }
-        private static bool TryGenerateCollectionTryParseBson(ITypeSymbol typeSym, ISymbol nameSym, SyntaxToken collectionToken, SyntaxToken readTarget,
-            ImmutableList<StatementSyntax>.Builder builder, params ArgumentSyntax[] collectionAddArgs)
+        private static bool TryGenerateCollectionTryParseBson(ITypeSymbol typeSym,
+                                                              ISymbol nameSym,
+                                                              SyntaxToken collectionToken,
+                                                              SyntaxToken readTarget,
+                                                              List<StatementSyntax> statements,
+                                                              params ArgumentSyntax[] collectionAddArgs)
         {
             ITypeSymbol callType = default;
             ITypeSymbol outArgType = default;
@@ -148,26 +168,32 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                            RefArgument(BsonReaderToken),
                                            OutArgument(TypedVariableDeclarationExpr(TypeFullName(outArgType),
                                                        readTarget)));
-            builder.IfNotReturnFalseElse(condition: operation,
-                @else: Block(InvocationExprStatement(collectionToken, CollectionAddToken, collectionAddArgs), ContinueStatement));
+
+            statements.Add(IfNotReturnFalseElse(condition: operation, @else: Block(InvocationExprStatement(collectionToken, CollectionAddToken, collectionAddArgs), ContinueStatement)));
+
             return true;
         }
-        private static bool TryGenerateCollectionSimpleRead(MemberContext ctx, ITypeSymbol type, SyntaxToken CollectionToken, SyntaxToken readTarget, SyntaxToken bsonTypeToken,
-            ImmutableList<StatementSyntax>.Builder builder, params ArgumentSyntax[] collectionAddArgs)
+        private static bool TryGenerateCollectionSimpleRead(MemberContext ctx,
+                                                            ITypeSymbol type,
+                                                            SyntaxToken CollectionToken,
+                                                            SyntaxToken readTarget,
+                                                            SyntaxToken bsonTypeToken,
+                                                            List<StatementSyntax> statements,
+                                                            params ArgumentSyntax[] collectionAddArgs)
         {
             var (operation, tempVar) = ReadOperation(ctx.Root, ctx.NameSym, type, BsonReaderToken, TypedVariableDeclarationExpr(TypeFullName(type), readTarget), bsonTypeToken);
+
             Debug.Assert(tempVar is null);
+
             if (operation == default)
             {
                 return false;
             }
 
-            builder.IfNotReturnFalseElse(
-                condition: operation,
-                @else:
-                Block(
-                    InvocationExprStatement(CollectionToken, CollectionAddToken, collectionAddArgs),
-                    ContinueStatement));
+            statements.Add(IfNotReturnFalseElse(condition: operation,
+                                                @else:
+                                                Block(InvocationExprStatement(CollectionToken, CollectionAddToken, collectionAddArgs),
+                                                      ContinueStatement)));
             return true;
         }
     }

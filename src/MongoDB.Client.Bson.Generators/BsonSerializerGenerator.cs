@@ -40,6 +40,7 @@ namespace MongoDB.Client.Bson.Generators
             Compilation = context.SemanticModel.Compilation;
             var model = context.SemanticModel;
             BsonSerializableAttr ??= Compilation.GetTypeByMetadataName("MongoDB.Client.Bson.Serialization.Attributes.BsonSerializableAttribute")!;
+
             if (model.GetDeclaredSymbol(context.Node) is INamedTypeSymbol symbol)
             {
                 foreach (var attr in symbol.GetAttributes())
@@ -50,12 +51,14 @@ namespace MongoDB.Client.Bson.Generators
                     }
                 }
             }
+
             return null;
         }
         private static void Execute(Compilation compilation, ImmutableArray<ContextCore> declarations, SourceProductionContext context)
         {
             Compilation = compilation;
             Context = context;
+
             var systemDirective = SF.UsingDirective(SF.ParseName("System"));
             var systemCollectionsGenericDirective = SF.UsingDirective(SF.ParseName("System.Collections.Generic"));
             var systemBuffersBinaryDirective = SF.UsingDirective(SF.ParseName("System.Buffers.Binary"));
@@ -67,15 +70,15 @@ namespace MongoDB.Client.Bson.Generators
                 var decl = declarations[index];
                 context.AddSource(decl.SerializerName.ToString(),
                     SF.CompilationUnit()
-                        .AddUsings(
-                            systemDirective,
-                            systemCollectionsGenericDirective,
-                            systemBuffersBinaryDirective,
-                            bsonReaderDirective,
-                            bsonSerializerDirective)
-                        .AddMembers(SerializerGenerator.GenerateSerializer(decl))
-                        .NormalizeWhitespace()
-                        .ToString());
+                      .AddUsings(
+                          systemDirective,
+                          systemCollectionsGenericDirective,
+                          systemBuffersBinaryDirective,
+                          bsonReaderDirective,
+                          bsonSerializerDirective)
+                      .AddMembers(SerializerGenerator.GenerateSerializer(decl))
+                      .NormalizeWhitespace()
+                      .ToString());
             }
         }
     }
