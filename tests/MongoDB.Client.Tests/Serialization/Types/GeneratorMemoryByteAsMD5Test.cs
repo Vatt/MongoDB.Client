@@ -6,7 +6,7 @@ using Xunit;
 namespace MongoDB.Client.Tests.Serialization.Types
 {
 
-    [BsonSerializable(GeneratorMode.ConstructorOnlyParameters)]
+    [BsonSerializable(GeneratorMode.ConstructorParameters)]
     public partial class GeneratorMemoryByteAsMD5Model : IEquatable<GeneratorMemoryByteAsMD5Model>
     {
         protected BsonElementType BsonType;

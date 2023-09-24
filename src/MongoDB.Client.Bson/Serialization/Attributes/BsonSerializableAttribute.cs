@@ -4,7 +4,7 @@
     public enum GeneratorMode : byte
     {
         IfConditions = 1,
-        ConstructorOnlyParameters = 2,
+        ConstructorParameters = 2,
         SkipTryParseBson = 4,
         SkipWriteBson = 8,
     }

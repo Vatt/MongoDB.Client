@@ -5,7 +5,7 @@ using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization.Types
 {
-    [BsonSerializable(GeneratorMode.ConstructorOnlyParameters)]
+    [BsonSerializable(GeneratorMode.ConstructorParameters)]
     public partial class Int64Model : GeneratorTypeTestModelBase<long, long?>, IEquatable<Int64Model>
     {
         public Int64Model(

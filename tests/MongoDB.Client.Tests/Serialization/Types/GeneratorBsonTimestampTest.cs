@@ -5,7 +5,7 @@ using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization.Types
 {
-    [BsonSerializable(GeneratorMode.ConstructorOnlyParameters)]
+    [BsonSerializable(GeneratorMode.ConstructorParameters)]
     public partial class BsonTimestampModel : GeneratorTypeTestModelBase<BsonTimestamp, BsonTimestamp?>, IEquatable<BsonTimestampModel>
     {
         public BsonTimestampModel(
