@@ -19,18 +19,20 @@ namespace MongoDB.Client.Bson.Document
             Value = value;
         }
 
-
         public static BsonElement Create(BsonDocument parent, string name, int value)
         {
             return new BsonElement(parent, BsonElementType.Int32, name, value);
         }
 
+        public static BsonElement Create(BsonDocument parent, string name, decimal value)
+        {
+            return new BsonElement(parent, BsonElementType.Decimal, name, value);
+        }
 
         public static BsonElement Create(BsonDocument parent, string name, long value)
         {
             return new BsonElement(parent, BsonElementType.Int64, name, value);
         }
-
 
         public static BsonElement Create(BsonDocument parent, string name, string? value)
         {
@@ -41,12 +43,10 @@ namespace MongoDB.Client.Bson.Document
             return new BsonElement(parent, BsonElementType.Null, name, null);
         }
 
-
         public static BsonElement Create(BsonDocument parent, string name, double value)
         {
             return new BsonElement(parent, BsonElementType.Double, name, value);
         }
-
 
         public static BsonElement Create(BsonDocument parent, string name, BsonDocument? value)
         {
@@ -56,7 +56,6 @@ namespace MongoDB.Client.Bson.Document
             }
             return new BsonElement(parent, BsonElementType.Null, name, null);
         }
-
 
         public static BsonElement Create(BsonDocument parent, string name, BsonObjectId value)
         {
@@ -78,7 +77,6 @@ namespace MongoDB.Client.Bson.Document
         {
             return new BsonElement(parent, BsonElementType.UtcDateTime, name, value);
         }
-
 
         public static BsonElement Create(BsonDocument parent, string name, bool value)
         {
@@ -143,7 +141,6 @@ namespace MongoDB.Client.Bson.Document
         {
             return HashCode.Combine(Type, Name, Value);
         }
-
         public bool IsEmpty => Name is null;
     }
 }

@@ -14,5 +14,6 @@
         Int32 = 16,
         Timestamp = 17,
         Int64 = 18,
+        Decimal = 19,
     }
 }

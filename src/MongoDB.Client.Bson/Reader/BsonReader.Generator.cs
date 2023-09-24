@@ -114,6 +114,12 @@ namespace MongoDB.Client.Bson.Reader
                         objectValue = longValue;
                         return true;
                     }
+                case 19:
+                    {
+                        if (!TryGetDecimal(out decimal decimalValue)) { return false; }
+                        objectValue = decimalValue;
+                        return true;
+                    }
                 default:
                     {
                         return ThrowHelper.UnknownTypeException<bool>(bsonType);
@@ -150,6 +156,10 @@ namespace MongoDB.Client.Bson.Reader
                         return true;
                     case long value:
                         if (!TryGetInt64(out value)) { return false; }
+                        genericValue = (T)(object)value;
+                        return true;
+                    case decimal value:
+                        if (!TryGetDecimalWithBsonType(bsonType, out value)) { return false; }
                         genericValue = (T)(object)value;
                         return true;
                     default:
@@ -300,6 +310,10 @@ namespace MongoDB.Client.Bson.Reader
                     {
                         return TryAdvance(sizeof(long));
                     }
+                case 19:
+                    {
+                        return TryAdvance(16);
+                    }
                 default:
                     {
                         return ThrowHelper.UnknownTypeException<bool>(bsonType);
@@ -319,21 +333,30 @@ namespace MongoDB.Client.Bson.Reader
             return false;
         }
 
-
+        public bool TryGetDecimalWithBsonType(int bsonType, out decimal value)
+        {
+            switch (bsonType)
+            {
+                case 19:
+                    return TryGetDecimal(out value);
+                default:
+                    value = default;
+                    return ThrowHelper.UnsupportedDecimalTypeException<bool>(bsonType);
+            }
+        }
 
         public bool TryGetGuidWithBsonType(int bsonType, out Guid value)
         {
-            if (bsonType == 5)
+            switch (bsonType)
             {
-                return TryGetBinaryDataGuid(out value);
+                case 5:
+                    return TryGetBinaryDataGuid(out value);
+                case 2:
+                    return TryGetGuidFromString(out value);
+                default:
+                    value = default;
+                    return ThrowHelper.UnsupportedGuidTypeException<bool>(bsonType);
             }
-            if (bsonType == 2)
-            {
-                return TryGetGuidFromString(out value);
-            }
-
-            value = default;
-            return ThrowHelper.UnsupportedGuidTypeException<bool>(bsonType);
         }
 
 

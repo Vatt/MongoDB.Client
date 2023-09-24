@@ -1,6 +1,7 @@
 ﻿using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Utils;
 
@@ -24,7 +25,17 @@ namespace MongoDB.Client.Bson.Reader
                     return ThrowHelper.UnsupportedDateTimeTypeException<bool>(bsonType);
             }
         }
-
+        public bool TryGetDecimalWithBsonType(int bsonType, out decimal? value)
+        {
+            switch (bsonType)
+            {
+                case 19:
+                    return TryGetDecimal(out value);
+                default:
+                    value = default;
+                    return ThrowHelper.UnsupportedDecimalTypeException<bool>(bsonType);
+            }
+        }
 
         public bool TryGetUtcDatetime([MaybeNullWhen(false)] out DateTimeOffset? value)
         {
@@ -246,6 +257,26 @@ namespace MongoDB.Client.Bson.Reader
             return false;
         }
 
+        public bool TryGetDecimal(out decimal? value)
+        {
+            const int decimalSize = 16;
+
+            if (_input.Remaining >= decimalSize)
+            {
+                Span<byte> span = stackalloc byte[decimalSize];
+                if (_input.TryCopyTo(span))
+                {
+                    var bits = MemoryMarshal.Cast<byte, int>(span);
+                    value = new(bits);
+                    _input.Advance(decimalSize);
+
+                    return true;
+                }
+            }
+
+            value = default;
+            return false;
+        }
 
         public bool TryGetBoolean(out bool? value)
         {

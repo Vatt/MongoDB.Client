@@ -2,6 +2,7 @@
 using System.Buffers.Text;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Utils;
@@ -87,6 +88,28 @@ namespace MongoDB.Client.Bson.Reader
         public bool TryGetInt64(out long value)
         {
             return _input.TryReadLittleEndian(out value);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetDecimal(out decimal value)
+        {
+            const int decimalSize = 16;
+
+            if (_input.Remaining >= decimalSize)
+            {
+                Span<byte> span = stackalloc byte[decimalSize];
+                if (_input.TryCopyTo(span))
+                {
+                    var bits = MemoryMarshal.Cast<byte, int>(span);
+                    value = new(bits);
+                    _input.Advance(decimalSize);
+
+                    return true;
+                }
+            }
+
+            value = default;
+            return false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

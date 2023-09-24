@@ -126,6 +126,12 @@ namespace MongoDB.Client.Bson.Reader
                         element = BsonElement.Create(parent, name, longValue);
                         return true;
                     }
+                case 19:
+                    {
+                        if (!TryGetDecimal(out decimal decimalValue)) { return false; }
+                        element = BsonElement.Create(parent, name, decimalValue);
+                        return true;
+                    }
                 default:
                     {
                         return ThrowHelper.UnknownTypeException<bool>(type);

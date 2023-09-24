@@ -1,6 +1,7 @@
 ﻿using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipelines;
+using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
@@ -8,6 +9,7 @@ using MongoDB.Client.Bson.Writer;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
+using MongoDB.Client.Tests.Models;
 
 namespace MongoDB.Client.Tests.Serialization
 {
@@ -56,6 +58,18 @@ namespace MongoDB.Client.Tests.Serialization
     }
     public abstract class SerializationTestBase
     {
+        public static async Task<T?> MongoDBRoundTripAsync<T>(T message) where T : IBsonSerializer<T>
+        {
+            var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
+            host = $"mongodb://{host}/?maxPoolSize=1";
+
+            var client = await MongoClient.CreateClient(host);
+            var db = client.GetDatabase("TestDb");
+            var collection = db.GetCollection<T>("TestCollection" + DateTime.Now);
+            await collection.InsertAsync(message);
+            return await collection.Find(BsonDocument.Empty).SingleOrDefaultAsync();
+
+        }
         public static async Task<T> RoundTripAsync<T>(T message) where T : IBsonSerializer<T>
         {
             var pipe = new Pipe(new PipeOptions(pauseWriterThreshold: long.MaxValue, resumeWriterThreshold: long.MaxValue));

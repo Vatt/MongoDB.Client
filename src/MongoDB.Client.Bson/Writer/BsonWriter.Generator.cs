@@ -85,6 +85,10 @@ namespace MongoDB.Client.Bson.Writer
                     WriteInt64(value);
                     typeReserved.WriteByte(18);
                     return;
+                case decimal value:
+                    WriteDecimal(value);
+                    typeReserved.WriteByte(19);
+                    return;
                     //default:
                     //    System.Diagnostics.Debugger.Break();
                     //    break; 
@@ -151,6 +155,10 @@ namespace MongoDB.Client.Bson.Writer
                 case long value:
                     WriteInt64(value);
                     typeReserved.WriteByte(18);
+                    return;
+                case decimal value:
+                    WriteDecimal(value);
+                    typeReserved.WriteByte(19);
                     return;
                     //default:
                     //    System.Diagnostics.Debugger.Break();
@@ -327,7 +335,18 @@ namespace MongoDB.Client.Bson.Writer
             WriteIntIndex(intName);
             WriteDouble(value);
         }
-
+        public void Write_Type_Name_Value(string name, decimal value)
+        {
+            WriteByte(19);
+            WriteCString(name);
+            WriteDecimal(value);
+        }
+        public void Write_Type_Name_Value(int intName, decimal value)
+        {
+            WriteByte(19);
+            WriteIntIndex(intName);
+            WriteDecimal(value);
+        }
 
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, BsonBinaryData value)
         {
@@ -535,7 +554,12 @@ namespace MongoDB.Client.Bson.Writer
             WriteIntIndex(intName);
             WriteUtcDateTime(value);
         }
-
+        public void Write_Type_Name_Value(ReadOnlySpan<byte> name, decimal value)
+        {
+            WriteByte(19);
+            WriteCString(name);
+            WriteDecimal(value);
+        }
 
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, BsonTimestamp value)
         {

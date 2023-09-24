@@ -191,9 +191,8 @@ namespace MongoDB.Client.Bson.Generators
             }
 
             statements.Add(IfNotReturnFalseElse(condition: operation,
-                                                @else:
-                                                Block(InvocationExprStatement(CollectionToken, CollectionAddToken, collectionAddArgs),
-                                                      ContinueStatement)));
+                                                @else: Block(InvocationExprStatement(CollectionToken, CollectionAddToken, collectionAddArgs),
+                                                             ContinueStatement)));
             return true;
         }
     }
