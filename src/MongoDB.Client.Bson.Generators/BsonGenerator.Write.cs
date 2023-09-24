@@ -240,18 +240,11 @@ namespace MongoDB.Client.Bson.Generators
             switch (typeSymbol.SpecialType)
             {
                 case SpecialType.System_Double:
-                    expr = Write_Type_Name_Value(bsonName, writeTarget);
-                    return true;
                 case SpecialType.System_String:
-                    expr = Write_Type_Name_Value(bsonName, writeTarget);
-                    return true;
                 case SpecialType.System_Boolean:
-                    expr = Write_Type_Name_Value(bsonName, writeTarget);
-                    return true;
                 case SpecialType.System_Int32:
-                    expr = Write_Type_Name_Value(bsonName, writeTarget);
-                    return true;
                 case SpecialType.System_Int64:
+                case SpecialType.System_Decimal:
                     expr = Write_Type_Name_Value(bsonName, writeTarget);
                     return true;
                     //case SpecialType.System_DateTime:

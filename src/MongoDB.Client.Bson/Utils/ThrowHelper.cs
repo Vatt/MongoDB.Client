@@ -35,6 +35,20 @@ namespace MongoDB.Client.Bson.Utils
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         [DoesNotReturn]
+        public static T UnsupportedDecimalTypeException<T>(int bsonType)
+        {
+            throw new NotSupportedException("Unsupported Decimal type: " + bsonType.ToString());
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
+        public static T UnsupportedStringDecimalException<T>(string value)
+        {
+            throw new NotSupportedException("Unsupported Decimal string: " + value);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
         public static T UnsupportedDateTimeTypeException<T>(int bsonType)
         {
             throw new NotSupportedException("Unsupported DateTime type: " + bsonType.ToString());
