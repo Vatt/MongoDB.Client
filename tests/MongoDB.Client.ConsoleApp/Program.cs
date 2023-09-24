@@ -39,7 +39,7 @@ namespace MongoDB.Client.ConsoleApp
         {
             //var update = Update<TestModel>.Set(new {SomeId = 22});
             //await TestUpdate();
-            await LoadTest<GeoIp>(1024 * 1024, new[] { 512 });
+            await LoadTest<GeoIp>(1024 * 1024, new[] { 1024 });
             //await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, false);
             //await TestShardedCluster();
             //await TestTransaction();

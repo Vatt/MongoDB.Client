@@ -160,6 +160,7 @@ namespace MongoDB.Client.Messages
                                 }
 
                                 message.DocReadded += (int)(reader.BytesConsumed - checkpoint);
+
                                 continue;
                             }
 
@@ -384,6 +385,7 @@ namespace MongoDB.Client.Messages
                 {
                     batchReadded += (int)(reader.BytesConsumed - checkpoint);
                     internalList.Add(default);
+
                     continue;
                 }
                 if (reader.TryPeekInt32(out var nextElemSize) is false || reader.Remaining < nextElemSize)
@@ -397,8 +399,8 @@ namespace MongoDB.Client.Messages
                 else
                 {
                     batchReadded += (int)(reader.BytesConsumed - checkpoint);
-
                     internalList.Add(temp);
+
                     continue;
                 }
 
