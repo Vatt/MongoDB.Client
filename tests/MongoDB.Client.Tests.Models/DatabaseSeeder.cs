@@ -1,15 +1,12 @@
-﻿using System.Linq;
-
-namespace MongoDB.Client.Tests.Models
+﻿namespace MongoDB.Client.Tests.Models
 {
     public class DatabaseSeeder
     {
         public IEnumerable<T> GenerateSeed<T>(int count = 1024, bool lazy = false)
         {
             var seeder = CreateSeeder<T>();
-            var enumerable = new GeoIpSeeder().GenerateSeed(count).Select(d => (T)(object)d);
+            var enumerable = seeder.GenerateSeed(count);
             return lazy ? enumerable : enumerable.ToArray();
-            
         }
 
         private static ISeeder<T> CreateSeeder<T>()
