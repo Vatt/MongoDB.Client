@@ -140,7 +140,7 @@ namespace MongoDB.Client.Messages
                 {
                     case 101:
                         {
-                            if (bsonName.SequenceEqual5(CursorResulterrmsg))
+                            if (bsonName.SequenceEqual(CursorResulterrmsg))
                             {
                                 if (!reader.TryGetString(out message.ErrorMessage))
                                 {
@@ -157,7 +157,7 @@ namespace MongoDB.Client.Messages
 
                     case 36:
                         {
-                            if (bsonName.SequenceEqual9(CursorResult_clusterTime))
+                            if (bsonName.SequenceEqual(CursorResult_clusterTime))
                             {
                                 if (!MongoClusterTime.TryParseBson(ref reader, out message.ClusterTime))
                                 {
@@ -183,7 +183,7 @@ namespace MongoDB.Client.Messages
                             {
                                 case 117:
                                     {
-                                        if (bsonName.SequenceEqual5(CursorResultcursor))
+                                        if (bsonName.SequenceEqual(CursorResultcursor))
                                         {
                                             var beforeCursor = (int)(reader.BytesConsumed - checkpoint);
 
@@ -208,7 +208,7 @@ namespace MongoDB.Client.Messages
 
                                 case 111:
                                     {
-                                        if (bsonName.SequenceEqual4(CursorResultcode))
+                                        if (bsonName.SequenceEqual(CursorResultcode))
                                         {
                                             if (!reader.TryGetInt32(out message.Code))
                                             {
@@ -220,7 +220,7 @@ namespace MongoDB.Client.Messages
                                             continue;
                                         }
 
-                                        if (bsonName.SequenceEqual8(CursorResultcodeName))
+                                        if (bsonName.SequenceEqual(CursorResultcodeName))
                                         {
                                             if (!reader.TryGetString(out message.CodeName))
                                             {
@@ -250,7 +250,7 @@ namespace MongoDB.Client.Messages
                             {
                                 case 107:
                                     {
-                                        if (bsonName.SequenceEqual2(CursorResultok))
+                                        if (bsonName.SequenceEqual(CursorResultok))
                                         {
                                             if (!reader.TryGetDouble(out message.Ok))
                                             {
@@ -267,7 +267,7 @@ namespace MongoDB.Client.Messages
 
                                 case 112:
                                     {
-                                        if (bsonName.SequenceEqual9(CursorResultoperationTime))
+                                        if (bsonName.SequenceEqual(CursorResultoperationTime))
                                         {
                                             if (!reader.TryGetTimestamp(out message.OperationTime))
                                             {

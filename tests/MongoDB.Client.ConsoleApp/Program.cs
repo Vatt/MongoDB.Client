@@ -236,7 +236,7 @@ namespace MongoDB.Client.ConsoleApp
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
             //host = $"mongodb://{host}/?clientType=experimental&replicaSet=rs0&maxPoolSize=1";
-            host = $"mongodb://{host}/?replicaSet=rs0&maxPoolSize=1";
+            host = $"mongodb://{host}/?replicaSet=rs0&maxPoolSize=2";
             var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder

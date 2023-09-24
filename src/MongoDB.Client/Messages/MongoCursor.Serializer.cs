@@ -152,7 +152,7 @@ namespace MongoDB.Client.Messages
                 {
                     case 105:
                         {
-                            if (bsonName.SequenceEqual2(MongoCursorid))
+                            if (bsonName.SequenceEqual(MongoCursorid))
                             {
                                 if (!reader.TryGetInt64(out message.Id))
                                 {
@@ -169,7 +169,7 @@ namespace MongoDB.Client.Messages
 
                     case 102:
                         {
-                            if (bsonName.SequenceEqual9(MongoCursorfirstBatch))
+                            if (bsonName.SequenceEqual(MongoCursorfirstBatch))
                             {
 
                                 message.FirstBatch = new();
@@ -204,7 +204,7 @@ namespace MongoDB.Client.Messages
                             {
                                 case 115:
                                     {
-                                        if (bsonName.SequenceEqual2(MongoCursorns))
+                                        if (bsonName.SequenceEqual(MongoCursorns))
                                         {
                                             if (!reader.TryGetString(out message.Namespace))
                                             {
@@ -221,7 +221,7 @@ namespace MongoDB.Client.Messages
 
                                 case 101:
                                     {
-                                        if (bsonName.SequenceEqual9(MongoCursornextBatch))
+                                        if (bsonName.SequenceEqual(MongoCursornextBatch))
                                         {
                                             message.NextBatch = new();
 
