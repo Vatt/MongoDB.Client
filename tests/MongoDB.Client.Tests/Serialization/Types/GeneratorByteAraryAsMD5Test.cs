@@ -9,8 +9,8 @@ namespace MongoDB.Client.Tests.Serialization.Types
     [BsonSerializable(GeneratorMode.ConstructorParameters)]
     public partial class GeneratorByteArrayAsMD5Model : IEquatable<GeneratorByteArrayAsMD5Model>
     {
-        protected BsonElementType BsonType;
-        protected BsonElementType DictionaryBsonType;
+        protected BsonType BsonType;
+        protected BsonType DictionaryBsonType;
 
         [BsonBinaryData(BinaryDataRepresentation.MD5)]
         public byte[] Property { get; }
@@ -61,8 +61,8 @@ namespace MongoDB.Client.Tests.Serialization.Types
              Dictionary<string, byte[]?>? nullableDictionaryWithNullableTypeArgument,
              Dictionary<string, byte[]?>? alwaysNullDictionaryWithNullableTypeArgument)
         {
-            BsonType = BsonElementType.BinaryData;
-            DictionaryBsonType = BsonElementType.BinaryData;
+            BsonType = BsonType.BinaryData;
+            DictionaryBsonType = BsonType.BinaryData;
             Property = property;
             NullableProperty = nullableProperty;
             AlwaysNullProperty = alwaysNullProperty;

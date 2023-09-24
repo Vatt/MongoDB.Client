@@ -14,8 +14,8 @@ namespace MongoDB.Client.Tests.Serialization.Generator
     [BsonSerializable]
     public partial class GeneratorGenericModel<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> : IEquatable<GeneratorGenericModel<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>>
     {
-        protected BsonElementType BsonType;
-        protected BsonElementType DictionaryBsonType;
+        protected BsonType BsonType;
+        protected BsonType DictionaryBsonType;
 
         public T0 Property { get; }
         public T1 NullableProperty { get; }
@@ -132,8 +132,8 @@ namespace MongoDB.Client.Tests.Serialization.Generator
                     dictionaryProperty, nullableDictionaryProperty, alwaysNullDictionaryProperty,
                     dictionaryWithNullableTypeArgument, nullableDictionaryWithNullableTypeArgument, alwaysNullDictionaryWithNullableTypeArgument)
         {
-            BsonType = BsonElementType.BinaryData;
-            DictionaryBsonType = BsonElementType.BinaryData;
+            BsonType = BsonType.BinaryData;
+            DictionaryBsonType = BsonType.BinaryData;
         }
         public override bool Equals(BsonDocument doc)
         {

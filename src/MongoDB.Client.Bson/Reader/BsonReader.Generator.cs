@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
@@ -335,8 +337,48 @@ namespace MongoDB.Client.Bson.Reader
 
         public bool TryGetDecimalWithBsonType(int bsonType, out decimal value)
         {
+            value = default;
             switch (bsonType)
             {
+                case 1:
+                    if (TryGetDouble(out double doubleValue))
+                    {
+                        value = new(doubleValue);
+                        
+                        return true;
+                    }
+
+                    return false;
+                case 2:
+                    if (TryGetString(out var stringValue))
+                    {
+                        if (decimal.TryParse(stringValue, CultureInfo.InvariantCulture, out value) is false)
+                        {
+                            return ThrowHelper.UnsupportedStringDecimalException<bool>(stringValue);
+                        }
+
+                        return true;
+                    }
+
+                    return false;
+                case 16:
+                    if (TryGetInt32(out int intValue))
+                    {
+                        value = new(intValue);
+
+                        return true;
+                    }
+
+                    return false;
+                case 18:
+                    if (TryGetInt64(out long longValue))
+                    {
+                        value = new(longValue);
+
+                        return true;
+                    }
+
+                    return false;
                 case 19:
                     return TryGetDecimal(out value);
                 default:

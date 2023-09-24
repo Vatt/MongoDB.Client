@@ -30,8 +30,8 @@ namespace MongoDB.Client.Tests.Serialization.Types
                     dictionaryProperty, nullableDictionaryProperty, alwaysNullDictionaryProperty,
                     dictionaryWithNullableTypeArgument, nullableDictionaryWithNullableTypeArgument, alwaysNullDictionaryWithNullableTypeArgument)
         {
-            BsonType = BsonElementType.Decimal;
-            DictionaryBsonType = BsonElementType.Decimal;
+            BsonType = BsonType.Decimal;
+            DictionaryBsonType = BsonType.Decimal;
         }
         public override bool Equals(BsonDocument doc)
         {
@@ -40,11 +40,11 @@ namespace MongoDB.Client.Tests.Serialization.Types
         public static DecimalModel Create()
         {
             return new DecimalModel(
-                42, 42, null,
-                new() { 42, 42 }, new() { 42, 42 }, null,
-                new() { 42, null }, new() { 42, null }, null,
-                new() { { "42", 42 }, { "24", 24 } }, new() { { "42", 42 }, { "24", 24 } }, null,
-                new() { { "42", 42 }, { "24", 24 } }, new() { { "42", 42 }, { "24", null } }, null);
+                (decimal)42.42, (decimal)42.42, null,
+                new() { (decimal)42.42, (decimal)42.42 }, new() { (decimal)42.42, (decimal)42.42 }, null,
+                new() { (decimal)42.42, null }, new() { (decimal)42.42, null }, null,
+                new() { { "42", (decimal)24.24 }, { "24", (decimal)24.24 } }, new() { { "42", (decimal)42.42 }, { "24", (decimal)24.24 } }, null,
+                new() { { "42", (decimal)24.24 }, { "24", (decimal)24.24 } }, new() { { "42", (decimal)42.42 }, { "24", null } }, null);
         }
 
         public bool Equals(DecimalModel other)
@@ -105,8 +105,11 @@ namespace MongoDB.Client.Tests.Serialization.Types
         public async Task DecimalTest()
         {
             var model = DecimalModel.Create();
-            var result = await RoundTripAsync(model);
-            Assert.Equal(model, result);
+            var doubleModel = DoubleModel.Create();
+            var result1 = await RoundTripAsync(model);
+            Assert.Equal(model, result1);
+            var result2 = await RoundTripAsync<DoubleModel, DecimalModel>(doubleModel);
+            Assert.Equal(model, result2);
         }
     }
 }

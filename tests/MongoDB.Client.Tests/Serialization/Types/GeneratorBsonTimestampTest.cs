@@ -30,8 +30,8 @@ namespace MongoDB.Client.Tests.Serialization.Types
                     dictionaryProperty, nullableDictionaryProperty, alwaysNullDictionaryProperty,
                     dictionaryWithNullableTypeArgument, nullableDictionaryWithNullableTypeArgument, alwaysNullDictionaryWithNullableTypeArgument)
         {
-            BsonType = BsonElementType.UtcDateTime;
-            DictionaryBsonType = BsonElementType.UtcDateTime;
+            BsonType = BsonType.UtcDateTime;
+            DictionaryBsonType = BsonType.UtcDateTime;
         }
         public override bool Equals(BsonDocument doc)
         {

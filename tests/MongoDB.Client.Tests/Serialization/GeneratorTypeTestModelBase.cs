@@ -5,8 +5,8 @@ namespace MongoDB.Client.Tests.Serialization.Generator
 {
     public abstract class GeneratorTypeTestModelBase<T, TNullable>
     {
-        protected BsonElementType BsonType;
-        protected BsonElementType DictionaryBsonType;
+        protected BsonType BsonType;
+        protected BsonType DictionaryBsonType;
 
         public T Property { get; }
         public TNullable NullableProperty { get; }
@@ -74,7 +74,7 @@ namespace MongoDB.Client.Tests.Serialization.Generator
                         }
                     case "ListProperty" or "NulalbleListProperty" or "ListWithNullableTypeArgumentProperty" or "NullableListWithNullableTypeArgumentProperty":
                         {
-                            if (elem.Type != BsonElementType.Array)
+                            if (elem.Type != BsonType.Array)
                             {
                                 return false;
                             }
@@ -82,7 +82,7 @@ namespace MongoDB.Client.Tests.Serialization.Generator
                         }
                     case "DictionaryProperty" or "NullableDictionaryProperty" or "DictionaryWithNullableTypeArgument" or "NullableDictionaryWithNullableTypeArgument":
                         {
-                            if (elem.Type != BsonElementType.Document)
+                            if (elem.Type != BsonType.Document)
                             {
                                 return false;
                             }

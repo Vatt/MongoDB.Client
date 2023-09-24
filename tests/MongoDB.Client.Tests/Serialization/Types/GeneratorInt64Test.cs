@@ -30,8 +30,8 @@ namespace MongoDB.Client.Tests.Serialization.Types
                     dictionaryProperty, nullableDictionaryProperty, alwaysNullDictionaryProperty,
                     dictionaryWithNullableTypeArgument, nullableDictionaryWithNullableTypeArgument, alwaysNullDictionaryWithNullableTypeArgument)
         {
-            BsonType = BsonElementType.Int64;
-            DictionaryBsonType = BsonElementType.Int64;
+            BsonType = BsonType.Int64;
+            DictionaryBsonType = BsonType.Int64;
         }
         public override bool Equals(BsonDocument doc)
         {

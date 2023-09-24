@@ -78,7 +78,6 @@ namespace MongoDB.Client.Tests.Serialization
             await wtask;
             return await rtask;
         }
-
         public static async Task<BsonDocument> RoundTripWithBsonAsync<T>(T message) where T : IBsonSerializer<T>
         {
             var pipe = new Pipe();
