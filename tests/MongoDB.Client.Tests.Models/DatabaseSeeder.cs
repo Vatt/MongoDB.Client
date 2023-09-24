@@ -16,6 +16,10 @@
             {
                 return new MediumModelSeeder().GenerateSeed(count).Select(d => (T)(object)d).ToArray();
             }
+            if (typeof(T) == typeof(IntSimpleModel))
+            {
+                return new IntSimpleModelSeeder().GenerateSeed(count).Select(d => (T)(object)d).ToArray();
+            }
             throw new NotSupportedException();
         }
     }

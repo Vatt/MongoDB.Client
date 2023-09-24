@@ -14,6 +14,7 @@ namespace MongoDB.Client.Protocol.Readers
 
             if (input.Length < sizeof(int) * 4)
             {
+                examined = input.End;
                 message = default;
                 return false;
             }

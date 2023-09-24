@@ -1,29 +1,136 @@
-﻿using MongoDB.Client.Bson.Reader;
+﻿using System.Diagnostics;
+using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Bson.Serialization.Exceptions;
+
+#nullable disable
 
 namespace MongoDB.Client.Messages
 {
     public partial class MongoCursor<T> where T : IBsonSerializer<T>
     {
-        private static ReadOnlySpan<byte> MongoCursorid => new byte[2] { 105, 100 };
-        private static ReadOnlySpan<byte> MongoCursorns => new byte[2] { 110, 115 };
-        private static ReadOnlySpan<byte> MongoCursorfirstBatch => new byte[10] { 102, 105, 114, 115, 116, 66, 97, 116, 99, 104 };
-        private static ReadOnlySpan<byte> MongoCursornextBatch => new byte[9] { 110, 101, 120, 116, 66, 97, 116, 99, 104 };
-        public static bool TryParseBson(ref MongoDB.Client.Bson.Reader.BsonReader reader, System.Collections.Generic.List<T> first, System.Collections.Generic.List<T> next, out MongoDB.Client.Messages.MongoCursor<T> message)
+        public enum State
         {
-            message = default!;
-            long Int64Id = default;
-            string? StringNamespace = default;
-            System.Collections.Generic.List<T> ListFirstBatch = first;
-            System.Collections.Generic.List<T> ListNextBatch = next;
-            if (!reader.TryGetInt32(out int docLength))
+            Prologue = 1,
+            MainLoop,
+            FirstBatch,
+            NextBatch,
+            Epilogue
+        }
+        public class CursorState
+        {
+            public State State;
+            public long Id;
+            public string Namespace;
+            public List<T> FirstBatch;
+            public List<T> NextBatch;
+            public int BatchLength;
+            public int BatchReadded;
+            public int DocLength;
+            public int DocReadded;
+
+            public MongoCursor<T> CreateCursor() => new MongoCursor<T>(Id, Namespace, FirstBatch, NextBatch);
+
+            public CursorState()
             {
-                return false;
+                State = State.Prologue;
+            }
+        }
+        private static ReadOnlySpan<byte> MongoCursorid => "id"u8;
+        private static ReadOnlySpan<byte> MongoCursorns => "ns"u8;
+        private static ReadOnlySpan<byte> MongoCursorfirstBatch => "firstBatch"u8;
+        private static ReadOnlySpan<byte> MongoCursornextBatch => "nextBatch"u8;
+
+        public static bool TryParseBson(ref BsonReader reader, ref CursorState message, out SequencePosition position)
+        {
+
+            position = reader.Position;
+
+            switch (message.State)
+            {
+                case State.Prologue:
+                    position = reader.Position;
+                    if (!reader.TryGetInt32(out message.DocLength))
+                    {
+                        return false;
+                    }
+
+                    message.DocReadded += sizeof(int);
+
+                    goto case State.MainLoop;
+                case State.MainLoop:
+                    message.State = State.MainLoop;
+                    position = reader.Position;
+                    if (TryParseMainLoop(ref reader, ref message, out position) is false)
+                    {
+                        return false;
+                    }
+
+                    goto case State.Epilogue;
+                case State.FirstBatch:
+                    var checkpoint = message.BatchReadded;
+                    position = reader.Position;
+                    var isFirstBatchComplete = TryParseFirstBatch(ref reader, ref message, out position);
+
+                    message.DocReadded += message.BatchReadded - checkpoint;
+
+                    if (isFirstBatchComplete is false)
+                    {
+                        return false;
+                    }
+
+                    goto case State.MainLoop;
+                case State.NextBatch:
+                    checkpoint = message.BatchReadded;
+                    position = reader.Position;
+                    var isNextBatchComplete = TryParseNextBatch(ref reader, ref message, out position);
+
+                    message.DocReadded += message.BatchReadded - checkpoint;
+
+                    if (isNextBatchComplete is false)
+                    {
+                        return false;
+                    }
+
+                    goto case State.MainLoop;
+                case State.Epilogue:
+                    message.State = State.Epilogue;
+                    position = reader.Position;
+
+                    if (!reader.TryGetByte(out var endMarker))
+                    {
+                        return false;
+                    }
+
+                    message.DocReadded += sizeof(byte);
+
+                    Debug.Assert(message.DocLength == message.DocReadded);
+
+                    if (endMarker != 0)
+                    {
+                        throw new SerializerEndMarkerException(nameof(MongoCursor<T>), endMarker);
+                    }
+
+                    break;
+                default:
+                    throw new InvalidOperationException($"Undefined State value in {nameof(MongoCursor<T>)}");
             }
 
-            var unreaded = reader.Remaining + sizeof(int);
-            while (unreaded - reader.Remaining < docLength - 1)
+            position = reader.Position;
+
+            return true;
+        }
+
+
+        private static bool TryParseMainLoop(ref BsonReader reader, ref CursorState message, out SequencePosition position)
+        {
+            var docLength = message.DocLength;
+            position = reader.Position;
+            while (docLength - message.DocReadded > 1)
             {
+                var checkpoint = reader.BytesConsumed;
+                position = reader.Position;
+
                 if (!reader.TryGetByte(out var bsonType))
                 {
                     return false;
@@ -36,19 +143,23 @@ namespace MongoDB.Client.Messages
 
                 if (bsonType == 10)
                 {
+                    message.DocReadded += (int)(reader.BytesConsumed - checkpoint);
                     continue;
                 }
 
+                var bsonNameLength = bsonName.Length;
                 switch (System.Runtime.InteropServices.MemoryMarshal.GetReference(bsonName))
                 {
                     case 105:
                         {
                             if (bsonName.SequenceEqual2(MongoCursorid))
                             {
-                                if (!reader.TryGetInt64(out Int64Id))
+                                if (!reader.TryGetInt64(out message.Id))
                                 {
                                     return false;
                                 }
+
+                                message.DocReadded += (int)(reader.BytesConsumed - checkpoint);
 
                                 continue;
                             }
@@ -60,10 +171,21 @@ namespace MongoDB.Client.Messages
                         {
                             if (bsonName.SequenceEqual9(MongoCursorfirstBatch))
                             {
-                                if (!TryParseListT(ref reader, ListFirstBatch))
+
+                                message.FirstBatch = new();
+
+                                var beforeBatch = reader.BytesConsumed - checkpoint;
+
+                                var isBatchComplete = TryParseFirstBatch(ref reader, ref message, out position);
+
+                                message.DocReadded += (int)(message.BatchReadded + beforeBatch);
+
+                                if (!isBatchComplete)
                                 {
                                     return false;
                                 }
+
+                                message.State = State.MainLoop;
 
                                 continue;
                             }
@@ -73,21 +195,23 @@ namespace MongoDB.Client.Messages
 
                     case 110:
                         {
-                            if (bsonName.Length < 1)
+                            if (bsonNameLength < 1)
                             {
                                 break;
                             }
 
-                            switch (bsonName[1])
+                            switch (System.Runtime.CompilerServices.Unsafe.Add(ref System.Runtime.InteropServices.MemoryMarshal.GetReference(bsonName), (nint)1))
                             {
                                 case 115:
                                     {
                                         if (bsonName.SequenceEqual2(MongoCursorns))
                                         {
-                                            if (!reader.TryGetString(out StringNamespace))
+                                            if (!reader.TryGetString(out message.Namespace))
                                             {
                                                 return false;
                                             }
+
+                                            message.DocReadded += (int)(reader.BytesConsumed - checkpoint);
 
                                             continue;
                                         }
@@ -99,10 +223,20 @@ namespace MongoDB.Client.Messages
                                     {
                                         if (bsonName.SequenceEqual9(MongoCursornextBatch))
                                         {
-                                            if (!TryParseListT(ref reader, ListNextBatch))
+                                            message.NextBatch = new();
+
+                                            var beforeBatch = reader.BytesConsumed - checkpoint;
+
+                                            var isBatchComplete = TryParseNextBatch(ref reader, ref message, out position);
+
+                                            message.DocReadded += (int)(message.BatchReadded + beforeBatch);
+
+                                            if (!isBatchComplete)
                                             {
                                                 return false;
                                             }
+                                            
+                                            message.State = State.MainLoop;
 
                                             continue;
                                         }
@@ -119,74 +253,124 @@ namespace MongoDB.Client.Messages
                 {
                     return false;
                 }
+                else
+                {
+                    message.DocReadded += (int)(reader.BytesConsumed - checkpoint);
+                }
             }
 
-            if (!reader.TryGetByte(out var endMarker))
-            {
-                return false;
-            }
+            position = reader.Position;
 
-            if (endMarker != 0)
-            {
-                throw new MongoDB.Client.Bson.Serialization.Exceptions.SerializerEndMarkerException(nameof(MongoDB.Client.Messages.MongoCursor<T>), endMarker);
-            }
+            message.State = State.Epilogue;
 
-            message = new MongoDB.Client.Messages.MongoCursor<T>(id: Int64Id, _namespace: StringNamespace, firstBatch: ListFirstBatch, nextBatch: ListNextBatch);
             return true;
         }
 
-        public static void WriteBson(ref MongoDB.Client.Bson.Writer.BsonWriter writer, in MongoDB.Client.Messages.MongoCursor<T> message)
+        private static bool TryParseFirstBatch(ref BsonReader reader, ref CursorState state, out SequencePosition position)
         {
-            var checkpoint = writer.Written;
-            var reserved = writer.Reserve(4);
-            writer.Write_Type_Name_Value(MongoCursorid, message.Id);
-            if (message.Namespace == null)
+            var internalList = state.FirstBatch;
+            position = reader.Position;
+
+            if (state.State is State.FirstBatch)
             {
-                writer.WriteBsonNull(MongoCursorns);
-            }
-            else
-            {
-                writer.Write_Type_Name_Value(MongoCursorns, message.Namespace);
+                goto ELEMENTS;
             }
 
-            if (message.FirstBatch == null)
+            if (!reader.TryGetInt32(out state.BatchLength))
             {
-                writer.WriteBsonNull(MongoCursorfirstBatch);
+                return false;
             }
-            else
+            state.State = State.FirstBatch;
+            state.BatchReadded += sizeof(int);
+            
+            if (state.BatchLength - state.BatchReadded is 1)
             {
-                writer.Write_Type_Name(4, MongoCursorfirstBatch);
-                WriteListT(ref writer, message.FirstBatch);
+                goto EPILOGUE;
             }
+        ELEMENTS:
+            var isComplete = TryParseElements(ref reader, internalList, ref state.BatchLength, ref state.BatchReadded, out position);
 
-            if (message.NextBatch == null)
+            if (isComplete is false)
             {
-                writer.WriteBsonNull(MongoCursornextBatch);
+                return false;
             }
-            else
-            {
-                writer.Write_Type_Name(4, MongoCursornextBatch);
-                WriteListT(ref writer, message.NextBatch);
-            }
-
-            writer.WriteByte(0);
-            var docLength = writer.Written - checkpoint;
-            reserved.Write(docLength);
-            writer.Commit();
-        }
-
-        private static bool TryParseListT(ref MongoDB.Client.Bson.Reader.BsonReader reader, System.Collections.Generic.List<T>? list)
-        {
-            //list = default;
-            var internalList = list;
-            if (!reader.TryGetInt32(out int listDocLength))
+        EPILOGUE:
+            if (!reader.TryGetByte(out var listEndMarker))
             {
                 return false;
             }
 
-            var listUnreaded = reader.Remaining + sizeof(int);
-            while (listUnreaded - reader.Remaining < listDocLength - 1)
+            state.BatchReadded += sizeof(byte);
+
+            Debug.Assert(state.BatchLength == state.BatchReadded);
+
+            if (listEndMarker != 0)
             {
+                throw new SerializerEndMarkerException(nameof(MongoCursor<T>), listEndMarker);
+            }
+
+            position = reader.Position;
+
+            return true;
+        }
+        private static bool TryParseNextBatch(ref BsonReader reader, ref CursorState state, out SequencePosition position)
+        {
+            var internalList = state.NextBatch;
+            position = reader.Position;
+
+            if (state.State is State.NextBatch)
+            {
+                goto ELEMENTS;
+            }
+
+            if (!reader.TryGetInt32(out state.BatchLength))
+            {
+                return false;
+            }
+
+            state.State = State.NextBatch;
+            state.BatchReadded += sizeof(int);
+
+            if (state.BatchLength - state.BatchReadded is 1)
+            {
+                goto EPILOGUE;
+            }
+        ELEMENTS:
+            var isComplete = TryParseElements(ref reader, internalList, ref state.BatchLength, ref state.BatchReadded, out position);
+
+            if (isComplete is false)
+            {
+                return false;
+            }
+
+        EPILOGUE:
+            if (!reader.TryGetByte(out var listEndMarker))
+            {
+                return false;
+            }
+
+            state.BatchReadded += sizeof(byte);
+
+            Debug.Assert(state.BatchLength == state.BatchReadded);
+
+            if (listEndMarker != 0)
+            {
+                throw new SerializerEndMarkerException(nameof(MongoCursor<T>), listEndMarker);
+            }
+
+            position = reader.Position;
+
+            return true;
+        }
+        private static bool TryParseElements(ref BsonReader reader, List<T> list, ref int batchLength, ref int batchReadded, out SequencePosition position)
+        {
+            var internalList = list;
+            position = reader.Position;
+            while (batchLength - batchReadded > 1)
+            {
+                position = reader.Position;
+                var checkpoint = reader.BytesConsumed;
+
                 if (!reader.TryGetByte(out var listBsonType))
                 {
                     return false;
@@ -199,53 +383,31 @@ namespace MongoDB.Client.Messages
 
                 if (listBsonType == 10)
                 {
-                    internalList!.Add(default!);
+                    batchReadded += (int)(reader.BytesConsumed - checkpoint);
+                    internalList.Add(default);
+
                     continue;
                 }
-
-                if (!MongoDB.Client.Messages.CursorItemSerializer.TryParseBson(ref reader, out T temp))
+                if (reader.TryPeekInt32(out var nextElemSize) is false || reader.Remaining < nextElemSize)
+                {
+                    return false;
+                }
+                if (!T.TryParseBson(ref reader, out T temp))
                 {
                     return false;
                 }
                 else
                 {
-                    internalList!.Add(temp);
+                    batchReadded += (int)(reader.BytesConsumed - checkpoint);
+                    internalList.Add(temp);
+
                     continue;
                 }
+
             }
 
-            if (!reader.TryGetByte(out var listEndMarker))
-            {
-                return false;
-            }
-
-            if (listEndMarker != 0)
-            {
-                throw new MongoDB.Client.Bson.Serialization.Exceptions.SerializerEndMarkerException(nameof(MongoDB.Client.Messages.MongoCursor<T>), listEndMarker);
-            }
-
-            list = internalList;
+            position = reader.Position;
             return true;
-        }
-
-        private static void WriteListT(ref MongoDB.Client.Bson.Writer.BsonWriter writer, System.Collections.Generic.List<T> array)
-        {
-            int index = 0;
-            var checkpoint = writer.Written;
-            var reserved = writer.Reserve(4);
-            for (; index < array.Count; index++)
-            {
-                var item = array[index];
-                var bsonTypeResereved30784 = writer.Reserve(1);
-                writer.WriteName(index);
-                MongoDB.Client.Messages.CursorItemSerializer.WriteBson(ref writer, item, out var bsonTypeTemp30785);
-                bsonTypeResereved30784.WriteByte(bsonTypeTemp30785);
-            }
-
-            writer.WriteByte(0);
-            var docLength = writer.Written - checkpoint;
-            reserved.Write(docLength);
-            writer.Commit();
         }
     }
 }

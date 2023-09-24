@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Text;
+using Microsoft.Extensions.Logging;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol;
@@ -59,7 +60,7 @@ namespace MongoDB.Client.Connection
                         }
                         catch (Exception e)
                         {
-                            // read rest of the responce
+                            // read rest of the response
                             request.CompletionSource.SetException(e);
                         }
                     }

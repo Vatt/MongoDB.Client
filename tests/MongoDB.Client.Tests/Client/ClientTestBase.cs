@@ -156,7 +156,7 @@ namespace MongoDB.Client.Tests.Client
 
         protected Task<MongoClient> CreateStandaloneClient(int connPoolSize)
         {
-            var connectionStr = $"mongodb://{StandaloneHost}/?maxPoolSize={connPoolSize}";
+            var connectionStr = $"mongodb://{StandaloneHost}/?maxPoolSize={connPoolSize}&clientType=experimental";
             return MongoClient.CreateClient(connectionStr);
         }
 

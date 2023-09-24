@@ -23,8 +23,10 @@ namespace MongoDB.Client.Messages
     public partial class CursorResult<T> : IParserResult
     //where T : IBsonSerializer<T>
     {
+        private MongoCursor<T>.State _cursorState;
+
         [BsonElement("cursor")]
-        public MongoCursor<T> MongoCursor { get; set; }
+        public MongoCursor<T> MongoCursor;
 
         [BsonElement("ok")]
         public double Ok { get; set; }
@@ -44,10 +46,12 @@ namespace MongoDB.Client.Messages
         [BsonElement("operationTime")]
         public BsonTimestamp? OperationTime { get; set; }
 
-        public CursorResult(MongoCursor<T> mongoCursor)
+        internal CursorResult()
         {
-            MongoCursor = mongoCursor;
+            _cursorState = new();
         }
+
+        [BsonConstructor]
         public CursorResult(MongoCursor<T> mongoCursor, double ok, string? errorMessage, int code, string? codeName, MongoClusterTime? clusterTime, BsonTimestamp? operationTime)
         {
             MongoCursor = mongoCursor;
@@ -75,11 +79,8 @@ namespace MongoDB.Client.Messages
         [BsonElement("nextBatch")]
         [BsonSerializer(typeof(CursorItemSerializer))]
         public List<T>? NextBatch { get; set; }
-        public List<T>? Items { get; set; }
-        public MongoCursor(List<T> items)
-        {
-            Items = items;
-        }
+
+        [BsonConstructor]
         public MongoCursor(long id, string? _namespace, List<T> firstBatch, List<T> nextBatch)
         {
             Id = id;

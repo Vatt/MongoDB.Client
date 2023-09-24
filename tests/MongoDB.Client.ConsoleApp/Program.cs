@@ -38,8 +38,8 @@ namespace MongoDB.Client.ConsoleApp
         static async Task Main(string[] args)
         {
             //var update = Update<TestModel>.Set(new {SomeId = 22});
-            await TestUpdate();
-            //await LoadTest<GeoIp>(1024 * 1024, new[] { 512 });
+            //await TestUpdate();
+            await LoadTest<GeoIp>(1024 * 1024, new[] { 1024 });
             //await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, false);
             //await TestShardedCluster();
             //await TestTransaction();
@@ -235,7 +235,8 @@ namespace MongoDB.Client.ConsoleApp
             where T : IIdentified, IBsonSerializer<T>
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
-            host = $"mongodb://{host}/?clientType=experimental&replicaSet=rs0&maxPoolSize=4";
+            //host = $"mongodb://{host}/?clientType=experimental&replicaSet=rs0&maxPoolSize=1";
+            host = $"mongodb://{host}/?replicaSet=rs0&maxPoolSize=1";
             var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder

@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
-using MongoDB.Client.Utils;
 
 namespace MongoDB.Client.Protocol.Readers
 {
@@ -17,7 +16,7 @@ namespace MongoDB.Client.Protocol.Readers
         public MsgBodyReader(ResponseMsgMessage message)
         {
             Message = message;
-            _cursorResult = new CursorResult<T>(new MongoCursor<T>(ListsPool<T>.Pool.Get()));
+            //_cursorResult = new CursorResult<T>(new MongoCursor<T>(ListsPool<T>.Pool.Get()));
         }
 
         protected void Advance(long count)
