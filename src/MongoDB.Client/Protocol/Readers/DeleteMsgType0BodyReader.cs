@@ -19,6 +19,7 @@ namespace MongoDB.Client.Protocol.Readers
 
             if (DeleteResult.TryParseBson(ref bsonReader, out message) == false)
             {
+                examined = input.End;
                 return false;
             }
 
