@@ -32,6 +32,7 @@ namespace MongoDB.Client.Protocol.Readers
                 }
                 else
                 {
+                    examined = input.End;
                     return false;
                 }
             }

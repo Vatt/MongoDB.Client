@@ -15,6 +15,7 @@ namespace MongoDB.Client.Protocol.Readers
 
             if (input.Length < 5)
             {
+                examined = input.End;
                 message = default;
                 return false;
             }
