@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
@@ -114,6 +116,12 @@ namespace MongoDB.Client.Bson.Reader
                         objectValue = longValue;
                         return true;
                     }
+                case 19:
+                    {
+                        if (!TryGetDecimal(out decimal decimalValue)) { return false; }
+                        objectValue = decimalValue;
+                        return true;
+                    }
                 default:
                     {
                         return ThrowHelper.UnknownTypeException<bool>(bsonType);
@@ -150,6 +158,10 @@ namespace MongoDB.Client.Bson.Reader
                         return true;
                     case long value:
                         if (!TryGetInt64(out value)) { return false; }
+                        genericValue = (T)(object)value;
+                        return true;
+                    case decimal value:
+                        if (!TryGetDecimalWithBsonType(bsonType, out value)) { return false; }
                         genericValue = (T)(object)value;
                         return true;
                     default:
@@ -300,6 +312,10 @@ namespace MongoDB.Client.Bson.Reader
                     {
                         return TryAdvance(sizeof(long));
                     }
+                case 19:
+                    {
+                        return TryAdvance(16);
+                    }
                 default:
                     {
                         return ThrowHelper.UnknownTypeException<bool>(bsonType);
@@ -319,21 +335,70 @@ namespace MongoDB.Client.Bson.Reader
             return false;
         }
 
+        public bool TryGetDecimalWithBsonType(int bsonType, out decimal value)
+        {
+            value = default;
+            switch (bsonType)
+            {
+                case 1:
+                    if (TryGetDouble(out double doubleValue))
+                    {
+                        value = new(doubleValue);
+                        
+                        return true;
+                    }
 
+                    return false;
+                case 2:
+                    if (TryGetString(out var stringValue))
+                    {
+                        if (decimal.TryParse(stringValue, CultureInfo.InvariantCulture, out value) is false)
+                        {
+                            return ThrowHelper.UnsupportedStringDecimalException<bool>(stringValue);
+                        }
+
+                        return true;
+                    }
+
+                    return false;
+                case 16:
+                    if (TryGetInt32(out int intValue))
+                    {
+                        value = new(intValue);
+
+                        return true;
+                    }
+
+                    return false;
+                case 18:
+                    if (TryGetInt64(out long longValue))
+                    {
+                        value = new(longValue);
+
+                        return true;
+                    }
+
+                    return false;
+                case 19:
+                    return TryGetDecimal(out value);
+                default:
+                    value = default;
+                    return ThrowHelper.UnsupportedDecimalTypeException<bool>(bsonType);
+            }
+        }
 
         public bool TryGetGuidWithBsonType(int bsonType, out Guid value)
         {
-            if (bsonType == 5)
+            switch (bsonType)
             {
-                return TryGetBinaryDataGuid(out value);
+                case 5:
+                    return TryGetBinaryDataGuid(out value);
+                case 2:
+                    return TryGetGuidFromString(out value);
+                default:
+                    value = default;
+                    return ThrowHelper.UnsupportedGuidTypeException<bool>(bsonType);
             }
-            if (bsonType == 2)
-            {
-                return TryGetGuidFromString(out value);
-            }
-
-            value = default;
-            return ThrowHelper.UnsupportedGuidTypeException<bool>(bsonType);
         }
 
 

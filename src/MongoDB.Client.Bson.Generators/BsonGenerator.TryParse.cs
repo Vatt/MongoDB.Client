@@ -259,7 +259,7 @@ namespace MongoDB.Client.Bson.Generators
                 }
             }
 
-            if (IsListCollection(trueTypeSym) || IsDictionaryCollection(trueTypeSym))
+            if (IsCollection(trueTypeSym))
             {
                 return InvocationExpr(IdentifierName(CollectionTryParseMethodName(trueTypeSym)), RefArgument(readerId), OutArgument(readTarget));
 
@@ -279,25 +279,31 @@ namespace MongoDB.Client.Bson.Generators
             {
                 case SpecialType.System_Double:
                     expr = TryGetDouble(variable);
+
                     return true;
                 case SpecialType.System_String:
                     expr = TryGetString(variable);
+
                     return true;
                 case SpecialType.System_Boolean:
                     expr = TryGetBoolean(variable);
+
                     return true;
                 case SpecialType.System_Int32:
                     expr = TryGetInt32(variable);
+
                     return true;
                 case SpecialType.System_Int64:
                     expr = TryGetInt64(variable);
+
                     return true;
                 case SpecialType.System_Object:
                     expr = TryReadObject(bsonType, variable);
+
                     return true;
-                    //case SpecialType.System_DateTime:
-                    //    expr = TryGetDateTimeWithBsonType(bsonType, variable);
-                    //    return true;
+                case SpecialType.System_Decimal:
+                    expr = TryGetDecimalWithBsonType(bsonType, variable);
+                    return true;
             }
 
             if (IsArrayByteOrMemoryByte(typeSymbol))

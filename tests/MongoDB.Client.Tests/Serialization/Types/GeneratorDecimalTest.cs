@@ -6,48 +6,48 @@ using Xunit;
 namespace MongoDB.Client.Tests.Serialization.Types
 {
     [BsonSerializable(GeneratorMode.ConstructorParameters)]
-    public partial class Int64Model : GeneratorTypeTestModelBase<long, long?>, IEquatable<Int64Model>
+    public partial class DecimalModel : GeneratorTypeTestModelBase<decimal, decimal?>, IEquatable<DecimalModel>
     {
-        public Int64Model(
-            long property,
-            long? nullableProperty,
-            long? alwaysNullProperty,
-            List<long> listProperty,
-            List<long>? nullableListProperty,
-            List<long>? alwaysNullListProperty,
-            List<long?> listWithNullableTypeArgumentProperty,
-            List<long?>? nullableListWithNullableTypeArgumentProperty,
-            List<long?>? alwaysNullListWithNullableTypeArgumentProperty,
-            Dictionary<string, long> dictionaryProperty,
-            Dictionary<string, long>? nullableDictionaryProperty,
-            Dictionary<string, long>? alwaysNullDictionaryProperty,
-            Dictionary<string, long?> dictionaryWithNullableTypeArgument,
-            Dictionary<string, long?>? nullableDictionaryWithNullableTypeArgument,
-            Dictionary<string, long?>? alwaysNullDictionaryWithNullableTypeArgument)
+        public DecimalModel(
+            decimal property,
+            decimal? nullableProperty,
+            decimal? alwaysNullProperty,
+            List<decimal> listProperty,
+            List<decimal>? nullableListProperty,
+            List<decimal>? alwaysNullListProperty,
+            List<decimal?> listWithNullableTypeArgumentProperty,
+            List<decimal?>? nullableListWithNullableTypeArgumentProperty,
+            List<decimal?>? alwaysNullListWithNullableTypeArgumentProperty,
+            Dictionary<string, decimal> dictionaryProperty,
+            Dictionary<string, decimal>? nullableDictionaryProperty,
+            Dictionary<string, decimal>? alwaysNullDictionaryProperty,
+            Dictionary<string, decimal?> dictionaryWithNullableTypeArgument,
+            Dictionary<string, decimal?>? nullableDictionaryWithNullableTypeArgument,
+            Dictionary<string, decimal?>? alwaysNullDictionaryWithNullableTypeArgument)
             : base(property, nullableProperty, alwaysNullProperty,
                     listProperty, nullableListProperty, alwaysNullListProperty,
                     listWithNullableTypeArgumentProperty, nullableListWithNullableTypeArgumentProperty, alwaysNullListWithNullableTypeArgumentProperty,
                     dictionaryProperty, nullableDictionaryProperty, alwaysNullDictionaryProperty,
                     dictionaryWithNullableTypeArgument, nullableDictionaryWithNullableTypeArgument, alwaysNullDictionaryWithNullableTypeArgument)
         {
-            BsonType = BsonType.Int64;
-            DictionaryBsonType = BsonType.Int64;
+            BsonType = BsonType.Decimal;
+            DictionaryBsonType = BsonType.Decimal;
         }
         public override bool Equals(BsonDocument doc)
         {
             return base.Equals(doc);
         }
-        public static Int64Model Create()
+        public static DecimalModel Create()
         {
-            return new Int64Model(
-                42, 42, null,
-                new() { 42, 42 }, new() { 42, 42 }, null,
-                new() { 42, null }, new() { 42, null }, null,
-                new() { { "42", 42 }, { "24", 24 } }, new() { { "42", 42 }, { "24", 24 } }, null,
-                new() { { "42", 42 }, { "24", 24 } }, new() { { "42", 42 }, { "24", null } }, null);
+            return new DecimalModel(
+                (decimal)42.42, (decimal)42.42, null,
+                new() { (decimal)42.42, (decimal)42.42 }, new() { (decimal)42.42, (decimal)42.42 }, null,
+                new() { (decimal)42.42, null }, new() { (decimal)42.42, null }, null,
+                new() { { "42", (decimal)24.24 }, { "24", (decimal)24.24 } }, new() { { "42", (decimal)42.42 }, { "24", (decimal)24.24 } }, null,
+                new() { { "42", (decimal)24.24 }, { "24", (decimal)24.24 } }, new() { { "42", (decimal)42.42 }, { "24", null } }, null);
         }
 
-        public bool Equals(Int64Model other)
+        public bool Equals(DecimalModel other)
         {
             return other != null &&
                    BsonType == other.BsonType &&
@@ -94,21 +94,22 @@ namespace MongoDB.Client.Tests.Serialization.Types
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as Int64Model);
+            return Equals(obj as DecimalModel);
         }
     }
 
 
-    public class GeneratorInt64Test : SerializationTestBase
+    public class GeneratorDecimalTest : SerializationTestBase
     {
         [Fact]
-        public async Task Int64Test()
+        public async Task DecimalTest()
         {
-            var model = Int64Model.Create();
-            var result = await RoundTripAsync(model);
-            var bson = await RoundTripWithBsonAsync(model);
-            Assert.Equal(model, result);
-            model.Equals(bson);
+            var model = DecimalModel.Create();
+            var doubleModel = DoubleModel.Create();
+            var result1 = await RoundTripAsync(model);
+            Assert.Equal(model, result1);
+            var result2 = await RoundTripAsync<DoubleModel, DecimalModel>(doubleModel);
+            Assert.Equal(model, result2);
         }
     }
 }
