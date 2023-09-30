@@ -1,4 +1,5 @@
 ﻿using System.Security.Cryptography;
+using MongoDB.Client.Bson;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using Xunit;

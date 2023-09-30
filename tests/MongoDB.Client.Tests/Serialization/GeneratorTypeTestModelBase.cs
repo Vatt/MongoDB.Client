@@ -1,4 +1,5 @@
-﻿using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Client.Bson;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Tests.Models;
 
 namespace MongoDB.Client.Tests.Serialization.Generator

@@ -239,7 +239,6 @@ namespace MongoDB.Client.Bson.Reader
             return _input.TryAdvanceTo(EndMarker);
         }
 
-
         public bool TrySkip(int bsonType)
         {
             switch (bsonType)

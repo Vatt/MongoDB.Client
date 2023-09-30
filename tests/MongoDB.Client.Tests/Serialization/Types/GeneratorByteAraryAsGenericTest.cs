@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using MongoDB.Client.Bson;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Tests.Serialization.Generator;

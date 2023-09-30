@@ -1,4 +1,4 @@
-﻿namespace MongoDB.Client.Bson.Document
+﻿namespace MongoDB.Client.Bson
 {
     public enum BsonType : byte
     {

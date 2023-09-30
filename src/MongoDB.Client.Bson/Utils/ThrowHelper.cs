@@ -28,6 +28,18 @@ namespace MongoDB.Client.Bson.Utils
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         [DoesNotReturn]
+        public static bool InvalidTypeException<TValue>(BsonType expectedType, BsonType type, TValue value)
+        {
+            throw new InvalidOperationException($"Can't interpret type {expectedType} from type {type}, value {value}");
+        }
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
+        public static bool InvalidTypeException(BsonType expectedType, BsonType type)
+        {
+            throw new InvalidOperationException($"Can't interpret type {expectedType} from type {type}");
+        }
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
         public static T UnsupportedGuidTypeException<T>(int bsonType)
         {
             throw new NotSupportedException("Unsupported Guid type: " + bsonType.ToString());
