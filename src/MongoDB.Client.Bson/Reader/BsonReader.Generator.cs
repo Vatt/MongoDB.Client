@@ -387,17 +387,17 @@ namespace MongoDB.Client.Bson.Reader
             }
         }
 
-        public bool TryGetGuidWithBsonType(int bsonType, out Guid value)
+        public bool TryGetGuidWithBsonType(BsonType bsonType, out Guid value)
         {
             switch (bsonType)
             {
-                case 5:
+                case BsonType.BinaryData:
                     return TryGetBinaryDataGuid(out value);
-                case 2:
+                case BsonType.String:
                     return TryGetGuidFromString(out value);
                 default:
                     value = default;
-                    return ThrowHelper.UnsupportedGuidTypeException<bool>(bsonType);
+                    return ThrowHelper.UnsupportedGuidTypeException<bool>((int)bsonType);
             }
         }
 
