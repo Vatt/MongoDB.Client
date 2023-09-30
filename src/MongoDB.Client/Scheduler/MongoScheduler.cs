@@ -19,8 +19,7 @@ namespace MongoDB.Client.Scheduler
         private readonly IMongoConnectionFactory _connectionFactory;
         private readonly ScramAuthenticator _authenticator;
         private readonly ILogger<StandaloneScheduler> _logger;
-        //TODO: fix this
-        //private readonly List<MongoConnection> _connections; 
+
         private readonly List<MongoConnection> _connections;
         private readonly Channel<MongoRequest> _channel;
         private readonly ChannelWriter<MongoRequest> _channelWriter;
@@ -74,7 +73,6 @@ namespace MongoDB.Client.Scheduler
                             _connections.Add(connection);
                         }
                     }
-
                 }
                 finally
                 {
@@ -90,7 +88,7 @@ namespace MongoDB.Client.Scheduler
         }
 
 
-        public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token) 
+        public async ValueTask<CursorResult<T>> GetCursorAsync<T>(FindMessage message, CancellationToken token)
             where T : IBsonSerializer<T>
         {
             var request = MongoRequestPool.Get();
@@ -112,7 +110,7 @@ namespace MongoDB.Client.Scheduler
         }
 
 
-        public async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token) 
+        public async ValueTask InsertAsync<T>(InsertMessage<T> message, CancellationToken token)
             where T : IBsonSerializer<T>
         {
             var request = MongoRequestPool.Get();
@@ -173,7 +171,7 @@ namespace MongoDB.Client.Scheduler
             }
             var updateResult = (UpdateResult)await taskSource.GetValueTask().ConfigureAwait(false);
             MongoRequestPool.Return(request);
-            
+
             return updateResult.ErrorMessage is null ? updateResult : ThrowHelper.UpdateException<UpdateResult>(updateResult.ErrorMessage);
         }
         public async ValueTask TransactionAsync(TransactionMessage message, CancellationToken token)
@@ -267,11 +265,20 @@ namespace MongoDB.Client.Scheduler
         public async ValueTask DisposeAsync()
         {
             _channelWriter.Complete();
-            foreach (var connection in _connections)
+            await _initLock.WaitAsync().ConfigureAwait(false);
+            try
             {
-                await connection.DisposeAsync().ConfigureAwait(false);
+                foreach (var connection in _connections)
+                {
+                    await connection.DisposeAsync().ConfigureAwait(false);
+                }
+                _connections.Clear();
             }
-            _connections.Clear();
+            finally
+            {
+                _initLock.Release();
+            }
+
             _initLock.Dispose();
         }
     }

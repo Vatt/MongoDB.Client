@@ -2,6 +2,7 @@
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using MongoDB.Client.Bson.Document;
 
@@ -41,6 +42,10 @@ namespace MongoDB.Client.Bson.Writer
                 Debug.Assert(source != 0);
                 Debug.Assert(_reserved2 == null);
                 _reserved1[0] = source;
+            }
+            public void WriteBsonType(BsonType type)
+            {
+                WriteByte((byte)type);
             }
 
             public void Write(int source)
@@ -174,7 +179,7 @@ namespace MongoDB.Client.Bson.Writer
 
 
 
-        public void WriteBytes(ReadOnlySpan<byte> source)
+        public void WriteBytes(scoped ReadOnlySpan<byte> source)
         {
             if (source.TryCopyTo(_span))
             {
@@ -186,7 +191,7 @@ namespace MongoDB.Client.Bson.Writer
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private void SlowWriteBytes(ReadOnlySpan<byte> source)
+        private void SlowWriteBytes(scoped ReadOnlySpan<byte> source)
         {
             var slice = source;
             while (slice.Length > 0)
@@ -206,6 +211,10 @@ namespace MongoDB.Client.Bson.Writer
             Advance(1);
         }
 
+        public void WriteBsonType(BsonType type)
+        {
+            WriteByte((byte)type);
+        }
 
 
         public void WriteInt32(int value)
@@ -264,6 +273,12 @@ namespace MongoDB.Client.Bson.Writer
             WriteInt64(longValue);
         }
 
+        public void WriteDecimal(decimal value)
+        {
+            Span<byte> span = stackalloc byte[16];
+            decimal.TryGetBits(value, MemoryMarshal.Cast<byte, int>(span), out _);
+            WriteBytes(span);
+        }
 
 
         public void WriteCString(ReadOnlySpan<char> value)
@@ -299,6 +314,7 @@ namespace MongoDB.Client.Bson.Writer
                     GetNextSpan(4096);
                 }
             } while (!chars.IsEmpty);
+            WriteByte(EndMarker);
         }
 
 

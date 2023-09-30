@@ -1,6 +1,8 @@
 ﻿using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Utils;
 
@@ -8,24 +10,6 @@ namespace MongoDB.Client.Bson.Reader
 {
     public ref partial struct BsonReader
     {
-
-        public bool TryGetDateTimeWithBsonType(int bsonType, out DateTimeOffset? value)
-        {
-            switch (bsonType)
-            {
-                case 3:
-                    return TryGetDatetimeFromDocument(out value);
-                case 9:
-                    return TryGetUtcDatetime(out value);
-                case 18:
-                    return TryGetUtcDatetime(out value);
-                default:
-                    value = default;
-                    return ThrowHelper.UnsupportedDateTimeTypeException<bool>(bsonType);
-            }
-        }
-
-
         public bool TryGetUtcDatetime([MaybeNullWhen(false)] out DateTimeOffset? value)
         {
             if (TryGetInt64(out long data))
@@ -138,21 +122,6 @@ namespace MongoDB.Client.Bson.Reader
             return false;
         }
 
-
-        public bool TryGetGuidWithBsonType(int bsonType, out Guid? value)
-        {
-            if (bsonType == 5)
-            {
-                return TryGetBinaryDataGuid(out value);
-            }
-            if (bsonType == 2)
-            {
-                return TryGetGuidFromString(out value);
-            }
-
-            value = default;
-            return ThrowHelper.UnsupportedGuidTypeException<bool>(bsonType);
-        }
         public bool TryGetBinaryDataGuid(out Guid? value)
         {
             if (TryGetInt32(out int len))
@@ -246,6 +215,26 @@ namespace MongoDB.Client.Bson.Reader
             return false;
         }
 
+        public bool TryGetDecimal(out decimal? value)
+        {
+            const int decimalSize = 16;
+
+            if (_input.Remaining >= decimalSize)
+            {
+                Span<byte> span = stackalloc byte[decimalSize];
+                if (_input.TryCopyTo(span))
+                {
+                    var bits = MemoryMarshal.Cast<byte, int>(span);
+                    value = new(bits);
+                    _input.Advance(decimalSize);
+
+                    return true;
+                }
+            }
+
+            value = default;
+            return false;
+        }
 
         public bool TryGetBoolean(out bool? value)
         {

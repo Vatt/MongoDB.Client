@@ -10,7 +10,6 @@ namespace MongoDB.Client.Protocol.Readers
     {
         public bool TryParseMessage(in ReadOnlySequence<byte> input, ref SequencePosition consumed, ref SequencePosition examined, [MaybeNullWhen(false)] out MongoPingMessage message)
         {
-            message = default;
             var bsonReader = new BsonReader(input);
             if (MongoPingMessage.TryParseBson(ref bsonReader, out message))
             {
@@ -20,6 +19,8 @@ namespace MongoDB.Client.Protocol.Readers
             }
             else
             {
+                examined = input.End;
+                message = default;
                 return false;
             }
         }

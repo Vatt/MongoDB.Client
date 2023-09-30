@@ -2,32 +2,34 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
+namespace MongoDB.Client.Bson.Generators
 {
-    internal static partial class SerializerGenerator
+    public partial class BsonGenerator
     {
         private static MethodDeclarationSyntax TryParseListCollectionMethod(MemberContext ctx, ITypeSymbol type)
         {
             var typeArg = (type as INamedTypeSymbol).TypeArguments[0];
             var trueTypeArg = ExtractTypeFromNullableIfNeed(typeArg);
 
-            //ITypeSymbol trueType = ExtractTypeFromNullableIfNeed(type);
-            var builder = ImmutableList.CreateBuilder<StatementSyntax>();
-            if (TryGenerateCollectionTryParseBson(trueTypeArg, ctx.NameSym, InternalListToken, TempToken, builder, Argument(TempToken)))
+            var statements = new List<StatementSyntax>();
+
+            if (TryGenerateCollectionTryParseBson(trueTypeArg, ctx.NameSym, InternalListToken, TempToken, statements, Argument(TempToken)))
             {
                 goto RETURN;
             }
-            if (TryGenerateCollectionSimpleRead(ctx, trueTypeArg, InternalListToken, TempToken, ListBsonTypeToken, builder, Argument(TempToken)))
+
+            if (TryGenerateCollectionSimpleRead(ctx, trueTypeArg, InternalListToken, TempToken, ListBsonTypeToken, statements, Argument(TempToken)))
             {
                 goto RETURN;
             }
 
             if (TryGetEnumReadOperation(TempToken, ctx.NameSym, typeArg, true, out var enumOp))
             {
-                builder.IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(InternalListToken, CollectionAddToken, Argument(enumOp.TempExpr))));
+                statements.Add(IfNotReturnFalseElse(enumOp.Expr, Block(InvocationExpr(InternalListToken, CollectionAddToken, Argument(enumOp.TempExpr)))));
                 goto RETURN;
             }
-            ReportUnsuporterTypeError(ctx.NameSym, trueTypeArg);
+
+            ReportUnsupportedTypeError(ctx.NameSym, trueTypeArg);
         RETURN:
             return SF.MethodDeclaration(
                     attributeLists: default,
@@ -55,20 +57,20 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                                    BinaryExprMinus(ListDocLenToken, NumericLiteralExpr(1))),
                            statement:
                                Block(
-                                   IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(ListBsonTypeToken))),
+                                   IfNotReturnFalse(TryGetBsonType(VarVariableDeclarationExpr(ListBsonTypeToken))),
                                    IfNotReturnFalse(TrySkipCStringExpr),
                                    IfStatement(
-                                       condition: BinaryExprEqualsEquals(ListBsonTypeToken, NumericLiteralExpr(10)),
+                                       condition: BinaryExprEqualsEquals(ListBsonTypeToken, BsonTypeNull),
                                        statement: Block(
                                            InvocationExprStatement(InternalListToken, CollectionAddToken, Argument(DefaultLiteralExpr())),
                                            ContinueStatement
                                            )),
-                                   builder.ToArray()
+                                   statements.ToArray()
                                    )),
                        IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(ListEndMarkerToken))),
                        IfStatement(
-                           BinaryExprNotEquals(ListEndMarkerToken, NumericLiteralExpr((byte)'\x00')),
-                           Block(Statement(SerializerEndMarkerException(ctx.Root.Declaration, IdentifierName(ListEndMarkerToken))))),
+                               BinaryExprNotEquals(ListEndMarkerToken, NumericLiteralExpr((byte)'\x00')),
+                               Block(Statement(SerializerEndMarkerException(ctx.Root.Declaration, IdentifierName(ListEndMarkerToken))))),
                        SimpleAssignExprStatement(ListToken, InternalListToken),
                        ReturnTrueStatement
                        ));
@@ -93,18 +95,21 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
 
             if (typeArg.IsReferenceType)
             {
-                writeOperation.IfStatement(
+                writeOperation.Add(
+                    IfStatement(
                             condition: BinaryExprEqualsEquals(loopItem, NullLiteralExpr()),
                             statement: Block(WriteBsonNull(index)),
-                            @else: Block(WriteOperation(ctx, index, ctx.NameSym, typeArg, BsonWriterToken, IdentifierName(loopItem))));
+                            @else: Block(WriteOperation(ctx, index, ctx.NameSym, typeArg, BsonWriterToken, IdentifierName(loopItem)))));
             }
             else if (typeArg.NullableAnnotation == NullableAnnotation.Annotated && typeArg.IsValueType)
             {
                 var operation = WriteOperation(ctx, index, ctx.NameSym, typeArg, BsonWriterToken, SimpleMemberAccess(loopItem, NullableValueToken));
-                writeOperation.IfStatement(
+
+                writeOperation.Add(
+                    IfStatement(
                             condition: BinaryExprEqualsEquals(SimpleMemberAccess(loopItem, NullableHasValueToken), FalseLiteralExpr),
                             statement: Block(WriteBsonNull(index)),
-                            @else: Block(operation));
+                            @else: Block(operation)));
             }
             else
             {

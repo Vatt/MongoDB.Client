@@ -1,8 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
+namespace MongoDB.Client.Bson.Generators
 {
-    internal static partial class SerializerGenerator
+    public partial class BsonGenerator
     {
         public static readonly SyntaxToken UnsafeToken = Identifier("System.Runtime.CompilerServices.Unsafe");
         public static readonly SyntaxToken MemoryMarshalToken = Identifier("System.Runtime.InteropServices.MemoryMarshal");
@@ -27,11 +27,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return MemoryMarshalGetReference(span);
             }
-            return InvocationExpr(
-                UnsafeToken,
-                UnsafeAddToken,
-                RefArgument(MemoryMarshalGetReference(span)),
-                Argument(CastToNInt(NumericLiteralExpr(index))));
+
+            return InvocationExpr(UnsafeToken,
+                                  UnsafeAddToken,
+                                  RefArgument(MemoryMarshalGetReference(span)),
+                                  Argument(CastToNInt(NumericLiteralExpr(index))));
         }
     }
 }

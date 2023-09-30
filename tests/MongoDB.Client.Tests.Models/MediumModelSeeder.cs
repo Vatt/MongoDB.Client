@@ -3,7 +3,7 @@ using BsonObjectId = MongoDB.Client.Bson.Document.BsonObjectId;
 
 namespace MongoDB.Client.Tests.Models
 {
-    public class MediumModelSeeder
+    public class MediumModelSeeder : ISeeder<MediumModel>
     {
         public IEnumerable<MediumModel> GenerateSeed(int count)
         {

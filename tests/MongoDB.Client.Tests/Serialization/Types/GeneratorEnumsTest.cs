@@ -1,4 +1,5 @@
-﻿using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Client.Bson;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Tests.Serialization.Generator;
 using Xunit;
@@ -90,11 +91,11 @@ namespace MongoDB.Client.Tests.Serialization.Types
             return HashCode.Combine(Enum, EnumList);
         }
     }
-    [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
+    [BsonSerializable(GeneratorMode.ConstructorParameters)]
     public partial class StringEnumModel : IEquatable<StringEnumModel>
     {
-        protected BsonElementType BsonType;
-        protected BsonElementType DictionaryBsonType;
+        protected BsonType BsonType;
+        protected BsonType DictionaryBsonType;
         [BsonEnum(EnumRepresentation.String)]
         public TestEnum Property { get; }
         [BsonEnum(EnumRepresentation.String)]
@@ -142,8 +143,8 @@ namespace MongoDB.Client.Tests.Serialization.Types
             Dictionary<string, TestEnum?>? nullableDictionaryWithNullableTypeArgument,
             Dictionary<string, TestEnum?>? alwaysNullDictionaryWithNullableTypeArgument)
         {
-            BsonType = BsonElementType.BinaryData;
-            DictionaryBsonType = BsonElementType.BinaryData;
+            BsonType = BsonType.BinaryData;
+            DictionaryBsonType = BsonType.BinaryData;
             Property = property;
             NullableProperty = nullableProperty;
             AlwaysNullProperty = alwaysNullProperty;
@@ -207,11 +208,11 @@ namespace MongoDB.Client.Tests.Serialization.Types
             throw new NotImplementedException();
         }
     }
-    [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
+    [BsonSerializable(GeneratorMode.ConstructorParameters)]
     public partial class Int64EnumModel : IEquatable<Int64EnumModel>
     {
-        protected BsonElementType BsonType;
-        protected BsonElementType DictionaryBsonType;
+        protected BsonType BsonType;
+        protected BsonType DictionaryBsonType;
         [BsonEnum(EnumRepresentation.Int64)]
         public TestEnum Property { get; }
         [BsonEnum(EnumRepresentation.Int64)]
@@ -259,8 +260,8 @@ namespace MongoDB.Client.Tests.Serialization.Types
             Dictionary<string, TestEnum?>? nullableDictionaryWithNullableTypeArgument,
             Dictionary<string, TestEnum?>? alwaysNullDictionaryWithNullableTypeArgument)
         {
-            BsonType = BsonElementType.BinaryData;
-            DictionaryBsonType = BsonElementType.BinaryData;
+            BsonType = BsonType.BinaryData;
+            DictionaryBsonType = BsonType.BinaryData;
             Property = property;
             NullableProperty = nullableProperty;
             AlwaysNullProperty = alwaysNullProperty;
@@ -342,7 +343,7 @@ namespace MongoDB.Client.Tests.Serialization.Types
             return Equals(obj as Int64EnumModel);
         }
     }
-    [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
+    [BsonSerializable(GeneratorMode.ConstructorParameters)]
     public partial class Int32EnumModel : GeneratorTypeTestModelBase<TestEnum, TestEnum?>, IEquatable<Int32EnumModel>
     {
         public Int32EnumModel(
@@ -367,8 +368,8 @@ namespace MongoDB.Client.Tests.Serialization.Types
                     dictionaryProperty, nullableDictionaryProperty, alwaysNullDictionaryProperty,
                     dictionaryWithNullableTypeArgument, nullableDictionaryWithNullableTypeArgument, alwaysNullDictionaryWithNullableTypeArgument)
         {
-            BsonType = BsonElementType.BinaryData;
-            DictionaryBsonType = BsonElementType.BinaryData;
+            BsonType = BsonType.BinaryData;
+            DictionaryBsonType = BsonType.BinaryData;
         }
         public override bool Equals(BsonDocument doc)
         {

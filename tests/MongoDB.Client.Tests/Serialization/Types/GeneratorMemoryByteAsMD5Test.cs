@@ -1,4 +1,5 @@
 ﻿using System.Security.Cryptography;
+using MongoDB.Client.Bson;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using Xunit;
@@ -6,11 +7,11 @@ using Xunit;
 namespace MongoDB.Client.Tests.Serialization.Types
 {
 
-    [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
+    [BsonSerializable(GeneratorMode.ConstructorParameters)]
     public partial class GeneratorMemoryByteAsMD5Model : IEquatable<GeneratorMemoryByteAsMD5Model>
     {
-        protected BsonElementType BsonType;
-        protected BsonElementType DictionaryBsonType;
+        protected BsonType BsonType;
+        protected BsonType DictionaryBsonType;
 
         [BsonBinaryData(BinaryDataRepresentation.MD5)]
         public Memory<byte> Property { get; }
@@ -61,8 +62,8 @@ namespace MongoDB.Client.Tests.Serialization.Types
              Dictionary<string, Memory<byte>?>? nullableDictionaryWithNullableTypeArgument,
              Dictionary<string, Memory<byte>?>? alwaysNullDictionaryWithNullableTypeArgument)
         {
-            BsonType = BsonElementType.BinaryData;
-            DictionaryBsonType = BsonElementType.BinaryData;
+            BsonType = BsonType.BinaryData;
+            DictionaryBsonType = BsonType.BinaryData;
             Property = property;
             NullableProperty = nullableProperty;
             AlwaysNullProperty = alwaysNullProperty;

@@ -25,110 +25,93 @@ namespace MongoDB.Client.Bson.Reader
             value = root;
             return true;
         }
-
-
-        public bool TryGetArrayAsDocumentList([NotNullWhen(true)] out List<BsonDocument>? value)
-        {
-            value = new List<BsonDocument>();
-            if (!TryGetInt32(out int docLength)) { return false; }
-            var unreaded = _input.Remaining + sizeof(int);
-            while (unreaded - _input.Remaining < docLength - 1)
-            {
-                if (!TryGetByte(out var type)) { return false; }
-                if (!TryGetCString(out var name)) { return false; }
-                if (!TryParseDocument(null, out var element)) { return false; }
-                value.Add(element);
-            }
-            TryGetByte(out var endDocumentMarker);
-            if (endDocumentMarker != '\x00')
-            {
-                return ThrowHelper.MissedDocumentEndMarkerException<bool>();
-            }
-            return true;
-        }
-
-
         public bool TryParseElement(BsonDocument parent, out BsonElement element)
         {
             element = default;
-            if (!TryGetByte(out var type)) { return false; }
+            if (!TryGetBsonType(out var type)) { return false; }
             if (!TryGetCString(out var name)) { return false; }
             switch (type)
             {
-                case 1:
+                case BsonType.Double:
                     {
                         if (!TryGetDouble(out double doubleVal)) { return false; }
                         element = BsonElement.Create(parent, name, doubleVal);
                         return true;
                     }
-                case 2:
+                case BsonType.String:
                     {
                         if (!TryGetString(out var stringValue)) { return false; }
                         element = BsonElement.Create(parent, name, stringValue);
                         return true;
                     }
-                case 3:
+                case BsonType.Document:
                     {
                         if (!TryParseDocument(parent, out var docValue)) { return false; }
                         element = BsonElement.Create(parent, name, docValue);
                         return true;
                     }
-                case 4:
+                case BsonType.Array:
                     {
                         if (!TryGetArray(out var arrayDoc)) { return false; }
                         element = BsonElement.CreateArray(parent, name, arrayDoc);
                         return true;
                     }
-                case 5:
+                case BsonType.BinaryData:
                     {
                         if (!TryGetBinaryData(out BsonBinaryData binary)) { return false; }
                         element = BsonElement.Create(parent, name, binary);
                         return true;
                     }
-                case 7:
+                case BsonType.ObjectId:
                     {
                         if (!TryGetObjectId(out BsonObjectId objectId)) { return false; }
                         element = BsonElement.Create(parent, name, objectId);
                         return true;
                     }
-                case 8:
+                case BsonType.Boolean:
                     {
                         if (!TryGetBoolean(out bool boolValue)) { return false; }
                         element = BsonElement.Create(parent, name, boolValue);
                         return true;
                     }
-                case 9:
+                case BsonType.UtcDateTime:
                     {
                         if (!TryGetUtcDatetime(out DateTimeOffset datetime)) { return false; }
                         element = BsonElement.Create(parent, name, datetime);
                         return true;
                     }
-                case 10:
+                case BsonType.Null:
                     {
                         element = BsonElement.Create(parent, name);
                         return true;
                     }
-                case 16:
+                case BsonType.Int32:
                     {
                         if (!TryGetInt32(out int intValue)) { return false; }
                         element = BsonElement.Create(parent, name, intValue);
                         return true;
                     }
-                case 17:
+                case BsonType.Timestamp:
                     {
                         if (!TryGetInt64(out long timestampValue)) { return false; }
                         element = BsonElement.Create(parent, name, new BsonTimestamp(timestampValue));
                         return true;
                     }
-                case 18:
+                case BsonType.Int64:
                     {
                         if (!TryGetInt64(out long longValue)) { return false; }
                         element = BsonElement.Create(parent, name, longValue);
                         return true;
                     }
+                case BsonType.Decimal:
+                    {
+                        if (!TryGetDecimal(out decimal decimalValue)) { return false; }
+                        element = BsonElement.Create(parent, name, decimalValue);
+                        return true;
+                    }
                 default:
                     {
-                        return ThrowHelper.UnknownTypeException<bool>(type);
+                        return ThrowHelper.UnknownTypeException<bool>((int)type);
                     }
             }
         }
@@ -152,11 +135,6 @@ namespace MongoDB.Client.Bson.Reader
 
             return true;
         }
-        //public BsonDocument ParseDocument()
-        //{
-        //    TryParseDocument(null, out BsonDocument document);
-        //    return document;
-        //}
 
         public bool TryParseDocument(out BsonDocument document)
         {

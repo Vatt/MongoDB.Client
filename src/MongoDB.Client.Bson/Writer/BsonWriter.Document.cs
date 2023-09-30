@@ -70,6 +70,11 @@ namespace MongoDB.Client.Bson.Writer
                         WriteInt64((long)element.Value!);
                         break;
                     }
+                case 19:
+                    {
+                        WriteDecimal((decimal)element.Value!); 
+                        break;
+                    }
                 default:
                     {
                         throw new ArgumentException($"{nameof(BsonWriter)}.{nameof(WriteElement)}  with type {(byte)element.Type}");

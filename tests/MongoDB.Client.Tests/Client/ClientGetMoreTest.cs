@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using Xunit;
 
@@ -27,7 +22,7 @@ namespace MongoDB.Client.Tests.Client
             var collection = db.GetCollection<GetMoreTestModel>("GetMoreCollection" + DateTimeOffset.UtcNow);
             var result = await FindAsync(items, BsonDocument.Empty, collection);
             Assert.True(items.Length == result.Count);
-            foreach(var resultItem in result)
+            foreach (var resultItem in result)
             {
                 Assert.Equal(item, resultItem);
             }
@@ -49,7 +44,7 @@ namespace MongoDB.Client.Tests.Client
 
             var result = await FindAsync(items, BsonDocument.Empty, collection);
             Assert.True(items.Length == result.Count);
-            foreach(var resultItem in result)
+            foreach (var resultItem in result)
             {
                 Assert.Equal(item, resultItem);
             }

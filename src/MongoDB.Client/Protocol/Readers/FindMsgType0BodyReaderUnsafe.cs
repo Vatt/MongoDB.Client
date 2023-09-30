@@ -44,6 +44,7 @@ namespace MongoDB.Client.Protocol.Readers
                 if (TryReadCursorStart(ref bsonReader, out var modelsLength, out var docLength, out var hasBatch) ==
                     false)
                 {
+                    examined = input.End;
                     return false;
                 }
 
@@ -75,17 +76,16 @@ namespace MongoDB.Client.Protocol.Readers
 #else
                     if (bsonReader.TryAdvanceTo(0) == false)
                     {
+                        examined = input.End;
                         return false;
                     }
 #endif
                     if (bsonReader.TryPeekInt32(out int modelLength) && bsonReader.Remaining >= modelLength)
                     {
-                        bool tryParseResult = default;
-                        T? item = default;
                         //tryParseResult = SerializerFnPtrProvider<T>.TryParseFnPtr(ref bsonReader, out item);
-                        if (T.TryParseBson(ref bsonReader, out item))
+                        if (T.TryParseBson(ref bsonReader, out var item))
                         {
-                            items.Add(item);
+                            items!.Add(item);
                             _modelsReaded += bsonReader.BytesConsumed - checkpoint;
                             Advance(bsonReader.BytesConsumed - checkpoint);
                             consumed = bsonReader.Position;
@@ -98,6 +98,7 @@ namespace MongoDB.Client.Protocol.Readers
                     }
                     else
                     {
+                        examined = input.End;
                         message = default;
                         return false;
                     }
@@ -110,6 +111,7 @@ namespace MongoDB.Client.Protocol.Readers
             {
                 if (bsonReader.TryGetByte(out var endDocumentMarker) == false)
                 {
+                    examined = input.End;
                     return false;
                 }
                 _docReaded += _modelsLength + 1;
@@ -124,6 +126,7 @@ namespace MongoDB.Client.Protocol.Readers
                 var checkpoint = bsonReader.BytesConsumed;
                 if (TryReadCursorEnd(ref bsonReader, checkpoint) == false)
                 {
+                    examined = input.End;
                     return false;
                 }
 

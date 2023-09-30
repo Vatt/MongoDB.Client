@@ -2,7 +2,7 @@
 
 namespace MongoDB.Client.Tests.Models
 {
-    public class GeoIpSeeder
+    public class GeoIpSeeder : ISeeder<GeoIp>
     {
         public IEnumerable<GeoIp> GenerateSeed(int count)
         {
@@ -25,7 +25,6 @@ namespace MongoDB.Client.Tests.Models
                     timezone = "Europe/Moscow",
                     zip = 190000,
                     Update = "old"
-                    
                 };
             }
         }

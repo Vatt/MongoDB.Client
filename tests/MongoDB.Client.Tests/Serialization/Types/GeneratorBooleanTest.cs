@@ -1,11 +1,12 @@
-﻿using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Client.Bson;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Tests.Serialization.Generator;
 using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization.Types
 {
-    [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
+    [BsonSerializable(GeneratorMode.ConstructorParameters)]
     public partial class BooleanModel : GeneratorTypeTestModelBase<bool, bool?>, IEquatable<BooleanModel>
     {
         public BooleanModel(
@@ -30,8 +31,8 @@ namespace MongoDB.Client.Tests.Serialization.Types
                     dictionaryProperty, nullableDictionaryProperty, alwaysNullDictionaryProperty,
                     dictionaryWithNullableTypeArgument, nullableDictionaryWithNullableTypeArgument, alwaysNullDictionaryWithNullableTypeArgument)
         {
-            BsonType = BsonElementType.Boolean;
-            DictionaryBsonType = BsonElementType.Boolean;
+            BsonType = BsonType.Boolean;
+            DictionaryBsonType = BsonType.Boolean;
         }
         public override bool Equals(BsonDocument doc)
         {

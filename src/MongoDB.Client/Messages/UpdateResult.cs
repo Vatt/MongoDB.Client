@@ -5,7 +5,7 @@ namespace MongoDB.Client.Messages
 {
     //TODO: не сочетается с интерфейсом IBsonSerializer
     //[BsonSerializable(GeneratorMode.SkipWriteBson)]
-    [BsonSerializable]
+    [BsonSerializable(GeneratorMode.DisableTypeChecks)]
     public partial class Upserted
     {
         [BsonElement("index")]
@@ -21,15 +21,15 @@ namespace MongoDB.Client.Messages
     }
     //TODO: не сочетается с интерфейсом IBsonSerializer
     //[BsonSerializable(GeneratorMode.SkipWriteBson)]
-    [BsonSerializable]
+    [BsonSerializable(GeneratorMode.DisableTypeChecks)]
     public partial class UpdateResult : IParserResult
     {
         [BsonElement("ok")]
         public double Ok { get; }
-        
+
         [BsonElement("n")]
         public int N { get; }
-        
+
         [BsonElement("nModified")]
         public int Modified { get; }
 
@@ -38,10 +38,10 @@ namespace MongoDB.Client.Messages
 
         [BsonElement("$clusterTime")]
         public MongoClusterTime? ClusterTime { get; }
-        
+
         [BsonElement("errmsg")]
         public string? ErrorMessage { get; }
-        public UpdateResult( double ok, int n, int modified, List<Upserted> upserted, MongoClusterTime clusterTime, string errorMessage)
+        public UpdateResult(double ok, int n, int modified, List<Upserted> upserted, MongoClusterTime clusterTime, string errorMessage)
         {
             Upserted = upserted;
             Modified = modified;

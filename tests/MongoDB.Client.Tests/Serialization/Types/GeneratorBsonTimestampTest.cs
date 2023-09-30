@@ -1,11 +1,12 @@
-﻿using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Client.Bson;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Tests.Serialization.Generator;
 using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization.Types
 {
-    [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
+    [BsonSerializable(GeneratorMode.ConstructorParameters)]
     public partial class BsonTimestampModel : GeneratorTypeTestModelBase<BsonTimestamp, BsonTimestamp?>, IEquatable<BsonTimestampModel>
     {
         public BsonTimestampModel(
@@ -30,8 +31,8 @@ namespace MongoDB.Client.Tests.Serialization.Types
                     dictionaryProperty, nullableDictionaryProperty, alwaysNullDictionaryProperty,
                     dictionaryWithNullableTypeArgument, nullableDictionaryWithNullableTypeArgument, alwaysNullDictionaryWithNullableTypeArgument)
         {
-            BsonType = BsonElementType.UtcDateTime;
-            DictionaryBsonType = BsonElementType.UtcDateTime;
+            BsonType = BsonType.UtcDateTime;
+            DictionaryBsonType = BsonType.UtcDateTime;
         }
         public override bool Equals(BsonDocument doc)
         {

@@ -2,9 +2,9 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
+namespace MongoDB.Client.Bson.Generators
 {
-    internal static partial class SerializerGenerator
+    public partial class BsonGenerator
     {
         public enum OpCtxType
         {
@@ -63,16 +63,21 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             var canContinue = true;
             conditions = new List<MemberContext>();
             groups = new Dictionary<byte, List<MemberContext>>();
+
             foreach (var member in members)
             {
                 var nameSpan = member.ByteName.Span;
+
                 if ((nameSpan.Length - 1) < offset)
                 {
                     canContinue = false;
                     conditions.Add(member);
+
                     continue;
                 }
+
                 var key = nameSpan[offset];
+
                 if (groups.ContainsKey(key))
                 {
                     groups[key].Add(member);
@@ -82,27 +87,33 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     groups.Add(key, new() { member });
                 }
             }
+
             return canContinue;
         }
         private static OperationContext CreateCaseContext(List<MemberContext> members, int inputKey, int inputOffset)
         {
             var caseOp = new OperationContext(OpCtxType.Case, inputKey, 0);
+
             if (members.Count == 1)
             {
                 caseOp.Member = members[0];
                 return caseOp;
             }
+
             var offset = inputOffset;
             var canContinue = ContextTreeGroupMembers(offset, members, out var conditions, out var groups);
+
             while (canContinue && groups.Values.Count == 1 && groups.Values.First().Count > 1)
             {
                 offset += 1;
                 canContinue = ContextTreeGroupMembers(offset, members, out conditions, out groups);
             }
+
             foreach (var condition in conditions)
             {
                 caseOp.AddCondition(condition);
             }
+
             if (groups.Count == 1 && groups.Values.ToArray()[0].Count == 1)
             {
                 caseOp.AddCondition(groups.Values.ToArray()[0][0]);
@@ -118,79 +129,93 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         private static OperationContext CreateSwitchContext(Dictionary<byte, List<MemberContext>> groups, int inputOffset)
         {
             var switchOp = new OperationContext(OpCtxType.Switch, inputOffset);
+
             foreach (var pair in groups)
             {
                 var groupKey = pair.Key;
                 var groupValue = pair.Value;
                 var caseOp = CreateCaseContext(groupValue, groupKey, inputOffset);
+
                 switchOp.Add(caseOp);
             }
+
             return switchOp;
         }
         private static StatementSyntax[] ContextTreeTryParseOperations(ContextCore ctx, SyntaxToken bsonType, SyntaxToken bsonName)
         {
             var offset = 0;
             var canContinue = ContextTreeGroupMembers(offset, ctx.Members, out var conditions, out var groups);
+
             while (canContinue && groups.Values.Count == 1 && groups.Values.First().Count > 1)
             {
                 offset += 1;
                 canContinue = ContextTreeGroupMembers(offset, ctx.Members, out conditions, out groups);
             }
+
             var root = new OperationContext(OpCtxType.Root, offset);
+
             foreach (var condition in conditions)
             {
                 root.AddCondition(condition);
             }
+
             foreach (var group in groups.Where(g => g.Value.Count == 1))
             {
                 root.AddCase(group.Key, group.Value[0]);
             }
+
             foreach (var group in groups.Where(g => g.Value.Count > 1))
             {
                 var caseOp = CreateCaseContext(group.Value, group.Key, offset);
                 root.Add(caseOp);
             }
+
             return GenerateRoot(ctx, root, bsonType, bsonName);
         }
         private static SwitchStatementSyntax GenerateSwitch(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
         {
-            var sections = ImmutableList.CreateBuilder<SwitchSectionSyntax>();
+            var sections = new List<SwitchSectionSyntax>();
+
             foreach (var operation in host.InnerOperations.Where(op => op.Type == OpCtxType.Case))
             {
                 sections.Add(GenerateCase(ctx, operation, bsonType, bsonName));
             }
+
             if (sections.Count == 0)
             {
                 ReportGenerationContextTreeError();
             }
+
             return SwitchStatement(GetSpanElementUnsafe(bsonName, host.Offset!.Value), sections);
         }
         private static SwitchSectionSyntax GenerateCase(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
         {
-            var builder = ImmutableList.CreateBuilder<StatementSyntax>();
+            var statements = new List<StatementSyntax>();
+
             MemberContext member = host.Member;
             var operations = host.InnerOperations;
+
             if (operations.Count > 0 && member is not null)
             {
-                ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
+                ReportUnsupportedTypeError(member.NameSym, member.TypeSym);
             }
             if (operations.Count == 0)
             {
-                if (TryGenerateParseEnum(member.ByteName.Length, member.StaticSpanNameToken, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))
+                if (TryGenerateParseEnum(member.ByteName.Length, member.StaticSpanNameToken, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, statements))
                 {
                     goto RETURN;
                 }
 
-                if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, builder))
+                if (TryGenerateSimpleReadOperation(ctx, member, bsonType, bsonName, statements))
                 {
                     goto RETURN;
                 }
 
-                if (TryGenerateTryParseBson(member, bsonName, builder))
+                if (TryGenerateTryParseBson(member, bsonName, statements))
                 {
                     goto RETURN;
                 }
-                ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
+                ReportUnsupportedTypeError(member.NameSym, member.TypeSym);
             }
             else
             {
@@ -199,11 +224,11 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
                     switch (operation.Type)
                     {
                         case OpCtxType.Condition:
-                            builder.AddRange(GenerateCondition(ctx, operation, bsonType, bsonName));
+                            statements.AddRange(GenerateCondition(ctx, operation, bsonType, bsonName));
                             break;
                         case OpCtxType.Switch:
-                            builder.Add(IfBreak(BinaryExprLessThan(BsonNameLengthToken, NumericLiteralExpr(operation.Offset!.Value))));
-                            builder.Add(GenerateSwitch(ctx, operation, bsonType, bsonName));
+                            statements.Add(IfBreak(BinaryExprLessThan(BsonNameLengthToken, NumericLiteralExpr(operation.Offset!.Value))));
+                            statements.Add(GenerateSwitch(ctx, operation, bsonType, bsonName));
                             break;
                         default:
                             ReportGenerationContextTreeError();
@@ -213,12 +238,14 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             }
 
         RETURN:
-            return SwitchSection(NumericLiteralExpr(host.Key.Value), Block(builder.ToArray(), SF.BreakStatement()));
+            return SwitchSection(NumericLiteralExpr(host.Key.Value), Block(statements.ToArray(), SF.BreakStatement()));
         }
         private static StatementSyntax[] GenerateCondition(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)
         {
-            var builder = ImmutableList.CreateBuilder<StatementSyntax>();
-            MemberContext member = host.Member;
+            var builder = new List<StatementSyntax>();
+
+            var member = host.Member;
+
             if (TryGenerateParseEnum(member.ByteName.Length, member.StaticSpanNameToken, member.AssignedVariableToken, bsonName, member.NameSym, member.TypeSym, builder))
             {
                 return builder.ToArray();
@@ -233,7 +260,7 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
             {
                 return builder.ToArray();
             }
-            ReportUnsuporterTypeError(member.NameSym, member.TypeSym);
+            ReportUnsupportedTypeError(member.NameSym, member.TypeSym);
             return default;
         }
         private static StatementSyntax[] GenerateRoot(ContextCore ctx, OperationContext host, SyntaxToken bsonType, SyntaxToken bsonName)

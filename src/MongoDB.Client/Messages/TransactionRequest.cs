@@ -3,7 +3,7 @@ using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Messages
 {
-    [BsonSerializable]
+    [BsonSerializable(GeneratorMode.DisableTypeChecks)]
     public partial class TransactionRequest
     {
         [BsonElement("commitTransaction")]

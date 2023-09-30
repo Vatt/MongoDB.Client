@@ -1,8 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
+namespace MongoDB.Client.Bson.Generators
 {
-    internal static partial class SerializerGenerator
+    public partial class BsonGenerator
     {
         public static ExpressionSyntax BinaryPrimitivesWriteInt32LittleEndian(ExpressionSyntax destination, IdentifierNameSyntax value)
         {
@@ -14,11 +14,10 @@ namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
         }
         public static ExpressionSyntax BinaryPrimitivesWriteInt32LittleEndian(SyntaxToken destination, SyntaxToken value)
         {
-            return InvocationExpr(
-                IdentifierName("BinaryPrimitives"),
-                IdentifierName("WriteInt32LittleEndian"),
-                Argument(IdentifierName(destination)),
-                Argument(IdentifierName(value)));
+            return InvocationExpr(IdentifierName("BinaryPrimitives"),
+                                  IdentifierName("WriteInt32LittleEndian"),
+                                  Argument(IdentifierName(destination)),
+                                  Argument(IdentifierName(value)));
         }
     }
 }

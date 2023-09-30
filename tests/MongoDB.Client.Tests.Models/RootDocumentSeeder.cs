@@ -2,7 +2,7 @@
 
 namespace MongoDB.Client.Tests.Models
 {
-    public class RootDocumentSeeder
+    public class RootDocumentSeeder : ISeeder<RootDocument>
     {
         public IEnumerable<RootDocument> GenerateSeed(int count)
         {

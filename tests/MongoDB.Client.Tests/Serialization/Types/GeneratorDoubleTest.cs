@@ -1,11 +1,12 @@
-﻿using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Client.Bson;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Tests.Serialization.Generator;
 using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization.Types
 {
-    [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
+    [BsonSerializable(GeneratorMode.ConstructorParameters)]
     public partial class DoubleModel : GeneratorTypeTestModelBase<double, double?>, IEquatable<DoubleModel>
     {
         public DoubleModel(
@@ -30,8 +31,8 @@ namespace MongoDB.Client.Tests.Serialization.Types
                     dictionaryProperty, nullableDictionaryProperty, alwaysNullDictionaryProperty,
                     dictionaryWithNullableTypeArgument, nullableDictionaryWithNullableTypeArgument, alwaysNullDictionaryWithNullableTypeArgument)
         {
-            BsonType = BsonElementType.Double;
-            DictionaryBsonType = BsonElementType.Double;
+            BsonType = BsonType.Double;
+            DictionaryBsonType = BsonType.Double;
         }
         public override bool Equals(BsonDocument doc)
         {
@@ -98,6 +99,11 @@ namespace MongoDB.Client.Tests.Serialization.Types
         }
     }
 
+    [BsonSerializable]
+    public partial record DoubleAsStringModel(string Value = "123.123");
+
+    [BsonSerializable]
+    public partial record DoubleAsDoubleModel(double Value = 123.123);
 
     public class GeneratorDoubleTest : SerializationTestBase
     {
@@ -109,6 +115,15 @@ namespace MongoDB.Client.Tests.Serialization.Types
             var bson = await RoundTripWithBsonAsync(model);
             Assert.Equal(model, result);
             model.Equals(bson);
+        }
+
+        [Fact]
+        public async Task DoubleAsStringTest()
+        {
+            var model = new DoubleAsStringModel();
+            var result = await RoundTripAsync<DoubleAsStringModel, DoubleAsDoubleModel>(model);
+
+            Assert.Equal(new DoubleAsDoubleModel(), result);
         }
     }
 }

@@ -36,54 +36,58 @@ namespace MongoDB.Client.Bson.Writer
         {
             if (objectValue == null)
             {
-                typeReserved.WriteByte(10);
+                typeReserved.WriteBsonType(BsonType.Null);
                 return;
             }
             switch (objectValue)
             {
                 case double value:
                     WriteDouble(value);
-                    typeReserved.WriteByte(1);
+                    typeReserved.WriteBsonType(BsonType.Double);
                     return;
                 case string value:
                     WriteString(value);
-                    typeReserved.WriteByte(2);
+                    typeReserved.WriteBsonType(BsonType.String);
                     return;
                 case BsonArray value:
                     WriteDocument(value);
-                    typeReserved.WriteByte(4);
+                    typeReserved.WriteBsonType(BsonType.Array);
                     return;
                 case BsonDocument value:
                     WriteDocument(value);
-                    typeReserved.WriteByte(3);
+                    typeReserved.WriteBsonType(BsonType.Document);
                     return;
                 case Guid value:
                     WriteGuidAsBinaryData(value);
-                    typeReserved.WriteByte(5);
+                    typeReserved.WriteBsonType(BsonType.BinaryData);
                     return;
                 case BsonObjectId value:
                     WriteObjectId(value);
-                    typeReserved.WriteByte(7);
+                    typeReserved.WriteBsonType(BsonType.ObjectId);
                     return;
                 case bool value:
                     WriteBoolean(value);
-                    typeReserved.WriteByte(8);
+                    typeReserved.WriteBsonType(BsonType.Boolean);
                     return;
                 case DateTimeOffset value:
                     WriteUtcDateTime(value);
-                    typeReserved.WriteByte(9);
+                    typeReserved.WriteBsonType(BsonType.UtcDateTime);
                     return;
                 case BsonTimestamp value:
                     WriteTimestamp(value);
-                    typeReserved.WriteByte(9);
+                    typeReserved.WriteBsonType(BsonType.Timestamp);
                     return;
                 case int value:
                     WriteInt32(value);
-                    typeReserved.WriteByte(16);
+                    typeReserved.WriteBsonType(BsonType.Int32);
                     return;
                 case long value:
                     WriteInt64(value);
-                    typeReserved.WriteByte(18);
+                    typeReserved.WriteBsonType(BsonType.Int64);
+                    return;
+                case decimal value:
+                    WriteDecimal(value);
+                    typeReserved.WriteBsonType(BsonType.Decimal);
                     return;
                     //default:
                     //    System.Diagnostics.Debugger.Break();
@@ -91,7 +95,7 @@ namespace MongoDB.Client.Bson.Writer
             }
             if (ReflectionHelper.TryGetSerializerMethods(objectValue, out var methods))
             {
-                typeReserved.WriteByte(3);
+                typeReserved.WriteBsonType(BsonType.Document);
                 methods.WriteFnPtr(ref this, objectValue);
             }
             else
@@ -103,54 +107,58 @@ namespace MongoDB.Client.Bson.Writer
         {
             if (genericValue == null)
             {
-                typeReserved.WriteByte(10);
+                typeReserved.WriteBsonType(BsonType.Null);
                 return;
             }
             switch (genericValue)
             {
                 case double value:
                     WriteDouble(value);
-                    typeReserved.WriteByte(1);
+                    typeReserved.WriteBsonType(BsonType.Double);
                     return;
                 case string value:
                     WriteString(value);
-                    typeReserved.WriteByte(2);
+                    typeReserved.WriteBsonType(BsonType.String);
                     return;
                 case BsonArray value:
                     WriteDocument(value);
-                    typeReserved.WriteByte(4);
+                    typeReserved.WriteBsonType(BsonType.Array);
                     return;
                 case BsonDocument value:
                     WriteDocument(value);
-                    typeReserved.WriteByte(3);
+                    typeReserved.WriteBsonType(BsonType.Document);
                     return;
                 case Guid value:
                     WriteGuidAsBinaryData(value);
-                    typeReserved.WriteByte(5);
+                    typeReserved.WriteBsonType(BsonType.BinaryData);
                     return;
                 case BsonObjectId value:
                     WriteObjectId(value);
-                    typeReserved.WriteByte(7);
+                    typeReserved.WriteBsonType(BsonType.ObjectId);
                     return;
                 case BsonTimestamp value:
                     WriteTimestamp(value);
-                    typeReserved.WriteByte(9);
+                    typeReserved.WriteBsonType(BsonType.Timestamp);
                     return;
                 case bool value:
                     WriteBoolean(value);
-                    typeReserved.WriteByte(8);
+                    typeReserved.WriteBsonType(BsonType.Boolean);
                     return;
                 case DateTimeOffset value:
                     WriteUtcDateTime(value);
-                    typeReserved.WriteByte(9);
+                    typeReserved.WriteBsonType(BsonType.UtcDateTime);
                     return;
                 case int value:
                     WriteInt32(value);
-                    typeReserved.WriteByte(16);
+                    typeReserved.WriteBsonType(BsonType.Int32);
                     return;
                 case long value:
                     WriteInt64(value);
-                    typeReserved.WriteByte(18);
+                    typeReserved.WriteBsonType(BsonType.Int64);
+                    return;
+                case decimal value:
+                    WriteDecimal(value);
+                    typeReserved.WriteBsonType(BsonType.Decimal);
                     return;
                     //default:
                     //    System.Diagnostics.Debugger.Break();
@@ -159,7 +167,7 @@ namespace MongoDB.Client.Bson.Writer
             var writer = SerializerFnPtrProvider<T>.WriteFnPtr;
             if (writer != default)
             {
-                typeReserved.WriteByte(3);
+                typeReserved.WriteBsonType(BsonType.Document);
                 writer(ref this, genericValue);
             }
             else
@@ -263,19 +271,19 @@ namespace MongoDB.Client.Bson.Writer
 
         public void WriteBsonNull(ReadOnlySpan<byte> name)
         {
-            WriteByte(10);
+            WriteBsonType(BsonType.Null);
             WriteCString(name);
         }
 
         public void WriteBsonNull(string name)
         {
-            WriteByte(10);
+            WriteBsonType(BsonType.Null);
             WriteCString(name);
         }
 
         public void WriteBsonNull(int intName)
         {
-            WriteByte(10);
+            WriteBsonType(BsonType.Null);
             WriteIntIndex(intName);
         }
 
@@ -311,39 +319,50 @@ namespace MongoDB.Client.Bson.Writer
         }
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, double value)
         {
-            WriteByte(1);
+            WriteBsonType(BsonType.Double);
             WriteCString(name);
             WriteDouble(value);
         }
         public void Write_Type_Name_Value(string name, double value)
         {
-            WriteByte(1);
+            WriteBsonType(BsonType.Double);
             WriteCString(name);
             WriteDouble(value);
         }
         public void Write_Type_Name_Value(int intName, double value)
         {
-            WriteByte(1);
+            WriteBsonType(BsonType.Double);
             WriteIntIndex(intName);
             WriteDouble(value);
         }
-
+        public void Write_Type_Name_Value(string name, decimal value)
+        {
+            WriteBsonType(BsonType.Decimal);
+            WriteCString(name);
+            WriteDecimal(value);
+        }
+        public void Write_Type_Name_Value(int intName, decimal value)
+        {
+            WriteBsonType(BsonType.Decimal);
+            WriteIntIndex(intName);
+            WriteDecimal(value);
+        }
 
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, BsonBinaryData value)
         {
-            WriteByte(5);
+            WriteBsonType(BsonType.BinaryData);
             WriteCString(name);
             WriteBinaryData(value);
         }
         public void Write_Type_Name_Value(string name, BsonBinaryData value)
         {
-            WriteByte(5);
+            WriteBsonType(BsonType.BinaryData);
             WriteCString(name);
             WriteBinaryData(value);
         }
         public void Write_Type_Name_Value(int intName, BsonBinaryData value)
         {
-            WriteByte(5);
+            WriteBsonType(BsonType.BinaryData);
             WriteIntIndex(intName);
             WriteBinaryData(value);
         }
@@ -352,20 +371,20 @@ namespace MongoDB.Client.Bson.Writer
 
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, string value)
         {
-            WriteByte(2);
+            WriteBsonType(BsonType.String);
             WriteCString(name);
             WriteString(value);
         }
 
         public void Write_Type_Name_Value(int intName, string value)
         {
-            WriteByte(2);
+            WriteBsonType(BsonType.String);
             WriteIntIndex(intName);
             WriteString(value);
         }
         public void Write_Type_Name_Value(string name, string value)
         {
-            WriteByte(2);
+            WriteBsonType(BsonType.String);
             WriteCString(name);
             WriteString(value);
         }
@@ -373,19 +392,19 @@ namespace MongoDB.Client.Bson.Writer
 
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, BsonDocument value)
         {
-            WriteByte(3);
+            WriteBsonType(BsonType.Document);
             WriteCString(name);
             WriteDocument(value);
         }
         public void Write_Type_Name_Value(string name, BsonDocument value)
         {
-            WriteByte(3);
+            WriteBsonType(BsonType.Document);
             WriteCString(name);
             WriteDocument(value);
         }
         public void Write_Type_Name_Value(int intName, BsonDocument value)
         {
-            WriteByte(3);
+            WriteBsonType(BsonType.Document);
             WriteIntIndex(intName);
             WriteDocument(value);
         }
@@ -394,19 +413,19 @@ namespace MongoDB.Client.Bson.Writer
 
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, BsonArray value)
         {
-            WriteByte(4);
+            WriteBsonType(BsonType.Array);
             WriteCString(name);
             WriteDocument(value);
         }
         public void Write_Type_Name_Value(string name, BsonArray value)
         {
-            WriteByte(4);
+            WriteBsonType(BsonType.Array);
             WriteCString(name);
             WriteDocument(value);
         }
         public void Write_Type_Name_Value(int intName, BsonArray value)
         {
-            WriteByte(4);
+            WriteBsonType(BsonType.Array);
             WriteIntIndex(intName);
             WriteDocument(value);
         }
@@ -415,19 +434,19 @@ namespace MongoDB.Client.Bson.Writer
 
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, BsonObjectId value)
         {
-            WriteByte(7);
+            WriteBsonType(BsonType.ObjectId);
             WriteCString(name);
             WriteObjectId(value);
         }
         public void Write_Type_Name_Value(string name, BsonObjectId value)
         {
-            WriteByte(7);
+            WriteBsonType(BsonType.ObjectId);
             WriteCString(name);
             WriteObjectId(value);
         }
         public void Write_Type_Name_Value(int intName, BsonObjectId value)
         {
-            WriteByte(7);
+            WriteBsonType(BsonType.ObjectId);
             WriteIntIndex(intName);
             WriteObjectId(value);
         }
@@ -436,19 +455,19 @@ namespace MongoDB.Client.Bson.Writer
 
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, bool value)
         {
-            WriteByte(8);
+            WriteBsonType(BsonType.Boolean);
             WriteCString(name);
             WriteBoolean(value);
         }
         public void Write_Type_Name_Value(string name, bool value)
         {
-            WriteByte(8);
+            WriteBsonType(BsonType.Boolean);
             WriteCString(name);
             WriteBoolean(value);
         }
         public void Write_Type_Name_Value(int intName, bool value)
         {
-            WriteByte(8);
+            WriteBsonType(BsonType.Boolean);
             WriteIntIndex(intName);
             WriteBoolean(value);
         }
@@ -457,101 +476,100 @@ namespace MongoDB.Client.Bson.Writer
 
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, Guid value)
         {
-            WriteByte(5);
+            WriteBsonType(BsonType.BinaryData);
             WriteCString(name);
             WriteGuidAsBinaryData(value);
         }
         public void Write_Type_Name_Value(string name, Guid value)
         {
-            WriteByte(5);
-            WriteCString(name);
-            WriteGuidAsBinaryData(value);
-        }
-        public void Write_Type_Name_Value(ReadOnlySpan<char> name, Guid value)
-        {
-            WriteByte(5);
+            WriteBsonType(BsonType.BinaryData);
             WriteCString(name);
             WriteGuidAsBinaryData(value);
         }
         public void Write_Type_Name_Value(int intName, Guid value)
         {
-            WriteByte(5);
+            WriteBsonType(BsonType.BinaryData);
             WriteIntIndex(intName);
             WriteGuidAsBinaryData(value);
         }
 
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, byte subtype, byte[] value)
         {
-            WriteByte(5);
+            WriteBsonType(BsonType.BinaryData);
             WriteCString(name);
             WriteBinaryData(subtype, value);
         }
         public void Write_Type_Name_Value(string name, byte subtype, byte[] value)
         {
-            WriteByte(5);
+            WriteBsonType(BsonType.BinaryData);
             WriteCString(name);
             WriteBinaryData(subtype, value);
         }
         public void Write_Type_Name_Value(int intName, byte subtype, byte[] value)
         {
-            WriteByte(5);
+            WriteBsonType(BsonType.BinaryData);
             WriteIntIndex(intName);
             WriteBinaryData(subtype, value);
         }
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, byte subtype, Memory<byte> value)
         {
-            WriteByte(5);
+            WriteBsonType(BsonType.BinaryData);
             WriteCString(name);
             WriteBinaryData(subtype, value);
         }
         public void Write_Type_Name_Value(string name, byte subtype, Memory<byte> value)
         {
-            WriteByte(5);
+            WriteBsonType(BsonType.BinaryData);
             WriteCString(name);
             WriteBinaryData(subtype, value);
         }
         public void Write_Type_Name_Value(int intName, byte subtype, Memory<byte> value)
         {
-            WriteByte(5);
+            WriteBsonType(BsonType.BinaryData);
             WriteIntIndex(intName);
             WriteBinaryData(subtype, value);
         }
 
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, DateTimeOffset value)
         {
-            WriteByte(9);
+            WriteBsonType(BsonType.UtcDateTime);
             WriteCString(name);
             WriteUtcDateTime(value);
         }
         public void Write_Type_Name_Value(string name, DateTimeOffset value)
         {
-            WriteByte(9);
+            WriteBsonType(BsonType.UtcDateTime);
             WriteCString(name);
             WriteUtcDateTime(value);
         }
         public void Write_Type_Name_Value(int intName, DateTimeOffset value)
         {
-            WriteByte(9);
+            WriteBsonType(BsonType.UtcDateTime);
             WriteIntIndex(intName);
             WriteUtcDateTime(value);
         }
-
+        public void Write_Type_Name_Value(ReadOnlySpan<byte> name, decimal value)
+        {
+            WriteBsonType(BsonType.Decimal);
+            WriteCString(name);
+            WriteDecimal(value);
+        }
 
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, BsonTimestamp value)
         {
-            WriteByte(17);
+            WriteBsonType(BsonType.Timestamp);
             WriteCString(name);
             WriteTimestamp(value);
         }
         public void Write_Type_Name_Value(string name, BsonTimestamp value)
         {
-            WriteByte(17);
+            WriteBsonType(BsonType.Timestamp);
             WriteCString(name);
             WriteTimestamp(value);
         }
         public void Write_Type_Name_Value(int intName, BsonTimestamp value)
         {
-            WriteByte(17);
+            WriteBsonType(BsonType.Timestamp);
             WriteIntIndex(intName);
             WriteTimestamp(value);
         }
@@ -561,19 +579,19 @@ namespace MongoDB.Client.Bson.Writer
 
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, int value)
         {
-            WriteByte(16);
+            WriteBsonType(BsonType.Int32);
             WriteCString(name);
             WriteInt32(value);
         }
         public void Write_Type_Name_Value(int intName, int value)
         {
-            WriteByte(16);
+            WriteBsonType(BsonType.Int32);
             WriteIntIndex(intName);
             WriteInt32(value);
         }
         public void Write_Type_Name_Value(string name, int value)
         {
-            WriteByte(16);
+            WriteBsonType(BsonType.Int32);
             WriteCString(name);
             WriteInt32(value);
         }
@@ -581,19 +599,19 @@ namespace MongoDB.Client.Bson.Writer
 
         public void Write_Type_Name_Value(ReadOnlySpan<byte> name, long value)
         {
-            WriteByte(18);
+            WriteBsonType(BsonType.Int64);
             WriteCString(name);
             WriteInt64(value);
         }
         public void Write_Type_Name_Value(string name, long value)
         {
-            WriteByte(18);
+            WriteBsonType(BsonType.Int64);
             WriteCString(name);
             WriteInt64(value);
         }
         public void Write_Type_Name_Value(int intName, long value)
         {
-            WriteByte(18);
+            WriteBsonType(BsonType.Int64);
             WriteIntIndex(intName);
             WriteInt64(value);
         }

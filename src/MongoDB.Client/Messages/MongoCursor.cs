@@ -19,9 +19,8 @@ namespace MongoDB.Client.Messages
             throw new NotImplementedException(nameof(CursorItemSerializer));
         }
     }
-    //[BsonSerializable]
+
     public partial class CursorResult<T> : IParserResult
-    //where T : IBsonSerializer<T>
     {
         [BsonElement("cursor")]
         public MongoCursor<T> MongoCursor { get; set; }
@@ -59,7 +58,8 @@ namespace MongoDB.Client.Messages
             OperationTime = operationTime;
         }
     }
-    //[BsonSerializable]
+
+
     public partial class MongoCursor<T>
     {
         [BsonElement("id")]

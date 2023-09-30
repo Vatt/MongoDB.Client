@@ -2,12 +2,13 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace MongoDB.Client.Bson.Generators.SyntaxGenerator.Generator
+namespace MongoDB.Client.Bson.Generators
 {
-    internal static partial class SerializerGenerator
+    public partial class BsonGenerator
     {
         public static readonly TypeSyntax BsonReaderType = SF.ParseTypeName("MongoDB.Client.Bson.Reader.BsonReader");
         public static readonly TypeSyntax BsonWriterType = SF.ParseTypeName("MongoDB.Client.Bson.Writer.BsonWriter");
+        public static ExpressionSyntax BsonTypeNull => SimpleMemberAccess(Identifier("BsonType"), Identifier("Null"));
         public static SyntaxToken TrySkipLabel => Identifier("TRY_SKIP_LABEL");
         public static SyntaxToken NullableHasValueToken => Identifier("HasValue");
         public static SyntaxToken NullableValueToken => Identifier("Value");

@@ -1,11 +1,12 @@
-﻿using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Client.Bson;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Tests.Serialization.Generator;
 using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization.Types
 {
-    [BsonSerializable(GeneratorMode.ConstuctorOnlyParameters)]
+    [BsonSerializable(GeneratorMode.ConstructorParameters | GeneratorMode.DisableTypeChecks)]
     public partial class GuidModel : GeneratorTypeTestModelBase<Guid, Guid?>, IEquatable<GuidModel>
     {
         public GuidModel(
@@ -30,8 +31,8 @@ namespace MongoDB.Client.Tests.Serialization.Types
                     dictionaryProperty, nullableDictionaryProperty, alwaysNullDictionaryProperty,
                     dictionaryWithNullableTypeArgument, nullableDictionaryWithNullableTypeArgument, alwaysNullDictionaryWithNullableTypeArgument)
         {
-            BsonType = BsonElementType.BinaryData;
-            DictionaryBsonType = BsonElementType.BinaryData;
+            BsonType = BsonType.BinaryData;
+            DictionaryBsonType = BsonType.BinaryData;
         }
         public override bool Equals(BsonDocument doc)
         {
@@ -98,7 +99,12 @@ namespace MongoDB.Client.Tests.Serialization.Types
             return Equals(obj as GuidModel);
         }
     }
+    
+    [BsonSerializable]
+    public partial record GuidAsStringModel(string Value);
 
+    [BsonSerializable]
+    public partial record GuidAsGuidModel(Guid Value);
 
     public class GeneratorGuidTest : SerializationTestBase
     {
@@ -110,6 +116,15 @@ namespace MongoDB.Client.Tests.Serialization.Types
             var bson = await RoundTripWithBsonAsync(GuidModel.Create());
             Assert.Equal(model, result);
             model.Equals(bson);
+        }
+
+        [Fact]
+        public async Task GuidAsStringTest()
+        {
+            var guid = Guid.NewGuid();
+            var model = new GuidAsStringModel(guid.ToString());
+            var result = await RoundTripAsync<GuidAsStringModel, GuidAsGuidModel>(model);
+            Assert.Equal(new GuidAsGuidModel(guid), result);
         }
     }
 }

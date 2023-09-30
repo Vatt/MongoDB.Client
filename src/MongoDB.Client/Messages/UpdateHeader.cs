@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MongoDB.Client.Bson.Serialization.Attributes;
+﻿using MongoDB.Client.Bson.Serialization.Attributes;
 
 namespace MongoDB.Client.Messages
 {
-    [BsonSerializable]
+    [BsonSerializable(GeneratorMode.DisableTypeChecks)]
     public partial class UpdateHeader
     {
         [BsonElement("update")]
@@ -18,18 +13,18 @@ namespace MongoDB.Client.Messages
 
         [BsonElement("$db")]
         public string Db { get; }
-        
+
         [BsonElement("$clusterTime")]
         [BsonWriteIgnoreIf("ClusterTime is null")]
         public MongoClusterTime? ClusterTime { get; }
-        
+
         [BsonElement("lsid")]
         public SessionId Lsid { get; }
-        
+
         [BsonElement("txnNumber")]
         [BsonWriteIgnoreIf("TxnNumber is null")]
         public long? TxnNumber { get; }
-        
+
         [BsonElement("startTransaction")]
         [BsonWriteIgnoreIf("StartTransaction is null")]
         public bool? StartTransaction { get; }
@@ -37,11 +32,11 @@ namespace MongoDB.Client.Messages
         [BsonElement("autocommit")]
         [BsonWriteIgnoreIf("Autocommit is null")]
         public bool? Autocommit { get; }
-        
+
         [BsonConstructor]
-        public UpdateHeader(string update, bool ordered, string db, SessionId lsid, MongoClusterTime? clusterTime,  long? txnNumber, bool? startTransaction, bool? autocommit)
+        public UpdateHeader(string update, bool ordered, string db, SessionId lsid, MongoClusterTime? clusterTime, long? txnNumber, bool? startTransaction, bool? autocommit)
         {
-            
+
             Update = update;
             Ordered = ordered;
             Db = db;
