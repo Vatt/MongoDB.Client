@@ -95,7 +95,7 @@ namespace MongoDB.Client.Bson.Writer
             }
             if (ReflectionHelper.TryGetSerializerMethods(objectValue, out var methods))
             {
-                typeReserved.WriteByte(3);
+                typeReserved.WriteBsonType(BsonType.Document);
                 methods.WriteFnPtr(ref this, objectValue);
             }
             else
