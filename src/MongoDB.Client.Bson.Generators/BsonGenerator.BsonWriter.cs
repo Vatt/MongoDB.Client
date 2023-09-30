@@ -76,9 +76,9 @@ namespace MongoDB.Client.Bson.Generators
         {
             return InvocationExpr(IdentifierName(reserved), IdentifierName("Write"), Argument(IdentifierName(target)));
         }
-        public static ExpressionSyntax ReservedWriteByte(SyntaxToken reserved, SyntaxToken target)
+        public static ExpressionSyntax ReservedWriteBsonType(SyntaxToken reserved, SyntaxToken target)
         {
-            return InvocationExpr(IdentifierName(reserved), IdentifierName("WriteByte"), Argument(IdentifierName(target)));
+            return InvocationExpr(IdentifierName(reserved), IdentifierName("WriteBsonType"), Argument(IdentifierName(target)));
         }
         public static ExpressionSyntax WriteByte(byte value)
         {
