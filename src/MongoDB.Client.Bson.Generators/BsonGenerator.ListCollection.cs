@@ -60,8 +60,7 @@ namespace MongoDB.Client.Bson.Generators
                                    IfNotReturnFalse(TryGetBsonType(VarVariableDeclarationExpr(ListBsonTypeToken))),
                                    IfNotReturnFalse(TrySkipCStringExpr),
                                    IfStatement(
-                                       //condition: BinaryExprEqualsEquals(ListBsonTypeToken, NumericLiteralExpr(10)),
-                                       condition: BinaryExprEqualsEquals(ListBsonTypeToken, SimpleMemberAccess(Identifier("BsonType"), Identifier("Null"))),
+                                       condition: BinaryExprEqualsEquals(ListBsonTypeToken, BsonTypeNull),
                                        statement: Block(
                                            InvocationExprStatement(InternalListToken, CollectionAddToken, Argument(DefaultLiteralExpr())),
                                            ContinueStatement

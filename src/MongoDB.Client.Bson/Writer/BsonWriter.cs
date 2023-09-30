@@ -211,6 +211,10 @@ namespace MongoDB.Client.Bson.Writer
             Advance(1);
         }
 
+        public void WriteBsonType(BsonType type)
+        {
+            WriteByte((byte)type);
+        }
 
 
         public void WriteInt32(int value)

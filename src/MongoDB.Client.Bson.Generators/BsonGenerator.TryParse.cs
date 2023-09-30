@@ -71,8 +71,7 @@ namespace MongoDB.Client.Bson.Generators
                          Block(
                              IfNotReturnFalse(TryGetBsonType(VarVariableDeclarationExpr(BsonTypeToken))),
                              IfNotReturnFalse(TryGetCStringAsSpan(VarVariableDeclarationExpr(BsonNameToken))),
-                             //IfContinue(BinaryExprEqualsEquals(IdentifierName(BsonTypeToken), NumericLiteralExpr(10))),
-                             IfContinue(BinaryExprEqualsEquals(IdentifierName(BsonTypeToken), SimpleMemberAccess(Identifier("BsonType"), Identifier("Null")))),
+                             IfContinue(BinaryExprEqualsEquals(IdentifierName(BsonTypeToken), BsonTypeNull)),
                              operations,
                              IfNotReturnFalse(TrySkip(BsonTypeToken)))),
                      IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
