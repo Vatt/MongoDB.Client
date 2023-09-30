@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text;
+using MongoDB.Client.Bson;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Attributes;
@@ -32,13 +33,13 @@ namespace MongoDB.Client.Messages
             }
         }
 
-        public static void WriteBson(ref Bson.Writer.BsonWriter writer, in EndPoint message, out byte bsonType)
+        public static void WriteBson(ref Bson.Writer.BsonWriter writer, in EndPoint message, out BsonType bsonType)
         {
             throw new NotSupportedException(nameof(DnsEndPointSerializer));
         }
     }
 
-    [BsonSerializable]
+    [BsonSerializable(GeneratorMode.DisableTypeChecks)]
     public partial class MongoClusterTime
     {
         [BsonElement("clusterTime")]
@@ -54,7 +55,7 @@ namespace MongoDB.Client.Messages
         }
     }
 
-    [BsonSerializable]
+    [BsonSerializable(GeneratorMode.DisableTypeChecks)]
     public partial class MongoSignature
     {
         [BsonElement("hash")]

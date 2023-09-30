@@ -51,9 +51,16 @@ namespace MongoDB.Client.Bson.Reader
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetInt16(out short value)
+        public bool TryGetBsonType(out BsonType value)
         {
-            return _input.TryReadLittleEndian(out value);
+            if (_input.TryRead(out byte temp))
+            {
+                value = (BsonType)temp;
+                return true;
+            }
+
+            value = default;
+            return false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

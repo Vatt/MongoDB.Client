@@ -69,9 +69,9 @@ namespace MongoDB.Client.Bson.Generators
                              BinaryExprMinus(IdentifierName(unreadedToken), ReaderRemainingExpr),
                              BinaryExprMinus(IdentifierName(docLenToken), NumericLiteralExpr(1))),
                          Block(
-                             IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(BsonTypeToken))),
+                             IfNotReturnFalse(TryGetBsonType(VarVariableDeclarationExpr(BsonTypeToken))),
                              IfNotReturnFalse(TryGetCStringAsSpan(VarVariableDeclarationExpr(BsonNameToken))),
-                             IfContinue(BinaryExprEqualsEquals(IdentifierName(BsonTypeToken), NumericLiteralExpr(10))),
+                             IfContinue(BinaryExprEqualsEquals(IdentifierName(BsonTypeToken), BsonTypeNull)),
                              operations,
                              IfNotReturnFalse(TrySkip(BsonTypeToken)))),
                      IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(endMarkerToken))),
@@ -265,109 +265,194 @@ namespace MongoDB.Client.Bson.Generators
 
             }
 
-            else if (TryGetSimpleReadOperation(nameSym, trueTypeSym, IdentifierName(bsonType), readTarget, out var simpleOperation))
+            else if (TryGetSimpleReadOperation(ctx.GeneratorMode.DisableTypeChecks, nameSym, trueTypeSym, IdentifierName(bsonType), readTarget, out var simpleOperation))
             {
                 return simpleOperation;
             }
 
             return default;
         }
-        private static bool TryGetSimpleReadOperation(ISymbol nameSym, ITypeSymbol typeSymbol, ExpressionSyntax bsonType, ExpressionSyntax variable, out ExpressionSyntax expr)
+        private static bool TryGetSimpleReadOperation(bool disableTypeCheck, ISymbol nameSym, ITypeSymbol typeSymbol, ExpressionSyntax bsonType, ExpressionSyntax variable, out ExpressionSyntax expr)
         {
             expr = default;
-            switch (typeSymbol.SpecialType)
+            if (disableTypeCheck is false)
             {
-                case SpecialType.System_Double:
-                    expr = TryGetDouble(variable);
-
-                    return true;
-                case SpecialType.System_String:
-                    expr = TryGetString(variable);
-
-                    return true;
-                case SpecialType.System_Boolean:
-                    expr = TryGetBoolean(variable);
-
-                    return true;
-                case SpecialType.System_Int32:
-                    expr = TryGetInt32(variable);
-
-                    return true;
-                case SpecialType.System_Int64:
-                    expr = TryGetInt64(variable);
-
-                    return true;
-                case SpecialType.System_Object:
-                    expr = TryReadObject(bsonType, variable);
-
-                    return true;
-                case SpecialType.System_Decimal:
-                    expr = TryGetDecimalWithBsonType(bsonType, variable);
-                    return true;
-            }
-
-            if (IsArrayByteOrMemoryByte(typeSymbol))
-            {
-                var arrayRepr = GetBinaryDataRepresentation(nameSym);
-
-                arrayRepr = arrayRepr == -1 ? 0 : arrayRepr;
-
-                switch (arrayRepr)
+                switch (typeSymbol.SpecialType)
                 {
-                    case 0: break;
-                    case 5: break;
-                    default:
-                        ReportUnsuportedByteArrayReprError(nameSym, typeSymbol);
-                        break;
+                    case SpecialType.System_Double:
+                    case SpecialType.System_String:
+                    case SpecialType.System_Boolean:
+                    case SpecialType.System_Int32:
+                    case SpecialType.System_Int64:
+                    case SpecialType.System_Decimal:
+                        expr = TryGet(bsonType, variable);
+
+                        return true;
+                    case SpecialType.System_Object:
+                        expr = TryReadObject(bsonType, variable);
+
+                        return true;
                 }
 
-                expr = TryGetBinaryData(arrayRepr, variable);
+                if (IsArrayByteOrMemoryByte(typeSymbol))
+                {
+                    var arrayRepr = GetBinaryDataRepresentation(nameSym);
 
-                return true;
+                    arrayRepr = arrayRepr == -1 ? 0 : arrayRepr;
+
+                    switch (arrayRepr)
+                    {
+                        case 0: break;
+                        case 5: break;
+                        default:
+                            ReportUnsuportedByteArrayReprError(nameSym, typeSymbol);
+                            break;
+                    }
+
+                    expr = TryGetBinaryData(arrayRepr, variable);
+
+                    return true;
+                }
+
+                if (IsBsonTimestamp(typeSymbol))
+                {
+                    expr = TryGet(bsonType, variable);
+                    return true;
+                }
+
+                if (IsBsonDocument(typeSymbol))
+                {
+                    expr = TryGet(bsonType, variable);
+                    return true;
+                }
+
+                if (IsBsonArray(typeSymbol))
+                {
+                    expr = TryGet(bsonType, variable);
+                    return true;
+                }
+
+                if (IsGuid(typeSymbol))
+                {
+                    expr = TryGet(bsonType, variable);
+                    return true;
+                }
+
+                if (IsDateTimeOffset(typeSymbol))
+                {
+                    expr = TryGet(bsonType, variable);
+                    return true;
+                }
+
+                if (IsBsonObjectId(typeSymbol))
+                {
+                    expr = TryGet(bsonType, variable);
+                    return true;
+                }
+
+                if (typeSymbol.SpecialType != SpecialType.None)
+                {
+                    ReportUnsupportedTypeError(nameSym, typeSymbol);
+                }
+
+                return false;
             }
-
-            if (IsBsonTimestamp(typeSymbol))
+            else
             {
-                expr = TryGetTimestamp(variable);
-                return true;
-            }
+                switch (typeSymbol.SpecialType)
+                {
+                    case SpecialType.System_Double:
+                        expr = TryGetDouble(variable);
 
-            if (IsBsonDocument(typeSymbol))
-            {
-                expr = TryParseDocument(variable);
-                return true;
-            }
+                        return true;
+                    case SpecialType.System_String:
+                        expr = TryGetString(variable);
 
-            if (IsBsonArray(typeSymbol))
-            {
-                expr = TryParseDocument(variable);
-                return true;
-            }
+                        return true;
+                    case SpecialType.System_Boolean:
+                        expr = TryGetBoolean(variable);
 
-            if (IsGuid(typeSymbol))
-            {
-                expr = TryGetGuidWithBsonType(bsonType, variable);
-                return true;
-            }
+                        return true;
+                    case SpecialType.System_Int32:
+                        expr = TryGetInt32(variable);
 
-            if (IsDateTimeOffset(typeSymbol))
-            {
-                expr = TryGetDateTimeWithBsonType(bsonType, variable);
-                return true;
-            }
+                        return true;
+                    case SpecialType.System_Int64:
+                        expr = TryGetInt64(variable);
 
-            if (IsBsonObjectId(typeSymbol))
-            {
-                expr = TryGetObjectId(variable);
-                return true;
-            }
+                        return true;
+                    case SpecialType.System_Object:
+                        expr = TryReadObject(bsonType, variable);
 
-            if (typeSymbol.SpecialType != SpecialType.None)
-            {
-                ReportUnsupportedTypeError(nameSym, typeSymbol);
-            }
+                        return true;
+                    case SpecialType.System_Decimal:
+                        expr = TryGetDecimal(bsonType, variable);
+                        return true;
+                }
 
-            return false;
+                if (IsArrayByteOrMemoryByte(typeSymbol))
+                {
+                    var arrayRepr = GetBinaryDataRepresentation(nameSym);
+
+                    arrayRepr = arrayRepr == -1 ? 0 : arrayRepr;
+
+                    switch (arrayRepr)
+                    {
+                        case 0: break;
+                        case 5: break;
+                        default:
+                            ReportUnsuportedByteArrayReprError(nameSym, typeSymbol);
+                            break;
+                    }
+
+                    expr = TryGetBinaryData(arrayRepr, variable);
+
+                    return true;
+                }
+
+                if (IsBsonTimestamp(typeSymbol))
+                {
+                    expr = TryGetTimestamp(variable);
+                    return true;
+                }
+
+                if (IsBsonDocument(typeSymbol))
+                {
+                    expr = TryParseDocument(variable);
+                    return true;
+                }
+
+                if (IsBsonArray(typeSymbol))
+                {
+                    expr = TryParseDocument(variable);
+                    return true;
+                }
+
+                if (IsGuid(typeSymbol))
+                {
+                    expr = TryGetBinaryDataGuid(variable);
+                    return true;
+                }
+
+                if (IsDateTimeOffset(typeSymbol))
+                {
+                    expr = TryGetUtcDatetime(variable);
+                    return true;
+                }
+
+                if (IsBsonObjectId(typeSymbol))
+                {
+                    expr = TryGetObjectId(variable);
+                    return true;
+                }
+
+                if (typeSymbol.SpecialType != SpecialType.None)
+                {
+                    ReportUnsupportedTypeError(nameSym, typeSymbol);
+                }
+
+                return false;
+            }            
         }
     }
 }

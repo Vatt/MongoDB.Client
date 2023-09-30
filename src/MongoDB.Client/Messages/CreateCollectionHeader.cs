@@ -2,7 +2,7 @@
 
 namespace MongoDB.Client.Messages
 {
-    [BsonSerializable]
+    [BsonSerializable(GeneratorMode.DisableTypeChecks)]
     public partial class CreateCollectionHeader
     {
         [BsonElement("create")]

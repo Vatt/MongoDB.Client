@@ -1,4 +1,5 @@
-﻿using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Client.Bson;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Tests.Serialization.Generator;
 using Xunit;
@@ -98,6 +99,17 @@ namespace MongoDB.Client.Tests.Serialization.Types
         }
     }
 
+    [BsonSerializable]
+    public partial record DecimalAsStringModel(string Value = "123");
+
+    [BsonSerializable]
+    public partial record DecimalAsInt32Model(int Value = 123);
+
+    [BsonSerializable]
+    public partial record DecimalAsInt64Model(long Value = 123);
+
+    [BsonSerializable]
+    public partial record DecimalAsDecimalModel(decimal Value = 123);
 
     public class GeneratorDecimalTest : SerializationTestBase
     {
@@ -110,6 +122,30 @@ namespace MongoDB.Client.Tests.Serialization.Types
             Assert.Equal(model, result1);
             var result2 = await RoundTripAsync<DoubleModel, DecimalModel>(doubleModel);
             Assert.Equal(model, result2);
+        }
+
+        [Fact]
+        public async Task DecimalAsStringTest()
+        {
+            var model = new DecimalAsStringModel();
+            var result = await RoundTripAsync<DecimalAsStringModel, DecimalAsDecimalModel>(model);
+            Assert.Equal(new DecimalAsDecimalModel(), result);
+        }
+
+        [Fact]
+        public async Task DecimalAsInt32Test()
+        {
+            var model = new DecimalAsInt32Model();
+            var result = await RoundTripAsync<DecimalAsInt32Model, DecimalAsDecimalModel>(model);
+            Assert.Equal(new DecimalAsDecimalModel(), result);
+        }
+        
+        [Fact]
+        public async Task DecimalAsInt64Test()
+        {
+            var model = new DecimalAsInt64Model();
+            var result = await RoundTripAsync<DecimalAsInt64Model, DecimalAsDecimalModel>(model);
+            Assert.Equal(new DecimalAsDecimalModel(), result);
         }
     }
 }

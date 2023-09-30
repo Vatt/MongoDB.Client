@@ -43,6 +43,10 @@ namespace MongoDB.Client.Bson.Writer
                 Debug.Assert(_reserved2 == null);
                 _reserved1[0] = source;
             }
+            public void WriteBsonType(BsonType type)
+            {
+                WriteByte((byte)type);
+            }
 
             public void Write(int source)
             {
@@ -207,6 +211,10 @@ namespace MongoDB.Client.Bson.Writer
             Advance(1);
         }
 
+        public void WriteBsonType(BsonType type)
+        {
+            WriteByte((byte)type);
+        }
 
 
         public void WriteInt32(int value)

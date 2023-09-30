@@ -63,6 +63,7 @@ namespace MongoDB.Client.Bson.Generators
             var systemBuffersBinaryDirective = SF.UsingDirective(SF.ParseName("System.Buffers.Binary"));
             var bsonReaderDirective = SF.UsingDirective(SF.ParseName("MongoDB.Client.Bson.Reader"));
             var bsonSerializerDirective = SF.UsingDirective(SF.ParseName("MongoDB.Client.Bson.Serialization"));
+            var bsonDirective = SF.UsingDirective(SF.ParseName("MongoDB.Client.Bson"));
 
             for (int index = 0; index < declarations.Length; index++)
             {
@@ -74,7 +75,8 @@ namespace MongoDB.Client.Bson.Generators
                           systemCollectionsGenericDirective,
                           systemBuffersBinaryDirective,
                           bsonReaderDirective,
-                          bsonSerializerDirective)
+                          bsonSerializerDirective,
+                          bsonDirective)
                       .AddMembers(GenerateSerializer(decl))
                       .NormalizeWhitespace()
                       .ToString());

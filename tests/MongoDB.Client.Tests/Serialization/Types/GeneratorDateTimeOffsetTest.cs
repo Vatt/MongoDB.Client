@@ -1,4 +1,7 @@
-﻿using MongoDB.Client.Bson.Document;
+﻿using System.Globalization;
+using System.Reflection;
+using MongoDB.Client.Bson;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Tests.Serialization.Generator;
 using Xunit;
@@ -98,8 +101,11 @@ namespace MongoDB.Client.Tests.Serialization.Types
             return Equals(obj as DateTimeOffsetModel);
         }
     }
+    [BsonSerializable]
+    public partial record DTOAsString(string Value);
 
-
+    [BsonSerializable]
+    public partial record DTOAsDTO(DateTimeOffset Value);
     public class GeneratorDateTimeOffsetTest : SerializationTestBase
     {
         [Fact]
@@ -110,6 +116,16 @@ namespace MongoDB.Client.Tests.Serialization.Types
             var bson = await RoundTripWithBsonAsync(DateTimeOffsetModel.Create());
             Assert.Equal(model, result);
             model.Equals(bson);
+        }
+
+        [Fact]
+        public async Task DateTimeOffsetAsStringTest()
+        {
+            var date = new DateTimeOffset(2023, 01, 01, 0, 0, 0, TimeSpan.Zero);
+            var model = new DTOAsString(date.ToString(CultureInfo.InvariantCulture));
+            var result = await RoundTripAsync<DTOAsString, DTOAsDTO>(model);
+
+            Assert.Equal(new DTOAsDTO(date), result);
         }
     }
 }

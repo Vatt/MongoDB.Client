@@ -5,7 +5,7 @@ namespace MongoDB.Client.Messages
 {
     //TODO: не сочетается с интерфейсом IBsonSerializer
     //[BsonSerializable(GeneratorMode.SkipWriteBson)]
-    [BsonSerializable]
+    [BsonSerializable(GeneratorMode.DisableTypeChecks)]
     public partial class Upserted
     {
         [BsonElement("index")]
@@ -21,7 +21,7 @@ namespace MongoDB.Client.Messages
     }
     //TODO: не сочетается с интерфейсом IBsonSerializer
     //[BsonSerializable(GeneratorMode.SkipWriteBson)]
-    [BsonSerializable]
+    [BsonSerializable(GeneratorMode.DisableTypeChecks)]
     public partial class UpdateResult : IParserResult
     {
         [BsonElement("ok")]

@@ -37,7 +37,7 @@ namespace MongoDB.Client.Messages
         [BsonElement("space")]
         Space,
     }
-    [BsonSerializable]
+    [BsonSerializable(GeneratorMode.DisableTypeChecks)]
     public sealed partial class Collation
     {
         [BsonElement("locale")]

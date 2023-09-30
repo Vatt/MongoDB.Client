@@ -7,17 +7,17 @@ namespace MongoDB.Client.Bson.Generators
     {
         public static MemberAccessExpressionSyntax ReaderRemainingExpr => SimpleMemberAccess(BsonReaderToken, IdentifierName("Remaining"));
         public static ExpressionSyntax TrySkipCStringExpr => InvocationExpr(BsonReaderToken, SF.IdentifierName("TrySkipCString"));
+        public static ExpressionSyntax TryGet(ExpressionSyntax bsonType, ExpressionSyntax assignOrDecl)
+        {
+            return InvocationExpr(BsonReaderToken, IdentifierName("TryGet"), Argument(bsonType), OutArgument(assignOrDecl));
+        }
         public static ExpressionSyntax TryGetDouble(ExpressionSyntax assignOrDecl)
         {
             return InvocationExpr(BsonReaderToken, IdentifierName("TryGetDouble"), OutArgument(assignOrDecl));
         }
-        public static ExpressionSyntax TryGetDecimalWithBsonType(SyntaxToken bsonType, ExpressionSyntax assignOrDecl)
+        public static ExpressionSyntax TryGetDecimal(ExpressionSyntax bsonType, ExpressionSyntax assignOrDecl)
         {
-            return InvocationExpr(BsonReaderToken, IdentifierName("TryGetDecimalWithBsonType"), Argument(bsonType), OutArgument(assignOrDecl));
-        }
-        public static ExpressionSyntax TryGetDecimalWithBsonType(ExpressionSyntax bsonType, ExpressionSyntax assignOrDecl)
-        {
-            return InvocationExpr(BsonReaderToken, IdentifierName("TryGetDecimalWithBsonType"), Argument(bsonType), OutArgument(assignOrDecl));
+            return InvocationExpr(BsonReaderToken, IdentifierName("TryGetDecimal"), OutArgument(assignOrDecl));
         }
         public static ExpressionSyntax TryGetBoolean(ExpressionSyntax assignOrDecl)
         {
@@ -27,29 +27,21 @@ namespace MongoDB.Client.Bson.Generators
         {
             return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryParseDocument"), OutArgument(assignOrDecl));
         }
-        public static ExpressionSyntax TryGetDateTimeWithBsonType(ExpressionSyntax typeId, ExpressionSyntax assignOrDecl)
+        public static ExpressionSyntax TryGetUtcDatetime(ExpressionSyntax assignOrDecl)
         {
-            return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetDateTimeWithBsonType"), SF.Argument(typeId), OutArgument(assignOrDecl));
+            return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetUtcDatetime"), OutArgument(assignOrDecl));
         }
-        public static ExpressionSyntax TryGetGuidWithBsonType(ExpressionSyntax typeId, ExpressionSyntax assignOrDecl)
+        public static ExpressionSyntax TryGetBinaryDataGuid(ExpressionSyntax assignOrDecl)
         {
-            return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetGuidWithBsonType"), SF.Argument(typeId), OutArgument(assignOrDecl));
+            return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetBinaryDataGuid"), OutArgument(assignOrDecl));
         }
         public static ExpressionSyntax TryGetInt32(ExpressionSyntax assignOrDecl)
         {
             return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetInt32"), OutArgument(assignOrDecl));
         }
-        public static ExpressionSyntax TryGetInt32(SyntaxToken target)
-        {
-            return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetInt32"), OutArgument(IdentifierName(target)));
-        }
         public static ExpressionSyntax TryGetInt64(ExpressionSyntax assignOrDecl)
         {
             return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetInt64"), OutArgument(assignOrDecl));
-        }
-        public static ExpressionSyntax TryGetInt64(SyntaxToken target)
-        {
-            return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetInt64"), OutArgument(IdentifierName(target)));
         }
         public static ExpressionSyntax TryGetObjectId(ExpressionSyntax assignOrDecl)
         {
@@ -75,6 +67,10 @@ namespace MongoDB.Client.Bson.Generators
         {
             return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetByte"), OutArgument(assignOrDecl));
         }
+        public static ExpressionSyntax TryGetBsonType(ExpressionSyntax assignOrDecl)
+        {
+            return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetBsonType"), OutArgument(assignOrDecl));
+        }
         public static ExpressionSyntax TryReadGeneric(SyntaxToken bsonType, ExpressionSyntax assignOrDecl)
         {
             return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryReadGeneric"), Argument(bsonType), OutArgument(assignOrDecl));
@@ -87,10 +83,6 @@ namespace MongoDB.Client.Bson.Generators
         {
             return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryReadObject"), Argument(bsonType), OutArgument(assignOrDecl));
         }
-        public static ExpressionSyntax TrySkip(ExpressionSyntax bsonType)
-        {
-            return InvocationExpr(BsonReaderToken, SF.IdentifierName("TrySkip"), SF.Argument(bsonType));
-        }
         public static ExpressionSyntax TrySkip(SyntaxToken bsonType)
         {
             return InvocationExpr(BsonReaderToken, SF.IdentifierName("TrySkip"), SF.Argument(IdentifierName(bsonType)));
@@ -98,14 +90,6 @@ namespace MongoDB.Client.Bson.Generators
         public static ExpressionSyntax TryGetTimestamp(ExpressionSyntax assignOrDecl)
         {
             return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetTimestamp"), OutArgument(assignOrDecl));
-        }
-        public static ExpressionSyntax TryGetIntFromNameSpan(SyntaxToken nameSpan, int offset, ExpressionSyntax assignOrDecl)
-        {
-            return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetIntFromNameSpan"), Argument(nameSpan), Argument(NumericLiteralExpr(offset)), OutArgument(assignOrDecl));
-        }
-        public static ExpressionSyntax GetIntFromNameSpan(SyntaxToken nameSpan, int offset)
-        {
-            return InvocationExpr(BsonReaderToken, SF.IdentifierName("GetIntFromNameSpan"), Argument(nameSpan), Argument(NumericLiteralExpr(offset)));
         }
         public static ExpressionSyntax TryGetBinaryData(int subtype, ExpressionSyntax assignOrDecl)
         {

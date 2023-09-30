@@ -10,75 +10,6 @@ namespace MongoDB.Client.Bson.Reader
 {
     public ref partial struct BsonReader
     {
-
-        public bool TryGetDateTimeWithBsonType(int bsonType, out DateTimeOffset? value)
-        {
-            switch (bsonType)
-            {
-                case 3:
-                    return TryGetDatetimeFromDocument(out value);
-                case 9:
-                    return TryGetUtcDatetime(out value);
-                case 18:
-                    return TryGetUtcDatetime(out value);
-                default:
-                    value = default;
-                    return ThrowHelper.UnsupportedDateTimeTypeException<bool>(bsonType);
-            }
-        }
-        public bool TryGetDecimalWithBsonType(int bsonType, out decimal? value)
-        {
-            value = default;
-            switch (bsonType)
-            {
-                case 1:
-                    if (TryGetDouble(out double doubleValue))
-                    {
-                        value = new(doubleValue);
-
-                        return true;
-                    }
-
-                    return false;
-                case 2:
-                    if (TryGetString(out var stringValue))
-                    {
-                        if (decimal.TryParse(stringValue, CultureInfo.InvariantCulture, out var temp) is false)
-                        {
-                            return ThrowHelper.UnsupportedStringDecimalException<bool>(stringValue);
-                        }
-
-                        value = temp;
-                        return true;
-                    }
-
-                    return false;
-                case 16:
-                    if (TryGetInt32(out int intValue))
-                    {
-                        value = new(intValue);
-
-                        return true;
-                    }
-
-                    return false;
-                case 18:
-                    if (TryGetInt64(out long longValue))
-                    {
-                        value = new(longValue);
-
-                        return true;
-                    }
-
-                    return false;
-                case 19:
-                    return TryGetDecimal(out value);
-                default:
-                    value = default;
-                    return ThrowHelper.UnsupportedDecimalTypeException<bool>(bsonType);
-            }
-        }
-
         public bool TryGetUtcDatetime([MaybeNullWhen(false)] out DateTimeOffset? value)
         {
             if (TryGetInt64(out long data))
@@ -191,21 +122,6 @@ namespace MongoDB.Client.Bson.Reader
             return false;
         }
 
-
-        public bool TryGetGuidWithBsonType(int bsonType, out Guid? value)
-        {
-            if (bsonType == 5)
-            {
-                return TryGetBinaryDataGuid(out value);
-            }
-            if (bsonType == 2)
-            {
-                return TryGetGuidFromString(out value);
-            }
-
-            value = default;
-            return ThrowHelper.UnsupportedGuidTypeException<bool>(bsonType);
-        }
         public bool TryGetBinaryDataGuid(out Guid? value)
         {
             if (TryGetInt32(out int len))

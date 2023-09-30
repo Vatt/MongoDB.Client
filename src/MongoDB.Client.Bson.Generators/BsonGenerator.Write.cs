@@ -224,7 +224,7 @@ namespace MongoDB.Client.Bson.Generators
                     LocalDeclarationStatement(VarType, bsonReserved, WriterReserve(1)),
                     Statement(WriteName(nameToken)),
                     InvocationExprStatement(IdentifierName(extSym.ToString()), WriteBsonToken, RefArgument(BsonWriterToken), Argument(writeTarget), OutArgument(VarVariableDeclarationExpr(bsonTypeToken))),
-                    Statement(ReservedWriteByte(bsonReserved, bsonTypeToken))
+                    Statement(ReservedWriteBsonType(bsonReserved, bsonTypeToken))
                 };
 
                 return true;

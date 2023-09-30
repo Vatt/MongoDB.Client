@@ -2,7 +2,7 @@
 
 namespace MongoDB.Client.Messages
 {
-    [BsonSerializable]
+    [BsonSerializable(GeneratorMode.DisableTypeChecks)]
     public partial struct ReadPreference
     {
         [BsonElement("mode")]
