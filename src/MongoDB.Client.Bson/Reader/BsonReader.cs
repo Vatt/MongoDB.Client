@@ -49,7 +49,18 @@ namespace MongoDB.Client.Bson.Reader
         {
             return _input.TryRead(out value);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetBsonType(out BsonType value)
+        {
+            if (_input.TryRead(out byte temp))
+            {
+                value = (BsonType)temp;
+                return true;
+            }
 
+            value = default;
+            return false;
+        }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetInt16(out short value)
         {

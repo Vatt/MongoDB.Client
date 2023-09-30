@@ -8,66 +8,69 @@ namespace MongoDB.Client.Bson.Reader
 {
     public ref partial struct BsonReader
     {
-    	public bool TryRead(BsonType type, out double value)
+    	public bool TryGet(BsonType type, out double value)
     	{
-            value = default;
             switch(type)
             {
                 case BsonType.Double:
                     return TryGetDouble(out value);
                 case BsonType.Int32:
                     {
-                        if (TryGetInt32(out int temp) is false)
+                        if (TryGetInt32(out int temp))
                         {
-                            return false;
+                            value = temp;
+                            return true;
                         }
 
-                        value = temp;
-                        return true;
+                        value = default;
+                        return false;
                     }
                 case BsonType.Int64:
                     {
-                        if (TryGetInt64(out long temp) is false)
+                        if (TryGetInt64(out long temp))
                         {
-                            return false;
+                            value = temp;
+                            return true;
                         }
 
-                        value = temp;
-                        return true;
+                        value = default;
+                        return false;
                     }
                 case BsonType.String:
                     {
-                        if (TryGetStringAsSpan(out var temp) is false)
+                        if (TryGetStringAsSpan(out var temp))
                         {
-                            return false;
+                            if (double.TryParse(MemoryMarshal.Cast<byte, char>(temp), CultureInfo.InvariantCulture, out value) is false)
+                            {
+                                return ThrowHelper.InvalidTypeException(BsonType.Double, BsonType.String, Encoding.UTF8.GetString(temp));
+                            }
+
+                            return true;
                         }
 
-                        if (double.TryParse(MemoryMarshal.Cast<byte, char>(temp), CultureInfo.InvariantCulture, out value) is false)
-                        {
-                            return ThrowHelper.InvalidTypeException(BsonType.Double, BsonType.String, Encoding.UTF8.GetString(temp));
-                        }
-
-                        return true;
+                        value = default;
+                        return false;
                     }
                 case BsonType.Null:
                     value = default;
                     return true;
                 default:
+                    value = default;
                     return ThrowHelper.InvalidTypeException(BsonType.Double, type);
             }
     	}
-        public bool TryRead(BsonType type, out double? value)
+        public bool TryGet(BsonType type, out double? value)
         {
-            if (TryRead(type, out double temp) is false)
+            if (TryGet(type, out double temp))
             {
-                value = null;
-                return false;
+                value = temp;
+                return true;
             }
 
-            value = temp;
-            return true;
+            value = default;
+            return false;
         }
-        public bool TryRead(BsonType type, out string? value)
+        public bool TryGet(BsonType type, out string? value)
         {
             if (type is BsonType.String)
             {
@@ -82,7 +85,7 @@ namespace MongoDB.Client.Bson.Reader
             value = default;
             return ThrowHelper.InvalidTypeException(BsonType.String, type);
         }
-        public bool TryRead(BsonType type, out BsonDocument? value)
+        public bool TryGet(BsonType type, out BsonDocument? value)
         {
             if (type is BsonType.Document)
             {
@@ -97,7 +100,7 @@ namespace MongoDB.Client.Bson.Reader
             value = default;
             return ThrowHelper.InvalidTypeException(BsonType.Document, type);
         }
-        public bool TryRead(BsonType type, out BsonArray? value)
+        public bool TryGet(BsonType type, out BsonArray? value)
         {
             if (type is BsonType.Array)
             {
@@ -110,9 +113,9 @@ namespace MongoDB.Client.Bson.Reader
             }
 
             value = default;
-            return ThrowHelper.InvalidTypeException(BsonType.Document, type);
+            return ThrowHelper.InvalidTypeException(BsonType.Array, type);
         }
-        public bool TryRead(BsonType type, out BsonBinaryData value)
+        public bool TryGet(BsonType type, out BsonBinaryData value)
         {
             if (type is BsonType.BinaryData)
             {
@@ -127,18 +130,18 @@ namespace MongoDB.Client.Bson.Reader
             value = default;
             return ThrowHelper.InvalidTypeException(BsonType.BinaryData, type);
         }
-        public bool TryRead(BsonType type, out BsonBinaryData? value)
+        public bool TryGet(BsonType type, out BsonBinaryData? value)
         {
-            if (TryRead(type, out BsonBinaryData temp) is false)
+            if (TryGet(type, out BsonBinaryData temp))
             {
-                value = default;
-                return false;
+                value = temp;
+                return true;
             }
 
-            value = temp;
-            return true;
+            value = default;
+            return false;
         }
-        public bool TryRead(BsonType type, out BsonObjectId value)
+        public bool TryGet(BsonType type, out BsonObjectId value)
         {
             if (type is BsonType.ObjectId)
             {
@@ -153,18 +156,18 @@ namespace MongoDB.Client.Bson.Reader
             value = default;
             return ThrowHelper.InvalidTypeException(BsonType.ObjectId, type);
         }
-        public bool TryRead(BsonType type, out BsonObjectId? value)
+        public bool TryGet(BsonType type, out BsonObjectId? value)
         {
-            if (TryRead(type, out BsonObjectId temp) is false)
+            if (TryGet(type, out BsonObjectId temp))
             {
-                value = default;
-                return false;
+                value = temp;
+                return true;
             }
 
-            value = temp;
-            return true;
+            value = default;
+            return false;
         }
-        public bool TryRead(BsonType type, out bool value)
+        public bool TryGet(BsonType type, out bool value)
         {
             switch (type)
             {
@@ -172,36 +175,37 @@ namespace MongoDB.Client.Bson.Reader
                     return TryGetBoolean(out value);
                 case BsonType.Double:
                     {
-                        if (TryGetDouble(out double temp) is false)
+                        if (TryGetDouble(out double temp))
                         {
-                            value = default;
-                            return false;
+                            value = temp is not 0.0;
+                            return true;
+
                         }
 
-                        value = temp is not 0.0;
-                        return true;
+                        value = default;
+                        return false;
                     }
                 case BsonType.Int32:
                     {
-                        if (TryGetInt32(out int temp) is false)
+                        if (TryGetInt32(out int temp))
                         {
-                            value = default;
-                            return false;
+                            value = temp is not 0;
+                            return true;
                         }
 
-                        value = temp is not 0;
-                        return true;
+                        value = default;
+                        return false;
                     }
                 case BsonType.Int64:
                     {
-                        if (TryGetInt64(out long temp) is false)
+                        if (TryGetInt64(out long temp))
                         {
-                            value = default;
-                            return false;
+                            value = temp is not 0;
+                            return true;
                         }
 
-                        value = temp is not 0;
-                        return true;
+                        value = default;
+                        return false;
                     }
                 case BsonType.Null:
                     {
@@ -214,18 +218,18 @@ namespace MongoDB.Client.Bson.Reader
 
             }
         }
-        public bool TryRead(BsonType type, out bool? value)
+        public bool TryGet(BsonType type, out bool? value)
         {
-            if (TryRead(type, out bool temp) is false)
+            if (TryGet(type, out bool temp))
             {
-                value = default;
-                return false;
+                value = temp;
+                return true;
             }
 
-            value = temp;
-            return true;
+            value = default;
+            return false;
         }
-        public bool TryRead(BsonType type, out DateTimeOffset value)
+        public bool TryGet(BsonType type, out DateTimeOffset value)
         {
             switch (type)
             {
@@ -239,27 +243,28 @@ namespace MongoDB.Client.Bson.Reader
                     }
                 case BsonType.String:
                     {
-                        if (TryGetStringAsSpan(out var temp) is false)
+                        if (TryGetStringAsSpan(out var temp))
                         {
-                            value = default;
-                            return false;
+                            if (DateTimeOffset.TryParse(MemoryMarshal.Cast<byte, char>(temp), CultureInfo.InvariantCulture, out value) is false)
+                            {
+                                return ThrowHelper.InvalidTypeException(BsonType.UtcDateTime, BsonType.String, Encoding.UTF8.GetString(temp));
+                            }
+
+                            return true;
+
                         }
 
-                        if (DateTimeOffset.TryParse(MemoryMarshal.Cast<byte, char>(temp), CultureInfo.InvariantCulture, out value) is false)
-                        {
-                            return ThrowHelper.InvalidTypeException(BsonType.UtcDateTime, BsonType.String, Encoding.UTF8.GetString(temp));
-                        }
-
-                        return true;
+                        value = default;
+                        return false;
                     }
                 default:
                     value = default;
                     return ThrowHelper.InvalidTypeException(BsonType.UtcDateTime, type);
             }
         }
-        public bool TryRead(BsonType type, out DateTimeOffset? value)
+        public bool TryGet(BsonType type, out DateTimeOffset? value)
         {
-            if (TryRead(type, out DateTimeOffset temp) is false)
+            if (TryGet(type, out DateTimeOffset temp) is false)
             {
                 value = default;
                 return false;
@@ -268,7 +273,7 @@ namespace MongoDB.Client.Bson.Reader
             value = temp;
             return true;
         }
-        public bool TryRead(BsonType type, out int value)
+        public bool TryGet(BsonType type, out int value)
         {
             switch (type)
             {
@@ -279,36 +284,37 @@ namespace MongoDB.Client.Bson.Reader
                     return true;
                 case BsonType.String:
                     {
-                        if (TryGetCStringAsSpan(out var temp) is false)
+                        if (TryGetCStringAsSpan(out var temp))
                         {
-                            value = default;
-                            return false;
+                            if (int.TryParse(MemoryMarshal.Cast<byte, char>(temp), CultureInfo.InvariantCulture, out value) is false)
+                            {
+                                return ThrowHelper.InvalidTypeException(BsonType.Int32, BsonType.String, Encoding.UTF8.GetString(temp));
+                            }
+
+                            return true;
                         }
 
-                        if (int.TryParse(MemoryMarshal.Cast<byte, char>(temp), CultureInfo.InvariantCulture, out value) is false)
-                        {
-                            return ThrowHelper.InvalidTypeException(BsonType.Int32, BsonType.String, Encoding.UTF8.GetString(temp));
-                        }
-
-                        return true;
+                        value = default;
+                        return false;
                     }
                 default:
                     value = default;
                     return ThrowHelper.InvalidTypeException(BsonType.Int32, type);
             }
         }
-        public bool TryRead(BsonType type, out int? value)
+        public bool TryGet(BsonType type, out int? value)
         {
-            if (TryRead(type, out int temp) is false)
+            if (TryGet(type, out int temp))
             {
-                value = default;
-                return false;
+                value = temp;
+                return true;
+
             }
 
-            value = temp;
-            return true;
+            value = default;
+            return false;
         }
-        public bool TryRead(BsonType type, out BsonTimestamp value)
+        public bool TryGet(BsonType type, out BsonTimestamp value)
         {
             if (type is BsonType.Timestamp)
             {
@@ -323,18 +329,19 @@ namespace MongoDB.Client.Bson.Reader
             value = default;
             return ThrowHelper.InvalidTypeException(BsonType.Timestamp, type);
         }
-        public bool TryRead(BsonType type, out BsonTimestamp? value)
+        public bool TryGet(BsonType type, out BsonTimestamp? value)
         {
-            if (TryRead(type, out BsonTimestamp temp) is false)
+            if (TryGet(type, out BsonTimestamp temp))
             {
-                value = default;
-                return false;
+                value = temp;
+                return true;
+
             }
 
-            value = temp;
-            return true;
+            value = default;
+            return false;
         }
-        public bool TryRead(BsonType type, out long value)
+        public bool TryGet(BsonType type, out long value)
         {
             switch (type)
             {
@@ -342,41 +349,42 @@ namespace MongoDB.Client.Bson.Reader
                     return TryGetInt64(out value);
                 case BsonType.Int32:
                     {
-                        if (TryGetInt32(out int temp) is false)
+                        if (TryGetInt32(out int temp))
                         {
-                            value = default;
-                            return false;
+                            value = temp;
+                            return true;
+
                         }
 
-                        value = temp;
-                        return true;
+                        value = default;
+                        return false;
                     }
                 case BsonType.Null:
                     value = default;
                     return true;
                 case BsonType.String:
                     {
-                        if (TryGetCStringAsSpan(out var temp) is false)
+                        if (TryGetCStringAsSpan(out var temp))
                         {
-                            value = default;
-                            return false;
+                            if (long.TryParse(MemoryMarshal.Cast<byte, char>(temp), CultureInfo.InvariantCulture, out value) is false)
+                            {
+                                return ThrowHelper.InvalidTypeException(BsonType.Int32, BsonType.String, Encoding.UTF8.GetString(temp));
+                            }
+
+                            return true;
                         }
 
-                        if (long.TryParse(MemoryMarshal.Cast<byte, char>(temp), CultureInfo.InvariantCulture, out value) is false)
-                        {
-                            return ThrowHelper.InvalidTypeException(BsonType.Int32, BsonType.String, Encoding.UTF8.GetString(temp));
-                        }
-
-                        return true;
+                        value = default;
+                        return false;
                     }
                 default:
                     value = default;
                     return ThrowHelper.InvalidTypeException(BsonType.Int32, type);
             }
         }
-        public bool TryRead(BsonType type, out long? value)
+        public bool TryGet(BsonType type, out long? value)
         {
-            if (TryRead(type, out long temp) is false)
+            if (TryGet(type, out long temp) is false)
             {
                 value = default;
                 return false;
@@ -385,9 +393,8 @@ namespace MongoDB.Client.Bson.Reader
             value = temp;
             return true;
         }
-        public bool TryRead(BsonType type, out decimal value)
+        public bool TryGet(BsonType type, out decimal value)
         {
-            value = default;
             switch (type)
             {
                 case BsonType.Double:
@@ -395,10 +402,10 @@ namespace MongoDB.Client.Bson.Reader
                         if (TryGetDouble(out double doubleValue))
                         {
                             value = new(doubleValue);
-
                             return true;
                         }
 
+                        value = default;
                         return false;
                     }
                 case BsonType.String:
@@ -413,6 +420,7 @@ namespace MongoDB.Client.Bson.Reader
                             return true;
                         }
 
+                        value = default;
                         return false;
                     }
                 case BsonType.Int32:
@@ -420,10 +428,10 @@ namespace MongoDB.Client.Bson.Reader
                         if (TryGetInt32(out int temp))
                         {
                             value = new(temp);
-
                             return true;
                         }
 
+                        value = default;
                         return false;
                     }
                 case BsonType.Int64:
@@ -431,10 +439,10 @@ namespace MongoDB.Client.Bson.Reader
                         if (TryGetInt64(out long temp))
                         {
                             value = new(temp);
-
                             return true;
                         }
 
+                        value = default;
                         return false;
                     }
                 case BsonType.Decimal:
@@ -443,6 +451,17 @@ namespace MongoDB.Client.Bson.Reader
                     value = default;
                     return ThrowHelper.InvalidTypeException(BsonType.Decimal, type);
             }
+        }
+        public bool TryGet(BsonType type, out decimal? value)
+        {
+            if (TryGet(type, out decimal temp))
+            {
+                value = temp;
+                return true;
+            }
+
+            value = default;
+            return false;
         }
     }
 }
