@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Buffers.Text;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 using MongoDB.Client.Bson.Document;
@@ -40,7 +41,7 @@ namespace MongoDB.Client.Bson.Reader
                     {
                         if (TryGetStringAsSpan(out var temp))
                         {
-                            if (double.TryParse(MemoryMarshal.Cast<byte, char>(temp), CultureInfo.InvariantCulture, out value) is false)
+                            if (Utf8Parser.TryParse(temp, out value, out var consumed) is false || consumed != temp.Length)
                             {
                                 return ThrowHelper.InvalidTypeException(BsonType.Double, BsonType.String, Encoding.UTF8.GetString(temp));
                             }
@@ -245,7 +246,7 @@ namespace MongoDB.Client.Bson.Reader
                     {
                         if (TryGetStringAsSpan(out var temp))
                         {
-                            if (DateTimeOffset.TryParse(MemoryMarshal.Cast<byte, char>(temp), CultureInfo.InvariantCulture, out value) is false)
+                            if (Utf8Parser.TryParse(temp, out value, out var consumed) is false || consumed != temp.Length)
                             {
                                 return ThrowHelper.InvalidTypeException(BsonType.UtcDateTime, BsonType.String, Encoding.UTF8.GetString(temp));
                             }
@@ -284,9 +285,9 @@ namespace MongoDB.Client.Bson.Reader
                     return true;
                 case BsonType.String:
                     {
-                        if (TryGetCStringAsSpan(out var temp))
+                        if (TryGetStringAsSpan(out var temp))
                         {
-                            if (int.TryParse(MemoryMarshal.Cast<byte, char>(temp), CultureInfo.InvariantCulture, out value) is false)
+                            if (Utf8Parser.TryParse(temp, out value, out var consumed) is false || consumed != temp.Length)
                             {
                                 return ThrowHelper.InvalidTypeException(BsonType.Int32, BsonType.String, Encoding.UTF8.GetString(temp));
                             }
@@ -364,9 +365,9 @@ namespace MongoDB.Client.Bson.Reader
                     return true;
                 case BsonType.String:
                     {
-                        if (TryGetCStringAsSpan(out var temp))
+                        if (TryGetStringAsSpan(out var temp))
                         {
-                            if (long.TryParse(MemoryMarshal.Cast<byte, char>(temp), CultureInfo.InvariantCulture, out value) is false)
+                            if (Utf8Parser.TryParse(temp, out value, out var consumed) is false || consumed != temp.Length)
                             {
                                 return ThrowHelper.InvalidTypeException(BsonType.Int32, BsonType.String, Encoding.UTF8.GetString(temp));
                             }
@@ -412,7 +413,7 @@ namespace MongoDB.Client.Bson.Reader
                     {
                         if (TryGetStringAsSpan(out var temp))
                         {
-                            if (decimal.TryParse(MemoryMarshal.Cast<byte, char>(temp), CultureInfo.InvariantCulture, out value) is false)
+                            if (Utf8Parser.TryParse(temp, out value, out var consumed) is false || consumed != temp.Length)
                             {
                                 return ThrowHelper.InvalidTypeException(BsonType.Decimal, BsonType.String, Encoding.UTF8.GetString(temp));
                             }

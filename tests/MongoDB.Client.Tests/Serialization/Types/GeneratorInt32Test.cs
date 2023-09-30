@@ -99,6 +99,11 @@ namespace MongoDB.Client.Tests.Serialization.Types
         }
     }
 
+    [BsonSerializable]
+    public partial record Int32AsStringModel(string Value = "123");
+
+    [BsonSerializable]
+    public partial record Int32AsInt32Model(int Value = 123);
 
     public class GeneratorInt32Test : SerializationTestBase
     {
@@ -110,6 +115,14 @@ namespace MongoDB.Client.Tests.Serialization.Types
             var bson = await RoundTripWithBsonAsync(Int32Model.Create());
             Assert.Equal(model, result);
             model.Equals(bson);
+        }
+
+        [Fact]
+        public async Task Int32AsStringTest()
+        {
+            var model = new Int32AsStringModel();
+            var result = await RoundTripAsync<Int32AsStringModel, Int32AsInt32Model>(model);
+            Assert.Equal(new Int32AsInt32Model(), result);
         }
     }
 }

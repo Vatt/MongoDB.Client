@@ -99,6 +99,11 @@ namespace MongoDB.Client.Tests.Serialization.Types
         }
     }
 
+    [BsonSerializable]
+    public partial record DoubleAsStringModel(string Value = "123.123");
+
+    [BsonSerializable]
+    public partial record DoubleAsDoubleModel(double Value = 123.123);
 
     public class GeneratorDoubleTest : SerializationTestBase
     {
@@ -110,6 +115,15 @@ namespace MongoDB.Client.Tests.Serialization.Types
             var bson = await RoundTripWithBsonAsync(model);
             Assert.Equal(model, result);
             model.Equals(bson);
+        }
+
+        [Fact]
+        public async Task DoubleAsStringTest()
+        {
+            var model = new DoubleAsStringModel();
+            var result = await RoundTripAsync<DoubleAsStringModel, DoubleAsDoubleModel>(model);
+
+            Assert.Equal(new DoubleAsDoubleModel(), result);
         }
     }
 }

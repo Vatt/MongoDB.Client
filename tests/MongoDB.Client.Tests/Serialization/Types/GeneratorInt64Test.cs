@@ -99,7 +99,14 @@ namespace MongoDB.Client.Tests.Serialization.Types
         }
     }
 
+    [BsonSerializable]
+    public partial record Int64AsStringModel(string Value = "123");
 
+    [BsonSerializable]
+    public partial record Int64AsInt32Model(int Value = 123);
+
+    [BsonSerializable]
+    public partial record Int64AsInt64Model(long Value = 123);
     public class GeneratorInt64Test : SerializationTestBase
     {
         [Fact]
@@ -110,6 +117,21 @@ namespace MongoDB.Client.Tests.Serialization.Types
             var bson = await RoundTripWithBsonAsync(model);
             Assert.Equal(model, result);
             model.Equals(bson);
+        }
+        [Fact]
+        public async Task Int64AsStringTest()
+        {
+            var model = new Int64AsStringModel();
+            var result = await RoundTripAsync<Int64AsStringModel, Int64AsInt64Model>(model);
+            Assert.Equal(new Int64AsInt64Model(), result);
+        }
+
+        [Fact]
+        public async Task Int64AsInt32Test()
+        {
+            var model = new Int64AsInt32Model();
+            var result = await RoundTripAsync<Int64AsInt32Model, Int64AsInt64Model>(model);
+            Assert.Equal(new Int64AsInt64Model(), result);
         }
     }
 }

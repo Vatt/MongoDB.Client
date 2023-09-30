@@ -99,7 +99,12 @@ namespace MongoDB.Client.Tests.Serialization.Types
             return Equals(obj as GuidModel);
         }
     }
+    
+    [BsonSerializable]
+    public partial record GuidAsStringModel(string Value);
 
+    [BsonSerializable]
+    public partial record GuidAsGuidModel(Guid Value);
 
     public class GeneratorGuidTest : SerializationTestBase
     {
@@ -111,6 +116,15 @@ namespace MongoDB.Client.Tests.Serialization.Types
             var bson = await RoundTripWithBsonAsync(GuidModel.Create());
             Assert.Equal(model, result);
             model.Equals(bson);
+        }
+
+        [Fact]
+        public async Task GuidAsStringTest()
+        {
+            var guid = Guid.NewGuid();
+            var model = new GuidAsStringModel(guid.ToString());
+            var result = await RoundTripAsync<GuidAsStringModel, GuidAsGuidModel>(model);
+            Assert.Equal(new GuidAsGuidModel(guid), result);
         }
     }
 }
