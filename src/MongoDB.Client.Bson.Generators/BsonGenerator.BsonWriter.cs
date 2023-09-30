@@ -28,37 +28,13 @@ namespace MongoDB.Client.Bson.Generators
         {
             return InvocationExpr(BsonWriterToken, IdentifierName("Write_Type_Name"), Argument(NumericLiteralExpr(typeid)), Argument(IdentifierName(name)));
         }
-        public static ExpressionSyntax WriteBsonNull(ExpressionSyntax name)
-        {
-            return InvocationExpr(BsonWriterToken, IdentifierName("WriteBsonNull"), Argument(name));
-        }
         public static ExpressionSyntax WriteBsonNull(SyntaxToken name)
         {
             return InvocationExpr(BsonWriterToken, IdentifierName("WriteBsonNull"), Argument(IdentifierName(name)));
         }
-        public static ExpressionSyntax WriteInt32(ExpressionSyntax name)
-        {
-            return InvocationExpr(BsonWriterToken, IdentifierName("WriteInt32"), Argument(name));
-        }
-        public static ExpressionSyntax WriteInt64(ExpressionSyntax name)
-        {
-            return InvocationExpr(BsonWriterToken, IdentifierName("WriteInt64"), Argument(name));
-        }
-        public static ExpressionSyntax WriteString(ExpressionSyntax name)
-        {
-            return InvocationExpr(BsonWriterToken, IdentifierName("WriteString"), Argument(name));
-        }
         public static ExpressionSyntax WriteString(SyntaxToken name)
         {
             return InvocationExpr(BsonWriterToken, IdentifierName("WriteString"), Argument(IdentifierName(name)));
-        }
-        public static ExpressionSyntax WriteCString(ExpressionSyntax name)
-        {
-            return InvocationExpr(BsonWriterToken, IdentifierName("WriteCString"), Argument(name));
-        }
-        public static ExpressionSyntax WriteCString(SyntaxToken name)
-        {
-            return InvocationExpr(BsonWriterToken, IdentifierName("WriteCString"), Argument(IdentifierName(name)));
         }
         public static ExpressionSyntax WriteGeneric(ExpressionSyntax name, ExpressionSyntax reserved)
         {
@@ -80,23 +56,10 @@ namespace MongoDB.Client.Bson.Generators
         {
             return InvocationExpr(IdentifierName(reserved), IdentifierName("WriteBsonType"), Argument(IdentifierName(target)));
         }
-        public static ExpressionSyntax WriteByte(byte value)
-        {
-            return InvocationExpr(BsonWriterToken, IdentifierName("WriteByte"), Argument(NumericLiteralExpr(value)));
-        }
-        public static ExpressionSyntax WriteByte(ExpressionSyntax value)
-        {
-            return InvocationExpr(BsonWriterToken, IdentifierName("WriteByte"), Argument(value));
-        }
         public static ExpressionStatementSyntax WriteByteStatement(byte value)
         {
             return SyntaxFactory.ExpressionStatement(InvocationExpr(BsonWriterToken, IdentifierName("WriteByte"), Argument(NumericLiteralExpr(value))));
         }
-        public static ExpressionStatementSyntax WriteByteStatement(ExpressionSyntax value)
-        {
-            return SyntaxFactory.ExpressionStatement(InvocationExpr(BsonWriterToken, IdentifierName("WriteByte"), Argument(value)));
-        }
-
         public static ExpressionSyntax WriteName(SyntaxToken name)
         {
             return InvocationExpr(BsonWriterToken, IdentifierName("WriteName"), Argument(name));

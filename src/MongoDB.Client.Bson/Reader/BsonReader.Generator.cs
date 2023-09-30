@@ -18,19 +18,6 @@ namespace MongoDB.Client.Bson.Reader
         {
             throw new SerializerNotFoundException(typeName);
         }
-        [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void ThrowUnsupportedTypeType(string typeName)
-        {
-            throw new UnsupportedTypeException(typeName);
-        }
-        [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void ThrowSerializerIsNull(string typeName)
-        {
-            throw new SerializerIsNullException(typeName);
-        }
-
         public unsafe bool TryReadGenericNullable<T>(BsonType bsonType, [MaybeNullWhen(false)] out T? genericValue)
         {
             genericValue = default;
@@ -129,7 +116,7 @@ namespace MongoDB.Client.Bson.Reader
                     }
             }
         }
-        public unsafe bool TryReadGeneric<T>(BsonType bsonType, [MaybeNullWhen(false)] out T genericValue)
+        public unsafe bool TryReadGeneric<T>(BsonType bsonType, [MaybeNull] out T genericValue)
         {
             genericValue = default;
             if (SerializerFnPtrProvider<T>.IsSerializable)
@@ -191,22 +178,22 @@ namespace MongoDB.Client.Bson.Reader
             }
             if (typeof(T) == typeof(string))
             {
-                string? strvalue;
-                if (!TryGet(bsonType, out strvalue)) { return false; }
-                genericValue = (T)(object)strvalue;
+                string? strValue;
+                if (!TryGet(bsonType, out strValue)) { return false; }
+                genericValue = (T)(object)strValue!;
                 return true;
             }
             if (typeof(T) == typeof(BsonArray))
             {
-                BsonDocument tempArray;
+                BsonDocument? tempArray;
                 if (!TryGet(bsonType, out tempArray)) { return false; }
-                genericValue = (T)(object)tempArray;
+                genericValue = (T)(object)tempArray!;
                 return true;
             }
             if (typeof(T) == typeof(BsonDocument))
             {
-                if (!TryGet(bsonType, out BsonDocument value)) { return false; }
-                genericValue = (T)(object)value;
+                if (!TryGet(bsonType, out BsonDocument? value)) { return false; }
+                genericValue = (T)(object)value!;
                 return true;
             }
             if (typeof(T) == typeof(BsonTimestamp))
@@ -334,91 +321,6 @@ namespace MongoDB.Client.Bson.Reader
             }
             return false;
         }
-
-        public bool TryGetDecimalWithBsonType(int bsonType, out decimal value)
-        {
-            value = default;
-            switch (bsonType)
-            {
-                case 1:
-                    if (TryGetDouble(out double doubleValue))
-                    {
-                        value = new(doubleValue);
-                        
-                        return true;
-                    }
-
-                    return false;
-                case 2:
-                    if (TryGetString(out var stringValue))
-                    {
-                        if (decimal.TryParse(stringValue, CultureInfo.InvariantCulture, out value) is false)
-                        {
-                            return ThrowHelper.UnsupportedStringDecimalException<bool>(stringValue);
-                        }
-
-                        return true;
-                    }
-
-                    return false;
-                case 16:
-                    if (TryGetInt32(out int intValue))
-                    {
-                        value = new(intValue);
-
-                        return true;
-                    }
-
-                    return false;
-                case 18:
-                    if (TryGetInt64(out long longValue))
-                    {
-                        value = new(longValue);
-
-                        return true;
-                    }
-
-                    return false;
-                case 19:
-                    return TryGetDecimal(out value);
-                default:
-                    value = default;
-                    return ThrowHelper.UnsupportedDecimalTypeException<bool>(bsonType);
-            }
-        }
-
-        public bool TryGetGuidWithBsonType(BsonType bsonType, out Guid value)
-        {
-            switch (bsonType)
-            {
-                case BsonType.BinaryData:
-                    return TryGetBinaryDataGuid(out value);
-                case BsonType.String:
-                    return TryGetGuidFromString(out value);
-                default:
-                    value = default;
-                    return ThrowHelper.UnsupportedGuidTypeException<bool>((int)bsonType);
-            }
-        }
-
-
-        public bool TryGetDateTimeWithBsonType(int bsonType, out DateTimeOffset value)
-        {
-            switch (bsonType)
-            {
-                case 3:
-                    return TryGetDatetimeFromDocument(out value);
-                case 9:
-                    return TryGetUtcDatetime(out value);
-                case 18:
-                    return TryGetUtcDatetime(out value);
-                default:
-                    value = default;
-                    return ThrowHelper.UnsupportedDateTimeTypeException<bool>(bsonType);
-            }
-        }
-
-
         public bool TryGetBinaryData(byte expectedSubtype, [MaybeNullWhen(false)] out byte[] value)
         {
             if (TryGetInt32(out int len))

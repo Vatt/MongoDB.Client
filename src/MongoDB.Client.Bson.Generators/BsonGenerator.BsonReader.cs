@@ -15,14 +15,6 @@ namespace MongoDB.Client.Bson.Generators
         {
             return InvocationExpr(BsonReaderToken, IdentifierName("TryGetDouble"), OutArgument(assignOrDecl));
         }
-        public static ExpressionSyntax TryGetDecimalWithBsonType(SyntaxToken bsonType, ExpressionSyntax assignOrDecl)
-        {
-            return InvocationExpr(BsonReaderToken, IdentifierName("TryGetDecimalWithBsonType"), Argument(bsonType), OutArgument(assignOrDecl));
-        }
-        public static ExpressionSyntax TryGetDecimalWithBsonType(ExpressionSyntax bsonType, ExpressionSyntax assignOrDecl)
-        {
-            return InvocationExpr(BsonReaderToken, IdentifierName("TryGetDecimalWithBsonType"), Argument(bsonType), OutArgument(assignOrDecl));
-        }
         public static ExpressionSyntax TryGetDecimal(ExpressionSyntax bsonType, ExpressionSyntax assignOrDecl)
         {
             return InvocationExpr(BsonReaderToken, IdentifierName("TryGetDecimal"), OutArgument(assignOrDecl));
