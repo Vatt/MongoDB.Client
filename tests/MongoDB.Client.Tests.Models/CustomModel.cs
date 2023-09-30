@@ -1,4 +1,6 @@
-﻿namespace MongoDB.Client.Tests.Models
+﻿using MongoDB.Client.Bson;
+
+namespace MongoDB.Client.Tests.Models
 {
     public class CustomModel : IEquatable<CustomModel>//, IBsonSerializer<CustomModel>
     {
@@ -31,7 +33,7 @@
             var unreaded = reader.Remaining + sizeof(int);
             while (unreaded - reader.Remaining < docLength - 1)
             {
-                if (!reader.TryGetByte(out var bsonType))
+                if (!reader.TryGetBsonType(out var bsonType))
                 {
                     return false;
                 }
@@ -41,7 +43,7 @@
                     return false;
                 }
 
-                if (bsonType == 10)
+                if (bsonType == BsonType.Null)
                 {
                     continue;
                 }

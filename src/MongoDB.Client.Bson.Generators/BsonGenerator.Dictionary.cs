@@ -94,10 +94,11 @@ namespace MongoDB.Client.Bson.Generators
                                    BinaryExprMinus(DictionaryDocLenToken, NumericLiteralExpr(1))),
                            statement:
                                Block(
-                                   IfNotReturnFalse(TryGetByte(VarVariableDeclarationExpr(DictionaryBsonTypeToken))),
+                                   IfNotReturnFalse(TryGetBsonType(VarVariableDeclarationExpr(DictionaryBsonTypeToken))),
                                    IfNotReturnFalse(TryGetCString(VarVariableDeclarationExpr(DictionaryBsonNameToken))),
                                    IfStatement(
-                                       condition: BinaryExprEqualsEquals(DictionaryBsonTypeToken, NumericLiteralExpr(10)),
+                                       //condition: BinaryExprEqualsEquals(DictionaryBsonTypeToken, NumericLiteralExpr(10)),
+                                       condition: BinaryExprEqualsEquals(DictionaryBsonTypeToken, SimpleMemberAccess(Identifier("BsonType"), Identifier("Null"))),
                                        statement: Block(
                                            InvocationExprStatement(InternalDictionaryToken,
                                                                    CollectionAddToken,

@@ -12,11 +12,13 @@ namespace MongoDB.Client.Bson.Generators
             ConstructorParameters = 2,
             SkipTryParseBson = 4,
             SkipWriteBson = 8,
+            DisableTypeChecks = 16,
         }
         public bool IfConditions { get; set; }
         public bool ConstructorParameters { get; }
         public bool GenerateTryParseBson { get; }
         public bool GenerateWriteBson { get; }
+        public bool DisableTypeChecks { get; }
         public GeneratorMode(byte byteMode)
         {
             var mode = (PrivateMode)byteMode;
@@ -26,6 +28,7 @@ namespace MongoDB.Client.Bson.Generators
             ConstructorParameters = mode.HasFlag(PrivateMode.ConstructorParameters);
             GenerateTryParseBson = mode.HasFlag(PrivateMode.SkipTryParseBson) == false;
             GenerateWriteBson = mode.HasFlag(PrivateMode.SkipWriteBson) == false;
+            DisableTypeChecks = mode.HasFlag(PrivateMode.DisableTypeChecks);
         }
         public GeneratorMode()
         {
@@ -33,6 +36,7 @@ namespace MongoDB.Client.Bson.Generators
             ConstructorParameters = false;
             GenerateTryParseBson = true;
             GenerateWriteBson = true;
+            DisableTypeChecks = false;
         }
     }
     public class ContextCore

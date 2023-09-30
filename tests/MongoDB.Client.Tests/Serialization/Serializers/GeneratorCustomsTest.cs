@@ -1,4 +1,5 @@
-﻿using MongoDB.Client.Bson.Reader;
+﻿using MongoDB.Client.Bson;
+using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Attributes;
 using MongoDB.Client.Bson.Writer;
@@ -129,7 +130,7 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
 
                 if (bsonName.Length < 4)
                 {
-                    if (!reader.TrySkip(bsonType))
+                    if (!reader.TrySkip((BsonType)bsonType))
                     {
                         return false;
                     }
@@ -185,7 +186,7 @@ namespace MongoDB.Client.Tests.Serialization.Serializers
                         }
                 }
 
-                if (!reader.TrySkip(bsonType))
+                if (!reader.TrySkip((BsonType)bsonType))
                 {
                     return false;
                 }

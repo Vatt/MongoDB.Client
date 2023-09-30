@@ -75,7 +75,7 @@ namespace MongoDB.Client.Bson.Writer
                     return;
                 case BsonTimestamp value:
                     WriteTimestamp(value);
-                    typeReserved.WriteByte(9);
+                    typeReserved.WriteByte((byte)BsonType.Timestamp);
                     return;
                 case int value:
                     WriteInt32(value);
@@ -138,7 +138,7 @@ namespace MongoDB.Client.Bson.Writer
                     return;
                 case BsonTimestamp value:
                     WriteTimestamp(value);
-                    typeReserved.WriteByte(9);
+                    typeReserved.WriteByte((byte)BsonType.Timestamp);
                     return;
                 case bool value:
                     WriteBoolean(value);

@@ -463,5 +463,30 @@ namespace MongoDB.Client.Bson.Reader
             value = default;
             return false;
         }
+
+        public bool TryGet(BsonType type, out Guid value)
+        {
+            switch (type)
+            {
+                case BsonType.BinaryData:
+                    return TryGetBinaryDataGuid(out value);
+                case BsonType.String:
+                    return TryGetGuidFromString(out value);
+                default:
+                    value = default;
+                    return ThrowHelper.InvalidTypeException(BsonType.BinaryData, type);
+            }
+        }
+        public bool TryGet(BsonType type, out Guid? value)
+        {
+            if (TryGet(type, out Guid temp))
+            {
+                value = temp;
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
     }
 }
