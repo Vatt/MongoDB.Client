@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Xml;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
@@ -79,7 +80,6 @@ namespace MongoDB.Client.Messages
 
                     if (isCursorComplete is false)
                     {
-
                         return false;
                     }
 
@@ -297,6 +297,7 @@ namespace MongoDB.Client.Messages
                 }
             }
 
+            message.Position = reader.Position;
             message.State = State.Epilogue;
 
             return true;
