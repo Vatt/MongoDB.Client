@@ -6,7 +6,7 @@ using Xunit;
 
 namespace MongoDB.Client.Tests.Serialization.Types
 {
-    [BsonSerializable(GeneratorMode.ConstructorParameters)]
+    [BsonSerializable(GeneratorMode.ConstructorParameters | GeneratorMode.DisableTypeChecks)]
     public partial class GuidModel : GeneratorTypeTestModelBase<Guid, Guid?>, IEquatable<GuidModel>
     {
         public GuidModel(

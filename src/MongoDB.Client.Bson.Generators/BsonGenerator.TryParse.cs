@@ -386,7 +386,7 @@ namespace MongoDB.Client.Bson.Generators
 
                         return true;
                     case SpecialType.System_Decimal:
-                        expr = TryGetDecimalWithBsonType(bsonType, variable);
+                        expr = TryGetDecimal(bsonType, variable);
                         return true;
                 }
 
@@ -430,13 +430,13 @@ namespace MongoDB.Client.Bson.Generators
 
                 if (IsGuid(typeSymbol))
                 {
-                    expr = TryGetGuidWithBsonType(bsonType, variable);
+                    expr = TryGetBinaryDataGuid(variable);
                     return true;
                 }
 
                 if (IsDateTimeOffset(typeSymbol))
                 {
-                    expr = TryGetDateTimeWithBsonType(bsonType, variable);
+                    expr = TryGetUtcDatetime(variable);
                     return true;
                 }
 

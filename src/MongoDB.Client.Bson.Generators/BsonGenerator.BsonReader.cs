@@ -23,6 +23,10 @@ namespace MongoDB.Client.Bson.Generators
         {
             return InvocationExpr(BsonReaderToken, IdentifierName("TryGetDecimalWithBsonType"), Argument(bsonType), OutArgument(assignOrDecl));
         }
+        public static ExpressionSyntax TryGetDecimal(ExpressionSyntax bsonType, ExpressionSyntax assignOrDecl)
+        {
+            return InvocationExpr(BsonReaderToken, IdentifierName("TryGetDecimal"), OutArgument(assignOrDecl));
+        }
         public static ExpressionSyntax TryGetBoolean(ExpressionSyntax assignOrDecl)
         {
             return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetBoolean"), OutArgument(assignOrDecl));
@@ -31,13 +35,13 @@ namespace MongoDB.Client.Bson.Generators
         {
             return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryParseDocument"), OutArgument(assignOrDecl));
         }
-        public static ExpressionSyntax TryGetDateTimeWithBsonType(ExpressionSyntax typeId, ExpressionSyntax assignOrDecl)
+        public static ExpressionSyntax TryGetUtcDatetime(ExpressionSyntax assignOrDecl)
         {
-            return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetDateTimeWithBsonType"), SF.Argument(typeId), OutArgument(assignOrDecl));
+            return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetUtcDatetime"), OutArgument(assignOrDecl));
         }
-        public static ExpressionSyntax TryGetGuidWithBsonType(ExpressionSyntax typeId, ExpressionSyntax assignOrDecl)
+        public static ExpressionSyntax TryGetBinaryDataGuid(ExpressionSyntax assignOrDecl)
         {
-            return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetGuidWithBsonType"), SF.Argument(typeId), OutArgument(assignOrDecl));
+            return InvocationExpr(BsonReaderToken, SF.IdentifierName("TryGetBinaryDataGuid"), OutArgument(assignOrDecl));
         }
         public static ExpressionSyntax TryGetInt32(ExpressionSyntax assignOrDecl)
         {
