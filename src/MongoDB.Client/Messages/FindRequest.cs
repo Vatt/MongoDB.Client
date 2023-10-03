@@ -12,7 +12,7 @@ namespace MongoDB.Client.Messages
 
         [BsonElement("filter")]
         [BsonWriteIgnoreIf("Filter is null")]
-        public BsonDocument? Filter { get; }
+        public Filter? Filter { get; }
 
         [BsonElement("limit")]
         [BsonWriteIgnoreIf("Limit < 1")]
@@ -57,7 +57,7 @@ namespace MongoDB.Client.Messages
         public bool? Autocommit { get; }
 
         [BsonConstructor]
-        public FindRequest(string? Find, BsonDocument? Filter, int Limit, long GetMore, string? Collection, string Db, SessionId Lsid, MongoClusterTime? ClusterTime, long? TxnNumber, bool? StartTransaction, bool? Autocommit)
+        public FindRequest(string? Find, Filter? Filter, int Limit, long GetMore, string? Collection, string Db, SessionId Lsid, MongoClusterTime? ClusterTime, long? TxnNumber, bool? StartTransaction, bool? Autocommit)
         {
             this.Find = Find;
             this.Filter = Filter;
@@ -73,19 +73,19 @@ namespace MongoDB.Client.Messages
         }
 
 
-        public FindRequest(string? Find, BsonDocument? Filter, int Limit, long GetMore, string? Collection, string Db, SessionId Lsid, MongoClusterTime ClusterTime, long TxnNumber, bool Autocommit)
+        public FindRequest(string? Find, Filter? Filter, int Limit, long GetMore, string? Collection, string Db, SessionId Lsid, MongoClusterTime ClusterTime, long TxnNumber, bool Autocommit)
             : this(Find, Filter, Limit, GetMore, Collection, Db, Lsid, ClusterTime, TxnNumber, null, Autocommit)
         {
         }
 
 
-        public FindRequest(string? Find, BsonDocument? Filter, int Limit, long GetMore, string? Collection, string Db, SessionId Lsid)
+        public FindRequest(string? Find, Filter? Filter, int Limit, long GetMore, string? Collection, string Db, SessionId Lsid)
             : this(Find, Filter, Limit, GetMore, Collection, Db, Lsid, null, null, null, null)
         {
 
         }
 
-        public FindRequest(string? Find, BsonDocument? Filter, int Limit, long GetMore, string? Collection, string Db, SessionId Lsid, long TxnNumber)
+        public FindRequest(string? Find, Filter? Filter, int Limit, long GetMore, string? Collection, string Db, SessionId Lsid, long TxnNumber)
             : this(Find, Filter, Limit, GetMore, Collection, Db, Lsid, null, TxnNumber, null, null)
         {
 

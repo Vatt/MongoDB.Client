@@ -14,10 +14,12 @@ namespace MongoDB.Client.ConsoleApp
     [BsonSerializable]
     public readonly partial struct TestModel
     {
+        public BsonObjectId Id { get;}
         public int SomeId { get; }
         public string Name { get; }
-        public TestModel(string name, int someId)
+        public TestModel(BsonObjectId id, string name, int someId)
         {
+            Id = id;
             Name = name;
             SomeId = someId;
         }
@@ -38,7 +40,7 @@ namespace MongoDB.Client.ConsoleApp
         static async Task Main(string[] args)
         {
             //var update = Update<TestModel>.Set(new {SomeId = 22});
-            await TestUpdate();
+            await FilterTest();
             //await LoadTest<GeoIp>(1024 * 1024, new[] { 512 });
             //await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, false);
             //await TestShardedCluster();
@@ -46,7 +48,32 @@ namespace MongoDB.Client.ConsoleApp
             //await TestStandalone();
         }
 
+        static async Task FilterTest()
+        {
+            var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
+            var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder
+                    .SetMinimumLevel(LogLevel.Information)
+                    .AddConsole();
+            });
+            var settings = MongoClientSettings.FromConnectionString($"mongodb://{host}/?maxPoolSize=1");
+            var client = await MongoClient.CreateClient(settings, loggerFactory);
+            var db = client.GetDatabase("TestDb");
+            var collection = db.GetCollection<TestModel>("TestCollection");
+            var id1 = BsonObjectId.NewObjectId();
+            var id2 = BsonObjectId.NewObjectId();
+            var id3 = BsonObjectId.NewObjectId();
+            await collection.InsertAsync(new TestModel(id1, "Test", 1));
+            await collection.InsertAsync(new TestModel(id2, "Test", 2));
+            await collection.InsertAsync(new TestModel(id3, "Test", 3));
 
+            var result1 = await collection.Find(Filter.Eq<TestModel, int>(x => x.SomeId, 1)).ToListAsync();
+            //var result2 = await collection.Find(x => x.SomeId == 2).ToListAsync();
+            //var result3 = await collection.Find(x => x.SomeId == 1).ToListAsync();
+
+            await collection.DropAsync();
+        }
         static async Task TestUpdate()
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
@@ -60,9 +87,9 @@ namespace MongoDB.Client.ConsoleApp
             var client = await MongoClient.CreateClient(settings, loggerFactory);
             var db = client.GetDatabase("TestDb");
             var collection = db.GetCollection<TestModel>("TestCollection");
-            await collection.InsertAsync(new TestModel("Test", 42));
-            await collection.InsertAsync(new TestModel("Test", 42));
-            await collection.InsertAsync(new TestModel("Test", 42));
+            await collection.InsertAsync(new TestModel(BsonObjectId.NewObjectId(), "Test", 42));
+            await collection.InsertAsync(new TestModel(BsonObjectId.NewObjectId(), "Test", 42));
+            await collection.InsertAsync(new TestModel(BsonObjectId.NewObjectId(), "Test", 42));
             var result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Set(new UpdateDoc(24)));
             result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Inc(new UpdateDoc(24)));
             result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Max(new UpdateDoc(49)));
@@ -74,6 +101,7 @@ namespace MongoDB.Client.ConsoleApp
             result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Unset(new UnsetDoc("", "")));
             result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Unset("Name"));
             await collection.DropAsync();
+
         }
         static async Task TestShardedCluster()
         {

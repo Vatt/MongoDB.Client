@@ -1,6 +1,8 @@
-﻿using MongoDB.Client.Bson.Document;
+﻿using System.Linq.Expressions;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
+using MongoDB.Client.Filters;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Scheduler;
 using MongoDB.Client.Utils;
@@ -21,7 +23,14 @@ namespace MongoDB.Client
         public MongoDatabase Database { get; }
 
         public CollectionNamespace Namespace { get; }
-
+        //public Cursor<T> Find(Expression<Func<T, bool>> expr)
+        //{
+        //    return Find(ExpressionHelper.ParseExpression(expr));
+        //}
+        public Cursor<T> Find(Filter filter)
+        {
+            return Find(TransactionHandler.CreateImplicit(_scheduler), filter); ;
+        }
         public Cursor<T> Find(BsonDocument filter)
         {
             return Find(TransactionHandler.CreateImplicit(_scheduler), filter);
@@ -29,9 +38,16 @@ namespace MongoDB.Client
 
         public Cursor<T> Find(TransactionHandler transaction, BsonDocument filter)
         {
+            return new Cursor<T>(transaction, _scheduler, Filter.Document(filter), Namespace);
+        }
+        public Cursor<T> Find(TransactionHandler transaction, Filter filter)
+        {
             return new Cursor<T>(transaction, _scheduler, filter, Namespace);
         }
-
+        public Cursor<T> Find(TransactionHandler transaction, Expression<Func<T, bool>> expr)
+        {
+            return Find(transaction, ExpressionHelper.ParseExpression(expr));
+        }
         public ValueTask InsertAsync(T item, CancellationToken cancellationToken = default)
         {
             return InsertAsync(TransactionHandler.CreateImplicit(_scheduler), item, cancellationToken);
@@ -89,7 +105,7 @@ namespace MongoDB.Client
 
         private ValueTask<DeleteResult> DeleteAsync(TransactionHandler transaction, BsonDocument filter, int limit, CancellationToken cancellationToken = default)
         {
-            return _scheduler.DeleteAsync(transaction, filter, limit, Namespace, cancellationToken);
+            return _scheduler.DeleteAsync(transaction, Filter.Document(filter), limit, Namespace, cancellationToken);
         }
 
 
@@ -115,7 +131,7 @@ namespace MongoDB.Client
 
         private ValueTask<UpdateResult> UpdateAsync(TransactionHandler transaction, BsonDocument filter, Update update, bool isMulty, UpdateOptions? options = null, CancellationToken cancellationToken = default)
         {
-            return _scheduler.UpdateAsync(transaction, filter, update, isMulty, Namespace, options, cancellationToken);
+            return _scheduler.UpdateAsync(transaction, Filter.Document(filter), update, isMulty, Namespace, options, cancellationToken);
         }
 
         internal ValueTask DropAsync(CancellationToken cancellationToken = default)

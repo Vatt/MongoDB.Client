@@ -137,7 +137,7 @@ namespace MongoDB.Client.Scheduler
         }
 
 
-        public async ValueTask<FindResult<T>> FindAsync<T>(BsonDocument filter, int limit, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)
+        public async ValueTask<FindResult<T>> FindAsync<T>(Filter filter, int limit, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)
             where T : IBsonSerializer<T>
         {
             var readPreferces = transaction.State == TransactionState.Implicit ? _settings.ReadPreference : ReadPreference.Primary;
@@ -153,7 +153,7 @@ namespace MongoDB.Client.Scheduler
             return new FindResult<T>(result, scheduler);
         }
 
-        private FindRequest CreateFindRequest(BsonDocument filter, int limit, CollectionNamespace collectionNamespace, TransactionHandler transaction, MongoClusterTime clusterTime)
+        private FindRequest CreateFindRequest(Filter filter, int limit, CollectionNamespace collectionNamespace, TransactionHandler transaction, MongoClusterTime clusterTime)
         {
             switch (transaction.State)
             {
@@ -233,7 +233,7 @@ namespace MongoDB.Client.Scheduler
             }
         }
 
-        public ValueTask<DeleteResult> DeleteAsync(TransactionHandler transaction, BsonDocument filter, int limit, CollectionNamespace collectionNamespace, CancellationToken token)
+        public ValueTask<DeleteResult> DeleteAsync(TransactionHandler transaction, Filter filter, int limit, CollectionNamespace collectionNamespace, CancellationToken token)
         {
             var scheduler = _primary!;
             var requestNumber = scheduler.GetNextRequestNumber();
@@ -245,7 +245,7 @@ namespace MongoDB.Client.Scheduler
             return scheduler.DeleteAsync(request, token);
         }
 
-        public ValueTask<UpdateResult> UpdateAsync(TransactionHandler transaction, BsonDocument filter, Update update, bool isMulty, CollectionNamespace collectionNamespace, UpdateOptions? options, CancellationToken token)
+        public ValueTask<UpdateResult> UpdateAsync(TransactionHandler transaction, Filter filter, Update update, bool isMulty, CollectionNamespace collectionNamespace, UpdateOptions? options, CancellationToken token)
         {
             var scheduler = _primary!;
             var requestNumber = scheduler.GetNextRequestNumber();

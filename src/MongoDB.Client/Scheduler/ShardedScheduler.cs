@@ -74,7 +74,7 @@ namespace MongoDB.Client.Scheduler
             throw new NotImplementedException();
         }
 
-        public ValueTask<DeleteResult> DeleteAsync(TransactionHandler transaction, BsonDocument filter, int limit, CollectionNamespace collectionNamespace, CancellationToken token)
+        public ValueTask<DeleteResult> DeleteAsync(TransactionHandler transaction, Filter filter, int limit, CollectionNamespace collectionNamespace, CancellationToken token)
         {
             var scheduler = GetScheduler();
             var lastPing = scheduler.LastPing!;
@@ -87,7 +87,7 @@ namespace MongoDB.Client.Scheduler
             return scheduler.DeleteAsync(request, token);
         }
 
-        public ValueTask<UpdateResult> UpdateAsync(TransactionHandler transaction, BsonDocument filter, Update update, bool isMulty, CollectionNamespace collectionNamespace, UpdateOptions? options, CancellationToken token)
+        public ValueTask<UpdateResult> UpdateAsync(TransactionHandler transaction, Filter filter, Update update, bool isMulty, CollectionNamespace collectionNamespace, UpdateOptions? options, CancellationToken token)
         {
             var scheduler = GetScheduler();
             var lastPing = scheduler.LastPing!;
@@ -149,7 +149,7 @@ namespace MongoDB.Client.Scheduler
             throw new NotImplementedException();
         }
 
-        public async ValueTask<FindResult<T>> FindAsync<T>(BsonDocument filter, int limit, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)
+        public async ValueTask<FindResult<T>> FindAsync<T>(Filter filter, int limit, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)
             where T : IBsonSerializer<T>
         {
             var scheduler = GetScheduler();
@@ -161,7 +161,7 @@ namespace MongoDB.Client.Scheduler
             var result = await scheduler.GetCursorAsync<T>(request, token).ConfigureAwait(false);
             return new FindResult<T>(result, scheduler);
         }
-        private FindRequest CreateFindRequest(BsonDocument filter, int limit, CollectionNamespace collectionNamespace, TransactionHandler transaction, MongoClusterTime clusterTime)
+        private FindRequest CreateFindRequest(Filter filter, int limit, CollectionNamespace collectionNamespace, TransactionHandler transaction, MongoClusterTime clusterTime)
         {
             switch (transaction.State)
             {
