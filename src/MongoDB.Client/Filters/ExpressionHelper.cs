@@ -52,24 +52,23 @@ namespace MongoDB.Client.Filters
                     }
 
                     throw new NotSupportedException($"Unsupported expression - {expr}");
-
             }
 
-            return null;
+            throw new NotSupportedException($"Unsupported expression - {expr}");
         }
         private static Filter VisitValue(string propertyName, ExpressionType op, Expression expr, string memberName = null)
         {
             switch (expr)
             {
                 case ConstantExpression constExpr:
-                    return MakeFiler(propertyName, op, constExpr.Value, memberName);
+                    return MakeFilter(propertyName, op, constExpr.Value, memberName);
                 case MemberExpression memberExpr:
                     return VisitValue(propertyName, op, memberExpr.Expression, memberExpr.Member.Name);
             }
 
             throw new NotSupportedException($"Unsupported expression - {expr}");
         }
-        private static Filter MakeFiler(string propertyName, ExpressionType op, object? value, string? memberName = null)
+        private static Filter MakeFilter(string propertyName, ExpressionType op, object? value, string? memberName = null)
         {
             switch (op)
             {
@@ -93,7 +92,7 @@ namespace MongoDB.Client.Filters
                         throw new NotSupportedException($"Unsupported type in Expression - {value.GetType()}");
                     }
 
-                    return MakeFiler(propertyName, op, value.GetType().GetField(memberName).GetValue(value));
+                    return MakeFilter(propertyName, op, value.GetType().GetField(memberName).GetValue(value));
 
 
                 default:
