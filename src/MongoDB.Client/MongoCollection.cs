@@ -23,10 +23,10 @@ namespace MongoDB.Client
         public MongoDatabase Database { get; }
 
         public CollectionNamespace Namespace { get; }
-        //public Cursor<T> Find(Expression<Func<T, bool>> expr)
-        //{
-        //    return Find(ExpressionHelper.ParseExpression(expr));
-        //}
+        public Cursor<T> Find(Expression<Func<T, bool>> expr)
+        {
+            return Find(ExpressionHelper.ParseExpression(expr));
+        }
         public Cursor<T> Find(Filter filter)
         {
             return Find(TransactionHandler.CreateImplicit(_scheduler), filter); ;

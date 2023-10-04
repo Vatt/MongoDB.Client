@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using System;
+using System.Linq.Expressions;
 using MongoDB.Client.Bson;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
@@ -19,78 +20,86 @@ namespace MongoDB.Client.Filters
 
             return memberExpr.Member.Name;
         }
-        public static BsonDocument ParseExpression<T>(Expression<Func<T, bool>> expr) where T : IBsonSerializer<T>
+        public static string? GetPropertyName(Expression expr)
+        {
+            switch (expr)
+            {
+                case MemberExpression memberExpr:
+                    return memberExpr.Member.Name;
+                default:
+                    return null;
+            }
+        }
+        public static Filter ParseExpression<T>(Expression<Func<T, bool>> expr) where T : IBsonSerializer<T>
         {
             return Parse(expr.Body);
         }
-        private static BsonDocument Parse(Expression expr)
+        private static Filter Parse(Expression expr)
         {
-            switch (expr.NodeType)
+            switch (expr)
             {
-                case ExpressionType.Equal:
-                case ExpressionType.NotEqual:
-                case ExpressionType.GreaterThan:
-                case ExpressionType.GreaterThanOrEqual:
-                case ExpressionType.LessThan:
-                case ExpressionType.LessThanOrEqual:
-                    switch (expr)
+                case BinaryExpression binaryExpr:
+                    var property = GetPropertyName(binaryExpr.Left);
+
+                    if (property == null)
                     {
-                        case BinaryExpression binExpr when binExpr.Left is MemberExpression prop && binExpr.Right is not BinaryExpression:
-                            var member = VisitMember(prop);
-                            var (type, value) = VisitValue(binExpr.Right);
-                            BsonDocument doc = new();
-                            var op = expr.NodeType switch
-                            {
-                                ExpressionType.Equal => "$eq",
-                                _ => throw new NotImplementedException(expr.NodeType.ToString())
-                            };
-                            var element = BsonElement.Create(doc, type, op, value);
-                            doc.Add(element);
-                            var filter = new BsonDocument(member, doc);
-                            return filter;
+                        throw new NotSupportedException($"Cant get property name from expression - {binaryExpr.Left}");
                     }
-                    break;
+
+                    if (binaryExpr.Right is not BinaryExpression and not UnaryExpression)
+                    {
+                        return VisitValue(property, binaryExpr.NodeType, binaryExpr.Right);
+                    }
+
+                    throw new NotSupportedException($"Unsupported expression - {expr}");
+
             }
 
             return null;
         }
-        private static void BinOperation(BinaryExpression expr)
+        private static Filter VisitValue(string propertyName, ExpressionType op, Expression expr, string memberName = null)
         {
-
-        }
-        private static string VisitMember(MemberExpression expr)
-        {
-            return expr.Member.Name;
-        }
-        private static (BsonType, object?) VisitValue(Expression expr)
-        {
-            switch (expr.NodeType)
+            switch (expr)
             {
-                case ExpressionType.Constant when expr is ConstantExpression constExpr:
-                    return (GetBsonType(constExpr.Value), constExpr.Value);
-                case ExpressionType.MemberAccess when expr is MemberExpression memberExpr:
-                    return (GetBsonType(((ConstantExpression)memberExpr.Expression).Value), ((ConstantExpression)memberExpr.Expression).Value);
+                case ConstantExpression constExpr:
+                    return MakeFiler(propertyName, op, constExpr.Value, memberName);
+                case MemberExpression memberExpr:
+                    return VisitValue(propertyName, op, memberExpr.Expression, memberExpr.Member.Name);
+            }
+
+            throw new NotSupportedException($"Unsupported expression - {expr}");
+        }
+        private static Filter MakeFiler(string propertyName, ExpressionType op, object? value, string? memberName = null)
+        {
+            switch (op)
+            {
+                case ExpressionType.Equal:
+                    if (value is null)
+                    {
+                        return new EqFilter<object>(propertyName, null);
+                    }
+                    switch (value)
+                    {
+                        case string str: return new EqFilter<string>(propertyName, str);
+                        case int int32: return new EqFilter<int>(propertyName, int32);
+                        case long int64: return new EqFilter<long>(propertyName, int64);
+                        case double doubleValue: return new EqFilter<double>(propertyName, doubleValue);
+                        case decimal decimalValue: return new EqFilter<decimal>(propertyName, decimalValue);
+                        case BsonObjectId objectId: return new EqFilter<BsonObjectId>(propertyName, objectId);
+                    }
+                    
+                    if (memberName is null)
+                    {
+                        throw new NotSupportedException($"Unsupported type in Expression - {value.GetType()}");
+                    }
+
+                    return MakeFiler(propertyName, op, value.GetType().GetField(memberName).GetValue(value));
+
+
                 default:
-                    return default;
-            }
-        }
-        private static BsonType GetBsonType(object? value)
-        {
-            if (value is null)
-            {
-                return BsonType.Null;
-            }
+                    throw new NotSupportedException($"Unsupported ExpressionType - {op}");
+            }  
 
-            return value switch
-            {
-                string => BsonType.String,
-                int => BsonType.Int32,
-                long => BsonType.Int64,
-                double => BsonType.Double,
-                decimal => BsonType.Decimal,
-                BsonObjectId => BsonType.ObjectId,
-                _ => throw new NotSupportedException($"Unsupported type in Expression - {value.GetType()}")
-            };
         }
     }
 }

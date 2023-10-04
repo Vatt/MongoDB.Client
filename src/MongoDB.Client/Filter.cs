@@ -1,5 +1,4 @@
 ﻿using System.Linq.Expressions;
-using MongoDB.Client.Bson;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
@@ -17,8 +16,8 @@ namespace MongoDB.Client
 
             return new EqFilter<TValue>(propertyName, value);
         }
-        public static Filter Document(BsonDocument document) => new BsonDocumentFilter(document);
         protected abstract void Write(ref BsonWriter writer);
+        public static Filter Document(BsonDocument document) => new BsonDocumentFilter(document);
         public static void WriteBson(ref BsonWriter writer, in Filter message)
         {
             message.Write(ref writer);

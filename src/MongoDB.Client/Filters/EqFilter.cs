@@ -4,11 +4,11 @@ namespace MongoDB.Client.Filters
 {
     internal sealed class EqFilter<T> : Filter
     {
-        private string _properyName;
-        private T _value;
-        public EqFilter(string properyName, T value)
+        private readonly string _propertyName;
+        private readonly T? _value;
+        public EqFilter(string propertyName, T? value)
         {
-            _properyName = properyName;
+            _propertyName = propertyName;
             _value = value;
         }
         protected override void Write(ref BsonWriter writer)
@@ -18,7 +18,7 @@ namespace MongoDB.Client.Filters
             var reserved = writer.Reserve(sizeof(int));
 
             var typeReserved = writer.Reserve(sizeof(byte));
-            writer.WriteName(_properyName);
+            writer.WriteName(_propertyName);
             writer.WriteGeneric(_value, ref typeReserved);
             writer.WriteByte((byte)'\x00');
 
