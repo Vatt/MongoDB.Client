@@ -51,31 +51,32 @@ namespace MongoDB.Client.ConsoleApp
 
         static async Task FilterTest()
         {
-            //var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
-            //var loggerFactory = LoggerFactory.Create(builder =>
-            //{
-            //    builder
-            //        .SetMinimumLevel(LogLevel.Information)
-            //        .AddConsole();
-            //});
-            //var settings = MongoClientSettings.FromConnectionString($"mongodb://{host}/?maxPoolSize=1");
-            //var client = await MongoClient.CreateClient(settings, loggerFactory);
-            //var db = client.GetDatabase("TestDb");
-            //var collection = db.GetCollection<TestModel>("TestCollection");
+            var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
+            var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder
+                    .SetMinimumLevel(LogLevel.Information)
+                    .AddConsole();
+            });
+            var settings = MongoClientSettings.FromConnectionString($"mongodb://{host}/?maxPoolSize=1");
+            var client = await MongoClient.CreateClient(settings, loggerFactory);
+            var db = client.GetDatabase("TestDb");
+            var collection = db.GetCollection<TestModel>("TestCollection");
             var id1 = BsonObjectId.NewObjectId();
-            //var id2 = BsonObjectId.NewObjectId();
-            //var id3 = BsonObjectId.NewObjectId();
-            //await collection.InsertAsync(new TestModel(id1, "Test", 1));
-            //await collection.InsertAsync(new TestModel(id2, "Test", 2));
-            //await collection.InsertAsync(new TestModel(id3, "Test", 3));
+            var id2 = BsonObjectId.NewObjectId();
+            var id3 = BsonObjectId.NewObjectId();
+            await collection.InsertAsync(new TestModel(id1, "Test", 1));
+            await collection.InsertAsync(new TestModel(id2, "Test", 2));
+            await collection.InsertAsync(new TestModel(id3, "Test", 3));
 
-            var filter = ExpressionHelper.ParseExpression((TestModel x) => x.Id == id1);
+            //var filter = ExpressionHelper.ParseExpression((TestModel x) => x.Id == id1 || x.Id == id2 || x.Id == id3);
+            var filter = ExpressionHelper.ParseExpression((TestModel x) => x.Id == id1 &&  x.SomeId == 1);
 
-            //var result1 = await collection.Find(x => x.SomeId == 1).ToListAsync();
+            var result1 = await collection.Find(x => x.Id == id1 && x.SomeId == 1).ToListAsync();
             //var result2 = await collection.Find(x => x.SomeId == 2).ToListAsync();
             //var result3 = await collection.Find(x => x.SomeId == 1).ToListAsync();
 
-            //await collection.DropAsync();
+            await collection.DropAsync();
         }
         static async Task TestUpdate()
         {

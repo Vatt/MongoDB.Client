@@ -2,11 +2,11 @@
 
 namespace MongoDB.Client.Filters
 {
-    internal sealed class EqFilter<T> : Filter
+    internal sealed class LessThanFilter<T> : Filter
     {
         private readonly string _propertyName;
         private readonly T? _value;
-        public EqFilter(string propertyName, T? value)
+        public LessThanFilter(string propertyName, T? value)
         {
             _propertyName = propertyName;
             _value = value;

@@ -10,7 +10,7 @@ namespace MongoDB.Client.Filters
         {
             _document = document;
         }
-        protected override void Write(ref BsonWriter writer)
+        public override void Write(ref BsonWriter writer)
         {
             BsonDocument.WriteBson(ref writer, _document);
         }

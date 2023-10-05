@@ -16,7 +16,7 @@ namespace MongoDB.Client
 
             return new EqFilter<TValue>(propertyName, value);
         }
-        protected abstract void Write(ref BsonWriter writer);
+        public abstract void Write(ref BsonWriter writer);
         public static Filter Document(BsonDocument document) => new BsonDocumentFilter(document);
         public static void WriteBson(ref BsonWriter writer, in Filter message)
         {
