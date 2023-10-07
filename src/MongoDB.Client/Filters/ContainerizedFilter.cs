@@ -4,11 +4,11 @@ using MongoDB.Client.Bson.Writer;
 
 namespace MongoDB.Client.Filters
 {
-    internal abstract class LogicalFilter : Filter
+    internal abstract class ContainerizedFilter : Filter
     {
         protected readonly string _op;
         protected readonly List<Filter> Inner;
-        public LogicalFilter(string op)
+        public ContainerizedFilter(string op)
         {
             Inner = new();
             _op = op;
@@ -51,13 +51,13 @@ namespace MongoDB.Client.Filters
         }
     }
 
-    internal sealed class AndFilter : LogicalFilter
+    internal sealed class AndFilter : ContainerizedFilter
     {
         public AndFilter() : base("$and")
         {
         }
     }
-    internal sealed class OrFilter : LogicalFilter
+    internal sealed class OrFilter : ContainerizedFilter
     {
         public OrFilter() : base("$or")
         {
