@@ -34,7 +34,7 @@ namespace MongoDB.Client.Benchmarks
         public int NewClientMaxPoolSize { get; set; }
 
         [Params(1024)]
-        public int RequestsCount { get; set; }
+        public uint RequestsCount { get; set; }
 
         [Params(/*1, 4, 8, 16, 32, 64, 128,*/ 256)] public int Parallelism { get; set; }
 
@@ -47,7 +47,7 @@ namespace MongoDB.Client.Benchmarks
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
             var dbName = "BenchmarkDb";
             var collectionName = "Complex" + typeof(T).Name + Guid.NewGuid().ToString();
-            _items = new DatabaseSeeder().GenerateSeed<T>(RequestsCount).ToArray();
+            _items = new DatabaseSeeder().GenerateSeed<T>(SeederOptions.Create(RequestsCount)).ToArray();
 
             switch (ClientType)
             {
@@ -110,7 +110,7 @@ namespace MongoDB.Client.Benchmarks
         [Benchmark]
         public async Task ComplexBenchmark()
         {
-            var items = new DatabaseSeeder().GenerateSeed<T>(RequestsCount).ToArray();
+            var items = new DatabaseSeeder().GenerateSeed<T>(SeederOptions.Create(RequestsCount)).ToArray();
             switch (ClientType)
             {
                 case ClientType.Old:

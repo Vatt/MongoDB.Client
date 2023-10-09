@@ -15,10 +15,10 @@ namespace MongoDB.Client.Benchmarks
         private IMongoCollection<RootDocument> _oldCollection;
 
         [Params(256)]
-        public int RequestsCount { get; set; }
+        public uint RequestsCount { get; set; }
 
         [Params(100)]
-        public int ItemInDb { get; set; }
+        public uint ItemInDb { get; set; }
 
         [Params(1, 4, 8, 16, 32, 64, 128)] public int Parallelism { get; set; }
 
@@ -40,7 +40,7 @@ namespace MongoDB.Client.Benchmarks
 
             oldDb.DropCollection(collectionName);
             var seeder = new RootDocumentSeeder();
-            foreach (var item in seeder.GenerateSeed(ItemInDb))
+            foreach (var item in seeder.GenerateSeed(SeederOptions.Create(ItemInDb)))
             {
                 _oldCollection.InsertOne(item);
             }

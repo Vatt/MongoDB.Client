@@ -15,7 +15,7 @@ namespace MongoDB.Client.Benchmarks
         private IMongoCollection<RootDocument> _oldCollection;
 
         [Params(1, 100, 500, 1000)]
-        public int ItemsCount { get; set; }
+        public uint ItemsCount { get; set; }
 
         [GlobalSetup]
         public async Task Setup()
@@ -34,7 +34,7 @@ namespace MongoDB.Client.Benchmarks
 
             _oldCollection.DeleteMany(FilterDefinition<RootDocument>.Empty);
             var gen = new RootDocumentSeeder();
-            var items = gen.GenerateSeed(ItemsCount);
+            var items = gen.GenerateSeed(SeederOptions.Create(ItemsCount));
             foreach (var item in items)
             {
                 _oldCollection.InsertOne(item);

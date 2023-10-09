@@ -2,11 +2,11 @@
 {
     public class DatabaseSeeder
     {
-        public IEnumerable<T> GenerateSeed<T>(int count = 1024, bool lazy = false)
+        public IEnumerable<T> GenerateSeed<T>(SeederOptions options)
         {
             var seeder = CreateSeeder<T>();
-            var enumerable = seeder.GenerateSeed(count);
-            return lazy ? enumerable : enumerable.ToArray();
+            var enumerable = seeder.GenerateSeed(options);
+            return options.Lazy ? enumerable : enumerable.ToArray();
         }
 
         private static ISeeder<T> CreateSeeder<T>()
