@@ -1,4 +1,6 @@
-﻿using System.Threading.Channels;
+﻿using System.Diagnostics;
+using System.Threading.Channels;
+using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Tests.Models;
@@ -8,32 +10,29 @@ namespace MongoDB.Client.ConsoleApp
     public class ComplexBenchmarkBase<T> where T : IIdentified, IBsonSerializer<T>
     {
         private MongoCollection<T> _collection;
-        private T[] _items;
+        private IEnumerable<T> _items;
         private readonly MongoDatabase _database;
+        private readonly ILogger _logger;
+        private readonly SeederOptions _options;
 
-        public int RequestsCount { get; }
         public int Parallelism { get; }
 
-        public ComplexBenchmarkBase(MongoDatabase database, int parallelism, int requestsCount)
+        public ComplexBenchmarkBase(MongoDatabase database, int parallelism, ILogger logger, SeederOptions options)
         {
             _database = database;
             Parallelism = parallelism;
-            RequestsCount = requestsCount;
+            _options = options;
+            _logger = logger;
         }
+
         public async Task Setup()
         {
             var collectionName = "Insert" + Guid.NewGuid().ToString();
             await _database.CreateCollectionAsync(collectionName);
             _collection = _database.GetCollection<T>(collectionName);
-            _items = new DatabaseSeeder().GenerateSeed<T>(RequestsCount).ToArray();
-            var set = new HashSet<BsonObjectId>();
-            foreach (var item in _items)
-            {
-                if (set.Add(item.Id) == false)
-                {
-                    throw new Exception("Duplicate id");
-                }
-            }
+            var sw = Stopwatch.StartNew();
+            _items = new DatabaseSeeder().GenerateSeed<T>(_options);
+            _logger.LogInformation("Generating models completed in {Elapsed}", sw.Elapsed);
         }
 
 
@@ -47,7 +46,7 @@ namespace MongoDB.Client.ConsoleApp
             await Start(_collection, _items, useTransaction);
         }
 
-        private async Task Start(MongoCollection<T> collection, T[] items, bool useTransaction)
+        private async Task Start(MongoCollection<T> collection, IEnumerable<T> items, bool useTransaction)
         {
             if (Parallelism == 1)
             {

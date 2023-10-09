@@ -37,7 +37,7 @@ namespace MongoDB.Client.Benchmarks
             _oldCollection = oldDb.GetCollection<RootDocument>(collectionName);
 
             oldDb.DropCollection(collectionName);
-            var item = new RootDocumentSeeder().GenerateSeed(1).First();
+            var item = new RootDocumentSeeder().GenerateSeed(SeederOptions.Create(1)).First();
             _oldCollection.InsertOne(item);
         }
 

@@ -24,7 +24,7 @@ namespace MongoDB.Client.Benchmarks
         public void Setup()
         {
             var seeder = new RootDocumentSeeder();
-            _document = seeder.GenerateSeed(1).First();
+            _document = seeder.GenerateSeed(SeederOptions.Create(1)).First();
             _writeBuffer = new ArrayBufferWriter(1024 * 1024);
             _readBuffer = new ArrayBufferWriter(1024 * 1024);
             var writer = new BsonWriter(_readBuffer);
