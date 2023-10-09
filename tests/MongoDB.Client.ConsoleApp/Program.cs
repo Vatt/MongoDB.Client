@@ -70,7 +70,8 @@ namespace MongoDB.Client.ConsoleApp
             //await collection.InsertAsync(new TestModel(id3, "Test", 3));
             int[] arr = new int[] { 1, 2 ,3 };
             //var filter = ExpressionHelper.ParseExpression((TestModel x) => x.Id == id1 || x.Id == id2 || x.Id == id3);
-            var filter = ExpressionHelper.ParseExpression((TestModel x) => arr.Contains(x.SomeId) || x.Id == id1 && x.SomeId == 1 && x.SomeId == 1);
+            //var filter = ExpressionHelper.ParseExpression((TestModel x) => arr.Contains(x.SomeId) || x.Id == id1 && id2 == x.Id && 1 == x.SomeId && x.SomeId == 1);
+            var filter = ExpressionHelper.ParseExpression((TestModel x) => arr.Contains(x.SomeId));
 
             //var result1 = await collection.Find(x => x.Id == id1 && x.SomeId == 1 && x.SomeId == 1).ToListAsync();
             //var result2 = await collection.Find(x => x.SomeId == 2).ToListAsync();

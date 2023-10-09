@@ -1,12 +1,15 @@
-﻿using System.Linq.Expressions;
+﻿using System.Diagnostics;
+using System.Linq.Expressions;
+using System.Reflection;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
+using Sprache;
 
 namespace MongoDB.Client.Filters
 {
     internal class ExpressionHelper
     {
-        private record struct Context(ContainerizedFilter? Last, ExpressionType LastType, Stack<Filter> Stack);
+        private record struct Context(ContainerizedFilter? Last, ExpressionType LastType, Stack<Filter> Filters, Stack<Expression> Stack, ParameterExpression Parameter);
         public static string? GetPropertyName<TIn, TOut>(Expression<Func<TIn, TOut>> expr) where TIn : IBsonSerializer<TIn>
         {
             var body = expr.Body;
@@ -30,61 +33,78 @@ namespace MongoDB.Client.Filters
         }
         public static Filter ParseExpression<T>(Expression<Func<T, bool>> expr) where T : IBsonSerializer<T>
         {
-            var ctx = new Context(null, default, new());
+            if (expr.Parameters.Count > 1)
+            {
+                throw new NotSupportedException("Multi parameters not supported");
+            }
+            var ctx = new Context(null, default, new(), new(), expr.Parameters[0]);
 
-            Parse(expr.Body, ref ctx);
+            //Parse(expr.Body, ref ctx);
+            VisitExpr(expr.Body, ref ctx);
 
             return default;
         }
-        private static void Parse(Expression expr, ref Context ctx)
+        private static void VisitExpr(Expression expr, ref Context ctx)
         {
-            switch (expr)
+            switch (expr.NodeType)
             {
-                case BinaryExpression simpleBinExpr when simpleBinExpr.Left is not BinaryExpression && simpleBinExpr.Right is not BinaryExpression:
-                    var property = GetPropertyName(simpleBinExpr.Left);
+                case ExpressionType.AndAlso:
+                case ExpressionType.OrElse:
+                    var binExpr = (BinaryExpression)expr;
+                    var filer = MakeLogical(expr.NodeType);
+                    ctx.Filters.Push(filer);
 
-                    if (property == null)
-                    {
-                        throw new NotSupportedException($"Cant get property name from expression - {simpleBinExpr.Left}");
-                    }
-
-                    if (simpleBinExpr.Right is not not UnaryExpression)
-                    {
-                        var newFilter = VisitValue(property, simpleBinExpr.NodeType, simpleBinExpr.Right);
-                        ctx.Stack.Push(newFilter);
-
-                        return;
-                    }
-
-                    throw new NotSupportedException($"Unsupported expression - {expr}");
-
-                case BinaryExpression binExpr:
-                                      
-                    if (ctx.Last is null || ctx.LastType != binExpr.NodeType)
-                    {
-                        var newLast = MakeLogical(binExpr.NodeType);
-                        ctx.Stack.Push(newLast);
-                        ctx.Last = newLast;
-                        ctx.LastType = binExpr.NodeType;
-                    }                    
-
-                    Parse(binExpr.Right, ref ctx);
-                    Parse(binExpr.Left, ref ctx);
+                    VisitExpr(binExpr.Left, ref ctx);
+                    VisitExpr(binExpr.Right, ref ctx);
 
                     break;
-                case MethodCallExpression callExpr:
-                    VisitCallExpr(callExpr, ref ctx);
+                case ExpressionType.Equal:
+                    binExpr = (BinaryExpression)expr;
+                    ctx.Stack.Push(binExpr);
+
+                    if (binExpr.Right is ConstantExpression rightConstExpr)
+                    {
+                        ctx.Stack.Push(binExpr.Left);
+                        VisitConstantExpr(rightConstExpr, ref ctx);
+
+                        break;
+                    }
+                    else if (binExpr.Left is ConstantExpression leftConstExpr)
+                    {
+                        ctx.Stack.Push(binExpr.Right);
+                        VisitConstantExpr(leftConstExpr, ref ctx);
+
+                        break;
+                    }
+                    else if (binExpr.Right is MemberExpression rightMemberExpr && binExpr.Left is MemberExpression leftMemberExpr && leftMemberExpr.Expression == ctx.Parameter)
+                    {
+                        ctx.Stack.Push(rightMemberExpr);
+                        ctx.Stack.Push(binExpr.Left);
+                        VisitMemberExpr(rightMemberExpr, ref ctx);
+
+                        break;
+                    }
+                    else if (binExpr.Right is MemberExpression rightMemberExpr1 && binExpr.Left is MemberExpression leftMemberExpr1 && rightMemberExpr1.Expression == ctx.Parameter)
+                    {
+                        ctx.Stack.Push(leftMemberExpr1);
+                        ctx.Stack.Push(binExpr.Right);
+                        VisitMemberExpr(leftMemberExpr1, ref ctx);
+
+                        break;
+                    }
+
+                    throw new NotSupportedException($"Unsupported Expression {expr}");
+
+                case ExpressionType.Call:
+                    ctx.Stack.Push(expr);
+                    VisitCallExpr((MethodCallExpression)expr, ref ctx);
 
                     break;
-                default:
-                    throw new NotSupportedException($"Unsupported expression - {expr}");
-            }
-        }
-        private static void VisitBinaryExpr(BinaryExpression binExpr, ref Context ctx)
-        {
-            if (binExpr.Left is not BinaryExpression &&  binExpr.Right is not BinaryExpression)
-            {
+                case ExpressionType.MemberAccess:
+                    ctx.Stack.Push(expr);
+                    VisitMemberExpr((MemberExpression)expr, ref ctx);
 
+                    break;
             }
         }
         private static void VisitCallExpr(MethodCallExpression callExpr, ref Context ctx)
@@ -96,50 +116,74 @@ namespace MongoDB.Client.Filters
             }
             var arg1 = callExpr.Arguments[0];
             var arg2 = callExpr.Arguments[1];
-            var propertyName = GetPropertyName(arg2);
-            VisitMemberExpr(propertyName, (MemberExpression)arg1, ref ctx);
+
+            ctx.Stack.Push(arg1);
+            ctx.Stack.Push(arg2);
+            VisitMemberExpr((MemberExpression)arg1, ref ctx);
         }
-        private static void VisitMemberExpr(string propertyName, MemberExpression memberExpr, ref Context ctx)
+        private static void VisitMemberExpr(MemberExpression memberExpr, ref Context ctx)
         {
-            if (memberExpr.Expression is not ConstantExpression)
+            if (memberExpr.Expression is ConstantExpression)
             {
-                throw new NotSupportedException($"Unsupported MemberExpression - {memberExpr}");
+                VisitConstantExpr((ConstantExpression)memberExpr.Expression, ref ctx);
+
+                return;
+            }
+            else if (ctx.Stack.Peek() is BinaryExpression binExpr && binExpr.Right is ConstantExpression)
+            {
+                 ctx.Stack.Push(memberExpr);
+                VisitConstantExpr((ConstantExpression)binExpr.Left, ref ctx);
+
+                return;
             }
 
-            VisitConstantExpr(propertyName, memberExpr, (ConstantExpression)memberExpr.Expression, ref ctx);
+            throw new NotSupportedException($"Unsupported MethodCallExpression with method name {memberExpr}");
         }
 
-        private static void VisitConstantExpr(string propertyName, MemberExpression owner, ConstantExpression expr, ref Context ctx)
+        private static void VisitConstantExpr(ConstantExpression constExpr, ref Context ctx)
         {
-            switch (expr.NodeType)
+            var stack = ctx.Stack;
+            var propertyExpr = stack.Pop();
+            string? closureName = null;
+
+            if (stack.TryPeek(out var expr) && expr is MemberExpression)
             {
-                case ExpressionType.Equal:
-                    ctx.Stack.Push(MakeEqual(propertyName, expr.Value, owner.Member.Name));
-
-                    break;
-                case ExpressionType.LessThan:
-                    ctx.Stack.Push(MakeLessThan(propertyName, expr.Value, owner.Member.Name));
-
-                    break;
-                case ExpressionType.Constant:
-                    ctx.Stack.Push(MakeIn(propertyName, expr.Value, owner.Member.Name));
-
-                    break;
-            }
-        }
-
-        private static Filter VisitValue(string propertyName, ExpressionType op, Expression expr, string innerName = null)
-        {
-            switch (expr)
-            {
-                case ConstantExpression constExpr:
-                    return MakeFilter(propertyName, op, constExpr.Value, innerName);
-                case MemberExpression memberExpr:
-                    return VisitValue(propertyName, op, memberExpr.Expression!, memberExpr.Member.Name);
+                closureName = (stack.Pop() as MemberExpression)!.Member.Name;
             }
 
-            throw new NotSupportedException($"Unsupported expression - {expr}");
+            var propertyName = GetPropertyName(propertyExpr);
+            
+            if (propertyName == null)
+            {
+                throw new NotSupportedException($"Cant get property name from expression - {propertyExpr}");
+            }
+
+            object? value = null;
+
+            if (closureName != null)
+            {
+                value = constExpr.Value!.GetType().GetField(closureName)!.GetValue(constExpr.Value);
+            }
+            else
+            {
+                value = constExpr.Value;
+            }
+
+            switch (stack.Pop())
+            {
+                case MethodCallExpression callExpr:
+                    ctx.Filters.Push(MakeIn(propertyName, value));
+
+                    break;
+                case BinaryExpression binExpr:
+                    ctx.Filters.Push(MakeFilter(propertyName, binExpr.NodeType, value));
+
+                    break;
+
+            }
+
         }
+
         private static Filter MakeFilter(string propertyName, ExpressionType op, object? value, string? innerName = null)
         {
             switch (op)
