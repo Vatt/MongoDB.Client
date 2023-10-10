@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Microsoft.Extensions.Logging;
-using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;

@@ -1,5 +1,4 @@
-﻿using System.Linq.Expressions;
-using MongoDB.Client.Bson.Document;
+﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Writer;
@@ -9,13 +8,7 @@ namespace MongoDB.Client
 {
     public abstract class Filter : IBsonSerializer<Filter>
     {
-        public static Filter Eq<T, TValue>(Expression<Func<T, TValue>> expr, TValue value)
-            where T : IBsonSerializer<T>
-        {
-            var propertyName = ExpressionHelper.GetPropertyName(expr);
-
-            return new EqFilter<TValue>(propertyName, value);
-        }
+        public static readonly Filter Empty = new EmptyFilter();
         public abstract void Write(ref BsonWriter writer);
         public static Filter Document(BsonDocument document) => new BsonDocumentFilter(document);
         public static void WriteBson(ref BsonWriter writer, in Filter message)

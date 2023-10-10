@@ -7,7 +7,7 @@ namespace MongoDB.Client.Bson.Writer
     {
         public void WriteElement(in BsonElement element)
         {
-            WriteByte((byte)element.Type);
+            WriteBsonType(element.Type);
             WriteCString(element.Name);
             switch ((byte)element.Type)
             {
