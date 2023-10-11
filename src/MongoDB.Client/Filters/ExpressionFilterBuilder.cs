@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using System.Reflection;
 using MongoDB.Client.Bson.Document;
 
 namespace MongoDB.Client.Filters
@@ -66,11 +67,17 @@ namespace MongoDB.Client.Filters
                 case ExpressionType.GreaterThanOrEqual:
                 case ExpressionType.LessThan:
                 case ExpressionType.LessThanOrEqual:
-                    _stack.Push(MakeSimpleFilter((BinaryExpression)expr));
+                    var binExpr = (BinaryExpression)expr;
+                    if (binExpr.Left is MethodCallExpression || binExpr.Right is MethodCallExpression)
+                    {
+                        _stack.Push(MakeRangeFilter(binExpr));
+                        return;
+                    }
+                    _stack.Push(MakeSimpleFilter(binExpr));
 
                     break;
                 case ExpressionType.Call:
-                    _stack.Push(MakeCallFilter((MethodCallExpression)expr));
+                    _stack.Push(MakeRangeFilter((MethodCallExpression)expr, true));
 
                     break;
                 case ExpressionType.AndAlso:
@@ -93,36 +100,62 @@ namespace MongoDB.Client.Filters
 
             }
         }
-        private Filter MakeCallFilter(MethodCallExpression callExpr)
+
+        private Filter MakeRangeFilter(BinaryExpression binExpr)
+        {
+            var nodeType = binExpr.NodeType;
+            if (binExpr.NodeType is not ExpressionType.Equal and not ExpressionType.NotEqual)
+            {
+                throw new NotSupportedException($"Not supported type in {binExpr}");
+            }
+
+            MethodCallExpression? callExpr;
+            object? type;
+            if (binExpr.Left is MethodCallExpression)
+            {
+                callExpr = (MethodCallExpression)binExpr.Left;
+                type = ExtractValue(binExpr.Right);
+            }
+            else
+            {
+                callExpr = (MethodCallExpression)binExpr.Right;
+                type = ExtractValue(binExpr.Left);
+            }
+
+            if (type is not bool)
+            {
+                throw new NotSupportedException($"Not supported type in {binExpr}");
+            }
+
+            var typed = (bool)type;
+
+            return typed switch
+            {
+                true when nodeType is ExpressionType.Equal => MakeRangeFilter(callExpr, true),
+                true when nodeType is ExpressionType.NotEqual => MakeRangeFilter(callExpr, false),
+                false when nodeType is ExpressionType.Equal => MakeRangeFilter(callExpr, false),
+                _ => MakeRangeFilter(callExpr, true)
+            };
+        }
+
+        private Filter MakeRangeFilter(MethodCallExpression callExpr, bool type)
         {
             var methodName = callExpr.Method.Name;
+
             if (callExpr.Method.Name != "Contains")
             {
                 throw new NotSupportedException($"Not supported MethodCallExpression with method name {methodName}");
             }
-            var valueExpr = callExpr.Arguments[0];
-            var propertyExpr = callExpr.Arguments[1];
 
-            object? value = null;
-            var property = FilterVisitor.GetPropertyName(propertyExpr);
-
-            if (valueExpr is ConstantExpression constExpr)
-            {
-                value = constExpr.Value;
-            }
-            else if (valueExpr is MemberExpression memberExpr)
-            {
-                var closureName = memberExpr.Member.Name;
-                constExpr = (ConstantExpression)memberExpr.Expression!;
-                value = constExpr.Value!.GetType().GetField(closureName)!.GetValue(constExpr.Value);
-            }
+            object? value = ExtractValue(callExpr.Arguments[0]);
+            var property = FilterVisitor.GetPropertyName(callExpr.Arguments[1]);
 
             if (value is null || property is null)
             {
                 throw new NotSupportedException($"Not supported expression {callExpr}");
             }
 
-            return MakeIn(property, value);
+            return type ? MakeRange(property, value, RangeFilterType.In) : MakeRange(property, value, RangeFilterType.NotIn);
 
         }
         private Filter MakeSimpleFilter(BinaryExpression binExpr)
@@ -131,6 +164,7 @@ namespace MongoDB.Client.Filters
 
             Expression? propertyExpr;
             Expression? valueExpr;
+
             if (binExpr.Left is MemberExpression leftMember && leftMember.Expression == _parameter)
             {
                 propertyExpr = binExpr.Left;
@@ -141,18 +175,8 @@ namespace MongoDB.Client.Filters
                 propertyExpr = binExpr.Right;
                 valueExpr = binExpr.Left;
             }
-            object? value = null;
 
-            if (valueExpr is ConstantExpression constExpr)
-            {
-                value = constExpr.Value;
-            }
-            else if (valueExpr is MemberExpression memberExpr)
-            {
-                var closureName = memberExpr.Member.Name;
-                constExpr = (ConstantExpression)memberExpr.Expression!;
-                value = constExpr.Value!.GetType().GetField(closureName)!.GetValue(constExpr.Value);
-            }
+            object? value = ExtractValue(valueExpr);
 
             var property = FilterVisitor.GetPropertyName(propertyExpr);        
 
@@ -176,7 +200,24 @@ namespace MongoDB.Client.Filters
                 _ => throw new NotSupportedException($"Not supported  operation {operation}")
             };
         }
-        private static Filter MakeIn(string propertyName, object? value)
+        private object? ExtractValue(Expression expr) => expr switch
+        {
+            ConstantExpression constExpr => ExtractValue(constExpr),
+            MemberExpression memberExpr => ExtractValue(memberExpr),
+            _ => throw new NotSupportedException($"Can't extract value from expression {expr}")
+        };
+        private object? ExtractValue(ConstantExpression constExpr)
+        {
+            return constExpr.Value;
+        }
+
+        private object? ExtractValue(MemberExpression memberExpr)
+        {
+            var closureName = memberExpr.Member.Name;
+            var constExpr = (ConstantExpression)memberExpr.Expression!;
+            return constExpr.Value!.GetType().GetField(closureName)!.GetValue(constExpr.Value);
+        }
+        private static Filter MakeRange(string propertyName, object? value, RangeFilterType type)
         {
             if (value is null)
             {
@@ -185,16 +226,16 @@ namespace MongoDB.Client.Filters
             }
             switch (value)
             {
-                case string[] str: return new RangeFilter<string>(propertyName, str, RangeFilterType.In);
-                case int[] int32: return new RangeFilter<int>(propertyName, int32, RangeFilterType.In);
-                case long[] int64: return new RangeFilter<long>(propertyName, int64, RangeFilterType.In);
-                case double[] doubleValue: return new RangeFilter<double>(propertyName, doubleValue, RangeFilterType.In);
-                case decimal[] decimalValue: return new RangeFilter<decimal>(propertyName, decimalValue, RangeFilterType.In);
-                case BsonObjectId[] objectId: return new RangeFilter<BsonObjectId>(propertyName, objectId, RangeFilterType.In);
-                case BsonTimestamp[] timestamp: return new RangeFilter<BsonTimestamp>(propertyName, timestamp, RangeFilterType.In);
-                case DateTimeOffset[] dt: return new RangeFilter<DateTimeOffset>(propertyName, dt, RangeFilterType.In);
-                case Guid[] guid: return new RangeFilter<Guid>(propertyName, guid, RangeFilterType.In);
-                case BsonDocument[] document: return new RangeFilter<BsonDocument>(propertyName, document, RangeFilterType.In);
+                case string[] str: return new RangeFilter<string>(propertyName, str, type);
+                case int[] int32: return new RangeFilter<int>(propertyName, int32, type);
+                case long[] int64: return new RangeFilter<long>(propertyName, int64, type);
+                case double[] doubleValue: return new RangeFilter<double>(propertyName, doubleValue, type);
+                case decimal[] decimalValue: return new RangeFilter<decimal>(propertyName, decimalValue, type);
+                case BsonObjectId[] objectId: return new RangeFilter<BsonObjectId>(propertyName, objectId, type);
+                case BsonTimestamp[] timestamp: return new RangeFilter<BsonTimestamp>(propertyName, timestamp, type);
+                case DateTimeOffset[] dt: return new RangeFilter<DateTimeOffset>(propertyName, dt, type);
+                case Guid[] guid: return new RangeFilter<Guid>(propertyName, guid, type);
+                case BsonDocument[] document: return new RangeFilter<BsonDocument>(propertyName, document, type);
             }
 
             throw new NotSupportedException($"Unsupported type in Expression - {value.GetType()}");

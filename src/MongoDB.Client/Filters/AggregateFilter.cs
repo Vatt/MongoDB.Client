@@ -9,11 +9,11 @@ namespace MongoDB.Client.Filters
     }
     internal class AggregateFilter : Filter
     {
-        protected readonly AggregateFilterType _type;
+        public AggregateFilterType Type { get; }
         protected readonly List<Filter> Inner;
         public AggregateFilter(AggregateFilterType type)
         {
-            _type = type;
+            Type = type;
             Inner = new();
         }
         public void Add(params Filter[] filters)
@@ -29,7 +29,7 @@ namespace MongoDB.Client.Filters
             var checkpoint = writer.Written;
 
             var reserved = writer.Reserve(sizeof(int));
-            switch (_type)
+            switch (Type)
             {
                 case AggregateFilterType.And:
                     writer.Write_Type_Name(4, "$and"u8);

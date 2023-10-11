@@ -2,9 +2,8 @@
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Writer;
-using MongoDB.Client.Filters;
 
-namespace MongoDB.Client
+namespace MongoDB.Client.Filters
 {
     public abstract class Filter : IBsonSerializer<Filter>
     {

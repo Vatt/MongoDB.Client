@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Connection;
+using MongoDB.Client.Filters;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Messages;
 using MongoDB.Client.Settings;
