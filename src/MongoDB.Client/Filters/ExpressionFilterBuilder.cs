@@ -8,9 +8,11 @@ namespace MongoDB.Client.Filters
         private readonly ParameterExpression _parameter;
         private ExpressionType? _lastAggregateType;
         private Stack<Filter> _stack = new();
-        public ExpressionFilterBuilder(ParameterExpression parameter)
+        private IReadOnlyDictionary<string, string> _mapping;
+        public ExpressionFilterBuilder(ParameterExpression parameter, IReadOnlyDictionary<string, string> mapping)
         {
             _parameter = parameter;
+            _mapping = mapping;
         }
         public Filter Build()
         {
@@ -74,7 +76,7 @@ namespace MongoDB.Client.Filters
                 case ExpressionType.AndAlso:
                     if (_lastAggregateType != ExpressionType.AndAlso)
                     {
-                        _stack.Push(new AndFilter());
+                        _stack.Push(new AggregateFilter(AggregateFilterType.And));
                         _lastAggregateType = ExpressionType.AndAlso;
                     }
 
@@ -82,7 +84,7 @@ namespace MongoDB.Client.Filters
                 case ExpressionType.OrElse:
                     if (_lastAggregateType != ExpressionType.OrElse)
                     {
-                        _stack.Push(new OrFilter());
+                        _stack.Push(new AggregateFilter(AggregateFilterType.Or));
                         _lastAggregateType = ExpressionType.OrElse;
                     }
 
@@ -102,7 +104,7 @@ namespace MongoDB.Client.Filters
             var propertyExpr = callExpr.Arguments[1];
 
             object? value = null;
-            var property = ExpressionHelper.GetPropertyName(propertyExpr);
+            var property = FilterVisitor.GetPropertyName(propertyExpr);
 
             if (valueExpr is ConstantExpression constExpr)
             {
@@ -125,10 +127,10 @@ namespace MongoDB.Client.Filters
         }
         private Filter MakeSimpleFilter(BinaryExpression binExpr)
         {
-            Expression? propertyExpr = null;
-            Expression? valueExpr = null;
             var operation = binExpr.NodeType;
 
+            Expression? propertyExpr;
+            Expression? valueExpr;
             if (binExpr.Left is MemberExpression leftMember && leftMember.Expression == _parameter)
             {
                 propertyExpr = binExpr.Left;
@@ -139,8 +141,6 @@ namespace MongoDB.Client.Filters
                 propertyExpr = binExpr.Right;
                 valueExpr = binExpr.Left;
             }
-
-            var property = ExpressionHelper.GetPropertyName(propertyExpr);
             object? value = null;
 
             if (valueExpr is ConstantExpression constExpr)
@@ -154,18 +154,25 @@ namespace MongoDB.Client.Filters
                 value = constExpr.Value!.GetType().GetField(closureName)!.GetValue(constExpr.Value);
             }
 
+            var property = FilterVisitor.GetPropertyName(propertyExpr);        
+
             if (value is null || property is null)
             {
                 throw new NotSupportedException($"Not supported expression {binExpr}");
             }
 
+            if (_mapping.TryGetValue(property, out var mappedProperty) is true)
+            {
+                property = mappedProperty;
+            }
+
             return operation switch
             {
                 ExpressionType.Equal => MakeEqual(property, value),
-                ExpressionType.LessThan => MakeSimpleFilter(property, value, FilterOp.Lt),
-                ExpressionType.LessThanOrEqual => MakeSimpleFilter(property, value, FilterOp.Lte),
-                ExpressionType.GreaterThan => MakeSimpleFilter(property, value, FilterOp.Gt),
-                ExpressionType.GreaterThanOrEqual => MakeSimpleFilter(property, value, FilterOp.Gte),
+                ExpressionType.LessThan => MakeSimpleFilter(property, value, FilterType.Lt),
+                ExpressionType.LessThanOrEqual => MakeSimpleFilter(property, value, FilterType.Lte),
+                ExpressionType.GreaterThan => MakeSimpleFilter(property, value, FilterType.Gt),
+                ExpressionType.GreaterThanOrEqual => MakeSimpleFilter(property, value, FilterType.Gte),
                 _ => throw new NotSupportedException($"Not supported  operation {operation}")
             };
         }
@@ -178,16 +185,16 @@ namespace MongoDB.Client.Filters
             }
             switch (value)
             {
-                case string[] str: return new InFilter<string>(propertyName, str);
-                case int[] int32: return new InFilter<int>(propertyName, int32);
-                case long[] int64: return new InFilter<long>(propertyName, int64);
-                case double[] doubleValue: return new InFilter<double>(propertyName, doubleValue);
-                case decimal[] decimalValue: return new InFilter<decimal>(propertyName, decimalValue);
-                case BsonObjectId[] objectId: return new InFilter<BsonObjectId>(propertyName, objectId);
-                case BsonTimestamp[] timestamp: return new InFilter<BsonTimestamp>(propertyName, timestamp);
-                case DateTimeOffset[] dt: return new InFilter<DateTimeOffset>(propertyName, dt);
-                case Guid[] guid: return new InFilter<Guid>(propertyName, guid);
-                case BsonDocument[] document: return new InFilter<BsonDocument>(propertyName, document);
+                case string[] str: return new RangeFilter<string>(propertyName, str, RangeFilterType.In);
+                case int[] int32: return new RangeFilter<int>(propertyName, int32, RangeFilterType.In);
+                case long[] int64: return new RangeFilter<long>(propertyName, int64, RangeFilterType.In);
+                case double[] doubleValue: return new RangeFilter<double>(propertyName, doubleValue, RangeFilterType.In);
+                case decimal[] decimalValue: return new RangeFilter<decimal>(propertyName, decimalValue, RangeFilterType.In);
+                case BsonObjectId[] objectId: return new RangeFilter<BsonObjectId>(propertyName, objectId, RangeFilterType.In);
+                case BsonTimestamp[] timestamp: return new RangeFilter<BsonTimestamp>(propertyName, timestamp, RangeFilterType.In);
+                case DateTimeOffset[] dt: return new RangeFilter<DateTimeOffset>(propertyName, dt, RangeFilterType.In);
+                case Guid[] guid: return new RangeFilter<Guid>(propertyName, guid, RangeFilterType.In);
+                case BsonDocument[] document: return new RangeFilter<BsonDocument>(propertyName, document, RangeFilterType.In);
             }
 
             throw new NotSupportedException($"Unsupported type in Expression - {value.GetType()}");
@@ -214,7 +221,7 @@ namespace MongoDB.Client.Filters
 
             throw new NotSupportedException($"Unsupported type in Expression(equal filter) - {value.GetType()}");
         }
-        private static Filter MakeSimpleFilter(string propertyName, object? value, FilterOp op)
+        private static Filter MakeSimpleFilter(string propertyName, object? value, FilterType op)
         {
             if (value is null)
             {

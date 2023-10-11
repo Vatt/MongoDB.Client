@@ -2,43 +2,42 @@
 
 namespace MongoDB.Client.Filters
 {
-    internal enum AggregateFilterType
+    internal enum RangeFilterType
     {
-        And = 1,
-        Or = 2
+        In = 1,
+        NotIn,
     }
-    internal class AggregateFilter : Filter
+    internal class RangeFilter<T> : Filter
     {
-        protected readonly AggregateFilterType _type;
-        protected readonly List<Filter> Inner;
-        public AggregateFilter(AggregateFilterType type)
+        private string _propertyName;
+        private T[] _values;
+        private RangeFilterType _type;
+        public RangeFilter(string propertyName, T[] values, RangeFilterType type)
         {
+            _propertyName = propertyName;
+            _values = values;
             _type = type;
-            Inner = new();
         }
-        public void Add(params Filter[] filters)
-        {
-            Inner.AddRange(filters);
-        }
-        public void AddRange(List<Filter> filters)
-        {
-            Inner.AddRange(filters);
-        }
+
         public override void Write(ref BsonWriter writer)
         {
             var checkpoint = writer.Written;
 
             var reserved = writer.Reserve(sizeof(int));
+
             switch (_type)
             {
-                case AggregateFilterType.And:
-                    writer.Write_Type_Name(4, "$and"u8);
+                case RangeFilterType.In:
+                    writer.Write_Type_Name(4, "$in"u8);
+
                     break;
-                case AggregateFilterType.Or:
-                    writer.Write_Type_Name(4, "$or"u8);
+                case RangeFilterType.NotIn:
+                    writer.Write_Type_Name(4, "$nin"u8);
+
                     break;
             }
             
+
             WriteInner(ref writer);
             writer.WriteByte(0);
 
@@ -49,12 +48,13 @@ namespace MongoDB.Client.Filters
         {
             var checkpoint = writer.Written;
             var reserved = writer.Reserve(4);
-            for (int i = 0; i < Inner.Count; i++)
+            for (int i = 0; i < _values.Length; i++)
             {
-                var item = Inner[i];
+                var item = _values[i];
 
-                writer.Write_Type_Name(3, i);
-                item.Write(ref writer);
+                var typeReserved = writer.Reserve(sizeof(byte));
+                writer.WriteName(i);
+                writer.WriteGeneric(item, ref typeReserved);
             }
 
             writer.WriteByte(0);

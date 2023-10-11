@@ -8,6 +8,9 @@ namespace MongoDB.Client.Bson.Generators
     {
         public static readonly TypeSyntax BsonReaderType = SF.ParseTypeName("MongoDB.Client.Bson.Reader.BsonReader");
         public static readonly TypeSyntax BsonWriterType = SF.ParseTypeName("MongoDB.Client.Bson.Writer.BsonWriter");
+        public static NameSyntax DictionaryOfStringStringName = GenericName(Identifier("Dictionary"), StringPredefinedType(), StringPredefinedType());
+        public static NameSyntax IReadOnlyDictionaryOfStringStringName = GenericName(Identifier("IReadOnlyDictionary"), StringPredefinedType(), StringPredefinedType());
+        public static SyntaxToken MappingToken => Identifier($"__MAPPING__");
         public static ExpressionSyntax BsonTypeNull => SimpleMemberAccess(Identifier("BsonType"), Identifier("Null"));
         public static SyntaxToken TrySkipLabel => Identifier("TRY_SKIP_LABEL");
         public static SyntaxToken NullableHasValueToken => Identifier("HasValue");

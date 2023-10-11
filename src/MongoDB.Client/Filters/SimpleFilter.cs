@@ -3,7 +3,7 @@ using MongoDB.Client.Bson.Writer;
 
 namespace MongoDB.Client.Filters
 {
-    internal enum FilterOp
+    internal enum FilterType
     {
         Gt = 1,
         Gte,
@@ -14,8 +14,8 @@ namespace MongoDB.Client.Filters
     {
         private readonly string _propertyName;
         private readonly T? _value;
-        private readonly FilterOp _operation;
-        public Filter(string propertyName, T? value, FilterOp operation)
+        private readonly FilterType _operation;
+        public Filter(string propertyName, T? value, FilterType operation)
         {
             _propertyName = propertyName;
             _value = value;
@@ -33,16 +33,16 @@ namespace MongoDB.Client.Filters
 
             switch (_operation)
             {
-                case FilterOp.Gt:
+                case FilterType.Gt:
                     writer.WriteName("$gt"u8);
                     break;
-                case FilterOp.Gte:
+                case FilterType.Gte:
                     writer.WriteName("$gte"u8);
                     break;
-                case FilterOp.Lt:
+                case FilterType.Lt:
                     writer.WriteName("$lt"u8);
                     break;
-                case FilterOp.Lte:
+                case FilterType.Lte:
                     writer.WriteName("$lte"u8);
                     break;
             }

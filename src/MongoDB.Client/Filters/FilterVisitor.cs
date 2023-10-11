@@ -1,9 +1,10 @@
 ﻿using System.Linq.Expressions;
 using MongoDB.Client.Bson.Serialization;
+using MongoDB.Client.Bson.Writer;
 
 namespace MongoDB.Client.Filters
 {
-    internal class ExpressionHelper
+    internal class FilterVisitor
     {
         public static string? GetPropertyName<TIn, TOut>(Expression<Func<TIn, TOut>> expr) where TIn : IBsonSerializer<TIn>
         {
@@ -33,7 +34,7 @@ namespace MongoDB.Client.Filters
                 throw new NotSupportedException("Multi parameters not supported");
             }
 
-            var builder = new ExpressionFilterBuilder(expr.Parameters[0]);
+            var builder = new ExpressionFilterBuilder(expr.Parameters[0], MappingProvider<T>.Mapping);
 
             Find(expr.Body, builder);
 

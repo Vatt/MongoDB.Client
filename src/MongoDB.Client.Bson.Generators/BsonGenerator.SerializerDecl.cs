@@ -77,6 +77,7 @@ namespace MongoDB.Client.Bson.Generators
                         .WithModifiers(modifiers)
                         .AddBaseListTypes(SerializerBaseType(ctx))
                         .AddMembers(GenerateStaticNamesSpans(ctx))
+                        .AddMembers(GenerateMapping(ctx))
                         .AddMembers(GenerateEnumsStaticNamesSpansIfHave(ctx))
                         .AddMembers(methods.ToArray())
                         .AddMembers(GenerateCollectionMethods(ctx))
@@ -88,6 +89,7 @@ namespace MongoDB.Client.Bson.Generators
                         .WithModifiers(modifiers)
                         .AddBaseListTypes(SerializerBaseType(ctx))
                         .AddMembers(GenerateStaticNamesSpans(ctx))
+                        .AddMembers(GenerateMapping(ctx))
                         .AddMembers(GenerateEnumsStaticNamesSpansIfHave(ctx))
                         .AddMembers(methods.ToArray())
                         .AddMembers(GenerateCollectionMethods(ctx))
@@ -98,6 +100,7 @@ namespace MongoDB.Client.Bson.Generators
                     var members = new SyntaxList<MemberDeclarationSyntax>()
                         .AddRange(methods)
                         .AddRange(GenerateStaticNamesSpans(ctx))
+                        .Add(GenerateMapping(ctx))
                         .AddRange(GenerateEnumsStaticNamesSpansIfHave(ctx))
                         .AddRange(GenerateCollectionMethods(ctx))
                         .AddRange(GenerateReadStringReprEnumMethods(ctx))
@@ -180,7 +183,7 @@ namespace MongoDB.Client.Bson.Generators
                 return ProcessNested(decl, symbol.ContainingSymbol);
             }
         }
-        static MemberDeclarationSyntax[] GenerateStaticNamesSpans(ContextCore ctx)
+        private static MemberDeclarationSyntax[] GenerateStaticNamesSpans(ContextCore ctx)
         {
             var list = new List<MemberDeclarationSyntax>();
 
@@ -202,7 +205,7 @@ namespace MongoDB.Client.Bson.Generators
 
             return list.ToArray();
         }
-        static MemberDeclarationSyntax[] GenerateEnumsStaticNamesSpansIfHave(ContextCore ctx)
+        private static MemberDeclarationSyntax[] GenerateEnumsStaticNamesSpansIfHave(ContextCore ctx)
         {
             var declarations = new List<MemberDeclarationSyntax>();
             var declared = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
@@ -247,6 +250,28 @@ namespace MongoDB.Client.Bson.Generators
             }
 
             return declarations.ToArray();
+        }
+
+        private static MemberDeclarationSyntax GenerateMapping(ContextCore ctx)
+        {
+            List<InitializerExpressionSyntax> elements = new();
+
+            foreach (var member in ctx.Members)
+            {
+                elements.Add(ComplexElementInitializer(StringLiteralExpression(member.NameSym.Name), StringLiteralExpression(member.BsonElementValue)));
+            }
+
+            var initializer = SF.InitializerExpression(SyntaxKind.CollectionInitializerExpression, SeparatedList(elements));
+
+            return SF.FieldDeclaration(
+                attributeLists: default,
+                modifiers: new(PrivateKeyword(), StaticKeyword(), ReadOnlyKeyword()),
+                declaration: SF.VariableDeclaration(IReadOnlyDictionaryOfStringStringName,
+                    SeparatedList(SF.VariableDeclarator(
+                        identifier: MappingToken,
+                        argumentList: null,
+                        initializer: SF.EqualsValueClause(
+                            ObjectCreation(DictionaryOfStringStringName, initializer))))));
         }
     }
 }
