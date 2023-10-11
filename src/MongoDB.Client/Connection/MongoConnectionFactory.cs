@@ -2,7 +2,6 @@
 using MongoDB.Client.Authentication;
 ﻿using System.Net;
 using System.Threading.Channels;
-using Microsoft.Extensions.Logging;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Network;
 using MongoDB.Client.Network.Transport.Sockets.Internal;

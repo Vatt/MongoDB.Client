@@ -6,7 +6,7 @@ namespace MongoDB.Client.Settings
 {
     public record MongoClientSettings
     {
-        public MongoClientSettings(IEnumerable<EndPoint> endpoints, string adminDb, byte[]? login, byte[]? password)
+        public MongoClientSettings(IEnumerable<EndPoint> endpoints, string adminDb, string? login, string? password)
         {
             Login = login;
             Password = password;
@@ -14,8 +14,23 @@ namespace MongoDB.Client.Settings
             AdminDB = adminDb;
         }
 
+        public MongoClientSettings(IEnumerable<EndPoint> endpoints, string login, string password)
+            : this(endpoints, "admin", login, password)
+        {
+        }
+
+        public MongoClientSettings(EndPoint endpoint, string adminDb, string login, string password)
+            : this(new[] { endpoint }, adminDb, login, password)
+        {
+        }
+
+        public MongoClientSettings(EndPoint endpoint, string login, string password)
+            : this(new[] { endpoint }, "admin", login, password)
+        {
+        }
+
         public MongoClientSettings(EndPoint[] endpoints)
-        : this(endpoints, "admin", null, null)
+            : this(endpoints, "admin", null, null)
         {
         }
 
@@ -46,8 +61,8 @@ namespace MongoDB.Client.Settings
 
         public string? ApplicationName { get; init; }
         public string AdminDB { get; init; }
-        public byte[]? Login { get; init; }
-        public byte[]? Password { get; init; }
+        public string? Login { get; init; }
+        public string? Password { get; init; }
         public string? ReplicaSet { get; init; }
         public ReadPreference ReadPreference { get; init; }
         public ClientType ClientType { get; init; }

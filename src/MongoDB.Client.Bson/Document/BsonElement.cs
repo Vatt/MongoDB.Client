@@ -50,11 +50,15 @@ namespace MongoDB.Client.Bson.Document
 
         public static BsonElement Create(BsonDocument parent, string name, BsonDocument? value)
         {
-            if (value is not null)
+            if (value is null)
             {
-                return new BsonElement(parent, BsonType.Document, name, value);
+                return new BsonElement(parent, BsonType.Null, name, null);
             }
-            return new BsonElement(parent, BsonType.Null, name, null);
+            if (value is BsonArray)
+            {
+                return new BsonElement(parent, BsonType.Array, name, value);
+            }
+            return new BsonElement(parent, BsonType.Document, name, value);
         }
 
         public static BsonElement Create(BsonDocument parent, string name, BsonObjectId value)
@@ -90,7 +94,7 @@ namespace MongoDB.Client.Bson.Document
         }
 
 
-        public static BsonElement CreateArray(BsonDocument parent, string name, BsonDocument? root)
+        public static BsonElement CreateArray(BsonDocument parent, string name, BsonArray? root)
         {
             if (root is not null)
             {

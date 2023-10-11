@@ -24,7 +24,7 @@ namespace MongoDB.Client.Connection
             command.Add("client", clientDocument);
         }
 
-        private static void AddCompressorsToCommand(BsonDocument command, BsonDocument compressors)
+        private static void AddCompressorsToCommand(BsonDocument command, BsonArray compressors)
         {
             command.Add("compression", compressors);
         }

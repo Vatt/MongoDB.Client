@@ -1,10 +1,6 @@
-﻿using System;
-using System.Buffers.Binary;
-using System.Linq;
+﻿using System.Buffers.Binary;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
@@ -125,12 +121,12 @@ namespace MongoDB.Client.Authentication
             return (clientKey, serverKey);
         }
 
-        private static SaslStart CreateScramLoginBytes(byte[] login)
+        private static SaslStart CreateScramLoginBytes(string login)
         {
             var prepared = PrepareLogin(login);
-            var randonBytes = GenerateRandonBytes(20);
+            var randomBytes = GenerateRandomBytes(20);
 
-            var bareMessage = "n=" + Strict.GetString(prepared) + "," + "r=" + Strict.GetString(randonBytes);
+            var bareMessage = "n=" + Strict.GetString(prepared) + "," + "r=" + Strict.GetString(randomBytes);
             var len = 5 + 3 + prepared.Length + 20;
             var bytes = new byte[len];
             Span<byte> span = bytes;
@@ -145,12 +141,12 @@ namespace MongoDB.Client.Authentication
             bytes[5 + prepared.Length] = 44;
             bytes[5 + prepared.Length + 1] = 114;
             bytes[5 + prepared.Length + 2] = 61;
-            randonBytes.CopyTo(randomSlice);
+            randomBytes.CopyTo(randomSlice);
 
-            return new SaslStart(randonBytes, bareMessage, bytes);
+            return new SaslStart(randomBytes, bareMessage, bytes);
         }
 
-        private static byte[] GenerateRandonBytes(int len)
+        private static byte[] GenerateRandomBytes(int len)
         {
             const string legalCharacters = "!\"#$%&'()*+-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
             var rnd = new Random();
@@ -164,8 +160,10 @@ namespace MongoDB.Client.Authentication
             return array;
         }
 
-        private static byte[] PrepareLogin(byte[] rawLogin)
+        private static byte[] PrepareLogin(string login)
         {
+            var rawLogin = Encoding.UTF8.GetBytes(login);
+
             var badBytesCount = 0;
             var span = rawLogin;
             for (int i = 0; i < rawLogin.Length - 1; i++)
@@ -209,11 +207,12 @@ namespace MongoDB.Client.Authentication
         }
         
 
-        private static byte[] Hi(byte[] passBytes, Span<byte> salt, int iterations)
+        private static byte[] Hi(string password, Span<byte> salt, int iterations)
         {
+            var passBytes = Encoding.UTF8.GetBytes(password);
             using var hmac = new HMACSHA256(passBytes);
             var hashed = ComputeHash(hmac, salt, iterations, out var block);
-            var asd = string.Join(string.Empty, hashed.Select(b => b.ToString("X2")));
+            //var asd = string.Join(string.Empty, hashed.Select(b => b.ToString("X2")));
             return hashed;
         }
 
@@ -331,10 +330,9 @@ namespace MongoDB.Client.Authentication
             i = int.Parse(iSpan);
         }
 
-        private static SaslStart AddLoginInfoToCommand(BsonDocument command, byte[] login, string db)
+        private static SaslStart AddLoginInfoToCommand(BsonDocument command, string login, string db)
         {
-            var loginStr = Encoding.UTF8.GetString(login);
-            command.Add("saslSupportedMechs", $"{db}.{loginStr}");
+            command.Add("saslSupportedMechs", $"{db}.{login}");
             BsonDocument speculativeAuthenticate = new BsonDocument();
             speculativeAuthenticate.Add("saslStart", 1);
             speculativeAuthenticate.Add("mechanism", "SCRAM-SHA-256");
