@@ -16,9 +16,9 @@ namespace MongoDB.Client.ConsoleApp
     [BsonSerializable]
     public readonly partial struct TestModel
     {
-        public BsonObjectId Id { get;}
-        public int SomeId { get; }
-        public string Name { get; }
+        [BsonElement("_ID_")] public BsonObjectId Id { get;}
+        [BsonElement("_SomeId_")] public int SomeId { get; }
+        [BsonElement("_Name_")] public string Name { get; }
         public TestModel(BsonObjectId id, string name, int someId)
         {
             Id = id;
@@ -49,7 +49,21 @@ namespace MongoDB.Client.ConsoleApp
             //await TestTransaction();
             //await TestStandalone();
         }
-
+        class Wrapper
+        {
+            public WrappedArray WrappedArrayField = new();
+            public WrappedArray WrappedArrayProperty { get; } = new();
+            public WrappedInt32 WrappedInt32 { get; } = new();
+        }
+        class WrappedArray
+        {
+            public int[] FieldArray = new[] { 1, 2, 3, 4, 5 };
+            public int[] PropertyArray { get; } = new[] { 5, 4, 3, 2, 1 };
+        }
+        class WrappedInt32
+        {
+            public int Value { get; } = 1;
+        }
         static async Task FilterTest()
         {
             //var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
@@ -66,18 +80,35 @@ namespace MongoDB.Client.ConsoleApp
             var id1 = BsonObjectId.NewObjectId();
             var id2 = BsonObjectId.NewObjectId();
             var id3 = BsonObjectId.NewObjectId();
-            var boolVar = true;
+            var boolVar = false;
             //await collection.InsertAsync(new TestModel(id1, "Test", 1));
             //await collection.InsertAsync(new TestModel(id2, "Test", 2));
             //await collection.InsertAsync(new TestModel(id3, "Test", 3));
             int[] arr = new int[] { 1, 2 ,3 };
+            var wrapper = new Wrapper();
             //var filter = ExpressionHelper.ParseExpression((TestModel x) => x.Id == id1 || x.Id == id2 || x.Id == id3);
             //var filter = ExpressionHelper.ParseExpression((TestModel x) => arr.Contains(x.SomeId) || x.Id == id1 && id2 == x.Id && 1 == x.SomeId && x.SomeId == 1);
-            var filter = FilterVisitor.BuildFilter((TestModel x) => arr.Contains(x.SomeId) == false);
+            /*var filter = Filter.FromExpression((TestModel x) => wrapper.WrappedArrayProperty.PropertyArray.Contains(x.SomeId) == boolVar || 
+                                                                wrapper.WrappedArrayProperty.FieldArray.Contains(x.SomeId) != true ||
+                                                                wrapper.WrappedArrayField.FieldArray.Contains(x.SomeId) != true ||
+                                                                wrapper.WrappedArrayField.PropertyArray.Contains(x.SomeId) != boolVar &&
+                                                                x.SomeId != wrapper.WrappedInt32.Value &&
+                                                                wrapper.WrappedInt32.Value == x.SomeId  &&
+                                                                wrapper.WrappedInt32.Value != x.SomeId  &&
+                                                                wrapper.WrappedInt32.Value > x.SomeId  &&
+                                                                wrapper.WrappedInt32.Value < x.SomeId  &&
+                                                                wrapper.WrappedInt32.Value <= x.SomeId  &&
+                                                                wrapper.WrappedInt32.Value >= x.SomeId  &&
+                                                                arr.Contains(x.SomeId) &&
+                                                                x.Id == id1 &&
+                                                                id2 == x.Id &&
+                                                                1 == x.SomeId ||
+                                                                x.SomeId == 1);*/
+            var filter = Filter.FromExpression((TestModel x) => x.SomeId == 1 && x.SomeId == 2 || x.SomeId == 3);
             //var filter = FilterVisitor.BuildFilter((TestModel x) => arr.Contains(x.SomeId) || x.Id == id1 && x.Id == id2 && x.Id == id3);
             //var result1 = await collection.Find(x => x.Id == id1 && x.SomeId == 1 && x.SomeId == 1).ToListAsync();
-            
-            //var result2 = await collection.Find(x => arr.Contains(x.SomeId) ).ToListAsync();
+
+            //var result2 = await collection.Find(x => wrapper.WrappedArray.FieldArray.Contains(x.SomeId) ).ToListAsync();
             //var result3 = await collection.Find(x => x.SomeId < 2).ToListAsync();
             //var result4 = await collection.Find(Filter.Empty).ToListAsync();
             //await collection.DropAsync();

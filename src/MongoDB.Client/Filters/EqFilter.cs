@@ -2,7 +2,7 @@
 
 namespace MongoDB.Client.Filters
 {
-    internal sealed class EqFilter<T> : Filter
+    public sealed class EqFilter<T> : Filter
     {
         private readonly string _propertyName;
         private readonly T? _value;

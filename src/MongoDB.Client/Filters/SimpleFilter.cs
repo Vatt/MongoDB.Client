@@ -3,35 +3,36 @@ using MongoDB.Client.Bson.Writer;
 
 namespace MongoDB.Client.Filters
 {
-    internal enum FilterType
+    public enum FilterType
     {
         Gt = 1,
         Gte,
         Lt,
         Lte,
+        Ne,
     }
-    internal sealed class Filter<T> : Filter
+    public class Filter<T> : Filter
     {
-        private readonly string _propertyName;
-        private readonly T? _value;
-        private readonly FilterType _operation;
-        public Filter(string propertyName, T? value, FilterType operation)
+        public string PropertyName { get; protected set; }
+        public T? Value { get; protected set; }
+        public FilterType Operation { get; protected set; }
+        public Filter(string propertyName, T? value, FilterType type)
         {
-            _propertyName = propertyName;
-            _value = value;
-            _operation = operation;
+            PropertyName = propertyName;
+            Value = value;
+            Operation = type;
         }
         public override void Write(ref BsonWriter writer)
         {
             var checkpoint = writer.Written;
             var reserved = writer.Reserve(sizeof(int));
             writer.WriteBsonType(BsonType.Document);
-            writer.WriteName(_propertyName);
+            writer.WriteName(PropertyName);
             var checkpoint1 = writer.Written;
             var reserved1 = writer.Reserve(sizeof(int));
             var typeReserved = writer.Reserve(sizeof(byte));
 
-            switch (_operation)
+            switch (Operation)
             {
                 case FilterType.Gt:
                     writer.WriteName("$gt"u8);
@@ -45,9 +46,12 @@ namespace MongoDB.Client.Filters
                 case FilterType.Lte:
                     writer.WriteName("$lte"u8);
                     break;
+                case FilterType.Ne:
+                    writer.WriteName("$ne"u8);
+                    break;
             }
 
-            writer.WriteGeneric(_value, ref typeReserved);
+            writer.WriteGeneric(Value, ref typeReserved);
             writer.WriteByte((byte)'\x00');
             reserved1.Write(writer.Written - checkpoint1);
             writer.WriteByte(0);

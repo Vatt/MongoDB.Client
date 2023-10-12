@@ -38,7 +38,7 @@ namespace MongoDB.Client
 
         public Cursor<T> Find(TransactionHandler transaction, BsonDocument filter)
         {
-            return new Cursor<T>(transaction, _scheduler, Filter.Document(filter), Namespace);
+            return new Cursor<T>(transaction, _scheduler, Filter.FromDocument(filter), Namespace);
         }
         public Cursor<T> Find(TransactionHandler transaction, Filter filter)
         {
@@ -105,7 +105,7 @@ namespace MongoDB.Client
 
         private ValueTask<DeleteResult> DeleteAsync(TransactionHandler transaction, BsonDocument filter, int limit, CancellationToken cancellationToken = default)
         {
-            return _scheduler.DeleteAsync(transaction, Filter.Document(filter), limit, Namespace, cancellationToken);
+            return _scheduler.DeleteAsync(transaction, Filter.FromDocument(filter), limit, Namespace, cancellationToken);
         }
 
 
@@ -131,7 +131,7 @@ namespace MongoDB.Client
 
         private ValueTask<UpdateResult> UpdateAsync(TransactionHandler transaction, BsonDocument filter, Update update, bool isMulty, UpdateOptions? options = null, CancellationToken cancellationToken = default)
         {
-            return _scheduler.UpdateAsync(transaction, Filter.Document(filter), update, isMulty, Namespace, options, cancellationToken);
+            return _scheduler.UpdateAsync(transaction, Filter.FromDocument(filter), update, isMulty, Namespace, options, cancellationToken);
         }
 
         internal ValueTask DropAsync(CancellationToken cancellationToken = default)

@@ -2,12 +2,12 @@
 
 namespace MongoDB.Client.Filters
 {
-    internal enum AggregateFilterType
+    public enum AggregateFilterType
     {
         And = 1,
         Or = 2
     }
-    internal class AggregateFilter : Filter
+    public class AggregateFilter : Filter
     {
         public AggregateFilterType Type { get; }
         protected readonly List<Filter> Inner;
@@ -20,10 +20,11 @@ namespace MongoDB.Client.Filters
         {
             Inner.AddRange(filters);
         }
-        public void AddRange(List<Filter> filters)
+        public void AddRange(IList<Filter> filters)
         {
             Inner.AddRange(filters);
         }
+        
         public override void Write(ref BsonWriter writer)
         {
             var checkpoint = writer.Written;

@@ -197,6 +197,7 @@ namespace MongoDB.Client.Filters
                 ExpressionType.LessThanOrEqual => MakeSimpleFilter(property, value, FilterType.Lte),
                 ExpressionType.GreaterThan => MakeSimpleFilter(property, value, FilterType.Gt),
                 ExpressionType.GreaterThanOrEqual => MakeSimpleFilter(property, value, FilterType.Gte),
+                ExpressionType.NotEqual => MakeSimpleFilter(property, value, FilterType.Ne),
                 _ => throw new NotSupportedException($"Not supported  operation {operation}")
             };
         }
@@ -214,8 +215,45 @@ namespace MongoDB.Client.Filters
         private object? ExtractValue(MemberExpression memberExpr)
         {
             var closureName = memberExpr.Member.Name;
-            var constExpr = (ConstantExpression)memberExpr.Expression!;
-            return constExpr.Value!.GetType().GetField(closureName)!.GetValue(constExpr.Value);
+            ConstantExpression? constExpr;
+            if (memberExpr.Expression is ConstantExpression)
+            {
+                constExpr = (ConstantExpression)memberExpr.Expression;
+                return constExpr.Value!.GetType().GetField(closureName)!.GetValue(constExpr.Value);
+            }
+            else if (memberExpr.Expression is MemberExpression innerExpr)
+            {
+                List<string> trace = new();
+                while (true)
+                {
+                    trace.Add(innerExpr.Member.Name);
+                    if (innerExpr.Expression is MemberExpression)
+                    {
+                        innerExpr = (MemberExpression)innerExpr.Expression;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                constExpr = (ConstantExpression)innerExpr.Expression!;
+                var value = constExpr.Value!;
+
+                trace.Reverse();
+
+                foreach (var field in trace)
+                {
+                    var inner = value!.GetType().GetField(field);
+                    value = inner is null ?  value.GetType().GetProperty(field)!.GetValue(value) : inner.GetValue(value);
+                }
+
+                var fieldClosure = value!.GetType().GetField(closureName);
+                
+                return fieldClosure is null ? value.GetType().GetProperty(closureName)!.GetValue(value) : fieldClosure.GetValue(value);
+            }
+
+            throw new NotSupportedException($"Can't extract value from expression {memberExpr}");
         }
         private static Filter MakeRange(string propertyName, object? value, RangeFilterType type)
         {
@@ -257,7 +295,7 @@ namespace MongoDB.Client.Filters
                 case BsonTimestamp timestamp: return new EqFilter<BsonTimestamp>(propertyName, timestamp);
                 case DateTimeOffset dt: return new EqFilter<DateTimeOffset>(propertyName, dt);
                 case Guid guid: return new EqFilter<Guid>(propertyName, guid);
-                case BsonDocument document: return Filter.Document(document);
+                case BsonDocument document: return Filter.FromDocument(document);
             }
 
             throw new NotSupportedException($"Unsupported type in Expression(equal filter) - {value.GetType()}");

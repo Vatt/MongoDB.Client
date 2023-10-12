@@ -1,4 +1,5 @@
-﻿using MongoDB.Client.Bson.Document;
+﻿using System.Linq.Expressions;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Writer;
@@ -8,8 +9,16 @@ namespace MongoDB.Client.Filters
     public abstract class Filter : IBsonSerializer<Filter>
     {
         public static readonly Filter Empty = new EmptyFilter();
+
         public abstract void Write(ref BsonWriter writer);
-        public static Filter Document(BsonDocument document) => new BsonDocumentFilter(document);
+
+        public static Filter FromDocument(BsonDocument document) => new BsonDocumentFilter(document);
+
+        public static Filter FromExpression<T>(Expression<Func<T, bool>> expr) where T : IBsonSerializer<T>
+        {
+            return FilterVisitor.BuildFilter(expr);
+        }
+        
         public static void WriteBson(ref BsonWriter writer, in Filter message)
         {
             message.Write(ref writer);

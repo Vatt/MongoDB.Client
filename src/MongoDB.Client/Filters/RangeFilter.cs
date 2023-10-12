@@ -2,12 +2,12 @@
 
 namespace MongoDB.Client.Filters
 {
-    internal enum RangeFilterType
+    public enum RangeFilterType
     {
         In = 1,
         NotIn,
     }
-    internal class RangeFilter<T> : Filter
+    public class RangeFilter<T> : Filter
     {
         private string _propertyName;
         private T[] _values;
