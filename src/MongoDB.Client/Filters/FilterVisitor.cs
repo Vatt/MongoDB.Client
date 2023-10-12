@@ -50,8 +50,8 @@ namespace MongoDB.Client.Filters
 
                     builder.AddExpression(binExpr);
 
-                    Find(binExpr.Left, builder);
                     Find(binExpr.Right, builder);
+                    Find(binExpr.Left, builder);
 
                     return;
                 case ExpressionType.Equal:

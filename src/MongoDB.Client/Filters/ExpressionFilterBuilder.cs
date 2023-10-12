@@ -158,6 +158,7 @@ namespace MongoDB.Client.Filters
             return type ? MakeRange(property, value, RangeFilterType.In) : MakeRange(property, value, RangeFilterType.NotIn);
 
         }
+
         private Filter MakeSimpleFilter(BinaryExpression binExpr)
         {
             var operation = binExpr.NodeType;
@@ -201,12 +202,14 @@ namespace MongoDB.Client.Filters
                 _ => throw new NotSupportedException($"Not supported  operation {operation}")
             };
         }
+
         private object? ExtractValue(Expression expr) => expr switch
         {
             ConstantExpression constExpr => ExtractValue(constExpr),
             MemberExpression memberExpr => ExtractValue(memberExpr),
             _ => throw new NotSupportedException($"Can't extract value from expression {expr}")
         };
+
         private object? ExtractValue(ConstantExpression constExpr)
         {
             return constExpr.Value;
@@ -255,6 +258,7 @@ namespace MongoDB.Client.Filters
 
             throw new NotSupportedException($"Can't extract value from expression {memberExpr}");
         }
+
         private static Filter MakeRange(string propertyName, object? value, RangeFilterType type)
         {
             if (value is null)
@@ -278,7 +282,8 @@ namespace MongoDB.Client.Filters
 
             throw new NotSupportedException($"Unsupported type in Expression - {value.GetType()}");
         }
-        static Filter MakeEqual(string propertyName, object? value)
+
+        private static Filter MakeEqual(string propertyName, object? value)
         {
             if (value is null)
             {
@@ -300,6 +305,7 @@ namespace MongoDB.Client.Filters
 
             throw new NotSupportedException($"Unsupported type in Expression(equal filter) - {value.GetType()}");
         }
+
         private static Filter MakeSimpleFilter(string propertyName, object? value, FilterType op)
         {
             if (value is null)

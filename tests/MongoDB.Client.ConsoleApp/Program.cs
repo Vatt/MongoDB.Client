@@ -88,7 +88,7 @@ namespace MongoDB.Client.ConsoleApp
             var wrapper = new Wrapper();
             //var filter = ExpressionHelper.ParseExpression((TestModel x) => x.Id == id1 || x.Id == id2 || x.Id == id3);
             //var filter = ExpressionHelper.ParseExpression((TestModel x) => arr.Contains(x.SomeId) || x.Id == id1 && id2 == x.Id && 1 == x.SomeId && x.SomeId == 1);
-            /*var filter = Filter.FromExpression((TestModel x) => wrapper.WrappedArrayProperty.PropertyArray.Contains(x.SomeId) == boolVar || 
+            var filter = Filter.FromExpression((TestModel x) => wrapper.WrappedArrayProperty.PropertyArray.Contains(x.SomeId) == boolVar || 
                                                                 wrapper.WrappedArrayProperty.FieldArray.Contains(x.SomeId) != true ||
                                                                 wrapper.WrappedArrayField.FieldArray.Contains(x.SomeId) != true ||
                                                                 wrapper.WrappedArrayField.PropertyArray.Contains(x.SomeId) != boolVar &&
@@ -103,8 +103,8 @@ namespace MongoDB.Client.ConsoleApp
                                                                 x.Id == id1 &&
                                                                 id2 == x.Id &&
                                                                 1 == x.SomeId ||
-                                                                x.SomeId == 1);*/
-            var filter = Filter.FromExpression((TestModel x) => x.SomeId == 1 && x.SomeId == 2 || x.SomeId == 3);
+                                                                x.SomeId == 1);
+            //var filter = Filter.FromExpression((TestModel x) => x.SomeId == 1 && x.SomeId == 2 || x.SomeId == 3);
             //var filter = FilterVisitor.BuildFilter((TestModel x) => arr.Contains(x.SomeId) || x.Id == id1 && x.Id == id2 && x.Id == id3);
             //var result1 = await collection.Find(x => x.Id == id1 && x.SomeId == 1 && x.SomeId == 1).ToListAsync();
 
