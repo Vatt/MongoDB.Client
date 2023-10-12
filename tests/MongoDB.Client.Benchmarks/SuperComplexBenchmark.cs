@@ -18,10 +18,10 @@ namespace MongoDB.Client.Benchmarks
         private MongoCollection<GeoIp> _insertCollection;
         private List<GeoIp> _insertDocs;
         [Params(1024)]
-        public int RequestsCount { get; set; }
+        public uint RequestsCount { get; set; }
 
         [Params(2048 * 2)]
-        public int ItemInDb { get; set; }
+        public uint ItemInDb { get; set; }
 
         [Params(1, 4, 8, 16, 32, 64, 128)] public int Parallelism { get; set; }
 
@@ -38,12 +38,12 @@ namespace MongoDB.Client.Benchmarks
             _deleteCollection = db.GetCollection<GeoIp>("Delete" + Guid.NewGuid().ToString());
             var seeder = new RootDocumentSeeder();
             var geoipseeder = new GeoIpSeeder();
-            _insertDocs = geoipseeder.GenerateSeed(ItemInDb).ToList();
+            _insertDocs = geoipseeder.GenerateSeed(SeederOptions.Create(ItemInDb)).ToList();
             foreach (var item in _insertDocs)
             {
                 await _deleteCollection.InsertAsync(item);
             }
-            foreach (var item in seeder.GenerateSeed(ItemInDb))
+            foreach (var item in seeder.GenerateSeed(SeederOptions.Create(ItemInDb)))
             {
                 await _findCollection.InsertAsync(item);
             }

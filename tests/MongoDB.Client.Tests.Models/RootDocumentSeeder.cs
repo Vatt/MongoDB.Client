@@ -2,51 +2,49 @@
 
 namespace MongoDB.Client.Tests.Models
 {
-    public class RootDocumentSeeder : ISeeder<RootDocument>
+    public class RootDocumentSeeder : SeederBase<RootDocument>
     {
-        public IEnumerable<RootDocument> GenerateSeed(int count)
+        protected override RootDocument Create(uint i)
         {
             const int innerDocumentOneCount = 50;
             const int innerDocumentTwoCount = 25;
             const int innerDocumentThreeCount = 5;
-            for (var i = 0; i < count; i++)
+
+            var complexDocument = CreateTestComplexDocument(i);
+            complexDocument.InnerDocuments = new List<FirstLevelDocument>();
+
+            for (var j = 0; j < innerDocumentOneCount; j++)
             {
-                var complexDocument = CreateTestComplexDocument(i);
-                complexDocument.InnerDocuments = new List<FirstLevelDocument>();
+                var firstLevelDocument = CreateTestInnerDocumentOne(i);
+                firstLevelDocument.InnerDocuments = new List<SecondLevelDocument>();
 
-                for (var j = 0; j < innerDocumentOneCount; j++)
+                for (var k = 0; k < innerDocumentTwoCount; k++)
                 {
-                    var firstLevelDocument = CreateTestInnerDocumentOne(i);
-                    firstLevelDocument.InnerDocuments = new List<SecondLevelDocument>();
+                    var secondLevelDocument = CreateTestInnerDocumentTwo(i);
+                    secondLevelDocument.InnerDocuments = new List<ThirdLevelDocument>();
 
-                    for (var k = 0; k < innerDocumentTwoCount; k++)
+                    for (var l = 0; l < innerDocumentThreeCount; l++)
                     {
-                        var secondLevelDocument = CreateTestInnerDocumentTwo(i);
-                        secondLevelDocument.InnerDocuments = new List<ThirdLevelDocument>();
-
-                        for (var l = 0; l < innerDocumentThreeCount; l++)
-                        {
-                            var thirdLevelDocument = CreateTestInnerDocumentThree(i);
-                            secondLevelDocument.InnerDocuments.Add(thirdLevelDocument);
-                        }
-
-                        firstLevelDocument.InnerDocuments.Add(secondLevelDocument);
+                        var thirdLevelDocument = CreateTestInnerDocumentThree(i);
+                        secondLevelDocument.InnerDocuments.Add(thirdLevelDocument);
                     }
 
-                    complexDocument.InnerDocuments.Add(firstLevelDocument);
+                    firstLevelDocument.InnerDocuments.Add(secondLevelDocument);
                 }
 
-                yield return complexDocument;
+                complexDocument.InnerDocuments.Add(firstLevelDocument);
             }
+
+            return complexDocument;
         }
 
-        private RootDocument CreateTestComplexDocument(int i)
+        private RootDocument CreateTestComplexDocument(uint i)
         {
             return new RootDocument
             {
                 Id = BsonObjectId.NewObjectId(),
                 DoubleField = i,
-                IntField = i,
+                IntField = (int) i,
                 TextFieldOne = $"{i}_{i}_{i}",
                 TextFieldTwo = $"{i}-{i}-{i}",
                 TextFieldThree = $"{i}|{i}|{i}",
@@ -55,25 +53,25 @@ namespace MongoDB.Client.Tests.Models
             };
         }
 
-        private FirstLevelDocument CreateTestInnerDocumentOne(int i)
+        private FirstLevelDocument CreateTestInnerDocumentOne(uint i)
         {
             return new FirstLevelDocument
             {
-                IntField = i,
+                IntField = (int)i,
                 TextField = $"*{i}*"
             };
         }
 
-        private SecondLevelDocument CreateTestInnerDocumentTwo(int i)
+        private SecondLevelDocument CreateTestInnerDocumentTwo(uint i)
         {
             return new SecondLevelDocument
             {
-                IntField = i,
+                IntField = (int)i,
                 TextField = $"**{i}**"
             };
         }
 
-        private ThirdLevelDocument CreateTestInnerDocumentThree(int i)
+        private ThirdLevelDocument CreateTestInnerDocumentThree(uint i)
         {
             return new ThirdLevelDocument
             {
@@ -81,6 +79,5 @@ namespace MongoDB.Client.Tests.Models
                 TextField = $"***{i}***"
             };
         }
-
     }
 }

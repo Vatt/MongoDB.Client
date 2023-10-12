@@ -42,6 +42,8 @@ namespace MongoDB.Client.ConsoleApp
         static async Task Main(string[] args)
         {
             //var update = Update<TestModel>.Set(new {SomeId = 22});
+            //await TestUpdate();
+            await LoadTest<GeoIp>(1024 * 1024, new[] { 8 });
             await FilterTest();
             //await LoadTest<GeoIp>(1024 * 1024, new[] { 512 });
             //await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, false);
@@ -155,7 +157,7 @@ namespace MongoDB.Client.ConsoleApp
         }
         static async Task TestShardedCluster()
         {
-            var items = new GeoIpSeeder().GenerateSeed(10000);
+            var items = new GeoIpSeeder().GenerateSeed(SeederOptions.Create(10000));
             var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder
@@ -202,7 +204,7 @@ namespace MongoDB.Client.ConsoleApp
 
             async Task WithoutTx(MongoCollection<GeoIp> collection)
             {
-                var item = new GeoIpSeeder().GenerateSeed(1).First();
+                var item = new GeoIpSeeder().GenerateSeed(SeederOptions.Create(1)).First();
                 var filter = new Bson.Document.BsonDocument("_id", item.Id);
 
                 await collection.InsertAsync(item);
@@ -212,7 +214,7 @@ namespace MongoDB.Client.ConsoleApp
 
             async Task WithCommitTx(MongoCollection<GeoIp> collection)
             {
-                var item = new GeoIpSeeder().GenerateSeed(1).First();
+                var item = new GeoIpSeeder().GenerateSeed(SeederOptions.Create(1)).First();
                 var filter = new Bson.Document.BsonDocument("_id", item.Id);
 
                 await using var transaction = client.StartTransaction();
@@ -227,7 +229,7 @@ namespace MongoDB.Client.ConsoleApp
 
             async Task WithAbortTx(MongoCollection<GeoIp> collection)
             {
-                var item = new GeoIpSeeder().GenerateSeed(1).First();
+                var item = new GeoIpSeeder().GenerateSeed(SeederOptions.Create(1)).First();
                 var filter = new Bson.Document.BsonDocument("_id", item.Id);
 
                 await using var transaction = client.StartTransaction();
@@ -265,7 +267,7 @@ namespace MongoDB.Client.ConsoleApp
             await db.CreateCollectionAsync("TransactionCollection");
             var collection = db.GetCollection<GeoIp>("TransactionCollection");
 
-            var item = new GeoIpSeeder().GenerateSeed(1).First();
+            var item = new GeoIpSeeder().GenerateSeed(SeederOptions.Create(1)).First();
             var filter = new Bson.Document.BsonDocument("_id", item.Id);
 
             await collection.InsertAsync(item);
@@ -275,7 +277,7 @@ namespace MongoDB.Client.ConsoleApp
             Console.WriteLine();
         }
 
-        static async Task ReplicaSetConenctionTest<T>(int requestCount, IEnumerable<int> parallelism, bool useTransaction)
+        static async Task ReplicaSetConenctionTest<T>(uint requestCount, IEnumerable<int> parallelism, bool useTransaction)
             where T : IIdentified, IBsonSerializer<T>
         {
             var loggerFactory = LoggerFactory.Create(builder =>
@@ -292,8 +294,8 @@ namespace MongoDB.Client.ConsoleApp
             foreach (var item in parallelism)
             {
                 Console.WriteLine("Start: " + item);
-                var bench = new ComplexBenchmarkBase<T>(db, item, requestCount);
-                await bench.Setup();
+                var bench = new ComplexBenchmarkBase<T>(db, item, loggerFactory.CreateLogger<ComplexBenchmarkBase<T>>(), SeederOptions.Create(requestCount));
+                await bench.Setup(); 
 
                 stopwatch.Restart();
                 try
@@ -309,11 +311,11 @@ namespace MongoDB.Client.ConsoleApp
                 Console.WriteLine($"End: {item}. Elapsed: {stopwatch.Elapsed}");
             }
         }
-        static async Task LoadTest<T>(int requestCount, IEnumerable<int> parallelisms)
+        static async Task LoadTest<T>(uint requestCount, IEnumerable<int> parallelisms)
             where T : IIdentified, IBsonSerializer<T>
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
-            host = $"mongodb://{host}/?clientType=experimental&replicaSet=rs0&maxPoolSize=4";
+            host = $"mongodb://{host}/?maxPoolSize=4";
             var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder
@@ -328,7 +330,7 @@ namespace MongoDB.Client.ConsoleApp
             foreach (var parallelism in parallelisms)
             {
                 Console.WriteLine("Start: " + parallelism);
-                var bench = new ComplexBenchmarkBase<T>(db, parallelism, requestCount);
+                var bench = new ComplexBenchmarkBase<T>(db, parallelism, loggerFactory.CreateLogger<ComplexBenchmarkBase<T>>(), SeederOptions.CreateInfinite());
                 await bench.Setup();
 
                 stopwatch.Restart();
