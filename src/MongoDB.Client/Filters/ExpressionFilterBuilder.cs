@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Messages;
 
 namespace MongoDB.Client.Filters
 {
@@ -68,7 +69,7 @@ namespace MongoDB.Client.Filters
                 case ExpressionType.LessThan:
                 case ExpressionType.LessThanOrEqual:
                     var binExpr = (BinaryExpression)expr;
-                    if (binExpr.Left is MethodCallExpression || binExpr.Right is MethodCallExpression)
+                    if (binExpr.Left.NodeType is ExpressionType.Call || binExpr.Right.NodeType is ExpressionType.Call)
                     {
                         _stack.Push(MakeRangeFilter(binExpr));
                         return;
@@ -104,14 +105,14 @@ namespace MongoDB.Client.Filters
         private Filter MakeRangeFilter(BinaryExpression binExpr)
         {
             var nodeType = binExpr.NodeType;
-            if (binExpr.NodeType is not ExpressionType.Equal and not ExpressionType.NotEqual)
+            if (nodeType is not ExpressionType.Equal and not ExpressionType.NotEqual)
             {
                 throw new NotSupportedException($"Not supported type in {binExpr}");
             }
 
             MethodCallExpression? callExpr;
             object? type;
-            if (binExpr.Left is MethodCallExpression)
+            if (binExpr.Left.NodeType is ExpressionType.Call)
             {
                 callExpr = (MethodCallExpression)binExpr.Left;
                 type = ExtractValue(binExpr.Right);
@@ -219,17 +220,31 @@ namespace MongoDB.Client.Filters
         {
             var closureName = memberExpr.Member.Name;
             ConstantExpression? constExpr;
-            if (memberExpr.Expression is ConstantExpression)
+            if (memberExpr.Expression is null)
+            {
+                if (memberExpr.Member is FieldInfo field)
+                {
+                    return field.GetValue(null);
+                }
+                else if(memberExpr.Member is PropertyInfo property)
+                {
+                    return property.GetValue(null);
+                }
+            }
+            else if (memberExpr.Expression!.NodeType is ExpressionType.Constant)
             {
                 constExpr = (ConstantExpression)memberExpr.Expression;
-                return constExpr.Value!.GetType().GetField(closureName)!.GetValue(constExpr.Value);
+                var flags = GetBindingFlags(memberExpr.Member);
+                var field = constExpr.Value!.GetType().GetField(closureName, flags);
+                return field!.GetValue(constExpr.Value);
             }
             else if (memberExpr.Expression is MemberExpression innerExpr)
             {
-                List<string> trace = new();
-                while (true)
+                List<(string, MemberTypes, BindingFlags)> trace = new();
+                while (innerExpr.Expression is not null)
                 {
-                    trace.Add(innerExpr.Member.Name);
+                    trace.Add((innerExpr.Member.Name, innerExpr.Member.MemberType, GetBindingFlags(innerExpr.Member)));
+
                     if (innerExpr.Expression is MemberExpression)
                     {
                         innerExpr = (MemberExpression)innerExpr.Expression;
@@ -239,16 +254,32 @@ namespace MongoDB.Client.Filters
                         break;
                     }
                 }
+                object? value = null;
 
-                constExpr = (ConstantExpression)innerExpr.Expression!;
-                var value = constExpr.Value!;
+                if (innerExpr.Expression is null)
+                {
+                    value = innerExpr.Member switch
+                    {
+                        FieldInfo field => field.GetValue(null)!,
+                        PropertyInfo property => property.GetValue(null)!,
+                    };
+                }
+                else
+                {
+                    constExpr = (ConstantExpression)innerExpr.Expression!;
+                    value = constExpr.Value!;
+                }
+                
 
                 trace.Reverse();
 
-                foreach (var field in trace)
+                foreach (var (field, type, flags) in trace)
                 {
-                    var inner = value!.GetType().GetField(field);
-                    value = inner is null ?  value.GetType().GetProperty(field)!.GetValue(value) : inner.GetValue(value);
+                    value = type switch
+                    {
+                        MemberTypes.Field => value!.GetType().GetField(field, flags).GetValue(value)!,
+                        MemberTypes.Property => value.GetType().GetProperty(field, flags)!.GetValue(value)!
+                    };
                 }
 
                 var fieldClosure = value!.GetType().GetField(closureName);
@@ -258,7 +289,59 @@ namespace MongoDB.Client.Filters
 
             throw new NotSupportedException($"Can't extract value from expression {memberExpr}");
         }
+        private static BindingFlags GetBindingFlags(MemberInfo member)
+        {
+            BindingFlags flags = BindingFlags.Default;
+            if (member is FieldInfo field)
+            {
+                if (field.IsStatic)
+                {
+                    flags |= BindingFlags.Static;
+                }
+                else
+                {
+                    flags |= BindingFlags.Instance;
+                }
 
+                if (field.IsPublic == false)
+                {
+                    flags |= BindingFlags.NonPublic;
+                }
+                else
+                {
+                    flags |= BindingFlags.Public;
+                }
+            } 
+            else if (member is PropertyInfo property)
+            {
+                var method = property.GetMethod;
+                
+                if (method == null)
+                {
+                    return flags;
+                }
+
+                if (method.IsStatic)
+                {
+                    flags |= BindingFlags.Static;
+                }
+                else
+                {
+                    flags |= BindingFlags.Instance;
+                }
+
+                if (method.IsPublic == false)
+                {
+                    flags |= BindingFlags.NonPublic;
+                }
+                else
+                {
+                    flags |= BindingFlags.Public;
+                }
+            }
+
+            return flags;
+        }
         private static Filter MakeRange(string propertyName, object? value, RangeFilterType type)
         {
             if (value is null)

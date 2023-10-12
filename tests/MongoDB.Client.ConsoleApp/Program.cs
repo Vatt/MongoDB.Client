@@ -64,6 +64,32 @@ namespace MongoDB.Client.ConsoleApp
         {
             public int Value { get; } = 1;
         }
+        private static int[] arr = new int[] { 1, 2, 3 };
+        private static BsonObjectId id1 = BsonObjectId.NewObjectId();
+        private static BsonObjectId id2 = BsonObjectId.NewObjectId();
+        private static BsonObjectId id3 = BsonObjectId.NewObjectId();
+        private static bool boolVar = false;
+        private static Wrapper wrapper { get; set; } = new();
+        public static Filter Test()
+        {
+            var filter = Filter.FromExpression((TestModel x) => wrapper.WrappedArrayProperty.PropertyArray.Contains(x.SomeId) == boolVar ||
+                                                            wrapper.WrappedArrayProperty.FieldArray.Contains(x.SomeId) != true ||
+                                                            wrapper.WrappedArrayField.FieldArray.Contains(x.SomeId) != true ||
+                                                            wrapper.WrappedArrayField.PropertyArray.Contains(x.SomeId) != boolVar &&
+                                                            x.SomeId != wrapper.WrappedInt32.Value &&
+                                                            wrapper.WrappedInt32.Value == x.SomeId &&
+                                                            wrapper.WrappedInt32.Value != x.SomeId &&
+                                                            wrapper.WrappedInt32.Value > x.SomeId &&
+                                                            wrapper.WrappedInt32.Value < x.SomeId &&
+                                                            wrapper.WrappedInt32.Value <= x.SomeId &&
+                                                            wrapper.WrappedInt32.Value >= x.SomeId &&
+                                                            arr.Contains(x.SomeId) &&
+                                                            x.Id == id1 &&
+                                                            id2 == x.Id &&
+                                                            1 == x.SomeId ||
+                                                            x.SomeId == 1);
+            return filter;
+        }
         static async Task FilterTest()
         {
             //var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
@@ -84,26 +110,11 @@ namespace MongoDB.Client.ConsoleApp
             //await collection.InsertAsync(new TestModel(id1, "Test", 1));
             //await collection.InsertAsync(new TestModel(id2, "Test", 2));
             //await collection.InsertAsync(new TestModel(id3, "Test", 3));
-            int[] arr = new int[] { 1, 2 ,3 };
-            var wrapper = new Wrapper();
+            //int[] arr = new int[] { 1, 2 ,3 };
+            //var wrapper = new Wrapper();
             //var filter = ExpressionHelper.ParseExpression((TestModel x) => x.Id == id1 || x.Id == id2 || x.Id == id3);
             //var filter = ExpressionHelper.ParseExpression((TestModel x) => arr.Contains(x.SomeId) || x.Id == id1 && id2 == x.Id && 1 == x.SomeId && x.SomeId == 1);
-            var filter = Filter.FromExpression((TestModel x) => wrapper.WrappedArrayProperty.PropertyArray.Contains(x.SomeId) == boolVar || 
-                                                                wrapper.WrappedArrayProperty.FieldArray.Contains(x.SomeId) != true ||
-                                                                wrapper.WrappedArrayField.FieldArray.Contains(x.SomeId) != true ||
-                                                                wrapper.WrappedArrayField.PropertyArray.Contains(x.SomeId) != boolVar &&
-                                                                x.SomeId != wrapper.WrappedInt32.Value &&
-                                                                wrapper.WrappedInt32.Value == x.SomeId  &&
-                                                                wrapper.WrappedInt32.Value != x.SomeId  &&
-                                                                wrapper.WrappedInt32.Value > x.SomeId  &&
-                                                                wrapper.WrappedInt32.Value < x.SomeId  &&
-                                                                wrapper.WrappedInt32.Value <= x.SomeId  &&
-                                                                wrapper.WrappedInt32.Value >= x.SomeId  &&
-                                                                arr.Contains(x.SomeId) &&
-                                                                x.Id == id1 &&
-                                                                id2 == x.Id &&
-                                                                1 == x.SomeId ||
-                                                                x.SomeId == 1);
+            var filter = Test();
             //var filter = Filter.FromExpression((TestModel x) => x.SomeId == 1 && x.SomeId == 2 || x.SomeId == 3);
             //var filter = FilterVisitor.BuildFilter((TestModel x) => arr.Contains(x.SomeId) || x.Id == id1 && x.Id == id2 && x.Id == id3);
             //var result1 = await collection.Find(x => x.Id == id1 && x.SomeId == 1 && x.SomeId == 1).ToListAsync();
