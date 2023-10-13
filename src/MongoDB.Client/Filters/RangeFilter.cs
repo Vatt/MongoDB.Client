@@ -1,4 +1,5 @@
-﻿using MongoDB.Client.Bson.Writer;
+﻿using MongoDB.Client.Bson;
+using MongoDB.Client.Bson.Writer;
 
 namespace MongoDB.Client.Filters
 {
@@ -9,23 +10,26 @@ namespace MongoDB.Client.Filters
     }
     public class RangeFilter<T> : Filter
     {
-        private string _propertyName;
-        private T[] _values;
-        private RangeFilterType _type;
+        public string PropertyName { get; protected set; }
+        public T[] Values { get; protected set; }
+        public RangeFilterType Type { get; protected set; }
         public RangeFilter(string propertyName, T[] values, RangeFilterType type)
         {
-            _propertyName = propertyName;
-            _values = values;
-            _type = type;
+            PropertyName = propertyName;
+            Values = values;
+            Type = type;
         }
 
         public override void Write(ref BsonWriter writer)
         {
             var checkpoint = writer.Written;
-
             var reserved = writer.Reserve(sizeof(int));
+            writer.WriteBsonType(BsonType.Document);
+            writer.WriteName(PropertyName);
+            var checkpoint1 = writer.Written;
+            var reserved1 = writer.Reserve(sizeof(int));
 
-            switch (_type)
+            switch (Type)
             {
                 case RangeFilterType.In:
                     writer.Write_Type_Name(4, "$in"u8);
@@ -39,6 +43,8 @@ namespace MongoDB.Client.Filters
             
 
             WriteInner(ref writer);
+            writer.WriteByte((byte)'\x00');
+            reserved1.Write(writer.Written - checkpoint1);
             writer.WriteByte(0);
 
             reserved.Write(writer.Written - checkpoint);
@@ -48,15 +54,15 @@ namespace MongoDB.Client.Filters
         {
             var checkpoint = writer.Written;
             var reserved = writer.Reserve(4);
-            for (int i = 0; i < _values.Length; i++)
+            for (int i = 0; i < Values.Length; i++)
             {
-                var item = _values[i];
+                var item = Values[i];
 
                 var typeReserved = writer.Reserve(sizeof(byte));
                 writer.WriteName(i);
                 writer.WriteGeneric(item, ref typeReserved);
             }
-
+            
             writer.WriteByte(0);
             var docLength = writer.Written - checkpoint;
             reserved.Write(docLength);
