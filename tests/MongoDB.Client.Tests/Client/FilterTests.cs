@@ -60,6 +60,9 @@ namespace MongoDB.Client.Tests.Client
             var result11 = await collection.Find(x => arr.Contains(x.IntProp)).ToListAsync();
             var result12 = await collection.Find(x => arr.Contains(x.IntProp) == false).ToListAsync();
             var result13 = await collection.Find(x => arr.Contains(x.IntProp) != boolVar).ToListAsync();
+            var result14 = await collection.Find(x => x.IntProp == 1 || x.IntProp == 2).ToListAsync();
+            var result15 = await collection.Find(x => x.IntProp == 1 && x.StringProp == "2").ToListAsync();
+            var result16 = await collection.Find(x => (x.IntProp == 1 && x.StringProp == "1") || (x.IntProp == 2 && x.StringProp == "2")).ToListAsync();
             Assert.Equal(1, result1.IntProp);
             Assert.Equal("2", result2.StringProp);
             Assert.Equal(3, result3.DoubleProp);
@@ -72,6 +75,9 @@ namespace MongoDB.Client.Tests.Client
             Assert.Equal(3, result11.Count);
             Assert.Single(result12);
             Assert.Equal(3, result13.Count);
+            Assert.Equal(2, result14.Count);
+            Assert.Equal(1, result15.Count);
+            Assert.Equal(2, result15.Count);
             await collection.DropAsync();
         }
     }
