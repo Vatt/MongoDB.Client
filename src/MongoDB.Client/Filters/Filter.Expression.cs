@@ -28,8 +28,10 @@ namespace MongoDB.Client.Filters
                     {
                         var binExpr = (BinaryExpression)expr;
                         var newAggregateFilter = new AggregateFilter(AggregateFilterType.And);
+                        
                         var right = Next(binExpr.Right, ref ctx);
                         var left = Next(binExpr.Left, ref ctx);
+
                         newAggregateFilter.Add(right, left);
 
                         return newAggregateFilter;
@@ -38,8 +40,10 @@ namespace MongoDB.Client.Filters
                     {
                         var binExpr = (BinaryExpression)expr;
                         var newAggregateFilter = new AggregateFilter(AggregateFilterType.Or);
+
                         var right = Next(binExpr.Right, ref ctx);
                         var left = Next(binExpr.Left, ref ctx);
+
                         newAggregateFilter.Add(right, left);
 
                         return newAggregateFilter;
@@ -54,17 +58,17 @@ namespace MongoDB.Client.Filters
                         var binExpr = (BinaryExpression)expr;
                         if (binExpr.Left.NodeType is ExpressionType.Call || binExpr.Right.NodeType is ExpressionType.Call)
                         {
-                            return MakeRangeFilter(binExpr);
+                            return FromCallExpr(binExpr, ref ctx);
                         }
                         return MakeSimpleFilter(binExpr, ref ctx);
                     }
                 case ExpressionType.Call:
-                    return MakeRangeFilter((MethodCallExpression)expr, true);
+                    return FromCallExpr((MethodCallExpression)expr, true, ref ctx);
             }
 
             return ThrowHelper.Expression<Filter>($"Not supported expression {expr}");
         }
-        private static Filter MakeRangeFilter(BinaryExpression binExpr)
+        private static Filter FromCallExpr(BinaryExpression binExpr, ref Context ctx)
         {
             var nodeType = binExpr.NodeType;
             if (nodeType is not ExpressionType.Equal and not ExpressionType.NotEqual)
@@ -94,13 +98,13 @@ namespace MongoDB.Client.Filters
 
             return typed switch
             {
-                true when nodeType is ExpressionType.Equal => MakeRangeFilter(callExpr, true),
-                true when nodeType is ExpressionType.NotEqual => MakeRangeFilter(callExpr, false),
-                false when nodeType is ExpressionType.Equal => MakeRangeFilter(callExpr, false),
-                _ => MakeRangeFilter(callExpr, true)
+                true when nodeType is ExpressionType.Equal => FromCallExpr(callExpr, true, ref ctx),
+                true when nodeType is ExpressionType.NotEqual => FromCallExpr(callExpr, false, ref ctx),
+                false when nodeType is ExpressionType.Equal => FromCallExpr(callExpr, false, ref ctx),
+                _ => FromCallExpr(callExpr, true, ref ctx)
             };
         }
-        private static Filter MakeRangeFilter(MethodCallExpression callExpr, bool type)
+        private static Filter FromCallExpr(MethodCallExpression callExpr, bool type, ref Context ctx)
         {
             var methodName = callExpr.Method.Name;
 
@@ -110,7 +114,7 @@ namespace MongoDB.Client.Filters
             }
             object? value;
             string? property;
-            if (callExpr.Object is null)
+            if (callExpr.Arguments.Count is 2)//static method
             {
                 value = ExtractValue(callExpr.Arguments[0]);
                 property = GetPropertyName(callExpr.Arguments[1]);
@@ -120,10 +124,31 @@ namespace MongoDB.Client.Filters
                     return ThrowHelper.Expression<Filter>($"Not supported expression {callExpr}");
                 }
             }
-            else
+            else // instance method
             {
-                property = GetPropertyName(callExpr.Arguments[0]);
-                value = ExtractValue(callExpr.Object);
+                //Not range filter, its Equal filter with LIKE semantic
+                if (callExpr.Method.DeclaringType == typeof(string))
+                {
+                    if (callExpr.Arguments[0] is MemberExpression memberExpr && memberExpr.Expression == ctx.Parameter)// StringVar.Contains("find expr")
+                    {
+                        property = GetPropertyName(callExpr.Arguments[0]);
+                        value = ExtractValue(callExpr.Object);
+
+                        return Create(property, $"/{value}/");
+                    }
+                    else //"asd".Contains(x.Name)
+                    {
+                        value = ExtractValue(callExpr.Object);
+                        property = GetPropertyName(callExpr.Arguments[0]);
+
+                        return Create(property, $"/{value}/");
+                    }
+                }
+                else
+                {
+                    property = GetPropertyName(callExpr.Arguments[0]);
+                    value = ExtractValue(callExpr.Object);
+                }
             }
 
             if (property is null)

@@ -8,6 +8,10 @@ namespace MongoDB.Client.Filters
     {
         private static Filter Create(string propertyName, object? value, RangeFilterType type)
         {
+            if (propertyName is null)
+            {
+                return ThrowHelper.Expression<Filter>($"{nameof(propertyName)} is null");
+            }
 
             if (value is null)
             {
@@ -52,6 +56,11 @@ namespace MongoDB.Client.Filters
         }
         private static Filter Create(string propertyName, object? value, FilterType op)
         {
+            if (propertyName is null)
+            {
+                return ThrowHelper.Expression<Filter>($"{nameof(propertyName)} is null");
+            }
+
             if (value is null)
             {
                 return new Filter<object>(propertyName, null, op);
@@ -73,6 +82,11 @@ namespace MongoDB.Client.Filters
         }
         private static Filter Create(string propertyName, object? value)
         {
+            if (propertyName is null)
+            {
+                return ThrowHelper.Expression<Filter>($"{nameof(propertyName)} is null");
+            }
+
             if (value is null)
             {
                 return new EqFilter<object>(propertyName, null);

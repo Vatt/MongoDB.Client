@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Linq.Expressions;
 using System.Net;
 using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
@@ -121,8 +122,9 @@ namespace MongoDB.Client.ConsoleApp
             //var filter = Filter.FromExpression((TestModel x) => (x.SomeId == 1 && x.SomeId == 2) || (x.SomeId == 3 && x.SomeId == 4));
             //var filter = Test();
             //var filter = Filter.FromExpression((TestModel x) => arr.Contains(x.SomeId) || x.Id == id1 && id2 == x.Id && 1 == x.SomeId && x.SomeId == 1);
-            //var filter = Filter.FromExpression((TestModel x) => arr.Contains(x.SomeId));
-            var filter = Filter.FromExpression((TestModel x) => x.Id == id5);
+            //var filter = Filter.FromExpression((TestModel x) => list.Contains(x.SomeId));
+            //var filter = Filter.FromExpression((TestModel x) => x.Name.Contains("asd"));
+            var filter = Filter.FromExpression((TestModel x) => "asd".Contains(x.Name));
             //var filter = Test();
             //var filter = Filter.FromExpression((TestModel x) => x.SomeId == 1 && x.SomeId == 2 || x.SomeId == 3);
             //var filter = Filter.FromExpression((TestModel x) => arr.Contains(x.SomeId) || x.Id == id1 && x.Id == id2 && x.Id == id3);
