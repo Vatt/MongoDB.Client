@@ -190,10 +190,6 @@ namespace MongoDB.Client.Filters
             MemberExpression memberExpr => ExtractValue(memberExpr),
             _ => ThrowHelper.Expression<Filter>($"Can't extract value from expression {expr}")
         };
-        private static object? ExtractValue(UnaryExpression unaryExpr)
-        {
-            return ExtractValue((MemberExpression)unaryExpr.Operand);
-        }
         private static object? ExtractValue(ConstantExpression constExpr)
         {
             return constExpr.Value;
@@ -202,7 +198,8 @@ namespace MongoDB.Client.Filters
         {
             var closureName = memberExpr.Member.Name;
             ConstantExpression? constExpr;
-            if (memberExpr.Expression is null)
+            
+            if (memberExpr.Expression is null) //static variable
             {
                 if (memberExpr.Member is FieldInfo field)
                 {
@@ -213,14 +210,14 @@ namespace MongoDB.Client.Filters
                     return property.GetValue(null);
                 }
             }
-            else if (memberExpr.Expression!.NodeType is ExpressionType.Constant)
+            else if (memberExpr.Expression!.NodeType is ExpressionType.Constant) // simple constant value
             {
                 constExpr = (ConstantExpression)memberExpr.Expression;
                 var flags = GetBindingFlags(memberExpr.Member);
                 var field = constExpr.Value!.GetType().GetField(closureName, flags);
                 return field!.GetValue(constExpr.Value);
             }
-            else if (memberExpr.Expression is MemberExpression innerExpr)
+            else if (memberExpr.Expression is MemberExpression innerExpr) //Member1.Member2.Member3.Value
             {
                 List<(string, MemberTypes, BindingFlags)> trace = new();
                 while (innerExpr.Expression is not null)

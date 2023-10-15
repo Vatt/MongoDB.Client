@@ -20,7 +20,7 @@ namespace MongoDB.Client.Filters
             var fieldInfo = typeof(T).GetField("__MAPPING__", BindingFlags.NonPublic | BindingFlags.Static);
             if (fieldInfo == null)
             {
-                mapping = default;
+                mapping = default!;
                 return false;
             }
 
