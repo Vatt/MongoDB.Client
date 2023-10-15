@@ -71,6 +71,8 @@ namespace MongoDB.Client.ConsoleApp
         private static BsonObjectId id2 = BsonObjectId.NewObjectId();
         private static BsonObjectId id3 = BsonObjectId.NewObjectId();
         private static bool boolVar = false;
+        private static IList<int> list = new List<int>() { 1, 2, 3 };
+        private static IEnumerable<int> enumerable = new List<int>() { 1, 2, 3 };
         private static Wrapper wrapper { get; set; } = new();
         public static Filter Test()
         {
@@ -108,14 +110,19 @@ namespace MongoDB.Client.ConsoleApp
             var id1 = BsonObjectId.NewObjectId();
             var id2 = BsonObjectId.NewObjectId();
             var id3 = BsonObjectId.NewObjectId();
+            BsonObjectId? id4 = BsonObjectId.NewObjectId();
+            BsonObjectId? id5 = null;
             var boolVar = false;
             //await collection.InsertAsync(new TestModel(id1, "Test", 1));
             //await collection.InsertAsync(new TestModel(id2, "Test", 2));
             //await collection.InsertAsync(new TestModel(id3, "Test", 3));
             //int[] arr = new int[] { 1, 2 ,3 };
             //var wrapper = new Wrapper();
-            var filter = Filter.FromExpression((TestModel x) => (x.SomeId == 1 && x.SomeId == 2) || (x.SomeId == 3 && x.SomeId == 4));
+            //var filter = Filter.FromExpression((TestModel x) => (x.SomeId == 1 && x.SomeId == 2) || (x.SomeId == 3 && x.SomeId == 4));
+            //var filter = Test();
             //var filter = Filter.FromExpression((TestModel x) => arr.Contains(x.SomeId) || x.Id == id1 && id2 == x.Id && 1 == x.SomeId && x.SomeId == 1);
+            //var filter = Filter.FromExpression((TestModel x) => arr.Contains(x.SomeId));
+            var filter = Filter.FromExpression((TestModel x) => x.Id == id5);
             //var filter = Test();
             //var filter = Filter.FromExpression((TestModel x) => x.SomeId == 1 && x.SomeId == 2 || x.SomeId == 3);
             //var filter = Filter.FromExpression((TestModel x) => arr.Contains(x.SomeId) || x.Id == id1 && x.Id == id2 && x.Id == id3);

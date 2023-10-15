@@ -1,6 +1,4 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization.Attributes;
-using MongoDB.Client.Tests.Models;
+﻿using MongoDB.Client.Bson.Serialization.Attributes;
 using Xunit;
 
 namespace MongoDB.Client.Tests.Client
@@ -26,10 +24,13 @@ namespace MongoDB.Client.Tests.Client
 
     public class FilterTests : ClientTestBase
     {
-
+        private static IList<int> list = new List<int>() { 1, 2, 3 };
+        private static IEnumerable<int> enumerable = new List<int>() { 1, 2, 3 };
         private static int[] arr = new int[] { 1, 2, 3 };
         private static int[] arr1 = new int[] { 1, 2 };
         private static bool boolVar = false;
+        private static int? id1 = null;
+        private static int? id2 = 1;
         private static Wrapper wrapper { get; set; } = new();
 
         [Fact]
@@ -65,6 +66,10 @@ namespace MongoDB.Client.Tests.Client
             var result15 = await collection.Find(x => x.IntProp == 1 || x.StringProp == "2").ToListAsync();
             var result16 = await collection.Find(x => (x.IntProp == 1 && x.StringProp == "1") || (x.IntProp == 2 && x.StringProp == "2")).ToListAsync();
             var result17 = await collection.Find(x => ((x.IntProp == 1 && x.StringProp == "1") || (x.IntProp == 2 && x.StringProp == "2")) && arr1.Contains(x.IntProp)).ToListAsync();
+            var result18 = await collection.Find(x => list.Contains(x.IntProp)).ToListAsync();
+            var result19 = await collection.Find(x => enumerable.Contains(x.IntProp)).ToListAsync();
+            var result20 = await collection.Find(x => x.IntProp == id1).SingleOrDefaultAsync();
+            var result21 = await collection.Find(x => x.IntProp == id2).SingleOrDefaultAsync();
             Assert.Equal(1, result1.IntProp);
             Assert.Equal("2", result2.StringProp);
             Assert.Equal(3, result3.DoubleProp);
@@ -81,6 +86,10 @@ namespace MongoDB.Client.Tests.Client
             Assert.Equal(2, result15.Count);
             Assert.Equal(2, result16.Count);
             Assert.Equal(2, result17.Count);
+            Assert.Equal(3, result18.Count);
+            Assert.Equal(3, result19.Count);
+            Assert.Null(result20);
+            Assert.Equal(1, result21.IntProp);
             await collection.DropAsync();
         }
     }

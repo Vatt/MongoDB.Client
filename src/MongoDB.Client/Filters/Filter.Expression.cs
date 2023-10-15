@@ -108,16 +108,30 @@ namespace MongoDB.Client.Filters
             {
                 return ThrowHelper.Expression<Filter>($"Not supported MethodCallExpression with method name {methodName}");
             }
-
-            object? value = ExtractValue(callExpr.Arguments[0]);
-            var property = GetPropertyName(callExpr.Arguments[1]);
-
-            if (value is null || property is null)
+            object? value;
+            string? property;
+            if (callExpr.Object is null)
             {
-                return ThrowHelper.Expression<Filter>($"Not supported expression {callExpr}");
+                value = ExtractValue(callExpr.Arguments[0]);
+                property = GetPropertyName(callExpr.Arguments[1]);
+
+                if (value is null || property is null)
+                {
+                    return ThrowHelper.Expression<Filter>($"Not supported expression {callExpr}");
+                }
+            }
+            else
+            {
+                property = GetPropertyName(callExpr.Arguments[0]);
+                value = ExtractValue(callExpr.Object);
             }
 
-            return type ? MakeRange(property, value, RangeFilterType.In) : MakeRange(property, value, RangeFilterType.NotIn);
+            if (property is null)
+            {
+                return ThrowHelper.Expression<Filter>($"Can't get property name from {callExpr}");
+            }
+
+            return type ? Create(property, value, RangeFilterType.In) : Create(property, value, RangeFilterType.NotIn);
 
         }
         private static Filter MakeSimpleFilter(BinaryExpression binExpr, ref Context ctx)
@@ -134,6 +148,11 @@ namespace MongoDB.Client.Filters
                 propertyExpr = binExpr.Left;
                 valueExpr = binExpr.Right;
             }
+            else if (binExpr.Left is UnaryExpression leftUnary && leftUnary.Operand is MemberExpression operandMember && operandMember.Expression == parameter)
+            {
+                propertyExpr = binExpr.Left;
+                valueExpr = binExpr.Right;
+            }
             else
             {
                 propertyExpr = binExpr.Right;
@@ -144,7 +163,7 @@ namespace MongoDB.Client.Filters
 
             var property = GetPropertyName(propertyExpr);
 
-            if (value is null || property is null)
+            if (property is null)
             {
                 return ThrowHelper.Expression<Filter>($"Not supported expression {binExpr}");
             }
@@ -156,12 +175,12 @@ namespace MongoDB.Client.Filters
 
             return operation switch
             {
-                ExpressionType.Equal => MakeEqual(property, value),
-                ExpressionType.LessThan => MakeSimpleFilter(property, value, FilterType.Lt),
-                ExpressionType.LessThanOrEqual => MakeSimpleFilter(property, value, FilterType.Lte),
-                ExpressionType.GreaterThan => MakeSimpleFilter(property, value, FilterType.Gt),
-                ExpressionType.GreaterThanOrEqual => MakeSimpleFilter(property, value, FilterType.Gte),
-                ExpressionType.NotEqual => MakeSimpleFilter(property, value, FilterType.Ne),
+                ExpressionType.Equal => Create(property, value),
+                ExpressionType.LessThan => Create(property, value, FilterType.Lt),
+                ExpressionType.LessThanOrEqual => Create(property, value, FilterType.Lte),
+                ExpressionType.GreaterThan => Create(property, value, FilterType.Gt),
+                ExpressionType.GreaterThanOrEqual => Create(property, value, FilterType.Gte),
+                ExpressionType.NotEqual => Create(property, value, FilterType.Ne),
                 _ => throw new NotSupportedException($"Not supported  operation {operation}")
             };
         }
@@ -171,6 +190,10 @@ namespace MongoDB.Client.Filters
             MemberExpression memberExpr => ExtractValue(memberExpr),
             _ => ThrowHelper.Expression<Filter>($"Can't extract value from expression {expr}")
         };
+        private static object? ExtractValue(UnaryExpression unaryExpr)
+        {
+            return ExtractValue((MemberExpression)unaryExpr.Operand);
+        }
         private static object? ExtractValue(ConstantExpression constExpr)
         {
             return constExpr.Value;
@@ -236,7 +259,7 @@ namespace MongoDB.Client.Filters
                 {
                     value = type switch
                     {
-                        MemberTypes.Field => value!.GetType().GetField(field, flags).GetValue(value)!,
+                        MemberTypes.Field => value!.GetType().GetField(field, flags)!.GetValue(value)!,
                         MemberTypes.Property => value.GetType().GetProperty(field, flags)!.GetValue(value)!
                     };
                 }
@@ -301,80 +324,14 @@ namespace MongoDB.Client.Filters
 
             return flags;
         }
-        private static Filter MakeRange(string propertyName, object? value, RangeFilterType type)
-        {
-            if (value is null)
-            {
-                //TODO: FIX IT
-                //return new LtFilter<object>(propertyName, null);
-            }
-            switch (value)
-            {
-                case string[] str: return new RangeFilter<string>(propertyName, str, type);
-                case int[] int32: return new RangeFilter<int>(propertyName, int32, type);
-                case long[] int64: return new RangeFilter<long>(propertyName, int64, type);
-                case double[] doubleValue: return new RangeFilter<double>(propertyName, doubleValue, type);
-                case decimal[] decimalValue: return new RangeFilter<decimal>(propertyName, decimalValue, type);
-                case BsonObjectId[] objectId: return new RangeFilter<BsonObjectId>(propertyName, objectId, type);
-                case BsonTimestamp[] timestamp: return new RangeFilter<BsonTimestamp>(propertyName, timestamp, type);
-                case DateTimeOffset[] dt: return new RangeFilter<DateTimeOffset>(propertyName, dt, type);
-                case Guid[] guid: return new RangeFilter<Guid>(propertyName, guid, type);
-                case BsonDocument[] document: return new RangeFilter<BsonDocument>(propertyName, document, type);
-            }
-
-            return ThrowHelper.Expression<Filter>($"Unsupported type in Expression - {value.GetType()}");
-        }
-        private static Filter MakeEqual(string propertyName, object? value)
-        {
-            if (value is null)
-            {
-                return new EqFilter<object>(propertyName, null);
-            }
-            switch (value)
-            {
-                case string str: return new EqFilter<string>(propertyName, str);
-                case int int32: return new EqFilter<int>(propertyName, int32);
-                case long int64: return new EqFilter<long>(propertyName, int64);
-                case double doubleValue: return new EqFilter<double>(propertyName, doubleValue);
-                case decimal decimalValue: return new EqFilter<decimal>(propertyName, decimalValue);
-                case BsonObjectId objectId: return new EqFilter<BsonObjectId>(propertyName, objectId);
-                case BsonTimestamp timestamp: return new EqFilter<BsonTimestamp>(propertyName, timestamp);
-                case DateTimeOffset dt: return new EqFilter<DateTimeOffset>(propertyName, dt);
-                case Guid guid: return new EqFilter<Guid>(propertyName, guid);
-                case BsonDocument document: return Filter.FromDocument(document);
-            }
-
-            return ThrowHelper.Expression<Filter>($"Unsupported type in Expression(equal filter) - {value.GetType()}");
-        }
-
-        private static Filter MakeSimpleFilter(string propertyName, object? value, FilterType op)
-        {
-            if (value is null)
-            {
-                return new Filter<object>(propertyName, null, op);
-            }
-            switch (value)
-            {
-                case string str: return new Filter<string>(propertyName, str, op);
-                case int int32: return new Filter<int>(propertyName, int32, op);
-                case long int64: return new Filter<long>(propertyName, int64, op);
-                case double doubleValue: return new Filter<double>(propertyName, doubleValue, op);
-                case decimal decimalValue: return new Filter<decimal>(propertyName, decimalValue, op);
-                case BsonObjectId objectId: return new Filter<BsonObjectId>(propertyName, objectId, op);
-                case BsonTimestamp timestamp: return new Filter<BsonTimestamp>(propertyName, timestamp, op);
-                case DateTimeOffset dt: return new Filter<DateTimeOffset>(propertyName, dt, op);
-                case Guid guid: return new Filter<Guid>(propertyName, guid, op);
-            }
-
-            return ThrowHelper.Expression<Filter>($"Unsupported type in Expression - {value.GetType()}");
-        }
-
         public static string? GetPropertyName(Expression expr)
         {
             switch (expr)
             {
                 case MemberExpression memberExpr:
                     return memberExpr.Member.Name;
+                case UnaryExpression unaryExpr:
+                    return unaryExpr.Operand is MemberExpression operandMember ? operandMember.Member.Name : null;
                 default:
                     return null;
             }

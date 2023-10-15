@@ -1,5 +1,7 @@
 ﻿using MongoDB.Client.Bson;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Writer;
+using MongoDB.Client.Exceptions;
 
 namespace MongoDB.Client.Filters
 {
@@ -8,10 +10,11 @@ namespace MongoDB.Client.Filters
         In = 1,
         NotIn,
     }
+
     public class RangeFilter<T> : Filter
     {
         public string PropertyName { get; protected set; }
-        public T[] Values { get; protected set; }
+        public IList<T?> Values { get; protected set; }
         public RangeFilterType Type { get; protected set; }
         public RangeFilter(string propertyName, T[] values, RangeFilterType type)
         {
@@ -19,7 +22,12 @@ namespace MongoDB.Client.Filters
             Values = values;
             Type = type;
         }
-
+        public RangeFilter(string propertyName, IEnumerable<T?> values, RangeFilterType type)
+        {
+            PropertyName = propertyName;
+            Type = type;
+            Values = values.ToList();            
+        }
         public override void Write(ref BsonWriter writer)
         {
             var checkpoint = writer.Written;
@@ -49,12 +57,11 @@ namespace MongoDB.Client.Filters
 
             reserved.Write(writer.Written - checkpoint);
         }
-
         private void WriteInner(ref BsonWriter writer)
         {
             var checkpoint = writer.Written;
             var reserved = writer.Reserve(4);
-            for (int i = 0; i < Values.Length; i++)
+            for (int i = 0; i < Values.Count; i++)
             {
                 var item = Values[i];
 
