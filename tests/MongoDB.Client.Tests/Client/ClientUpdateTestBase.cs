@@ -164,7 +164,7 @@ namespace MongoDB.Client.Tests.Client
             var update = Update.Set(UpdatedFirstDoc.Create());
             var filter = BsonDocument.Empty;
             var db = client.GetDatabase(DB);
-            var collection = db.GetCollection<FirstDoc>("UpdateSetCollection" + DateTimeOffset.UtcNow);
+            var collection = db.GetCollection<FirstDoc>("UpdateSetCollection" + Guid.NewGuid());
             var (result, before, after) = await UpdateOneAsync(items, filter, update, collection);
             Assert.Equal(1, result.Ok);
             Assert.Equal(1, result.N);
@@ -199,7 +199,7 @@ namespace MongoDB.Client.Tests.Client
             var update = Update.Set(UpdatedFirstDoc.Create());
             var filter = BsonDocument.Empty;
             var db = client.GetDatabase(DB);
-            var collection = db.GetCollection<FirstDoc>("UpdateSetCollection" + DateTimeOffset.UtcNow);
+            var collection = db.GetCollection<FirstDoc>("UpdateSetCollection" + Guid.NewGuid());
             var (result, before, after) = await UpdateManyAsync(items, filter, update, collection);
             Assert.Equal(1, result.Ok);
             Assert.Equal(2, result.N);
@@ -232,7 +232,7 @@ namespace MongoDB.Client.Tests.Client
         {
             var items = new[] { FirstDoc.Create(), FirstDoc.Create() };
             var db = client.GetDatabase(DB);
-            var collection = db.GetCollection<FirstDoc>("UpdateSetCollectionSameModel" + DateTimeOffset.UtcNow);
+            var collection = db.GetCollection<FirstDoc>("UpdateSetCollectionSameModel" + Guid.NewGuid());
             var before = await InsertAsync(items, collection);
             UpdateFirstDocuments(before);
             foreach (var item in before)
@@ -295,7 +295,7 @@ namespace MongoDB.Client.Tests.Client
         {
             var items = new[] { FirstDoc.Create(), FirstDoc.Create() };
             var db = client.GetDatabase(DB);
-            var collection = db.GetCollection<FirstDoc>("UpdateIncCollection" + DateTimeOffset.UtcNow);
+            var collection = db.GetCollection<FirstDoc>("UpdateIncCollection" + Guid.NewGuid());
             var update = Update.Inc(new UpdateFirstIncOrMulOrMaxOrMinDoc(2));
             var (result, before, after) = await UpdateOneAsync(items, BsonDocument.Empty, update, collection);
             Assert.True(items.Length == after.Count);
@@ -326,7 +326,7 @@ namespace MongoDB.Client.Tests.Client
         {
             var items = new[] { FirstDoc.Create(), FirstDoc.Create() };
             var db = client.GetDatabase(DB);
-            var collection = db.GetCollection<FirstDoc>("UpdateIncCollection" + DateTimeOffset.UtcNow);
+            var collection = db.GetCollection<FirstDoc>("UpdateIncCollection" + Guid.NewGuid());
             var update = Update.Inc(new UpdateFirstIncOrMulOrMaxOrMinDoc(2));
             var (result, before, after) = await UpdateManyAsync(items, BsonDocument.Empty, update, collection);
             Assert.True(items.Length == after.Count);
@@ -358,7 +358,7 @@ namespace MongoDB.Client.Tests.Client
         {
             var items = new[] { FirstDoc.Create(), FirstDoc.Create() };
             var db = client.GetDatabase(DB);
-            var collection = db.GetCollection<FirstDoc>("UpdateMulCollection" + DateTimeOffset.UtcNow);
+            var collection = db.GetCollection<FirstDoc>("UpdateMulCollection" + Guid.NewGuid());
             var update = Update.Mul(new UpdateFirstIncOrMulOrMaxOrMinDoc(2));
             var (result, before, after) = await UpdateOneAsync(items, BsonDocument.Empty, update, collection);
             Assert.True(items.Length == after.Count);
@@ -389,7 +389,7 @@ namespace MongoDB.Client.Tests.Client
         {
             var items = new[] { FirstDoc.Create(), FirstDoc.Create() };
             var db = client.GetDatabase(DB);
-            var collection = db.GetCollection<FirstDoc>("UpdateMulCollection" + DateTimeOffset.UtcNow);
+            var collection = db.GetCollection<FirstDoc>("UpdateMulCollection" + Guid.NewGuid());
             var update = Update.Mul(new UpdateFirstIncOrMulOrMaxOrMinDoc(2));
             var (result, before, after) = await UpdateManyAsync(items, BsonDocument.Empty, update, collection);
             Assert.True(items.Length == after.Count);
@@ -421,7 +421,7 @@ namespace MongoDB.Client.Tests.Client
         {
             var items = new[] { FirstDoc.Create(), FirstDoc.Create() };
             var db = client.GetDatabase(DB);
-            var collection = db.GetCollection<FirstDoc>("UpdateMaxCollection" + DateTimeOffset.UtcNow);
+            var collection = db.GetCollection<FirstDoc>("UpdateMaxCollection" + Guid.NewGuid());
             var update = Update.Max(new UpdateFirstIncOrMulOrMaxOrMinDoc(100500));
             var (result, before, after) = await UpdateOneAsync(items, BsonDocument.Empty, update, collection);
             Assert.True(items.Length == after.Count);
@@ -452,7 +452,7 @@ namespace MongoDB.Client.Tests.Client
         {
             var items = new[] { FirstDoc.Create(), FirstDoc.Create() };
             var db = client.GetDatabase(DB);
-            var collection = db.GetCollection<FirstDoc>("UpdateMaxCollection" + DateTimeOffset.UtcNow);
+            var collection = db.GetCollection<FirstDoc>("UpdateMaxCollection" + Guid.NewGuid());
             var update = Update.Max(new UpdateFirstIncOrMulOrMaxOrMinDoc(100500));
             var (result, before, after) = await UpdateManyAsync(items, BsonDocument.Empty, update, collection);
             Assert.True(items.Length == after.Count);
@@ -484,7 +484,7 @@ namespace MongoDB.Client.Tests.Client
         {
             var items = new[] { FirstDoc.Create(), FirstDoc.Create() };
             var db = client.GetDatabase(DB);
-            var collection = db.GetCollection<FirstDoc>("UpdateMaxCollection" + DateTimeOffset.UtcNow);
+            var collection = db.GetCollection<FirstDoc>("UpdateMaxCollection" + Guid.NewGuid());
             var update = Update.Max(new UpdateFirstIncOrMulOrMaxOrMinDoc(1));
             var (result, before, after) = await UpdateOneAsync(items, BsonDocument.Empty, update, collection);
             Assert.Equal(0, result.Modified);
@@ -495,7 +495,7 @@ namespace MongoDB.Client.Tests.Client
         {
             var items = new[] { FirstDoc.Create(), FirstDoc.Create() };
             var db = client.GetDatabase(DB);
-            var collection = db.GetCollection<FirstDoc>("UpdateMaxCollection" + DateTimeOffset.UtcNow);
+            var collection = db.GetCollection<FirstDoc>("UpdateMaxCollection" + Guid.NewGuid());
             var update = Update.Max(new UpdateFirstIncOrMulOrMaxOrMinDoc(1));
             var (result, before, after) = await UpdateManyAsync(items, BsonDocument.Empty, update, collection);
             Assert.Equal(0, result.Modified);
@@ -506,7 +506,7 @@ namespace MongoDB.Client.Tests.Client
         {
             var items = new[] { FirstDoc.Create(), FirstDoc.Create() };
             var db = client.GetDatabase(DB);
-            var collection = db.GetCollection<FirstDoc>("UpdateMinCollection" + DateTimeOffset.UtcNow);
+            var collection = db.GetCollection<FirstDoc>("UpdateMinCollection" + Guid.NewGuid());
             var update = Update.Min(new UpdateFirstIncOrMulOrMaxOrMinDoc(1));
             var (result, before, after) = await UpdateOneAsync(items, BsonDocument.Empty, update, collection);
             Assert.True(items.Length == after.Count);
@@ -537,7 +537,7 @@ namespace MongoDB.Client.Tests.Client
         {
             var items = new[] { FirstDoc.Create(), FirstDoc.Create() };
             var db = client.GetDatabase(DB);
-            var collection = db.GetCollection<FirstDoc>("UpdateMinCollection" + DateTimeOffset.UtcNow);
+            var collection = db.GetCollection<FirstDoc>("UpdateMinCollection" + Guid.NewGuid());
             var update = Update.Min(new UpdateFirstIncOrMulOrMaxOrMinDoc(1));
             var (result, before, after) = await UpdateManyAsync(items, BsonDocument.Empty, update, collection);
             Assert.True(items.Length == after.Count);
@@ -569,7 +569,7 @@ namespace MongoDB.Client.Tests.Client
         {
             var items = new[] { FirstDoc.Create(), FirstDoc.Create() };
             var db = client.GetDatabase(DB);
-            var collection = db.GetCollection<FirstDoc>("UpdateMinCollection" + DateTimeOffset.UtcNow);
+            var collection = db.GetCollection<FirstDoc>("UpdateMinCollection" + Guid.NewGuid());
             var update = Update.Min(new UpdateFirstIncOrMulOrMaxOrMinDoc(100500));
             var (result, before, after) = await UpdateOneAsync(items, BsonDocument.Empty, update, collection);
             Assert.Equal(0, result.Modified);
@@ -580,7 +580,7 @@ namespace MongoDB.Client.Tests.Client
         {
             var items = new[] { FirstDoc.Create(), FirstDoc.Create() };
             var db = client.GetDatabase(DB);
-            var collection = db.GetCollection<FirstDoc>("UpdateMinCollection" + DateTimeOffset.UtcNow);
+            var collection = db.GetCollection<FirstDoc>("UpdateMinCollection" + Guid.NewGuid());
             var update = Update.Min(new UpdateFirstIncOrMulOrMaxOrMinDoc(100500));
             var (result, before, after) = await UpdateManyAsync(items, BsonDocument.Empty, update, collection);
             Assert.Equal(0, result.Modified);
@@ -591,7 +591,7 @@ namespace MongoDB.Client.Tests.Client
         {
             var items = new[] { MakeBsonDoc(), MakeBsonDoc() };
             var db = client.GetDatabase(DB);
-            var collection = db.GetCollection<BsonDocument>("UpdateSetOnInsertCollection" + DateTimeOffset.UtcNow);
+            var collection = db.GetCollection<BsonDocument>("UpdateSetOnInsertCollection" + Guid.NewGuid());
             var update = Update.SetOnInsert(new BsonDocument("NewField", 42));
             var (result, before, after) = await UpdateOneAsync(items, new BsonDocument("SomeInt", 12), update, collection, new UpdateOptions(true));
             Assert.True(result.Upserted.Count == 1);
@@ -611,7 +611,7 @@ namespace MongoDB.Client.Tests.Client
         {
             var items = new[] { MakeBsonDoc(), MakeBsonDoc() };
             var db = client.GetDatabase(DB);
-            var collection = db.GetCollection<BsonDocument>("UpdateSetOnInsertCollection" + DateTimeOffset.UtcNow);
+            var collection = db.GetCollection<BsonDocument>("UpdateSetOnInsertCollection" + Guid.NewGuid());
             var update = Update.SetOnInsert(new BsonDocument("NewField", 42));
             var (result, before, after) = await UpdateManyAsync(items, new BsonDocument("SomeInt", 12), update, collection, new UpdateOptions(true));
             Assert.True(result.Upserted?.Count == 1);
@@ -631,7 +631,7 @@ namespace MongoDB.Client.Tests.Client
         {
             var items = new[] { MakeBsonDoc(), MakeBsonDoc() };
             var db = client.GetDatabase(DB);
-            var collection = db.GetCollection<BsonDocument>("UpdateRenameCollection" + DateTimeOffset.UtcNow);
+            var collection = db.GetCollection<BsonDocument>("UpdateRenameCollection" + Guid.NewGuid());
             var update = Update.Rename(new BsonDocument("SomeInt", "RenamedField"));
             var (result, before, after) = await UpdateOneAsync(items, BsonDocument.Empty, update, collection);
             Assert.Equal(1, result.Modified);
@@ -654,7 +654,7 @@ namespace MongoDB.Client.Tests.Client
         {
             var items = new[] { MakeBsonDoc(), MakeBsonDoc() };
             var db = client.GetDatabase(DB);
-            var collection = db.GetCollection<BsonDocument>("UpdateRenameCollection" + DateTimeOffset.UtcNow);
+            var collection = db.GetCollection<BsonDocument>("UpdateRenameCollection" + Guid.NewGuid());
             var update = Update.Rename(new BsonDocument("SomeInt", "RenamedField"));
             var (result, before, after) = await UpdateManyAsync(items, BsonDocument.Empty, update, collection);
             Assert.Equal(2, result.Modified);

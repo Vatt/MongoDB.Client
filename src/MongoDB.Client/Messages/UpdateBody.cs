@@ -1,5 +1,6 @@
 ﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
+using MongoDB.Client.Filters;
 
 namespace MongoDB.Client.Messages
 {
@@ -8,7 +9,7 @@ namespace MongoDB.Client.Messages
     {
         [BsonElement("q")]
         [BsonWriteIgnoreIf("Filter is null")]
-        public BsonDocument Filter { get; }
+        public Filter Filter { get; }
 
         [BsonElement("u")]
         [BsonWriteIgnoreIf("Update is null")]
@@ -30,7 +31,7 @@ namespace MongoDB.Client.Messages
                 [BsonElement("hint")]
                 public BsonElement? Hint { get; }
                 */
-        public UpdateBody(BsonDocument filter, Update update, bool isMulty, bool isUpsert = false, List<BsonDocument>? arrayFilters = null, Collation? collation = null)
+        public UpdateBody(Filter filter, Update update, bool isMulty, bool isUpsert = false, List<BsonDocument>? arrayFilters = null, Collation? collation = null)
         {
             Filter = filter;
             Update = update;

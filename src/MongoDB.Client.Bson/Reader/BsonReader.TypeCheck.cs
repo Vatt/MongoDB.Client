@@ -1,6 +1,4 @@
 ﻿using System.Buffers.Text;
-using System.Globalization;
-using System.Runtime.InteropServices;
 using System.Text;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Utils;

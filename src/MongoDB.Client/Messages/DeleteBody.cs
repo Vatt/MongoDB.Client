@@ -1,5 +1,6 @@
 ﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization.Attributes;
+using MongoDB.Client.Filters;
 
 namespace MongoDB.Client.Messages
 {
@@ -7,11 +8,11 @@ namespace MongoDB.Client.Messages
     public partial class DeleteBody
     {
         [BsonElement("q")]
-        public BsonDocument Filter { get; }
+        public Filter Filter { get; }
 
         [BsonElement("limit")]
         public int Limit { get; }
-        public DeleteBody(BsonDocument Filter, int Limit)
+        public DeleteBody(Filter Filter, int Limit)
         {
             this.Filter = Filter;
             this.Limit = Limit;

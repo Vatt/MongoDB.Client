@@ -18,7 +18,10 @@ namespace MongoDB.Client.Bson.Document
             Name = name;
             Value = value;
         }
-
+        public static BsonElement Create(BsonDocument parent, BsonType type, string name, object? value)
+        {
+            return new(parent, type, name, value);
+        }
         public static BsonElement Create(BsonDocument parent, string name, int value)
         {
             return new BsonElement(parent, BsonType.Int32, name, value);

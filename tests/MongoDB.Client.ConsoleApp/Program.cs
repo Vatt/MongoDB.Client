@@ -2,22 +2,26 @@ using System.Diagnostics;
 using System.Net;
 using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
+using MongoDB.Client.Bson.Reader;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Bson.Serialization.Attributes;
+using MongoDB.Client.Bson.Writer;
 using MongoDB.Client.Exceptions;
+using MongoDB.Client.Filters;
 using MongoDB.Client.Settings;
 using MongoDB.Client.Tests.Models;
 
 namespace MongoDB.Client.ConsoleApp
 {
-
     [BsonSerializable]
     public readonly partial struct TestModel
     {
-        public int SomeId { get; }
-        public string Name { get; }
-        public TestModel(string name, int someId)
+        [BsonElement("_ID_")] public BsonObjectId Id { get;}
+        [BsonElement("_SomeId_")] public int SomeId { get; }
+        [BsonElement("_Name_")] public string Name { get; }
+        public TestModel(BsonObjectId id, string name, int someId)
         {
+            Id = id;
             Name = name;
             SomeId = someId;
         }
@@ -39,14 +43,96 @@ namespace MongoDB.Client.ConsoleApp
         {
             //var update = Update<TestModel>.Set(new {SomeId = 22});
             //await TestUpdate();
-            await LoadTest<GeoIp>(1024 * 1024, new[] { 8 });
+            //await LoadTest<GeoIp>(1024 * 1024, new[] { 8 });
+            await FilterTest();
+            //await LoadTest<GeoIp>(1024 * 1024, new[] { 512 });
             //await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, false);
             //await TestShardedCluster();
             //await TestTransaction();
             //await TestStandalone();
         }
+        class Wrapper
+        {
+            public WrappedArray WrappedArrayField = new();
+            public WrappedArray WrappedArrayProperty { get; } = new();
+            public WrappedInt32 WrappedInt32 { get; } = new();
+        }
+        class WrappedArray
+        {
+            public int[] FieldArray = new[] { 1, 2, 3, 4, 5 };
+            public int[] PropertyArray { get; } = new[] { 5, 4, 3, 2, 1 };
+        }
+        class WrappedInt32
+        {
+            public int Value { get; } = 1;
+        }
+        private static int[] arr = new int[] { 1, 2, 3 };
+        private static BsonObjectId id1 = BsonObjectId.NewObjectId();
+        private static BsonObjectId id2 = BsonObjectId.NewObjectId();
+        private static BsonObjectId id3 = BsonObjectId.NewObjectId();
+        private static bool boolVar = false;
+        private static IList<int> list = new List<int>() { 1, 2, 3 };
+        private static IEnumerable<int> enumerable = new List<int>() { 1, 2, 3 };
+        private static Wrapper wrapper { get; set; } = new();
+        public static Filter Test()
+        {
+            var filter = Filter.FromExpression((TestModel x) => wrapper.WrappedArrayProperty.PropertyArray.Contains(x.SomeId) == boolVar ||
+                                                            wrapper.WrappedArrayProperty.FieldArray.Contains(x.SomeId) != true ||
+                                                            wrapper.WrappedArrayField.FieldArray.Contains(x.SomeId) != true ||
+                                                            wrapper.WrappedArrayField.PropertyArray.Contains(x.SomeId) != boolVar &&
+                                                            x.SomeId != wrapper.WrappedInt32.Value &&
+                                                            wrapper.WrappedInt32.Value == x.SomeId &&
+                                                            wrapper.WrappedInt32.Value != x.SomeId &&
+                                                            wrapper.WrappedInt32.Value > x.SomeId &&
+                                                            wrapper.WrappedInt32.Value < x.SomeId &&
+                                                            wrapper.WrappedInt32.Value <= x.SomeId &&
+                                                            wrapper.WrappedInt32.Value >= x.SomeId &&
+                                                            arr.Contains(x.SomeId) &&
+                                                            x.Id == id1 &&
+                                                            id2 == x.Id &&
+                                                            1 == x.SomeId ||
+                                                            x.SomeId == 1);
+            return filter;
+        }
+        static async Task FilterTest()
+        {
+            //var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
+            //var loggerFactory = LoggerFactory.Create(builder =>
+            //{
+            //    builder
+            //        .SetMinimumLevel(LogLevel.Information)
+            //        .AddConsole();
+            //});
+            //var settings = MongoClientSettings.FromConnectionString($"mongodb://{host}/?maxPoolSize=1");
+            //var client = await MongoClient.CreateClient(settings, loggerFactory);
+            //var db = client.GetDatabase("TestDb");
+            //var collection = db.GetCollection<TestModel>("TestCollection");
+            var id1 = BsonObjectId.NewObjectId();
+            var id2 = BsonObjectId.NewObjectId();
+            var id3 = BsonObjectId.NewObjectId();
+            BsonObjectId? id4 = BsonObjectId.NewObjectId();
+            BsonObjectId? id5 = null;
+            var boolVar = false;
+            //await collection.InsertAsync(new TestModel(id1, "Test", 1));
+            //await collection.InsertAsync(new TestModel(id2, "Test", 2));
+            //await collection.InsertAsync(new TestModel(id3, "Test", 3));
+            //int[] arr = new int[] { 1, 2 ,3 };
+            //var wrapper = new Wrapper();
+            //var filter = Filter.FromExpression((TestModel x) => (x.SomeId == 1 && x.SomeId == 2) || (x.SomeId == 3 && x.SomeId == 4));
+            //var filter = Test();
+            //var filter = Filter.FromExpression((TestModel x) => arr.Contains(x.SomeId) || x.Id == id1 && id2 == x.Id && 1 == x.SomeId && x.SomeId == 1);
+            //var filter = Filter.FromExpression((TestModel x) => arr.Contains(x.SomeId));
+            var filter = Filter.FromExpression((TestModel x) => x.Id == id5);
+            //var filter = Test();
+            //var filter = Filter.FromExpression((TestModel x) => x.SomeId == 1 && x.SomeId == 2 || x.SomeId == 3);
+            //var filter = Filter.FromExpression((TestModel x) => arr.Contains(x.SomeId) || x.Id == id1 && x.Id == id2 && x.Id == id3);
+            //var result1 = await collection.Find(x => x.Id == id1 && x.SomeId == 1 && x.SomeId == 1).ToListAsync();
 
-
+            //var result2 = await collection.Find(x => wrapper.WrappedArray.FieldArray.Contains(x.SomeId) ).ToListAsync();
+            //var result3 = await collection.Find(x => x.SomeId < 2).ToListAsync();
+            //var result4 = await collection.Find(Filter.Empty).ToListAsync();
+            //await collection.DropAsync();
+        }
         static async Task TestUpdate()
         {
             var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
@@ -60,9 +146,9 @@ namespace MongoDB.Client.ConsoleApp
             var client = await MongoClient.CreateClient(settings, loggerFactory);
             var db = client.GetDatabase("TestDb");
             var collection = db.GetCollection<TestModel>("TestCollection");
-            await collection.InsertAsync(new TestModel("Test", 42));
-            await collection.InsertAsync(new TestModel("Test", 42));
-            await collection.InsertAsync(new TestModel("Test", 42));
+            await collection.InsertAsync(new TestModel(BsonObjectId.NewObjectId(), "Test", 42));
+            await collection.InsertAsync(new TestModel(BsonObjectId.NewObjectId(), "Test", 42));
+            await collection.InsertAsync(new TestModel(BsonObjectId.NewObjectId(), "Test", 42));
             var result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Set(new UpdateDoc(24)));
             result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Inc(new UpdateDoc(24)));
             result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Max(new UpdateDoc(49)));
@@ -74,6 +160,7 @@ namespace MongoDB.Client.ConsoleApp
             result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Unset(new UnsetDoc("", "")));
             result = await collection.UpdateManyAsync(new BsonDocument("Name", "Test"), Update.Unset("Name"));
             await collection.DropAsync();
+
         }
         static async Task TestShardedCluster()
         {
