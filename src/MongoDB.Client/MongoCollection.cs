@@ -25,7 +25,7 @@ namespace MongoDB.Client
         public CollectionNamespace Namespace { get; }
         public Cursor<T> Find(Expression<Func<T, bool>> expr)
         {
-            return Find(FilterVisitor.BuildFilter(expr));
+            return Find(Filter.FromExpression(expr));
         }
         public Cursor<T> Find(Filter filter)
         {
@@ -46,7 +46,7 @@ namespace MongoDB.Client
         }
         public Cursor<T> Find(TransactionHandler transaction, Expression<Func<T, bool>> expr)
         {
-            return Find(transaction, FilterVisitor.BuildFilter(expr));
+            return Find(transaction, Filter.FromExpression(expr));
         }
         public ValueTask InsertAsync(T item, CancellationToken cancellationToken = default)
         {

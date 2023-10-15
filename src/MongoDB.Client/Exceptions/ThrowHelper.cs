@@ -41,14 +41,14 @@ namespace MongoDB.Client.Exceptions
         [DoesNotReturn]
         public static T ConnectionException<T>(System.Net.EndPoint endpoint)
         {
-            throw new MongoException("Cant connect to endpoint: " + endpoint.ToString()); // TODO: custom excention
+            throw new MongoException("Cant connect to endpoint: " + endpoint.ToString());
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         [DoesNotReturn]
         public static T UnsupportedTypeException<T>(Type type)
         {
-            throw new MongoException("Unsupported type: " + type.ToString()); // TODO: custom excention
+            throw new MongoException("Unsupported type: " + type.ToString());
         }
 
 
@@ -86,13 +86,6 @@ namespace MongoDB.Client.Exceptions
         public static T MissedDocumentEndMarkerException<T>()
         {
             throw new NotSupportedException($"Document end marker was not found");
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        [DoesNotReturn]
-        public static void InvalidProtocolHeader()
-        {
-            throw new InvalidDataException("Invalid AMQP protocol header from server");
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -143,14 +136,14 @@ namespace MongoDB.Client.Exceptions
         [DoesNotReturn]
         public static void ConnectionException(System.Net.EndPoint endpoint)
         {
-            throw new Exception("Cant connect to endpoint: " + endpoint.ToString()); // TODO: custom excention
+            throw new MongoException("Cant connect to endpoint: " + endpoint.ToString());
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         [DoesNotReturn]
         public static void UnsupportedTypeException(Type type)
         {
-            throw new Exception("Unsupported type: " + type.ToString()); // TODO: custom excention
+            throw new MongoException("Unsupported type: " + type.ToString());
         }
 
 
@@ -245,7 +238,14 @@ namespace MongoDB.Client.Exceptions
         [DoesNotReturn]
         public static void PrimaryNullExceptions()
         {
-            throw new MongoException($"Connection failed: Prymary is null");
+            throw new MongoException($"Connection failed: Primary is null");
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
+        public static T Expression<T>(string message)
+        {
+            throw new MongoExpressionException(message);
         }
     }
 }

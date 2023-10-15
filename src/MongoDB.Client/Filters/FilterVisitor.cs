@@ -1,78 +1,37 @@
-﻿using System.Linq.Expressions;
-using MongoDB.Client.Bson.Serialization;
-using MongoDB.Client.Bson.Writer;
+﻿//using System.Linq.Expressions;
+//using MongoDB.Client.Bson.Serialization;
+//using MongoDB.Client.Bson.Writer;
+//using MongoDB.Client.Exceptions;
 
-namespace MongoDB.Client.Filters
-{
-    internal class FilterVisitor
-    {
-        public static string? GetPropertyName<TIn, TOut>(Expression<Func<TIn, TOut>> expr) where TIn : IBsonSerializer<TIn>
-        {
-            var body = expr.Body;
+//namespace MongoDB.Client.Filters
+//{
+//    internal class FilterVisitor
+//    {
+//        public static string? GetPropertyName<TIn, TOut>(Expression<Func<TIn, TOut>> expr) where TIn : IBsonSerializer<TIn>
+//        {
+//            var body = expr.Body;
 
-            if (body is not MemberExpression memberExpr)
-            {
-                return null;
-            }
+//            if (body is not MemberExpression memberExpr)
+//            {
+//                return null;
+//            }
 
-            return memberExpr.Member.Name;
-        }
-        public static string? GetPropertyName(Expression expr)
-        {
-            switch (expr)
-            {
-                case MemberExpression memberExpr:
-                    return memberExpr.Member.Name;
-                default:
-                    return null;
-            }
-        }
-        public static Filter BuildFilter<T>(Expression<Func<T, bool>> expr) where T : IBsonSerializer<T>
-        {
-            if (expr.Parameters.Count > 1)
-            {
-                throw new NotSupportedException("Multi parameters not supported");
-            }
+//            return memberExpr.Member.Name;
+//        }
 
-            var builder = new ExpressionFilterBuilder(expr.Parameters[0], MappingProvider<T>.Mapping);
+//        public static Filter BuildFilter<T>(Expression<Func<T, bool>> expr) where T : IBsonSerializer<T>
+//        {
+//            if (expr.Parameters.Count > 1)
+//            {
+//                return ThrowHelper.Expression<Filter>($"Multi parameters not supported, parameters {string.Join(',', expr.Parameters)}");
+//            }
 
-            Find(expr.Body, builder);
+//            var builder = new ExpressionFilterBuilder(expr.Parameters[0], MappingProvider<T>.Mapping);
 
-            return builder.Build();
-        }
-        private static void Find(Expression expr, ExpressionFilterBuilder builder)
-        {
-            switch (expr.NodeType)
-            {
-                case ExpressionType.AndAlso:
-                case ExpressionType.OrElse:
-                    var binExpr = (BinaryExpression)expr;
+//            Find(expr.Body, builder);
 
-                    builder.AddExpression(binExpr);
+//            return builder.Build();
+//        }
 
-                    Find(binExpr.Right, builder);
-                    Find(binExpr.Left, builder);
-
-                    return;
-                case ExpressionType.Equal:
-                case ExpressionType.NotEqual:
-                case ExpressionType.LessThan:
-                case ExpressionType.GreaterThan:
-                case ExpressionType.LessThanOrEqual:
-                case ExpressionType.GreaterThanOrEqual:
-                    binExpr = (BinaryExpression)expr;
-
-                    builder.AddExpression(binExpr);
-
-                    return;
-
-                case ExpressionType.Call:
-                    builder.AddExpression(expr);
-
-                    return;
-            }
-
-            throw new NotSupportedException($"Not supported expression - {expr}");
-        }
-    }
-}
+//    }
+//}
