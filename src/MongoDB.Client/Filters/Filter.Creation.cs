@@ -89,19 +89,19 @@ namespace MongoDB.Client.Filters
 
             if (value is null)
             {
-                return new EqFilter<object>(propertyName, null);
+                return new Filter<object>(propertyName, null, FilterType.Eq);
             }
             switch (value)
             {
-                case string str: return new EqFilter<string>(propertyName, str);
-                case int int32: return new EqFilter<int>(propertyName, int32);
-                case long int64: return new EqFilter<long>(propertyName, int64);
-                case double doubleValue: return new EqFilter<double>(propertyName, doubleValue);
-                case decimal decimalValue: return new EqFilter<decimal>(propertyName, decimalValue);
-                case BsonObjectId objectId: return new EqFilter<BsonObjectId>(propertyName, objectId);
-                case BsonTimestamp timestamp: return new EqFilter<BsonTimestamp>(propertyName, timestamp);
-                case DateTimeOffset dt: return new EqFilter<DateTimeOffset>(propertyName, dt);
-                case Guid guid: return new EqFilter<Guid>(propertyName, guid);
+                case string str: return new Filter<string>(propertyName, str, FilterType.Eq);
+                case int int32: return new Filter<int>(propertyName, int32, FilterType.Eq);
+                case long int64: return new Filter<long>(propertyName, int64, FilterType.Eq);
+                case double doubleValue: return new Filter<double>(propertyName, doubleValue, FilterType.Eq);
+                case decimal decimalValue: return new Filter<decimal>(propertyName, decimalValue, FilterType.Eq);
+                case BsonObjectId objectId: return new Filter<BsonObjectId>(propertyName, objectId, FilterType.Eq);
+                case BsonTimestamp timestamp: return new Filter<BsonTimestamp>(propertyName, timestamp, FilterType.Eq);
+                case DateTimeOffset dt: return new Filter<DateTimeOffset>(propertyName, dt, FilterType.Eq);
+                case Guid guid: return new Filter<Guid>(propertyName, guid, FilterType.Eq);
                 case BsonDocument document: return FromDocument(document);
             }
 

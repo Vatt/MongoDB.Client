@@ -141,10 +141,10 @@ namespace MongoDB.Client.Filters
                     return ThrowHelper.Expression<Filter>($"Can't create ArrayFilter from {callExpr}");
             }
             return null;
-            static Filter ProcessBody(Expression expr)
-            {
+            //static Filter ProcessBody(Expression expr)
+            //{
 
-            }
+            //}
         }
         private static Filter MakeRangeFilter(MethodCallExpression callExpr, bool type, ref Context ctx)
         {

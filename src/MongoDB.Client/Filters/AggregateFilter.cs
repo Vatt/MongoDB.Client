@@ -69,7 +69,7 @@ namespace MongoDB.Client.Filters
             writer.Commit();
         }
 
-        public static AggregateFilter And(params Filter[] filters) => new(AggregateFilterType.And);
-        public static AggregateFilter Or(params Filter[] filters) => new(AggregateFilterType.Or);
+        public static AggregateFilter And(params Filter[] filters) => new(AggregateFilterType.And, filters);
+        public static AggregateFilter Or(params Filter[] filters) => new(AggregateFilterType.Or, filters);
     }
 }

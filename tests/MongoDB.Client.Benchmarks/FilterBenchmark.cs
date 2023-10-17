@@ -39,10 +39,10 @@ namespace MongoDB.Client.Benchmarks
         [Benchmark]
         public void SimpleAndManual()
         {
-            _ = AggregateFilter.And(new EqFilter<int>("SomeId", 1),
-                                    new EqFilter<int>("SomeId", 2),
-                                    new EqFilter<int>("SomeId", 3),
-                                    new EqFilter<int>("SomeId", 4));
+            _ = AggregateFilter.And(new Filter<int>("SomeId", 1, FilterType.Eq),
+                                    new Filter<int>("SomeId", 2, FilterType.Eq),
+                                    new Filter<int>("SomeId", 3, FilterType.Eq),
+                                    new Filter<int>("SomeId", 4, FilterType.Eq));
 
         }
         [Benchmark]
@@ -53,17 +53,17 @@ namespace MongoDB.Client.Benchmarks
         [Benchmark]
         public void HardManual()
         {
-            _ = AggregateFilter.Or(new EqFilter<int>("SomeId", 1),
-                                   AggregateFilter.And(new EqFilter<BsonObjectId>("Id", id1),
-                                                       new EqFilter<BsonObjectId>("Id", id2),
-                                                       new EqFilter<BsonObjectId>("Id", id3),
+            _ = AggregateFilter.Or(new Filter<int>("SomeId", 1, FilterType.Eq),
+                                   AggregateFilter.And(new Filter<BsonObjectId>("Id", id1, FilterType.Eq),
+                                                       new Filter<BsonObjectId>("Id", id2, FilterType.Eq),
+                                                       new Filter<BsonObjectId>("Id", id3, FilterType.Eq),
                                                        new RangeFilter<int>("Id", arr, RangeFilterType.In),
                                                        new Filter<int>("SomeId", wrapper.WrappedInt32.Value, FilterType.Gte),
                                                        new Filter<int>("SomeId", wrapper.WrappedInt32.Value, FilterType.Lte),
                                                        new Filter<int>("SomeId", wrapper.WrappedInt32.Value, FilterType.Lt),
                                                        new Filter<int>("SomeId", wrapper.WrappedInt32.Value, FilterType.Gt),
                                                        new Filter<int>("SomeId", wrapper.WrappedInt32.Value, FilterType.Ne),
-                                                       new EqFilter<int>("SomeId", 1)),
+                                                       new Filter<int>("SomeId", 1, FilterType.Eq)),
                                    AggregateFilter.Or(new RangeFilter<int>("Id", wrapper.WrappedArrayField.PropertyArray, RangeFilterType.In),
                                                       new RangeFilter<int>("Id", wrapper.WrappedArrayField.FieldArray, RangeFilterType.NotIn),
                                                       new RangeFilter<int>("Id", wrapper.WrappedArrayField.FieldArray, RangeFilterType.NotIn),

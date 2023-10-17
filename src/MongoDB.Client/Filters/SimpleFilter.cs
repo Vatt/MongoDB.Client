@@ -10,6 +10,7 @@ namespace MongoDB.Client.Filters
         Lt,
         Lte,
         Ne,
+        Eq
     }
     public class Filter<T> : Filter
     {
@@ -24,6 +25,12 @@ namespace MongoDB.Client.Filters
         }
         public override void Write(ref BsonWriter writer)
         {
+            if (Operation is FilterType.Eq)
+            {
+                WriteEq(ref writer);
+                return;
+            }
+
             var checkpoint = writer.Written;
             var reserved = writer.Reserve(sizeof(int));
             writer.WriteBsonType(BsonType.Document);
@@ -55,6 +62,19 @@ namespace MongoDB.Client.Filters
             writer.WriteByte((byte)'\x00');
             reserved1.Write(writer.Written - checkpoint1);
             writer.WriteByte(0);
+
+            reserved.Write(writer.Written - checkpoint);
+        }
+        private void WriteEq(ref BsonWriter writer)
+        {
+            var checkpoint = writer.Written;
+
+            var reserved = writer.Reserve(sizeof(int));
+
+            var typeReserved = writer.Reserve(sizeof(byte));
+            writer.WriteName(PropertyName);
+            writer.WriteGeneric(Value, ref typeReserved);
+            writer.WriteByte((byte)'\x00');
 
             reserved.Write(writer.Written - checkpoint);
         }
