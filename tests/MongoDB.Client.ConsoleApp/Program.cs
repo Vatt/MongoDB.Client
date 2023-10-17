@@ -20,11 +20,20 @@ namespace MongoDB.Client.ConsoleApp
         [BsonElement("_ID_")] public BsonObjectId Id { get;}
         [BsonElement("_SomeId_")] public int SomeId { get; }
         [BsonElement("_Name_")] public string Name { get; }
+        [BsonElement("_COLLECTION_")] public List<int> Collection { get; }
         public TestModel(BsonObjectId id, string name, int someId)
         {
             Id = id;
             Name = name;
             SomeId = someId;
+            Collection = null;
+        }
+        public TestModel(BsonObjectId id, string name, int someId, List<int> collection)
+        {
+            Id = id;
+            Name = name;
+            SomeId = someId;
+            Collection = collection;
         }
     }
     [BsonSerializable]
@@ -124,7 +133,25 @@ namespace MongoDB.Client.ConsoleApp
             //var filter = Filter.FromExpression((TestModel x) => arr.Contains(x.SomeId) || x.Id == id1 && id2 == x.Id && 1 == x.SomeId && x.SomeId == 1);
             //var filter = Filter.FromExpression((TestModel x) => list.Contains(x.SomeId));
             //var filter = Filter.FromExpression((TestModel x) => x.Name.Contains("asd"));
-            var filter = Filter.FromExpression((TestModel x) => "asd".Contains(x.Name));
+            //var filter = Filter.FromExpression((TestModel x) => wrapper.WrappedArrayProperty.PropertyArray.Contains(x.SomeId) == boolVar ||
+                //                                                wrapper.WrappedArrayProperty.FieldArray.Contains(x.SomeId) != true ||
+                //                                                wrapper.WrappedArrayField.FieldArray.Contains(x.SomeId) != true ||
+                //                                                wrapper.WrappedArrayField.PropertyArray.Contains(x.SomeId) != boolVar &&
+                //                                                x.SomeId != wrapper.WrappedInt32.Value &&
+                //                                                wrapper.WrappedInt32.Value == x.SomeId &&
+                //                                                wrapper.WrappedInt32.Value != x.SomeId &&
+                //                                                wrapper.WrappedInt32.Value > x.SomeId &&
+                //                                                wrapper.WrappedInt32.Value < x.SomeId &&
+                //                                                wrapper.WrappedInt32.Value <= x.SomeId &&
+                //                                                wrapper.WrappedInt32.Value >= x.SomeId &&
+                //                                                arr.Contains(x.SomeId) &&
+                //                                                x.Id == id1 &&
+                //                                                id2 == x.Id &&
+                //                                                1 == x.SomeId ||
+                //                                                x.SomeId == 1);
+            var filter = Filter.FromExpression((TestModel x) => x.Collection.Any(2, y => y > 4, y => y < 2));
+            //var filter = Filter.FromExpression((TestModel x) => x.Collection.Any(y => y > 4));
+            //var filter = Filter.FromExpression((TestModel x) => x.Collection[2] == 1);
             //var filter = Test();
             //var filter = Filter.FromExpression((TestModel x) => x.SomeId == 1 && x.SomeId == 2 || x.SomeId == 3);
             //var filter = Filter.FromExpression((TestModel x) => arr.Contains(x.SomeId) || x.Id == id1 && x.Id == id2 && x.Id == id3);

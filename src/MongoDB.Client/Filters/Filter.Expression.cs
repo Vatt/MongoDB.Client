@@ -1,8 +1,7 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization;
+﻿using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
+using MongoDB.Client.Expressions;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace MongoDB.Client.Filters
 {
@@ -27,26 +26,20 @@ namespace MongoDB.Client.Filters
                 case ExpressionType.AndAlso:
                     {
                         var binExpr = (BinaryExpression)expr;
-                        var newAggregateFilter = new AggregateFilter(AggregateFilterType.And);
                         
                         var right = Next(binExpr.Right, ref ctx);
                         var left = Next(binExpr.Left, ref ctx);
 
-                        newAggregateFilter.Add(right, left);
-
-                        return newAggregateFilter;
+                        return AggregateFilter.And(right, left);
                     }
                 case ExpressionType.OrElse:
                     {
                         var binExpr = (BinaryExpression)expr;
-                        var newAggregateFilter = new AggregateFilter(AggregateFilterType.Or);
 
                         var right = Next(binExpr.Right, ref ctx);
                         var left = Next(binExpr.Left, ref ctx);
 
-                        newAggregateFilter.Add(right, left);
-
-                        return newAggregateFilter;
+                        return AggregateFilter.Or(right, left);
                     }
                 case ExpressionType.Equal:
                 case ExpressionType.NotEqual:
@@ -81,12 +74,12 @@ namespace MongoDB.Client.Filters
             if (binExpr.Left.NodeType is ExpressionType.Call)
             {
                 callExpr = (MethodCallExpression)binExpr.Left;
-                type = ExtractValue(binExpr.Right);
+                type = binExpr.Right.ExtractValue();
             }
             else
             {
                 callExpr = (MethodCallExpression)binExpr.Right;
-                type = ExtractValue(binExpr.Left);
+                type = binExpr.Left.ExtractValue();
             }
 
             if (type is not bool)
@@ -108,16 +101,59 @@ namespace MongoDB.Client.Filters
         {
             var methodName = callExpr.Method.Name;
 
-            if (callExpr.Method.Name != "Contains")
+            if (methodName is "Contains")
             {
-                return ThrowHelper.Expression<Filter>($"Not supported MethodCallExpression with method name {methodName}");
+                return MakeRangeFilter(callExpr, type, ref ctx);
             }
+            else if (methodName is "Any" or "All")
+            {
+                return MakeArrayFilter(callExpr, methodName, type, ref ctx);
+            }
+            else
+            {
+                return ThrowHelper.Expression<Filter>($"Not supported method name {methodName}");
+            }
+        }
+        private static Filter MakeArrayFilter(MethodCallExpression callExpr, string methodName, bool type, ref Context ctx)
+        {
+            string? propertyName;
+            int? size = null;
+            List<LambdaExpression> expressions = new(1);
+
+            switch (callExpr.Arguments.Count)
+            {
+                case 2://default All/Any x => x.Collection.Any(y => x < 5)
+                    propertyName = callExpr.Arguments[0].GetPropertyName();
+                    expressions.Add((LambdaExpression)callExpr.Arguments[1]);
+                    size = 0;
+
+                    break;
+                case 3:// Extension All/Any x => x.Collection.Any(2, y => y > 3, y => y < 5)
+                    propertyName = callExpr.Arguments[0].GetPropertyName();
+                    size = (int)callExpr.Arguments[1].ExtractValue()!;
+                    foreach(var expr in ((NewArrayExpression)callExpr.Arguments[2]).Expressions)
+                    {
+                        expressions.Add((LambdaExpression)expr);
+                    }
+                    
+                    break;
+                default:
+                    return ThrowHelper.Expression<Filter>($"Can't create ArrayFilter from {callExpr}");
+            }
+            return null;
+            static Filter ProcessBody(Expression expr)
+            {
+
+            }
+        }
+        private static Filter MakeRangeFilter(MethodCallExpression callExpr, bool type, ref Context ctx)
+        {
             object? value;
             string? property;
             if (callExpr.Arguments.Count is 2)//static method
             {
-                value = ExtractValue(callExpr.Arguments[0]);
-                property = GetPropertyName(callExpr.Arguments[1]);
+                value = callExpr.Arguments[0].ExtractValue();
+                property = callExpr.Arguments[1].GetPropertyName();
 
                 if (value is null || property is null)
                 {
@@ -131,23 +167,23 @@ namespace MongoDB.Client.Filters
                 {
                     if (callExpr.Arguments[0] is MemberExpression memberExpr && memberExpr.Expression == ctx.Parameter)// StringVar.Contains("find expr")
                     {
-                        property = GetPropertyName(callExpr.Arguments[0]);
-                        value = ExtractValue(callExpr.Object);
+                        property = callExpr.Arguments[0].GetPropertyName();
+                        value = callExpr.Object.ExtractValue();
 
                         return Create(property, $"/{value}/");
                     }
                     else //"asd".Contains(x.Name)
                     {
-                        value = ExtractValue(callExpr.Object);
-                        property = GetPropertyName(callExpr.Arguments[0]);
+                        value = callExpr.Object.ExtractValue();
+                        property = callExpr.Arguments[0].GetPropertyName();
 
                         return Create(property, $"/{value}/");
                     }
                 }
                 else
                 {
-                    property = GetPropertyName(callExpr.Arguments[0]);
-                    value = ExtractValue(callExpr.Object);
+                    property = callExpr.Arguments[0].GetPropertyName();
+                    value = callExpr.Object.ExtractValue();
                 }
             }
 
@@ -157,7 +193,6 @@ namespace MongoDB.Client.Filters
             }
 
             return type ? Create(property, value, RangeFilterType.In) : Create(property, value, RangeFilterType.NotIn);
-
         }
         private static Filter MakeSimpleFilter(BinaryExpression binExpr, ref Context ctx)
         {
@@ -184,9 +219,9 @@ namespace MongoDB.Client.Filters
                 valueExpr = binExpr.Left;
             }
 
-            object? value = ExtractValue(valueExpr);
+            object? value = Helper.ExtractValue(valueExpr);
 
-            var property = GetPropertyName(propertyExpr);
+            var property = Helper.GetPropertyName(propertyExpr);
 
             if (property is null)
             {
@@ -208,166 +243,6 @@ namespace MongoDB.Client.Filters
                 ExpressionType.NotEqual => Create(property, value, FilterType.Ne),
                 _ => throw new NotSupportedException($"Not supported  operation {operation}")
             };
-        }
-        private static object? ExtractValue(Expression expr) => expr switch
-        {
-            ConstantExpression constExpr => ExtractValue(constExpr),
-            MemberExpression memberExpr => ExtractValue(memberExpr),
-            _ => ThrowHelper.Expression<Filter>($"Can't extract value from expression {expr}")
-        };
-        private static object? ExtractValue(ConstantExpression constExpr)
-        {
-            return constExpr.Value;
-        }
-        private static object? ExtractValue(MemberExpression memberExpr)
-        {
-            var closureName = memberExpr.Member.Name;
-            ConstantExpression? constExpr;
-            
-            if (memberExpr.Expression is null) //static variable
-            {
-                if (memberExpr.Member is FieldInfo field)
-                {
-                    return field.GetValue(null);
-                }
-                else if (memberExpr.Member is PropertyInfo property)
-                {
-                    return property.GetValue(null);
-                }
-            }
-            else if (memberExpr.Expression!.NodeType is ExpressionType.Constant) // simple constant value
-            {
-                constExpr = (ConstantExpression)memberExpr.Expression;
-                var flags = GetBindingFlags(memberExpr.Member);
-                var field = constExpr.Value!.GetType().GetField(closureName, flags);
-                return field!.GetValue(constExpr.Value);
-            }
-            else if (memberExpr.Expression is MemberExpression innerExpr) //Member1.Member2.Member3.Value
-            {
-                List<(string, MemberTypes, BindingFlags)> trace = new();
-                while (innerExpr.Expression is not null)
-                {
-                    trace.Add((innerExpr.Member.Name, innerExpr.Member.MemberType, GetBindingFlags(innerExpr.Member)));
-
-                    if (innerExpr.Expression is MemberExpression)
-                    {
-                        innerExpr = (MemberExpression)innerExpr.Expression;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-                object? value = null;
-
-                if (innerExpr.Expression is null)
-                {
-                    value = innerExpr.Member switch
-                    {
-                        FieldInfo field => field.GetValue(null)!,
-                        PropertyInfo property => property.GetValue(null)!,
-                    };
-                }
-                else
-                {
-                    constExpr = (ConstantExpression)innerExpr.Expression!;
-                    value = constExpr.Value!;
-                }
-
-
-                trace.Reverse();
-
-                foreach (var (field, type, flags) in trace)
-                {
-                    value = type switch
-                    {
-                        MemberTypes.Field => value!.GetType().GetField(field, flags)!.GetValue(value)!,
-                        MemberTypes.Property => value.GetType().GetProperty(field, flags)!.GetValue(value)!
-                    };
-                }
-
-                var fieldClosure = value!.GetType().GetField(closureName);
-
-                return fieldClosure is null ? value.GetType().GetProperty(closureName)!.GetValue(value) : fieldClosure.GetValue(value);
-            }
-
-            return ThrowHelper.Expression<Filter>($"Can't extract value from expression {memberExpr}");
-        }
-        private static BindingFlags GetBindingFlags(MemberInfo member)
-        {
-            BindingFlags flags = BindingFlags.Default;
-            if (member is FieldInfo field)
-            {
-                if (field.IsStatic)
-                {
-                    flags |= BindingFlags.Static;
-                }
-                else
-                {
-                    flags |= BindingFlags.Instance;
-                }
-
-                if (field.IsPublic == false)
-                {
-                    flags |= BindingFlags.NonPublic;
-                }
-                else
-                {
-                    flags |= BindingFlags.Public;
-                }
-            }
-            else if (member is PropertyInfo property)
-            {
-                var method = property.GetMethod;
-
-                if (method == null)
-                {
-                    return flags;
-                }
-
-                if (method.IsStatic)
-                {
-                    flags |= BindingFlags.Static;
-                }
-                else
-                {
-                    flags |= BindingFlags.Instance;
-                }
-
-                if (method.IsPublic == false)
-                {
-                    flags |= BindingFlags.NonPublic;
-                }
-                else
-                {
-                    flags |= BindingFlags.Public;
-                }
-            }
-
-            return flags;
-        }
-        public static string? GetPropertyName(Expression expr)
-        {
-            switch (expr)
-            {
-                case MemberExpression memberExpr:
-                    return memberExpr.Member.Name;
-                case UnaryExpression unaryExpr:
-                    return unaryExpr.Operand is MemberExpression operandMember ? operandMember.Member.Name : null;
-                default:
-                    return null;
-            }
-        }
-        public static string? GetPropertyName<TIn, TOut>(Expression<Func<TIn, TOut>> expr) where TIn : IBsonSerializer<TIn>
-        {
-            var body = expr.Body;
-
-            if (body is not MemberExpression memberExpr)
-            {
-                return null;
-            }
-
-            return memberExpr.Member.Name;
         }
     }
 }

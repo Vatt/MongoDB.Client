@@ -39,11 +39,11 @@ namespace MongoDB.Client.Benchmarks
         [Benchmark]
         public void SimpleAndManual()
         {
-            var andFilter = new AggregateFilter(AggregateFilterType.And);
-            andFilter.Add(new EqFilter<int>("SomeId", 1));
-            andFilter.Add(new EqFilter<int>("SomeId", 2));
-            andFilter.Add(new EqFilter<int>("SomeId", 3));
-            andFilter.Add(new EqFilter<int>("SomeId", 4));
+            _ = AggregateFilter.And(new EqFilter<int>("SomeId", 1),
+                                    new EqFilter<int>("SomeId", 2),
+                                    new EqFilter<int>("SomeId", 3),
+                                    new EqFilter<int>("SomeId", 4));
+
         }
         [Benchmark]
         public void SimpleAndExpression()
@@ -53,28 +53,23 @@ namespace MongoDB.Client.Benchmarks
         [Benchmark]
         public void HardManual()
         {
-            var orFilter = new AggregateFilter(AggregateFilterType.Or);
-            orFilter.Add(new EqFilter<int>("SomeId", 1));
-            var andFilter = new AggregateFilter(AggregateFilterType.And);
-            andFilter.Add(new EqFilter<BsonObjectId>("Id", id1));
-            andFilter.Add(new EqFilter<BsonObjectId>("Id", id2));
-            andFilter.Add(new EqFilter<BsonObjectId>("Id", id3));
-            andFilter.Add(new RangeFilter<int>("Id", arr, RangeFilterType.In));
-            andFilter.Add(new Filter<int>("SomeId", wrapper.WrappedInt32.Value, FilterType.Gte));
-            andFilter.Add(new Filter<int>("SomeId", wrapper.WrappedInt32.Value, FilterType.Lte));
-            andFilter.Add(new Filter<int>("SomeId", wrapper.WrappedInt32.Value, FilterType.Lt));
-            andFilter.Add(new Filter<int>("SomeId", wrapper.WrappedInt32.Value, FilterType.Gt));
-            andFilter.Add(new Filter<int>("SomeId", wrapper.WrappedInt32.Value, FilterType.Ne));
-            andFilter.Add(new EqFilter<int>("SomeId", 1));
-            orFilter.Add(andFilter);
-            var orFilter1 = new AggregateFilter(AggregateFilterType.Or);
-            andFilter.Add(orFilter1);
-            orFilter1.Add(new RangeFilter<int>("Id", wrapper.WrappedArrayField.PropertyArray, RangeFilterType.In));
-            orFilter1.Add(new RangeFilter<int>("Id", wrapper.WrappedArrayField.FieldArray, RangeFilterType.NotIn));
-            orFilter1.Add(new RangeFilter<int>("Id", wrapper.WrappedArrayField.FieldArray, RangeFilterType.NotIn));
-            orFilter1.Add(new RangeFilter<int>("Id", wrapper.WrappedArrayField.FieldArray, RangeFilterType.NotIn));
-            orFilter1.Add(new RangeFilter<int>("Id", wrapper.WrappedArrayField.FieldArray, RangeFilterType.In));
-            orFilter.Add(andFilter);
+            _ = AggregateFilter.Or(new EqFilter<int>("SomeId", 1),
+                                   AggregateFilter.And(new EqFilter<BsonObjectId>("Id", id1),
+                                                       new EqFilter<BsonObjectId>("Id", id2),
+                                                       new EqFilter<BsonObjectId>("Id", id3),
+                                                       new RangeFilter<int>("Id", arr, RangeFilterType.In),
+                                                       new Filter<int>("SomeId", wrapper.WrappedInt32.Value, FilterType.Gte),
+                                                       new Filter<int>("SomeId", wrapper.WrappedInt32.Value, FilterType.Lte),
+                                                       new Filter<int>("SomeId", wrapper.WrappedInt32.Value, FilterType.Lt),
+                                                       new Filter<int>("SomeId", wrapper.WrappedInt32.Value, FilterType.Gt),
+                                                       new Filter<int>("SomeId", wrapper.WrappedInt32.Value, FilterType.Ne),
+                                                       new EqFilter<int>("SomeId", 1)),
+                                   AggregateFilter.Or(new RangeFilter<int>("Id", wrapper.WrappedArrayField.PropertyArray, RangeFilterType.In),
+                                                      new RangeFilter<int>("Id", wrapper.WrappedArrayField.FieldArray, RangeFilterType.NotIn),
+                                                      new RangeFilter<int>("Id", wrapper.WrappedArrayField.FieldArray, RangeFilterType.NotIn),
+                                                      new RangeFilter<int>("Id", wrapper.WrappedArrayField.FieldArray, RangeFilterType.NotIn),
+                                                      new RangeFilter<int>("Id", wrapper.WrappedArrayField.FieldArray, RangeFilterType.In)));
+
         }
         [Benchmark]
         public void HardExpression()

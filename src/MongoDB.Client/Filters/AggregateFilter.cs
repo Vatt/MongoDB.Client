@@ -16,6 +16,11 @@ namespace MongoDB.Client.Filters
             Type = type;
             Inner = new();
         }
+        public AggregateFilter(AggregateFilterType type, IEnumerable<Filter> inner)
+        {
+            Type = type;
+            Inner = new(inner);
+        }
         public void Add(params Filter[] filters)
         {
             Inner.AddRange(filters);
@@ -63,5 +68,8 @@ namespace MongoDB.Client.Filters
             reserved.Write(docLength);
             writer.Commit();
         }
+
+        public static AggregateFilter And(params Filter[] filters) => new(AggregateFilterType.And);
+        public static AggregateFilter Or(params Filter[] filters) => new(AggregateFilterType.Or);
     }
 }
