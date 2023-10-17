@@ -1,6 +1,8 @@
-﻿using MongoDB.Client.Bson.Document;
+﻿using System.Linq.Expressions;
+using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
+using MongoDB.Client.Expressions;
 
 namespace MongoDB.Client.Filters
 {
@@ -107,5 +109,15 @@ namespace MongoDB.Client.Filters
 
             return ThrowHelper.Expression<Filter>($"Unsupported type in Filter<T> - {value.GetType()}");
         }
+
+        //TODO: check generic type
+        public static RangeFilter<T> In<T>(string name, params T[] values) => new RangeFilter<T>(name, values, RangeFilterType.In);
+        public static RangeFilter<T> NotIn<T>(string name, params T[] values) => new RangeFilter<T>(name, values, RangeFilterType.NotIn);
+        public static Filter<T> Eq<T>(string name, T value) => new Filter<T>(name, value, FilterType.Eq);
+        public static Filter<T> Lt<T>(string name, T value) => new Filter<T>(name, value, FilterType.Lt);
+        public static Filter<T> Lte<T>(string name, T value) => new Filter<T>(name, value, FilterType.Lte);
+        public static Filter<T> Gt<T>(string name, T value) => new Filter<T>(name, value, FilterType.Gt);
+        public static Filter<T> Gte<T>(string name, T value) => new Filter<T>(name, value, FilterType.Gte);
+        public static Filter<T> Ne<T>(string name, T value) => new Filter<T>(name, value, FilterType.Ne);
     }
 }

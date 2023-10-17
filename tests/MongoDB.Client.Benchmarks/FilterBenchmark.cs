@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Amazon.Util.Internal;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Diagnostics.Tracing.StackSources;
 using MongoDB.Client.Bson.Document;
@@ -39,10 +40,10 @@ namespace MongoDB.Client.Benchmarks
         [Benchmark]
         public void SimpleAndManual()
         {
-            _ = AggregateFilter.And(new Filter<int>("SomeId", 1, FilterType.Eq),
-                                    new Filter<int>("SomeId", 2, FilterType.Eq),
-                                    new Filter<int>("SomeId", 3, FilterType.Eq),
-                                    new Filter<int>("SomeId", 4, FilterType.Eq));
+            _ = AggregateFilter.And(Filter.Eq("SomeId", 1),
+                                    Filter.Eq("SomeId", 2),
+                                    Filter.Eq("SomeId", 3),
+                                    Filter.Eq("SomeId", 4));
 
         }
         [Benchmark]
@@ -53,22 +54,22 @@ namespace MongoDB.Client.Benchmarks
         [Benchmark]
         public void HardManual()
         {
-            _ = AggregateFilter.Or(new Filter<int>("SomeId", 1, FilterType.Eq),
-                                   AggregateFilter.And(new Filter<BsonObjectId>("Id", id1, FilterType.Eq),
-                                                       new Filter<BsonObjectId>("Id", id2, FilterType.Eq),
-                                                       new Filter<BsonObjectId>("Id", id3, FilterType.Eq),
-                                                       new RangeFilter<int>("Id", arr, RangeFilterType.In),
-                                                       new Filter<int>("SomeId", wrapper.WrappedInt32.Value, FilterType.Gte),
-                                                       new Filter<int>("SomeId", wrapper.WrappedInt32.Value, FilterType.Lte),
-                                                       new Filter<int>("SomeId", wrapper.WrappedInt32.Value, FilterType.Lt),
-                                                       new Filter<int>("SomeId", wrapper.WrappedInt32.Value, FilterType.Gt),
-                                                       new Filter<int>("SomeId", wrapper.WrappedInt32.Value, FilterType.Ne),
-                                                       new Filter<int>("SomeId", 1, FilterType.Eq)),
-                                   AggregateFilter.Or(new RangeFilter<int>("Id", wrapper.WrappedArrayField.PropertyArray, RangeFilterType.In),
-                                                      new RangeFilter<int>("Id", wrapper.WrappedArrayField.FieldArray, RangeFilterType.NotIn),
-                                                      new RangeFilter<int>("Id", wrapper.WrappedArrayField.FieldArray, RangeFilterType.NotIn),
-                                                      new RangeFilter<int>("Id", wrapper.WrappedArrayField.FieldArray, RangeFilterType.NotIn),
-                                                      new RangeFilter<int>("Id", wrapper.WrappedArrayField.FieldArray, RangeFilterType.In)));
+            _ = AggregateFilter.Or(Filter.Eq("SomeId", 1),
+                                   AggregateFilter.And(Filter.Eq("Id", id1),
+                                                       Filter.Eq("Id", id2),
+                                                       Filter.Eq("Id", id3),
+                                                       Filter.In("Id", arr),
+                                                       Filter.Gte("SomeId", wrapper.WrappedInt32.Value),
+                                                       Filter.Lte("SomeId", wrapper.WrappedInt32.Value),
+                                                       Filter.Lt("SomeId", wrapper.WrappedInt32.Value),
+                                                       Filter.Gt("SomeId", wrapper.WrappedInt32.Value),
+                                                       Filter.Ne("SomeId", wrapper.WrappedInt32.Value),
+                                                       Filter.Eq("SomeId", 1)),
+                                   AggregateFilter.Or(Filter.In("Id", wrapper.WrappedArrayField.PropertyArray),
+                                                      Filter.NotIn("Id", wrapper.WrappedArrayField.FieldArray),
+                                                      Filter.NotIn("Id", wrapper.WrappedArrayField.FieldArray),
+                                                      Filter.NotIn("Id", wrapper.WrappedArrayField.FieldArray),
+                                                      Filter.In("Id", wrapper.WrappedArrayField.FieldArray)));
 
         }
         [Benchmark]
