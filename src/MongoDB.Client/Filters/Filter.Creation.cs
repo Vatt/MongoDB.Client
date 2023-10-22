@@ -110,6 +110,8 @@ namespace MongoDB.Client.Filters
             return ThrowHelper.Expression<Filter>($"Unsupported type in Filter<T> - {value.GetType()}");
         }
 
+        public static AggregateFilter And(params Filter[] filters) => new(AggregateFilterType.And, filters);
+        public static AggregateFilter Or(params Filter[] filters) => new(AggregateFilterType.Or, filters);
         //TODO: check generic type
         public static RangeFilter<T> In<T>(string name, params T[] values) => new RangeFilter<T>(name, values, RangeFilterType.In);
         public static RangeFilter<T> NotIn<T>(string name, params T[] values) => new RangeFilter<T>(name, values, RangeFilterType.NotIn);

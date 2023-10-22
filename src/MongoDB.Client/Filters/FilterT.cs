@@ -15,12 +15,18 @@ namespace MongoDB.Client.Filters
     public class Filter<T> : Filter
     {
         public string PropertyName { get; protected set; }
-        public T? Value { get; protected set; }
+        public T? Value { get; set; }
         public FilterType Operation { get; protected set; }
         public Filter(string propertyName, T? value, FilterType type)
         {
             PropertyName = propertyName;
             Value = value;
+            Operation = type;
+        }
+        public Filter(string propertyName, FilterType type)
+        {
+            PropertyName = propertyName;
+            Value = default;
             Operation = type;
         }
         public override void Write(ref BsonWriter writer)

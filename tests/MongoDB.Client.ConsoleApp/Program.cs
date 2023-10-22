@@ -15,25 +15,31 @@ using MongoDB.Client.Tests.Models;
 namespace MongoDB.Client.ConsoleApp
 {
     [BsonSerializable]
+    public partial record InnerTestModel(string Value  = "TestValue");
+    [BsonSerializable]
     public readonly partial struct TestModel
     {
         [BsonElement("_ID_")] public BsonObjectId Id { get;}
         [BsonElement("_SomeId_")] public int SomeId { get; }
         [BsonElement("_Name_")] public string Name { get; }
         [BsonElement("_COLLECTION_")] public List<int> Collection { get; }
+        [BsonElement("_INNER_DOCUMENTS_")] public List<InnerTestModel> Inner { get; }
         public TestModel(BsonObjectId id, string name, int someId)
         {
             Id = id;
             Name = name;
             SomeId = someId;
             Collection = null;
+            Inner = new() { new InnerTestModel("1_Test_Value"), new InnerTestModel("2_Test_Value") };
         }
-        public TestModel(BsonObjectId id, string name, int someId, List<int> collection)
+        [BsonConstructor]
+        public TestModel(BsonObjectId id, string name, int someId, List<int> collection, List<InnerTestModel> inner)
         {
             Id = id;
             Name = name;
             SomeId = someId;
             Collection = collection;
+            Inner = inner;
         }
     }
     [BsonSerializable]
@@ -149,7 +155,7 @@ namespace MongoDB.Client.ConsoleApp
                 //                                                id2 == x.Id &&
                 //                                                1 == x.SomeId ||
                 //                                                x.SomeId == 1);
-            var filter = Filter.FromExpression((TestModel x) => x.Collection.Any(2, y => y > 4, y => y < 2));
+            var filter = Filter.FromExpression((TestModel x) => x.Collection.Any(y => y > 4));
             //var filter = Filter.FromExpression((TestModel x) => x.Collection.Any(y => y > 4));
             //var filter = Filter.FromExpression((TestModel x) => x.Collection[2] == 1);
             //var filter = Test();

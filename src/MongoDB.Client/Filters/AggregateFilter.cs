@@ -10,7 +10,7 @@ namespace MongoDB.Client.Filters
     public class AggregateFilter : Filter
     {
         public AggregateFilterType Type { get; }
-        protected readonly List<Filter> Inner;
+        public List<Filter> Inner { get; }
         public AggregateFilter(AggregateFilterType type)
         {
             Type = type;
@@ -68,8 +68,5 @@ namespace MongoDB.Client.Filters
             reserved.Write(docLength);
             writer.Commit();
         }
-
-        public static AggregateFilter And(params Filter[] filters) => new(AggregateFilterType.And, filters);
-        public static AggregateFilter Or(params Filter[] filters) => new(AggregateFilterType.Or, filters);
     }
 }
