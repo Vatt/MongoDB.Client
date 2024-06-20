@@ -270,5 +270,9 @@ namespace MongoDB.Client.Bson.Document
             return hash.ToHashCode();
         }
 
+        public static IReadOnlyDictionary<string, string> GetSerializerMapping()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

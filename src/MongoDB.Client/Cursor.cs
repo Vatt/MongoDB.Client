@@ -1,6 +1,6 @@
-﻿using MongoDB.Client.Bson.Document;
-using MongoDB.Client.Bson.Serialization;
+﻿using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
+using MongoDB.Client.Filters;
 using MongoDB.Client.Scheduler;
 using MongoDB.Client.Utils;
 
@@ -10,11 +10,12 @@ namespace MongoDB.Client
     {
         private readonly TransactionHandler _transaction;
         private readonly IMongoScheduler _scheduler;
-        private readonly BsonDocument _filter;
+        //private readonly BsonDocument _filter;
+        private readonly Filter _filter;
         private readonly CollectionNamespace _collectionNamespace;
         private int _limit;
 
-        internal Cursor(TransactionHandler transaction, IMongoScheduler scheduler, BsonDocument filter, CollectionNamespace collectionNamespace)
+        internal Cursor(TransactionHandler transaction, IMongoScheduler scheduler, Filter filter, CollectionNamespace collectionNamespace)
         {
             _transaction = transaction;
             _scheduler = scheduler;

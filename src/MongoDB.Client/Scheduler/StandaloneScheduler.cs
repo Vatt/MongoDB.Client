@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
-using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Connection;
+using MongoDB.Client.Filters;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Messages;
 using MongoDB.Client.Settings;
@@ -33,7 +33,7 @@ namespace MongoDB.Client.Scheduler
             return _mongoScheduler.CreateCollectionAsync(message, token);
         }
 
-        public async ValueTask<FindResult<T>> FindAsync<T>(BsonDocument filter, int limit, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)
+        public async ValueTask<FindResult<T>> FindAsync<T>(Filter filter, int limit, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)
             where T : IBsonSerializer<T>
         {
             var requestNum = _mongoScheduler.GetNextRequestNumber();
@@ -65,7 +65,7 @@ namespace MongoDB.Client.Scheduler
         }
 
 
-        public ValueTask<DeleteResult> DeleteAsync(TransactionHandler transaction, BsonDocument filter, int limit, CollectionNamespace collectionNamespace, CancellationToken token)
+        public ValueTask<DeleteResult> DeleteAsync(TransactionHandler transaction, Filter filter, int limit, CollectionNamespace collectionNamespace, CancellationToken token)
         {
             var requestNumber = _mongoScheduler.GetNextRequestNumber();
             var deleteHeader = new DeleteHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId);
@@ -76,7 +76,7 @@ namespace MongoDB.Client.Scheduler
             return _mongoScheduler.DeleteAsync(request, token);
         }
 
-        public ValueTask<UpdateResult> UpdateAsync(TransactionHandler transaction, BsonDocument filter, Update update, bool isMulty, CollectionNamespace collectionNamespace, UpdateOptions? options, CancellationToken token)
+        public ValueTask<UpdateResult> UpdateAsync(TransactionHandler transaction, Filter filter, Update update, bool isMulty, CollectionNamespace collectionNamespace, UpdateOptions? options, CancellationToken token)
         {
             var requestNumber = _mongoScheduler.GetNextRequestNumber();
             var updateHeader = new UpdateHeader(collectionNamespace.CollectionName, true, collectionNamespace.DatabaseName, transaction.SessionId);

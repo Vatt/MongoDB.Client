@@ -103,6 +103,10 @@ namespace MongoDB.Client.Bson.Generators
         {
             return SF.ObjectCreationExpression(type, args.Length == 0 ? SF.ArgumentList() : SF.ArgumentList().AddArguments(args), default);
         }
+        public static ObjectCreationExpressionSyntax ObjectCreation(TypeSyntax type, InitializerExpressionSyntax initializer)
+        {
+            return SF.ObjectCreationExpression(type, default, initializer);
+        }
         public static ObjectCreationExpressionSyntax ObjectCreation(INamedTypeSymbol sym, params ArgumentSyntax[] args)
         {
             ITypeSymbol trueType = sym.Name.Equals("Nullable") ? sym.TypeParameters[0] : sym;
@@ -286,6 +290,10 @@ namespace MongoDB.Client.Bson.Generators
         {
             return SF.Token(SyntaxKind.VoidKeyword);
         }
+        public static SyntaxToken StringKeyword()
+        {
+            return SF.Token(SyntaxKind.StringKeyword);
+        }
         public static SyntaxToken IntKeyword()
         {
             return SF.Token(SyntaxKind.IntKeyword);
@@ -346,6 +354,10 @@ namespace MongoDB.Client.Bson.Generators
         {
             return SF.PredefinedType(VoidKeyword());
         }
+        public static PredefinedTypeSyntax StringPredefinedType()
+        {
+            return SF.PredefinedType(StringKeyword());
+        }
         public static LiteralExpressionSyntax DefaultLiteralExpr()
         {
             return SF.LiteralExpression(SyntaxKind.DefaultLiteralExpression);
@@ -369,6 +381,10 @@ namespace MongoDB.Client.Bson.Generators
         public static LiteralExpressionSyntax Utf8StringLiteralExpression(string value)
         {
             return SF.LiteralExpression(SyntaxKind.Utf8StringLiteralExpression, SF.ParseToken($"\"{value}\"u8"));
+        }
+        public static LiteralExpressionSyntax StringLiteralExpression(string value)
+        {
+            return SF.LiteralExpression(SyntaxKind.StringLiteralExpression, SF.Literal(value));
         }
         public static IdentifierNameSyntax IdentifierName(SyntaxToken token)
         {
@@ -506,7 +522,10 @@ namespace MongoDB.Client.Bson.Generators
         {
             return SF.SeparatedList(new[] { source });
         }
-
+        public static SeparatedSyntaxList<SyntaxNode> SeparatedList<T>(params T[] sources) where T : SyntaxNode
+        {
+            return SF.SeparatedList(sources);
+        }
         public static SyntaxTokenList SyntaxTokenList(params SyntaxToken[] tokens)
         {
             return new(tokens);
@@ -578,6 +597,10 @@ namespace MongoDB.Client.Bson.Generators
                 return SF.ArrayCreationExpression(SF.ArrayType(BytePredefinedType(), rank), SF.InitializerExpression(SyntaxKind.ArrayInitializerExpression));
             }
 
+        }
+        public static InitializerExpressionSyntax ComplexElementInitializer(params ExpressionSyntax[] args)
+        {
+            return SF.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression, SeparatedList(args));
         }
         public static SizeOfExpressionSyntax SizeOf(TypeSyntax type)
         {
