@@ -1,11 +1,15 @@
-docker-compose up -d;
-sleep 5s;
-docker exec -i mongo-cfg-a mongo < cfg.js;
+#!/usr/bin/env bash
+set -euo pipefail
 
-docker exec -i mongo-shard01-a mongo < shard01.js;
-docker exec -i mongo-shard02-a mongo < shard02.js;
-docker exec -i mongo-shard03-a mongo < shard03.js;
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
+docker compose -f "${script_dir}/docker-compose.yml" up -d
+sleep 5
+docker exec -i mongo-cfg-a mongosh --quiet < "${script_dir}/cfg.js"
 
-sleep 60s;
-docker exec -i mongo-router01 mongo < router.js;
+docker exec -i mongo-shard01-a mongosh --quiet < "${script_dir}/shard01.js"
+docker exec -i mongo-shard02-a mongosh --quiet < "${script_dir}/shard02.js"
+docker exec -i mongo-shard03-a mongosh --quiet < "${script_dir}/shard03.js"
+
+sleep 60
+docker exec -i mongo-router01 mongosh --quiet < "${script_dir}/router.js"

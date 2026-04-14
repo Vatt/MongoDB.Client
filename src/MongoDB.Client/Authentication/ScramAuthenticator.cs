@@ -27,7 +27,14 @@ namespace MongoDB.Client.Authentication
                 return null;
             }
 
-            return AddLoginInfoToCommand(isMasterDocument, _settings.Login, _settings.AdminDB);
+            if (_settings.Password is null)
+            {
+                ThrowHelper.MongoAuthentificationException(
+                    "Authentication requires a password when a login is provided. The current SCRAM implementation only supports password-based authentication.",
+                    0);
+            }
+
+            return AddLoginInfoToCommand(isMasterDocument, _settings.Login, _settings.AdminDB, ResolveMechanism());
         }
 
         public async Task AuthenticateAsync(IMongoConnection connection, BsonDocument isMasterResult, SaslStart? saslStart, CancellationToken token)
@@ -330,12 +337,31 @@ namespace MongoDB.Client.Authentication
             i = int.Parse(iSpan);
         }
 
-        private static SaslStart AddLoginInfoToCommand(BsonDocument command, string login, string db)
+        private string ResolveMechanism()
+        {
+            var mechanism = _settings.AuthMechanism;
+            if (string.IsNullOrWhiteSpace(mechanism))
+            {
+                return "SCRAM-SHA-256";
+            }
+
+            if (string.Equals(mechanism, "SCRAM-SHA-256", StringComparison.Ordinal))
+            {
+                return mechanism;
+            }
+
+            ThrowHelper.MongoAuthentificationException(
+                $"Authentication mechanism '{mechanism}' is not supported by the current SCRAM implementation.",
+                0);
+            return string.Empty;
+        }
+
+        private static SaslStart AddLoginInfoToCommand(BsonDocument command, string login, string db, string mechanism)
         {
             command.Add("saslSupportedMechs", $"{db}.{login}");
             BsonDocument speculativeAuthenticate = new BsonDocument();
             speculativeAuthenticate.Add("saslStart", 1);
-            speculativeAuthenticate.Add("mechanism", "SCRAM-SHA-256");
+            speculativeAuthenticate.Add("mechanism", mechanism);
             var saslStart = CreateScramLoginBytes(login);
             speculativeAuthenticate.Add("payload", BsonBinaryData.Create(saslStart.Payload));
             speculativeAuthenticate.Add("options", new BsonDocument("skipEmptyExchange", true));

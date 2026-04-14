@@ -1,48 +1,14 @@
-version: '3'
-
 services:
   mongo-rs0:
     hostname: mongo-rs0
     container_name: mongo-rs0
-    image: mongo:4.4
+    image: mongo:8.0-noble
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-password}
     ports:
-    - "27017:27017"
-    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
-
-  mongo-rs1:
-    hostname: mongo-rs1
-    container_name: mongo-rs1
-    image: mongo:4.4
-    ports:
-    - "27018:27017"
-    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
-
-  mongo-rs2:
-    hostname: mongo-rs2
-    container_name: mongo-rs2
-    image: mongo:4.4
-    ports:
-    - "27019:27017"
-    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
-
-  mongoinit:
-    image: mongo:4.4
-    restart: "no"
-    depends_on:
-      - mongo-rs0
-      - mongo-rs1
-      - mongo-rs2
-    command: >
-          mongo --host mongo-rs0:27017 --eval 
-          '
-          rs.initiate(
-              {
-                  _id: "rs0",
-                  members: [
-                    {_id:0, host: "host.docker.internal:27017"},
-                    {_id:1, host: "host.docker.internal:27018"},
-                    {_id:2, host: "host.docker.internal:27019"}
-                  ]
-              }
-          )
-          '             
+      - "27017:27017"
+    volumes:
+      - ./docker-entrypoint.sh:/usr/local/bin/mongo-rs-entrypoint.sh:ro
+      - ./mongo-keyfile:/run/config/mongo-keyfile:ro
+    entrypoint: ["/usr/local/bin/mongo-rs-entrypoint.sh"]

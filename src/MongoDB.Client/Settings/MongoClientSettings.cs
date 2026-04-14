@@ -63,6 +63,7 @@ namespace MongoDB.Client.Settings
         public string AdminDB { get; init; }
         public string? Login { get; init; }
         public string? Password { get; init; }
+        public string? AuthMechanism { get; init; }
         public string? ReplicaSet { get; init; }
         public ReadPreference ReadPreference { get; init; }
         public ClientType ClientType { get; init; }
@@ -95,13 +96,28 @@ namespace MongoDB.Client.Settings
                 appName = appNameVal;
             }
 
+            result.Options.TryGetValue("authSource", out var explicitAuthSource);
+            result.Options.TryGetValue("authMechanism", out var authMechanism);
+
+            var effectiveAuthSource = explicitAuthSource;
+            if (string.IsNullOrEmpty(effectiveAuthSource))
+            {
+                effectiveAuthSource = result.AdminDb;
+            }
+
+            if (string.IsNullOrEmpty(effectiveAuthSource) && !string.IsNullOrEmpty(result.Login))
+            {
+                effectiveAuthSource = "admin";
+            }
+
             var hosts = result.Hosts.ToArray();
             var settings = new MongoClientSettings
             {
                 Endpoints = hosts.ToImmutableArray(),
-                AdminDB = result.AdminDb ?? "admin",
+                AdminDB = effectiveAuthSource ?? "admin",
                 Login = result.Login,
                 Password = result.Password,
+                AuthMechanism = authMechanism,
                 ReplicaSet = replSet,
                 ConnectionPoolMaxSize = connectionPoolMaxSize,
                 ReadPreference = readPreference,

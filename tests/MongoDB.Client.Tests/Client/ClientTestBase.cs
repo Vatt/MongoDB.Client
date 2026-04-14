@@ -6,9 +6,9 @@ namespace MongoDB.Client.Tests.Client
 {
     public abstract class ClientTestBase
     {
-        protected string StandaloneHost { get; } = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
-        protected string RsHost { get; } = Environment.GetEnvironmentVariable("MONGODB_RS_HOST") ?? "localhost";
-        protected string ShardedHost { get; } = Environment.GetEnvironmentVariable("MONGODB_SHARDED_HOST") ?? "localhost";
+        protected string StandaloneHost { get; } = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost:27016";
+        protected string RsHost { get; } = Environment.GetEnvironmentVariable("MONGODB_RS_HOST") ?? "localhost:27017";
+        protected string ShardedHost { get; } = Environment.GetEnvironmentVariable("MONGODB_SHARDED_HOST") ?? "localhost:27029";
 
         protected string DB { get; init; } = "TestDb";
         protected string Collection { get; init; } = "TestCollection";
