@@ -1,4 +1,4 @@
-﻿using System.Buffers.Binary;
+﻿using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 using MongoDB.Client.Bson.Document;
@@ -10,10 +10,12 @@ namespace MongoDB.Client.Authentication
 {
     internal class ScramAuthenticator
     {
+        private const int ScramSha256MinimumIterationCount = 4096;
         private static readonly UTF8Encoding Strict = new UTF8Encoding(false, true);
 
         private readonly MongoClientSettings _settings;
-        private ScramCache? _cache;
+        private readonly Dictionary<ScramCacheKey, ScramCache> _cache = new();
+        private readonly object _cacheSync = new();
 
         public ScramAuthenticator(MongoClientSettings settings)
         {
@@ -39,57 +41,124 @@ namespace MongoDB.Client.Authentication
 
         public async Task AuthenticateAsync(IMongoConnection connection, BsonDocument isMasterResult, SaslStart? saslStart, CancellationToken token)
         {
-            if (isMasterResult.TryGet("speculativeAuthenticate", out var authDataElement) && saslStart is not null)
+            if (_settings.Login is null || saslStart is null)
             {
-                var authData = authDataElement.AsBsonDocument!;
-                var payload = authData["payload"].AsByteArray!;
+                return;
+            }
 
-                var conversationId = authData["conversationId"].AsInt;
-                var (saslDoc, serverSignature) = CreateSaslStart(payload, saslStart!, conversationId);
-                var queryResult = await connection.SendQueryAsync<BsonDocument>("admin.$cmd", saslDoc, token).ConfigureAwait(false);
-                var result = queryResult[0];
-                var isOk = result["ok"].AsDouble;
-                if (isOk == 0)
+            if (_settings.Password is null)
+            {
+                ThrowHelper.MongoAuthentificationException(
+                    "Authentication requires a password when a login is provided. The current SCRAM implementation only supports password-based authentication.",
+                    0);
+            }
+
+            var commandDatabase = $"{_settings.AdminDB}.$cmd";
+            var mechanism = ResolveMechanism();
+            var initialResponse = isMasterResult.TryGet("speculativeAuthenticate", out var authDataElement)
+                ? ParseCommandResponse(GetRequiredDocument(authDataElement, "speculativeAuthenticate"), "speculativeAuthenticate")
+                : await SendCommandAsync(
+                    connection,
+                    commandDatabase,
+                    CreateSaslStartCommand(saslStart, mechanism, _settings.AdminDB),
+                    "saslStart",
+                    null,
+                    token).ConfigureAwait(false);
+
+            var continuation = CreateClientFinalCommand(initialResponse.Payload, saslStart, initialResponse.ConversationId, mechanism);
+            var response = await SendCommandAsync(
+                connection,
+                commandDatabase,
+                continuation.Command,
+                "saslContinue",
+                initialResponse.ConversationId,
+                token).ConfigureAwait(false);
+
+            var serverSignatureVerified = response.Payload.Length != 0
+                && LooksLikeServerFinalMessage(response.Payload)
+                && TryValidateServerFinalMessage(response.Payload, continuation.ServerSignature);
+            if (response.Done)
+            {
+                if (!serverSignatureVerified)
                 {
-                    ThrowHelper.MongoAuthentificationException(result["errmsg"].ToString(), result["code"].AsInt);
+                    ThrowHelper.MongoAuthentificationException("SCRAM conversation completed without a server signature.", 0);
                 }
 
-                payload = result["payload"].AsByteArray!;
-                var v = ParseV(Strict.GetString(payload));
-                var receivedServerSignature = Convert.FromBase64String(v);
+                return;
+            }
 
-                if (!serverSignature.AsSpan().SequenceEqual(receivedServerSignature))
-                {
-                    ThrowHelper.MongoAuthentificationException("Server signature was invalid.", 0);
-                }
+            if (response.Payload.Length != 0 && !serverSignatureVerified)
+            {
+                ThrowHelper.MongoAuthentificationException("Unexpected SCRAM payload while authentication conversation is still in progress.", 0);
+            }
+
+            var finalResponse = await SendCommandAsync(
+                connection,
+                commandDatabase,
+                CreateEmptySaslContinueCommand(response.ConversationId),
+                "saslContinue",
+                response.ConversationId,
+                token).ConfigureAwait(false);
+
+            if (!finalResponse.Done)
+            {
+                ThrowHelper.MongoAuthentificationException("SCRAM conversation did not complete after the final saslContinue.", 0);
+            }
+
+            if (finalResponse.Payload.Length != 0)
+            {
+                serverSignatureVerified = TryValidateServerFinalMessage(finalResponse.Payload, continuation.ServerSignature);
+            }
+
+            if (!serverSignatureVerified)
+            {
+                ThrowHelper.MongoAuthentificationException("SCRAM conversation completed without a server signature.", 0);
             }
         }
 
-        private string ParseV(string payload)
-        {
-            return payload.Substring(2);
-        }
-
-        private (BsonDocument, byte[]) CreateSaslStart(byte[] replyBytes, SaslStart saslStart, int conversationId)
+        private static BsonDocument CreateSaslStartCommand(SaslStart saslStart, string mechanism, string database)
         {
             var document = new BsonDocument();
-            ParseReplyScramBytes(replyBytes, out var rb, out _, out _);
-            var prefixCheck = rb.Slice(0, saslStart.Salt.Length);
-            if (prefixCheck.SequenceEqual(saslStart.Salt) == false)
+            document.Add("saslStart", 1);
+            document.Add("mechanism", mechanism);
+            document.Add("payload", BsonBinaryData.Create(saslStart.Payload));
+            document.Add("options", new BsonDocument("skipEmptyExchange", true));
+            document.Add("db", database);
+            return document;
+        }
+
+        private (BsonDocument Command, byte[] ServerSignature) CreateClientFinalCommand(byte[] replyBytes, SaslStart saslStart, int conversationId, string mechanism)
+        {
+            var document = new BsonDocument();
+            var serverFirstMessage = Strict.GetString(replyBytes);
+            var parsedReply = ParseServerFirstMessage(serverFirstMessage);
+            var clientNonce = Strict.GetString(saslStart.Salt);
+            if (!parsedReply.Nonce.StartsWith(clientNonce, StringComparison.Ordinal))
             {
                 ThrowHelper.MongoAuthentificationException("Server sent an invalid nonce.", 0);
             }
-            var serverFirstMessage = Strict.GetString(replyBytes);
-            ParseReplyScramBytes(serverFirstMessage, out var r, out var s, out var i);
+
+            if (parsedReply.Nonce.Length == clientNonce.Length)
+            {
+                ThrowHelper.MongoAuthentificationException("Server sent an invalid nonce.", 0);
+            }
 
             const string gs2Header = "n,,";
             var channelBinding = "c=" + Convert.ToBase64String(Strict.GetBytes(gs2Header));
-            var nonce = "r=" + r;
+            var nonce = "r=" + parsedReply.Nonce;
             var clientFinalMessageWithoutProof = channelBinding + "," + nonce;
 
-            Span<byte> salt = Convert.FromBase64String(s);
+            byte[] salt;
+            try
+            {
+                salt = Convert.FromBase64String(parsedReply.Salt);
+            }
+            catch (FormatException ex)
+            {
+                throw new MongoAuthentificationException("SCRAM server-first-message contained an invalid salt.", ex);
+            }
 
-            var (clientKey, serverKey) = ComputeKeys(i, salt);
+            var (clientKey, serverKey) = ComputeKeys(mechanism, parsedReply.IterationCount, salt);
 
             var storedKey = H256(clientKey);
             var authMessage = saslStart.BaseMessage + "," + serverFirstMessage + "," + clientFinalMessageWithoutProof;
@@ -106,26 +175,122 @@ namespace MongoDB.Client.Authentication
             return (document, serverSignature);
         }
 
-        private (byte[] clientKey, byte[] serverKey) ComputeKeys(int i, Span<byte> salt)
+        private static BsonDocument CreateEmptySaslContinueCommand(int conversationId)
         {
-            byte[] clientKey;
-            byte[] serverKey;
-            var cache = Volatile.Read(ref _cache);
-            if (cache is null)
+            var document = new BsonDocument();
+            document.Add("saslContinue", 1);
+            document.Add("conversationId", conversationId);
+            document.Add("payload", BsonBinaryData.Create(Array.Empty<byte>()));
+            return document;
+        }
+
+        private async Task<ScramCommandResponse> SendCommandAsync(
+            IMongoConnection connection,
+            string database,
+            BsonDocument command,
+            string operationName,
+            int? expectedConversationId,
+            CancellationToken token)
+        {
+            var queryResult = await connection.SendQueryAsync<BsonDocument>(database, command, token).ConfigureAwait(false);
+            if (queryResult.Count == 0)
             {
-                var passBytes = Hi(_settings.Password!, salt, i);
-                clientKey = Hmac256(Strict, passBytes, "Client Key");
-                serverKey = Hmac256(Strict, passBytes, "Server Key");
-                cache = new ScramCache(clientKey, serverKey);
-                Volatile.Write(ref _cache, cache);
-            }
-            else
-            {
-                clientKey = cache.ClientKey;
-                serverKey = cache.ServerKey;
+                ThrowHelper.MongoAuthentificationException($"SCRAM {operationName} did not return a response document.", 0);
             }
 
-            return (clientKey, serverKey);
+            return ParseCommandResponse(queryResult[0], operationName, expectedConversationId);
+        }
+
+        private static ScramCommandResponse ParseCommandResponse(BsonDocument document, string operationName, int? expectedConversationId = null)
+        {
+            if (document.TryGet("ok", out var okElement) && TryGetDouble(okElement, out var okValue) && okValue == 0)
+            {
+                var message = document.TryGet("errmsg", out var messageElement) && messageElement.AsString is { Length: > 0 } errorMessage
+                    ? errorMessage
+                    : $"SCRAM {operationName} failed.";
+                var code = document.TryGet("code", out var codeElement) && TryGetInt32(codeElement, out var parsedCode)
+                    ? parsedCode
+                    : 0;
+                ThrowHelper.MongoAuthentificationException(message, code);
+            }
+
+            var conversationId = GetRequiredInt32(document, "conversationId", operationName);
+            if (expectedConversationId.HasValue && conversationId != expectedConversationId.Value)
+            {
+                ThrowHelper.MongoAuthentificationException("SCRAM conversationId changed unexpectedly.", 0);
+            }
+
+            var done = GetRequiredBoolean(document, "done", operationName);
+            var payload = GetRequiredBinary(document, "payload", operationName);
+            return new ScramCommandResponse(conversationId, done, payload);
+        }
+
+        private static bool TryValidateServerFinalMessage(byte[] payload, byte[] expectedServerSignature)
+        {
+            if (payload.Length == 0)
+            {
+                return false;
+            }
+
+            var finalMessage = Strict.GetString(payload);
+            var fields = ParseScramFields(finalMessage, "server-final-message");
+            if (fields.TryGetValue("e", out var serverError) && !string.IsNullOrEmpty(serverError))
+            {
+                ThrowHelper.MongoAuthentificationException($"SCRAM server rejected authentication: {serverError}", 0);
+            }
+
+            if (!fields.TryGetValue("v", out var signature) || string.IsNullOrEmpty(signature))
+            {
+                ThrowHelper.MongoAuthentificationException("SCRAM server-final-message did not contain a server signature.", 0);
+            }
+
+            byte[] receivedServerSignature;
+            try
+            {
+                receivedServerSignature = Convert.FromBase64String(signature);
+            }
+            catch (FormatException ex)
+            {
+                throw new MongoAuthentificationException("SCRAM server-final-message contained an invalid server signature.", ex);
+            }
+
+            if (!expectedServerSignature.AsSpan().SequenceEqual(receivedServerSignature))
+            {
+                ThrowHelper.MongoAuthentificationException("Server signature was invalid.", 0);
+            }
+
+            return true;
+        }
+
+        private static bool LooksLikeServerFinalMessage(byte[] payload)
+        {
+            if (payload.Length < 2)
+            {
+                return false;
+            }
+
+            return (payload[0] == (byte)'v' || payload[0] == (byte)'e' || payload[0] == (byte)'m')
+                && payload[1] == (byte)'=';
+        }
+
+        private (byte[] clientKey, byte[] serverKey) ComputeKeys(string mechanism, int i, byte[] salt)
+        {
+            var preparedPassword = SaslPrep.Prepare(_settings.Password!);
+            var cacheKey = new ScramCacheKey(mechanism, preparedPassword, Convert.ToBase64String(salt), i);
+
+            lock (_cacheSync)
+            {
+                if (_cache.TryGetValue(cacheKey, out var cache))
+                {
+                    return (cache.ClientKey, cache.ServerKey);
+                }
+
+                var passBytes = Hi(preparedPassword, salt, i);
+                var clientKey = Hmac256(Strict, passBytes, "Client Key");
+                var serverKey = Hmac256(Strict, passBytes, "Server Key");
+                _cache[cacheKey] = new ScramCache(clientKey, serverKey);
+                return (clientKey, serverKey);
+            }
         }
 
         private static SaslStart CreateScramLoginBytes(string login)
@@ -170,12 +335,17 @@ namespace MongoDB.Client.Authentication
         private static byte[] PrepareLogin(string login)
         {
             var rawLogin = Encoding.UTF8.GetBytes(login);
-
             var badBytesCount = 0;
-            var span = rawLogin;
-            for (int i = 0; i < rawLogin.Length - 1; i++)
+            foreach (var currentByte in rawLogin)
             {
-                if (span[i] == 61 || span[i] == 44)
+                if (currentByte == 0)
+                {
+                    ThrowHelper.MongoAuthentificationException(
+                        "SCRAM username must not contain NUL.",
+                        0);
+                }
+
+                if (currentByte == 61 || currentByte == 44)
                 {
                     badBytesCount += 1;
                 }
@@ -186,41 +356,34 @@ namespace MongoDB.Client.Authentication
                 return rawLogin;
             }
 
-            var newLen = rawLogin.Length + (badBytesCount * 2);
-            var newBytes = new byte[newLen];
-            var newIdx = 0;
-            for (int i = 0; i < rawLogin.Length - 1; i++)
+            var escapedLogin = new byte[rawLogin.Length + (badBytesCount * 2)];
+            var escapedIndex = 0;
+            foreach (var currentByte in rawLogin)
             {
-                var oldByte = span[i];
-                switch (oldByte)
+                switch (currentByte)
                 {
                     case 61:
-                        newBytes[++newIdx] = 61;
-                        newBytes[++newIdx] = 51;
-                        newBytes[++newIdx] = 68;
+                        escapedLogin[escapedIndex++] = 61;
+                        escapedLogin[escapedIndex++] = 51;
+                        escapedLogin[escapedIndex++] = 68;
                         break;
                     case 44:
-                        newBytes[++newIdx] = 61;
-                        newBytes[++newIdx] = 50;
-                        newBytes[++newIdx] = 67;
+                        escapedLogin[escapedIndex++] = 61;
+                        escapedLogin[escapedIndex++] = 50;
+                        escapedLogin[escapedIndex++] = 67;
                         break;
                     default:
-                        newBytes[++newIdx] = span[i];
+                        escapedLogin[escapedIndex++] = currentByte;
                         break;
                 }
             }
 
-            return newBytes;
+            return escapedLogin;
         }
-        
 
         private static byte[] Hi(string password, Span<byte> salt, int iterations)
         {
-            var passBytes = Encoding.UTF8.GetBytes(password);
-            using var hmac = new HMACSHA256(passBytes);
-            var hashed = ComputeHash(hmac, salt, iterations, out var block);
-            //var asd = string.Join(string.Empty, hashed.Select(b => b.ToString("X2")));
-            return hashed;
+            return Rfc2898DeriveBytes.Pbkdf2(password, salt, iterations, HashAlgorithmName.SHA256, 32);
         }
 
         private static byte[] Hmac256(UTF8Encoding encoding, byte[] data, string key)
@@ -250,91 +413,140 @@ namespace MongoDB.Client.Authentication
             return result;
         }
 
-        private static byte[] ComputeHash(HMAC algorithm, Span<byte> salt, int iterations, out int block)
+        private static ScramServerFirstMessage ParseServerFirstMessage(string payload)
         {
-            //HMAC SHA256 hash size - 256
-            const int blockSize = 256 >> 3;
-            block = 1;
-            var bytes = new byte[salt.Length + sizeof(uint)];
-            Span<byte> span = bytes;
-            salt.CopyTo(bytes);
-            BinaryPrimitives.WriteInt32BigEndian(span.Slice(28), block);
-            bytes = algorithm.ComputeHash(bytes);
-            var result = bytes;
-            for (int i = 1; i < iterations; i++)
+            var fields = ParseScramFields(payload, "server-first-message");
+            fields.TryGetValue("r", out var nonce);
+            if (string.IsNullOrEmpty(nonce))
             {
-                bytes = algorithm.ComputeHash(bytes);
-                for (int j = 0; j < blockSize; j++)
-                {
-                    result[j] ^= bytes[j];
-                }
+                ThrowHelper.MongoAuthentificationException("SCRAM server-first-message did not contain a nonce.", 0);
             }
-            block++;
+
+            fields.TryGetValue("s", out var salt);
+            if (string.IsNullOrEmpty(salt))
+            {
+                ThrowHelper.MongoAuthentificationException("SCRAM server-first-message did not contain a salt.", 0);
+            }
+
+            var iterations = 0;
+            if (!fields.TryGetValue("i", out var iterationText) || !int.TryParse(iterationText, out iterations) || iterations <= 0)
+            {
+                ThrowHelper.MongoAuthentificationException("SCRAM server-first-message did not contain a valid iteration count.", 0);
+            }
+
+            if (iterations < ScramSha256MinimumIterationCount)
+            {
+                ThrowHelper.MongoAuthentificationException(
+                    $"SCRAM server-first-message iteration count must be at least {ScramSha256MinimumIterationCount} for SCRAM-SHA-256.",
+                    0);
+            }
+
+            return new ScramServerFirstMessage(nonce!, salt!, iterations);
+        }
+
+        private static Dictionary<string, string> ParseScramFields(string payload, string messageName)
+        {
+            if (string.IsNullOrEmpty(payload))
+            {
+                ThrowHelper.MongoAuthentificationException($"SCRAM {messageName} payload was empty.", 0);
+            }
+
+            var result = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var field in payload.Split(','))
+            {
+                var separatorIndex = field.IndexOf('=');
+                if (separatorIndex <= 0 || separatorIndex == field.Length - 1)
+                {
+                    ThrowHelper.MongoAuthentificationException($"SCRAM {messageName} contained an invalid field '{field}'.", 0);
+                }
+
+                var attributeName = field.Substring(0, separatorIndex);
+                if (string.Equals(attributeName, "m", StringComparison.Ordinal))
+                {
+                    ThrowHelper.MongoAuthentificationException($"SCRAM {messageName} contained the reserved extension attribute 'm'.", 0);
+                }
+
+                result[attributeName] = field.Substring(separatorIndex + 1);
+            }
+
             return result;
         }
-        private static void ParseReplyScramBytes(byte[] bytes, out Span<byte> r, out Span<byte> s, out int i)
-        {
-            r = default;
-            s = default;
-            i = default;
-            var span = bytes.AsSpan();
-            int rEnd = 0;
-            int sStart = 0;
-            int sEnd = 0;
-            int iStart = 0;
-            for (int index = 0; i < bytes.Length; index++)
-            {
-                if (span[index] == 44)
-                {
-                    if (span[index + 1] == 115 && span[index + 2] == 61)
-                    {
-                        rEnd = index;
-                        sStart = index + 3;
-                    }
-                    if (span[index + 1] == 105 && span[index + 2] == 61)
-                    {
-                        sEnd = index;
-                        iStart = index + 3;
-                        break;
-                    }
-                }
-            }
-            r = span.Slice(2, rEnd - 2);
-            s = span.Slice(sStart, sEnd - sStart);
-            var iSpan = span.Slice(iStart, bytes.Length - iStart);
-            i = int.Parse(Encoding.UTF8.GetString(iSpan));
 
+        private static BsonDocument GetRequiredDocument(BsonElement element, string fieldName)
+        {
+            var document = element.AsBsonDocument;
+            if (document is null)
+            {
+                ThrowHelper.MongoAuthentificationException($"SCRAM response field '{fieldName}' was missing or had an invalid type.", 0);
+            }
+
+            return document!;
         }
 
-        private static void ParseReplyScramBytes(ReadOnlySpan<char> bytes, out string r, out string s, out int i)
+        private static int GetRequiredInt32(BsonDocument document, string fieldName, string operationName)
         {
-            i = default;
-            var span = bytes;
-            int rEnd = 0;
-            int sStart = 0;
-            int sEnd = 0;
-            int iStart = 0;
-            for (int index = 0; i < bytes.Length; index++)
+            var value = 0;
+            if (!document.TryGet(fieldName, out var element) || !TryGetInt32(element, out value))
             {
-                if (span[index] == 44)
-                {
-                    if (span[index + 1] == 115 && span[index + 2] == 61)
-                    {
-                        rEnd = index;
-                        sStart = index + 3;
-                    }
-                    if (span[index + 1] == 105 && span[index + 2] == 61)
-                    {
-                        sEnd = index;
-                        iStart = index + 3;
-                        break;
-                    }
-                }
+                ThrowHelper.MongoAuthentificationException($"SCRAM {operationName} response did not include a valid '{fieldName}' field.", 0);
             }
-            r = new string(span.Slice(2, rEnd - 2));
-            s = new string(span.Slice(sStart, sEnd - sStart));
-            var iSpan = span.Slice(iStart, bytes.Length - iStart);
-            i = int.Parse(iSpan);
+
+            return value;
+        }
+
+        private static bool GetRequiredBoolean(BsonDocument document, string fieldName, string operationName)
+        {
+            if (!document.TryGet(fieldName, out var element))
+            {
+                ThrowHelper.MongoAuthentificationException($"SCRAM {operationName} response did not include a valid '{fieldName}' field.", 0);
+            }
+
+            var rawValue = element.Value;
+            if (rawValue is not bool)
+            {
+                ThrowHelper.MongoAuthentificationException($"SCRAM {operationName} response did not include a valid '{fieldName}' field.", 0);
+            }
+
+            return (bool)rawValue!;
+        }
+
+        private static byte[] GetRequiredBinary(BsonDocument document, string fieldName, string operationName)
+        {
+            byte[]? value = null;
+            if (!document.TryGet(fieldName, out var element) || (value = element.AsByteArray) is null)
+            {
+                ThrowHelper.MongoAuthentificationException($"SCRAM {operationName} response did not include a valid '{fieldName}' field.", 0);
+            }
+
+            return value!;
+        }
+
+        private static bool TryGetInt32(BsonElement element, out int value)
+        {
+            if (element.Value is int intValue)
+            {
+                value = intValue;
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
+
+        private static bool TryGetDouble(BsonElement element, out double value)
+        {
+            switch (element.Value)
+            {
+                case double doubleValue:
+                    value = doubleValue;
+                    return true;
+                case int intValue:
+                    value = intValue;
+                    return true;
+                default:
+                    value = default;
+                    return false;
+            }
         }
 
         private string ResolveMechanism()
@@ -381,5 +593,9 @@ namespace MongoDB.Client.Authentication
             public byte[] ClientKey { get; }
             public byte[] ServerKey { get; }
         }
+
+        private sealed record ScramCacheKey(string Mechanism, string PreparedPassword, string Salt, int IterationCount);
+        private sealed record ScramCommandResponse(int ConversationId, bool Done, byte[] Payload);
+        private sealed record ScramServerFirstMessage(string Nonce, string Salt, int IterationCount);
     }
 }

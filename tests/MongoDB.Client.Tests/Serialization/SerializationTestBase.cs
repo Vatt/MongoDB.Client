@@ -9,6 +9,7 @@ using MongoDB.Client.Bson.Writer;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
+using MongoDB.Client.Tests.Infrastructure;
 using MongoDB.Client.Tests.Models;
 
 namespace MongoDB.Client.Tests.Serialization
@@ -60,10 +61,7 @@ namespace MongoDB.Client.Tests.Serialization
     {
         public static async Task<T?> MongoDBRoundTripAsync<T>(T message) where T : IBsonSerializer<T>
         {
-            var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
-            host = $"mongodb://{host}/?maxPoolSize=1";
-
-            var client = await MongoClient.CreateClient(host);
+            var client = await MongoClient.CreateClient(IntegrationMongoConnectionStringBuilder.BuildStandalone(1));
             var db = client.GetDatabase("TestDb");
             var collection = db.GetCollection<T>("TestCollection" + DateTime.Now);
             await collection.InsertAsync(message);

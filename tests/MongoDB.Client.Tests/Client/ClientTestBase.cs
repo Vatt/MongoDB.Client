@@ -1,19 +1,20 @@
 ﻿using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Messages;
+using MongoDB.Client.Tests.Infrastructure;
 
 namespace MongoDB.Client.Tests.Client
 {
     public abstract class ClientTestBase
     {
-        protected string StandaloneHost { get; } = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost:27016";
-        protected string RsHost { get; } = Environment.GetEnvironmentVariable("MONGODB_RS_HOST") ?? "localhost:27017";
-        protected string ShardedHost { get; } = Environment.GetEnvironmentVariable("MONGODB_SHARDED_HOST") ?? "localhost:27029";
+        protected string StandaloneHost { get; } = IntegrationMongoConnectionStringBuilder.StandaloneHost;
+        protected string RsHost { get; } = IntegrationMongoConnectionStringBuilder.ReplicaSetHost;
+        protected string ShardedHost { get; } = IntegrationMongoConnectionStringBuilder.ShardedHost;
 
         protected string DB { get; init; } = "TestDb";
         protected string Collection { get; init; } = "TestCollection";
 
-        protected readonly string RsName = "rs0";
+        protected readonly string RsName = IntegrationMongoConnectionStringBuilder.ReplicaSetName;
         protected async Task<List<T>> InsertAsync<T>(IEnumerable<T> items, MongoCollection<T> collection, TransactionHandler? tx = null, bool txCommit = false)
             where T : IBsonSerializer<T>
         {
@@ -156,13 +157,13 @@ namespace MongoDB.Client.Tests.Client
 
         protected Task<MongoClient> CreateStandaloneClient(int connPoolSize)
         {
-            var connectionStr = $"mongodb://{StandaloneHost}/?maxPoolSize={connPoolSize}";
+            var connectionStr = IntegrationMongoConnectionStringBuilder.BuildStandalone(connPoolSize);
             return MongoClient.CreateClient(connectionStr);
         }
 
-        protected Task<MongoClient> CreateReplSetClient(int connPoolSize, string rsName = "rs0")
+        protected Task<MongoClient> CreateReplSetClient(int connPoolSize, string? rsName = null)
         {
-            var connectionStr = $"mongodb://{RsHost}/?replicaSet={rsName}&maxPoolSize={connPoolSize}";
+            var connectionStr = IntegrationMongoConnectionStringBuilder.BuildReplicaSet(connPoolSize, rsName);
             return MongoClient.CreateClient(connectionStr);
         }
     }
