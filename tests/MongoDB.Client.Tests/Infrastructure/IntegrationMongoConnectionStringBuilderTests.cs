@@ -74,6 +74,25 @@ namespace MongoDB.Client.Tests.Infrastructure
         }
 
         [Fact]
+        public void BuildSharded_DefaultConfiguration_AddsExplicitAuthDefaults()
+        {
+            var configuration = IntegrationMongoConnectionStringBuilder.IntegrationMongoConnectionStringConfiguration.CreateDefault();
+
+            var connectionString = IntegrationMongoConnectionStringBuilder.BuildSharded(maxPoolSize: 11, configuration);
+            var settings = MongoClientSettings.FromConnectionString(connectionString);
+
+            Assert.Equal("root", settings.Login);
+            Assert.Equal("password", settings.Password);
+            Assert.Equal("admin", settings.AdminDB);
+            Assert.Equal("SCRAM-SHA-256", settings.AuthMechanism);
+            Assert.Equal(11, settings.ConnectionPoolMaxSize);
+
+            var endpoint = Assert.IsType<DnsEndPoint>(Assert.Single(settings.Endpoints));
+            Assert.Equal("localhost", endpoint.Host);
+            Assert.Equal(27029, endpoint.Port);
+        }
+
+        [Fact]
         public void BuildStandalone_ExplicitConfiguration_PreservesCredentialWhitespaceAndEncoding()
         {
             const string username = " user name ";

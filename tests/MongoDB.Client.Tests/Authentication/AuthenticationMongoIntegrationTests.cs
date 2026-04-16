@@ -53,6 +53,39 @@ namespace MongoDB.Client.Tests.Authentication
                 topologyName: "replicaset_pool");
         }
 
+        [RequiresShardedMongoFact]
+        public async Task ShardedAuth_AllowsCrudRoundTrip()
+        {
+            await AssertRoundTripAsync(
+                IntegrationMongoConnectionStringBuilder.BuildSharded(maxPoolSize: 1),
+                topologyName: "sharded");
+        }
+
+        [RequiresShardedMongoFact]
+        public async Task ShardedAuth_WithDeadSeedBeforeLiveSeed_AllowsCrudRoundTrip()
+        {
+            var configuration = IntegrationMongoConnectionStringBuilder.IntegrationMongoConnectionStringConfiguration.FromEnvironment() with
+            {
+                ShardedHost = $"127.0.0.1:27099,{IntegrationMongoConnectionStringBuilder.ShardedHost}"
+            };
+
+            await AssertRoundTripAsync(
+                IntegrationMongoConnectionStringBuilder.BuildSharded(maxPoolSize: 1, configuration),
+                topologyName: "sharded_multiseed");
+        }
+
+        [RequiresShardedMongoFact]
+        public async Task ShardedAuth_WithInvalidPassword_FailsExplicitly()
+        {
+            var configuration = IntegrationMongoConnectionStringBuilder.IntegrationMongoConnectionStringConfiguration.FromEnvironment() with
+            {
+                Password = "definitely-wrong-password"
+            };
+
+            await AssertExplicitAuthenticationFailureAsync(
+                IntegrationMongoConnectionStringBuilder.BuildSharded(maxPoolSize: 1, configuration));
+        }
+
         [RequiresStandaloneMongoFact]
         public async Task StandaloneAuth_WithInvalidPassword_FailsExplicitly()
         {

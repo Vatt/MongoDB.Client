@@ -31,6 +31,15 @@ namespace MongoDB.Client.Tests.Infrastructure
                 cancellationToken);
         }
 
+        public static string? GetShardedSkipReason(CancellationToken cancellationToken = default)
+        {
+            return GetSkipReasonForTopology(
+                static () => IntegrationMongoConnectionStringBuilder.BuildSharded(maxPoolSize: 1),
+                topologyName: "sharded MongoDB",
+                IsShardedTopology,
+                cancellationToken);
+        }
+
         internal static async Task<string?> GetUnavailableReasonAsync(
             EndPoint endpoint,
             string topologyName,
@@ -140,7 +149,7 @@ namespace MongoDB.Client.Tests.Infrastructure
                    (ping.IsMaster || ping.IsSecondary || ping.Primary is not null);
         }
 
-        private static bool IsShardedTopology(MongoPingMessage ping)
+        internal static bool IsShardedTopology(MongoPingMessage ping)
         {
             return ping.Hosts is null &&
                    ping.SetName is null &&

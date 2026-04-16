@@ -86,7 +86,11 @@ namespace MongoDB.Client.Scheduler
 
         public ValueTask CreateCollectionAsync(TransactionHandler transaction, CollectionNamespace collectionNamespace, CancellationToken token)
         {
-            throw new NotImplementedException();
+            var scheduler = GetScheduler();
+            var requestNumber = scheduler.GetNextRequestNumber();
+            var createCollectionHeader = new CreateCollectionHeader(collectionNamespace.CollectionName, collectionNamespace.DatabaseName, transaction.SessionId);
+            var request = new CreateCollectionMessage(requestNumber, createCollectionHeader);
+            return scheduler.CreateCollectionAsync(request, token);
         }
 
         public ValueTask<DeleteResult> DeleteAsync(TransactionHandler transaction, BsonDocument filter, int limit, CollectionNamespace collectionNamespace, CancellationToken token)
@@ -171,7 +175,11 @@ namespace MongoDB.Client.Scheduler
 
         public ValueTask DropCollectionAsync(TransactionHandler transaction, CollectionNamespace collectionNamespace, CancellationToken token)
         {
-            throw new NotImplementedException();
+            var scheduler = GetScheduler();
+            var requestNumber = scheduler.GetNextRequestNumber();
+            var dropCollectionHeader = new DropCollectionHeader(collectionNamespace.CollectionName, collectionNamespace.DatabaseName, transaction.SessionId);
+            var request = new DropCollectionMessage(requestNumber, dropCollectionHeader);
+            return scheduler.DropCollectionAsync(request, token);
         }
 
         public async ValueTask<FindResult<T>> FindAsync<T>(BsonDocument filter, int limit, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)

@@ -11,8 +11,15 @@ namespace MongoDB.Client.Connection
         private readonly MongoClientSettings _settings;
         private readonly IReadOnlyList<MongoConnectionInitializerPipelineBuilder.PipelineStep> _steps;
 
-        public MongoConnectionInitializer(MongoClientSettings settings, params IMongoConnectionInitializerPlugin[] plugins)
+        internal MongoConnectionInitializer(MongoClientSettings settings, params IMongoConnectionInitializerPlugin[] plugins)
         {
+            if (plugins.Length == 0)
+            {
+                throw new ArgumentException(
+                    "At least one connection initializer plugin is required. Use CreateRaw for an explicit no-auth initializer.",
+                    nameof(plugins));
+            }
+
             _settings = settings;
             var builder = new MongoConnectionInitializerPipelineBuilder();
             for (var i = 0; i < plugins.Length; i++)
@@ -21,6 +28,18 @@ namespace MongoDB.Client.Connection
             }
 
             _steps = builder.Build();
+        }
+
+        private MongoConnectionInitializer(MongoClientSettings settings, bool raw)
+        {
+            _settings = settings;
+            var builder = new MongoConnectionInitializerPipelineBuilder();
+            _steps = builder.Build();
+        }
+
+        internal static MongoConnectionInitializer CreateRaw(MongoClientSettings settings)
+        {
+            return new MongoConnectionInitializer(settings, raw: true);
         }
 
         public async ValueTask<ConnectionInfo> InitializeAsync(IMongoConnection connection, CancellationToken cancellationToken)

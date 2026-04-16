@@ -128,9 +128,38 @@ Default router endpoint:
 
 - `localhost:27029`
 
-Для auth-related локальной проверки важно считать sharded stack отдельным случаем:
+Defaults:
 
-- shipped sharded stack не является working auth target для локальной auth-проверки
-- test builder по умолчанию умеет собирать auth connection string для `MONGODB_SHARDED_HOST`, но это не означает, что текущий sharded stack пригоден как auth validation target
-- sharded stack можно использовать только для environment-dependent topology/manual checks
-- текущая конфигурация жёстко завязана на `mongo2.mshome.net`, поэтому даже manual checks зависят от локального окружения
+- username: `root`
+- password: `password`
+- auth source: `admin`
+- auth mechanism: `SCRAM-SHA-256`
+
+Example connection string:
+
+```text
+mongodb://root:password@localhost:27029/?maxPoolSize=1&authSource=admin&authMechanism=SCRAM-SHA-256
+```
+
+Что делает bootstrap:
+
+- поднимает self-contained sharded cluster на локальном docker compose network без внешних hostname dependencies
+- инициализирует `rs-cfg`, `rs-shard01`, `rs-shard02`, `rs-shard03`
+- включает internal auth через общий keyfile для `mongod` и `mongos`
+- добавляет shard replica sets в router
+- создаёт cluster admin пользователя на `mongos` через localhost exception
+
+Полезные замечания:
+
+- credential values для sharded bootstrap берутся из `MONGO_INITDB_ROOT_USERNAME` / `MONGO_INITDB_ROOT_PASSWORD`, по умолчанию `root` / `password`
+- test builder по умолчанию уже совместим с этим стендом через `MONGODB_SHARDED_HOST=localhost:27029`
+- stack можно использовать как normal local auth validation target для sharded path
+- внутренние shard/config порты наружу не публикуются, наружу доступны только routers `27029`, `27030`, `27031`
+
+Если нужен быстрый локальный smoke check после старта:
+
+```bash
+docker run --rm --add-host host.docker.internal:host-gateway mongo:8.0-noble \
+  mongosh "mongodb://root:password@host.docker.internal:27029/admin?authSource=admin&authMechanism=SCRAM-SHA-256" \
+  --quiet --eval "db.adminCommand({ ping: 1 })"
+```

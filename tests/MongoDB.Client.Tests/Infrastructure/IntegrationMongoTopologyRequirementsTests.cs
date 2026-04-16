@@ -101,6 +101,20 @@ namespace MongoDB.Client.Tests.Infrastructure
         }
 
         [Fact]
+        public async Task GetUnavailableReasonAsync_WhenShardedTopologyMatches_ReturnsNull()
+        {
+            var endpoint = new DnsEndPoint("localhost", 27029);
+
+            var skipReason = await IntegrationMongoTopologyRequirements.GetUnavailableReasonAsync(
+                endpoint,
+                "sharded MongoDB",
+                static (_, _) => Task.FromResult(CreateShardedPing()),
+                IntegrationMongoTopologyRequirements.IsShardedTopology);
+
+            Assert.Null(skipReason);
+        }
+
+        [Fact]
         public async Task GetUnavailableReasonAsync_WhenProbeFailsForUnexpectedReason_RethrowsOriginalException()
         {
             var endpoint = new DnsEndPoint("localhost", 27016);
@@ -253,6 +267,19 @@ namespace MongoDB.Client.Tests.Infrastructure
                 message: null!,
                 me: new DnsEndPoint("localhost", 27017),
                 primary: new DnsEndPoint("localhost", 27017),
+                clusterTime: null!,
+                isMaster: true,
+                isSecondary: false);
+        }
+
+        private static MongoPingMessage CreateShardedPing()
+        {
+            return new MongoPingMessage(
+                hosts: null!,
+                setName: null!,
+                message: "isdbgrid",
+                me: new DnsEndPoint("localhost", 27029),
+                primary: null!,
                 clusterTime: null!,
                 isMaster: true,
                 isSecondary: false);
