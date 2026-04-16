@@ -10,12 +10,17 @@ namespace MongoDB.Client.Authentication
 {
     internal class ScramAuthenticator
     {
-        private const int ScramSha256MinimumIterationCount = 4096;
+        private const string ScramSha1Mechanism = "SCRAM-SHA-1";
+        private const string ScramSha256Mechanism = "SCRAM-SHA-256";
+        private const int ScramMinimumIterationCount = 4096;
         private static readonly UTF8Encoding Strict = new UTF8Encoding(false, true);
 
         private readonly MongoClientSettings _settings;
         private readonly Dictionary<ScramCacheKey, ScramCache> _cache = new();
         private readonly object _cacheSync = new();
+
+        private sealed record AuthCredentials(string Login);
+        private sealed record AuthenticationFlow(string CommandDatabase, string Database, SaslStart SaslStart, string HandshakeMechanism, string Mechanism);
 
         public ScramAuthenticator(MongoClientSettings settings)
         {
@@ -23,6 +28,50 @@ namespace MongoDB.Client.Authentication
         }
 
         public SaslStart? AuthenticateIsMaster(BsonDocument isMasterDocument)
+        {
+            var credentials = GetValidatedCredentials();
+            if (credentials is null)
+            {
+                return null;
+            }
+
+            return PrepareHandshake(isMasterDocument, credentials);
+        }
+
+        public async Task AuthenticateAsync(IMongoConnection connection, BsonDocument isMasterResult, SaslStart? saslStart, CancellationToken token)
+        {
+            var authentication = PrepareAuthentication(saslStart, isMasterResult);
+            if (authentication is null)
+            {
+                return;
+            }
+
+            var initialResponse = await GetInitialScramResponseAsync(connection, isMasterResult, authentication, token).ConfigureAwait(false);
+            await CompleteScramConversationAsync(connection, authentication, initialResponse, token).ConfigureAwait(false);
+        }
+
+        private SaslStart PrepareHandshake(BsonDocument helloCommand, AuthCredentials credentials)
+        {
+            return AddLoginInfoToCommand(helloCommand, credentials.Login, _settings.AdminDB, ResolveHandshakeMechanism());
+        }
+
+        private AuthenticationFlow? PrepareAuthentication(SaslStart? saslStart, BsonDocument helloResponse)
+        {
+            var credentials = GetValidatedCredentials();
+            if (credentials is null || saslStart is null)
+            {
+                return null;
+            }
+
+            return new AuthenticationFlow(
+                $"{_settings.AdminDB}.$cmd",
+                _settings.AdminDB,
+                saslStart,
+                ResolveHandshakeMechanism(),
+                ResolveMechanism(helloResponse));
+        }
+
+        private AuthCredentials? GetValidatedCredentials()
         {
             if (_settings.Login is null)
             {
@@ -36,68 +85,127 @@ namespace MongoDB.Client.Authentication
                     0);
             }
 
-            return AddLoginInfoToCommand(isMasterDocument, _settings.Login, _settings.AdminDB, ResolveMechanism());
+            return new AuthCredentials(_settings.Login);
         }
 
-        public async Task AuthenticateAsync(IMongoConnection connection, BsonDocument isMasterResult, SaslStart? saslStart, CancellationToken token)
+        private async Task<ScramCommandResponse> GetInitialScramResponseAsync(
+            IMongoConnection connection,
+            BsonDocument helloResponse,
+            AuthenticationFlow authentication,
+            CancellationToken token)
         {
-            if (_settings.Login is null || saslStart is null)
+            if (CanUseSpeculativeAuthenticate(helloResponse, authentication, out var speculativeResponse))
             {
-                return;
+                return speculativeResponse;
             }
 
-            if (_settings.Password is null)
+            return await SendCommandAsync(
+                connection,
+                authentication.CommandDatabase,
+                CreateSaslStartCommand(authentication.SaslStart, authentication.Mechanism, authentication.Database),
+                "saslStart",
+                null,
+                token).ConfigureAwait(false);
+        }
+
+        private bool CanUseSpeculativeAuthenticate(
+            BsonDocument helloResponse,
+            AuthenticationFlow authentication,
+            out ScramCommandResponse response)
+        {
+            response = default!;
+            if (!string.Equals(authentication.Mechanism, authentication.HandshakeMechanism, StringComparison.Ordinal)
+                || !helloResponse.TryGet("speculativeAuthenticate", out var authDataElement))
             {
-                ThrowHelper.MongoAuthentificationException(
-                    "Authentication requires a password when a login is provided. The current SCRAM implementation only supports password-based authentication.",
-                    0);
+                return false;
             }
 
-            var commandDatabase = $"{_settings.AdminDB}.$cmd";
-            var mechanism = ResolveMechanism();
-            var initialResponse = isMasterResult.TryGet("speculativeAuthenticate", out var authDataElement)
-                ? ParseCommandResponse(GetRequiredDocument(authDataElement, "speculativeAuthenticate"), "speculativeAuthenticate")
-                : await SendCommandAsync(
-                    connection,
-                    commandDatabase,
-                    CreateSaslStartCommand(saslStart, mechanism, _settings.AdminDB),
-                    "saslStart",
-                    null,
-                    token).ConfigureAwait(false);
+            response = ParseCommandResponse(GetRequiredDocument(authDataElement, "speculativeAuthenticate"), "speculativeAuthenticate");
+            return true;
+        }
 
-            var continuation = CreateClientFinalCommand(initialResponse.Payload, saslStart, initialResponse.ConversationId, mechanism);
+        private async Task CompleteScramConversationAsync(
+            IMongoConnection connection,
+            AuthenticationFlow authentication,
+            ScramCommandResponse initialResponse,
+            CancellationToken token)
+        {
+            var continuation = CreateClientFinalCommand(
+                initialResponse.Payload,
+                authentication.SaslStart,
+                initialResponse.ConversationId,
+                authentication.Mechanism);
+
             var response = await SendCommandAsync(
                 connection,
-                commandDatabase,
+                authentication.CommandDatabase,
                 continuation.Command,
                 "saslContinue",
                 initialResponse.ConversationId,
                 token).ConfigureAwait(false);
 
-            var serverSignatureVerified = response.Payload.Length != 0
-                && LooksLikeServerFinalMessage(response.Payload)
-                && TryValidateServerFinalMessage(response.Payload, continuation.ServerSignature);
-            if (response.Done)
+            if (TryCompleteShortConversation(response, continuation.ServerSignature))
             {
-                if (!serverSignatureVerified)
-                {
-                    ThrowHelper.MongoAuthentificationException("SCRAM conversation completed without a server signature.", 0);
-                }
-
                 return;
             }
 
-            if (response.Payload.Length != 0 && !serverSignatureVerified)
+            var serverSignatureVerified = EnsureNoIntermediatePayload(response, continuation.ServerSignature);
+            await CompleteLongConversationAsync(
+                connection,
+                authentication.CommandDatabase,
+                response.ConversationId,
+                continuation.ServerSignature,
+                serverSignatureVerified,
+                token).ConfigureAwait(false);
+        }
+
+        private static bool TryCompleteShortConversation(ScramCommandResponse response, byte[] expectedServerSignature)
+        {
+            var serverSignatureVerified = response.Payload.Length != 0
+                && LooksLikeServerFinalMessage(response.Payload)
+                && TryValidateServerFinalMessage(response.Payload, expectedServerSignature);
+            if (!response.Done)
+            {
+                return false;
+            }
+
+            if (!serverSignatureVerified)
+            {
+                ThrowHelper.MongoAuthentificationException("SCRAM conversation completed without a server signature.", 0);
+            }
+
+            return true;
+        }
+
+        private static bool EnsureNoIntermediatePayload(ScramCommandResponse response, byte[] expectedServerSignature)
+        {
+            if (response.Payload.Length != 0 && !LooksLikeServerFinalMessage(response.Payload))
             {
                 ThrowHelper.MongoAuthentificationException("Unexpected SCRAM payload while authentication conversation is still in progress.", 0);
             }
 
+            if (response.Payload.Length != 0)
+            {
+                return TryValidateServerFinalMessage(response.Payload, expectedServerSignature);
+            }
+
+            return false;
+        }
+
+        private async Task CompleteLongConversationAsync(
+            IMongoConnection connection,
+            string commandDatabase,
+            int conversationId,
+            byte[] expectedServerSignature,
+            bool serverSignatureVerified,
+            CancellationToken token)
+        {
             var finalResponse = await SendCommandAsync(
                 connection,
                 commandDatabase,
-                CreateEmptySaslContinueCommand(response.ConversationId),
+                CreateEmptySaslContinueCommand(conversationId),
                 "saslContinue",
-                response.ConversationId,
+                conversationId,
                 token).ConfigureAwait(false);
 
             if (!finalResponse.Done)
@@ -107,7 +215,7 @@ namespace MongoDB.Client.Authentication
 
             if (finalResponse.Payload.Length != 0)
             {
-                serverSignatureVerified = TryValidateServerFinalMessage(finalResponse.Payload, continuation.ServerSignature);
+                serverSignatureVerified = TryValidateServerFinalMessage(finalResponse.Payload, expectedServerSignature);
             }
 
             if (!serverSignatureVerified)
@@ -131,7 +239,7 @@ namespace MongoDB.Client.Authentication
         {
             var document = new BsonDocument();
             var serverFirstMessage = Strict.GetString(replyBytes);
-            var parsedReply = ParseServerFirstMessage(serverFirstMessage);
+            var parsedReply = ParseServerFirstMessage(serverFirstMessage, mechanism);
             var clientNonce = Strict.GetString(saslStart.Salt);
             if (!parsedReply.Nonce.StartsWith(clientNonce, StringComparison.Ordinal))
             {
@@ -160,11 +268,11 @@ namespace MongoDB.Client.Authentication
 
             var (clientKey, serverKey) = ComputeKeys(mechanism, parsedReply.IterationCount, salt);
 
-            var storedKey = H256(clientKey);
+            var storedKey = Hash(mechanism, clientKey);
             var authMessage = saslStart.BaseMessage + "," + serverFirstMessage + "," + clientFinalMessageWithoutProof;
-            var clientSignature = Hmac256(Strict, storedKey, authMessage);
+            var clientSignature = Hmac(mechanism, storedKey, authMessage);
             var clientProof = XOR(clientKey, clientSignature);
-            var serverSignature = Hmac256(Strict, serverKey, authMessage);
+            var serverSignature = Hmac(mechanism, serverKey, authMessage);
             var proof = "p=" + Convert.ToBase64String(clientProof);
             var clientFinalMessage = clientFinalMessageWithoutProof + "," + proof;
             var bytesToSend = Strict.GetBytes(clientFinalMessage);
@@ -275,8 +383,8 @@ namespace MongoDB.Client.Authentication
 
         private (byte[] clientKey, byte[] serverKey) ComputeKeys(string mechanism, int i, byte[] salt)
         {
-            var preparedPassword = SaslPrep.Prepare(_settings.Password!);
-            var cacheKey = new ScramCacheKey(mechanism, preparedPassword, Convert.ToBase64String(salt), i);
+            var password = GetPasswordForMechanism(mechanism);
+            var cacheKey = new ScramCacheKey(mechanism, password, Convert.ToBase64String(salt), i);
 
             lock (_cacheSync)
             {
@@ -285,12 +393,22 @@ namespace MongoDB.Client.Authentication
                     return (cache.ClientKey, cache.ServerKey);
                 }
 
-                var passBytes = Hi(preparedPassword, salt, i);
-                var clientKey = Hmac256(Strict, passBytes, "Client Key");
-                var serverKey = Hmac256(Strict, passBytes, "Server Key");
+                var passBytes = Hi(mechanism, password, salt, i);
+                var clientKey = Hmac(mechanism, passBytes, "Client Key");
+                var serverKey = Hmac(mechanism, passBytes, "Server Key");
                 _cache[cacheKey] = new ScramCache(clientKey, serverKey);
                 return (clientKey, serverKey);
             }
+        }
+
+        private string GetPasswordForMechanism(string mechanism)
+        {
+            return mechanism switch
+            {
+                ScramSha256Mechanism => SaslPrep.Prepare(_settings.Password!),
+                ScramSha1Mechanism => ComputeMongoHashedPassword(_settings.Login!, _settings.Password!),
+                _ => throw new InvalidOperationException($"Unsupported SCRAM mechanism '{mechanism}'.")
+            };
         }
 
         private static SaslStart CreateScramLoginBytes(string login)
@@ -381,24 +499,63 @@ namespace MongoDB.Client.Authentication
             return escapedLogin;
         }
 
-        private static byte[] Hi(string password, Span<byte> salt, int iterations)
+        private static string ComputeMongoHashedPassword(string username, string password)
         {
-            return Rfc2898DeriveBytes.Pbkdf2(password, salt, iterations, HashAlgorithmName.SHA256, 32);
+            using var md5 = MD5.Create();
+            var digest = md5.ComputeHash(Strict.GetBytes(username + ":mongo:" + password));
+            return Convert.ToHexString(digest).ToLowerInvariant();
         }
 
-        private static byte[] Hmac256(UTF8Encoding encoding, byte[] data, string key)
+        private static byte[] Hi(string mechanism, string password, Span<byte> salt, int iterations)
         {
-            using (var hmac = new HMACSHA256(data))
+            return mechanism switch
             {
-                return hmac.ComputeHash(encoding.GetBytes(key));
+                ScramSha256Mechanism => Rfc2898DeriveBytes.Pbkdf2(password, salt, iterations, HashAlgorithmName.SHA256, 32),
+                ScramSha1Mechanism => Rfc2898DeriveBytes.Pbkdf2(password, salt, iterations, HashAlgorithmName.SHA1, 20),
+                _ => throw new InvalidOperationException($"Unsupported SCRAM mechanism '{mechanism}'.")
+            };
+        }
+
+        private static byte[] Hmac(string mechanism, byte[] data, string key)
+        {
+            return Hmac(mechanism, data, Strict.GetBytes(key));
+        }
+
+        private static byte[] Hmac(string mechanism, byte[] data, byte[] key)
+        {
+            switch (mechanism)
+            {
+                case ScramSha256Mechanism:
+                    using (var hmac = new HMACSHA256(data))
+                    {
+                        return hmac.ComputeHash(key);
+                    }
+                case ScramSha1Mechanism:
+                    using (var hmac = new HMACSHA1(data))
+                    {
+                        return hmac.ComputeHash(key);
+                    }
+                default:
+                    throw new InvalidOperationException($"Unsupported SCRAM mechanism '{mechanism}'.");
             }
         }
 
-        private static byte[] H256(byte[] data)
+        private static byte[] Hash(string mechanism, byte[] data)
         {
-            using (var sha256 = SHA256.Create())
+            switch (mechanism)
             {
-                return sha256.ComputeHash(data);
+                case ScramSha256Mechanism:
+                    using (var sha256 = SHA256.Create())
+                    {
+                        return sha256.ComputeHash(data);
+                    }
+                case ScramSha1Mechanism:
+                    using (var sha1 = SHA1.Create())
+                    {
+                        return sha1.ComputeHash(data);
+                    }
+                default:
+                    throw new InvalidOperationException($"Unsupported SCRAM mechanism '{mechanism}'.");
             }
         }
 
@@ -413,7 +570,7 @@ namespace MongoDB.Client.Authentication
             return result;
         }
 
-        private static ScramServerFirstMessage ParseServerFirstMessage(string payload)
+        private static ScramServerFirstMessage ParseServerFirstMessage(string payload, string mechanism)
         {
             var fields = ParseScramFields(payload, "server-first-message");
             fields.TryGetValue("r", out var nonce);
@@ -434,10 +591,12 @@ namespace MongoDB.Client.Authentication
                 ThrowHelper.MongoAuthentificationException("SCRAM server-first-message did not contain a valid iteration count.", 0);
             }
 
-            if (iterations < ScramSha256MinimumIterationCount)
+            if ((string.Equals(mechanism, ScramSha256Mechanism, StringComparison.Ordinal)
+                    || string.Equals(mechanism, ScramSha1Mechanism, StringComparison.Ordinal))
+                && iterations < ScramMinimumIterationCount)
             {
                 ThrowHelper.MongoAuthentificationException(
-                    $"SCRAM server-first-message iteration count must be at least {ScramSha256MinimumIterationCount} for SCRAM-SHA-256.",
+                    $"SCRAM server-first-message iteration count must be at least {ScramMinimumIterationCount} for {mechanism}.",
                     0);
             }
 
@@ -549,15 +708,45 @@ namespace MongoDB.Client.Authentication
             }
         }
 
-        private string ResolveMechanism()
+        private string ResolveHandshakeMechanism()
+        {
+            var mechanism = ResolveExplicitMechanism();
+            return mechanism ?? ScramSha256Mechanism;
+        }
+
+        private string ResolveMechanism(BsonDocument helloResponse)
+        {
+            var mechanism = ResolveExplicitMechanism();
+            if (mechanism is not null)
+            {
+                return mechanism;
+            }
+
+            if (helloResponse.TryGet("saslSupportedMechs", out var supportedMechanismsElement)
+                && supportedMechanismsElement.AsBsonDocument is BsonArray supportedMechanisms)
+            {
+                foreach (var supportedMechanism in supportedMechanisms)
+                {
+                    if (string.Equals(supportedMechanism.AsString, ScramSha256Mechanism, StringComparison.Ordinal))
+                    {
+                        return ScramSha256Mechanism;
+                    }
+                }
+            }
+
+            return ScramSha1Mechanism;
+        }
+
+        private string? ResolveExplicitMechanism()
         {
             var mechanism = _settings.AuthMechanism;
             if (string.IsNullOrWhiteSpace(mechanism))
             {
-                return "SCRAM-SHA-256";
+                return null;
             }
 
-            if (string.Equals(mechanism, "SCRAM-SHA-256", StringComparison.Ordinal))
+            if (string.Equals(mechanism, ScramSha256Mechanism, StringComparison.Ordinal)
+                || string.Equals(mechanism, ScramSha1Mechanism, StringComparison.Ordinal))
             {
                 return mechanism;
             }

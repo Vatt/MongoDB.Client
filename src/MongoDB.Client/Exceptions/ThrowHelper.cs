@@ -248,6 +248,15 @@ namespace MongoDB.Client.Exceptions
             throw new MongoException($"Connection failed", inner);
         }
         [MethodImpl(MethodImplOptions.NoInlining)]
+        [DoesNotReturn]
+        public static T MongoInitExceptions<T>(Exception inner, System.Net.EndPoint? endpoint)
+        {
+            var message = endpoint is null
+                ? "Connection failed"
+                : $"Connection failed for endpoint '{endpoint}'";
+            throw new MongoException(message, inner);
+        }
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void MongoAuthentificationException(string message, int code)
         {
             throw new MongoAuthentificationException(message, code);

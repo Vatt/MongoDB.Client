@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using Microsoft.AspNetCore.Connections;
-using MongoDB.Client.Authentication;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
@@ -10,7 +9,6 @@ using MongoDB.Client.Protocol.Common;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Messages;
 using MongoDB.Client.Protocol.Readers;
-using MongoDB.Client.Settings;
 
 namespace MongoDB.Client.Connection
 {
@@ -19,7 +17,6 @@ namespace MongoDB.Client.Connection
         private static MongoPingMesageReader MongoPingMessageReader = new MongoPingMesageReader();
         private static BsonDocument _pingDocument = new BsonDocument("isMaster", 1);
         private const string AdminDatabase = "admin.$cmd";
-        private static readonly BsonDocument BuildInfo = new BsonDocument("buildInfo", 1);
         internal ConnectionInfo? ConnectionInfo;
         private readonly ProtocolReader _protocolReader;
         private readonly ProtocolWriter _protocolWriter;
@@ -59,24 +56,9 @@ namespace MongoDB.Client.Connection
             return bodyResult;
         }
 
-        public async ValueTask Connect(ScramAuthenticator authenticator, MongoClientSettings settings, CancellationToken token)
+        public async ValueTask Connect(IMongoConnectionInitializer initializer, CancellationToken token)
         {
-            ConnectionInfo = await DoConnectAsync(token).ConfigureAwait(false);
-
-            async Task<ConnectionInfo> DoConnectAsync(CancellationToken token)
-            {
-                var initialDocument = InitHelper.CreateInitialCommand(settings);
-                var saslStart = authenticator.AuthenticateIsMaster(initialDocument);
-
-                var isMasterQueryResult = await SendQueryAsync<BsonDocument>(AdminDatabase, initialDocument, token).ConfigureAwait(false);
-                var isMaster = isMasterQueryResult[0];
-                var buildInfoQueryResult = await SendQueryAsync<BsonDocument>(AdminDatabase, BuildInfo, token).ConfigureAwait(false);
-                var buildInfo = buildInfoQueryResult[0];
-
-                await authenticator.AuthenticateAsync(this, isMaster, saslStart, token).ConfigureAwait(false);
-
-                return new ConnectionInfo(isMaster, buildInfo);
-            }
+            ConnectionInfo = await initializer.InitializeAsync(this, token).ConfigureAwait(false);
         }
 
         private static async ValueTask<T> ReadAsyncPrivate<T>(ProtocolReader protocolReader, IMessageReader<T> reader, CancellationToken token)

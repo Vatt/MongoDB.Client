@@ -28,9 +28,23 @@ namespace MongoDB.Client.Connection
 
         public void TrySetResult(T result)
         {
-            if (_core.GetStatus(_core.Version) == ValueTaskSourceStatus.Pending)
+            try
             {
                 _core.SetResult(result);
+            }
+            catch (InvalidOperationException) when (_core.GetStatus(_core.Version) != ValueTaskSourceStatus.Pending)
+            {
+            }
+        }
+
+        public void TrySetException(Exception error)
+        {
+            try
+            {
+                _core.SetException(error);
+            }
+            catch (InvalidOperationException) when (_core.GetStatus(_core.Version) != ValueTaskSourceStatus.Pending)
+            {
             }
         }
     }

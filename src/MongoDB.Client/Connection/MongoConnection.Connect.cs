@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Connections;
-using MongoDB.Client.Authentication;
+using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
@@ -14,36 +14,48 @@ namespace MongoDB.Client.Connection
     public sealed partial class MongoConnection : IMongoConnection
     {
         internal ConnectionInfo? ConnectionInfo;
-        private const string AdminDatabase = "admin.$cmd";
-        private static readonly BsonDocument BuildInfo = new BsonDocument("buildInfo", 1);
-        internal ValueTask<ConnectionInfo> StartAsync(ScramAuthenticator authenticator, ConnectionContext connection, CancellationToken cancellationToken = default)
+        internal ValueTask<ConnectionInfo> StartAsync(IMongoConnectionInitializer initializer, ConnectionContext connection, CancellationToken cancellationToken = default)
         {
-            return StartAsync(authenticator, connection.CreateReader(), connection.CreateWriter(), cancellationToken);
+            return StartAsync(initializer, connection.CreateReader(), connection.CreateWriter(), connection, cancellationToken);
         }
 
 
 
-        internal async ValueTask<ConnectionInfo> StartAsync(ScramAuthenticator authenticator, ProtocolReader reader, ProtocolWriter writer, CancellationToken cancellationToken)
+        internal async ValueTask<ConnectionInfo> StartAsync(IMongoConnectionInitializer initializer, ProtocolReader reader, ProtocolWriter writer, CancellationToken cancellationToken)
+        {
+            await StartAsync(initializer, reader, writer, null, cancellationToken).ConfigureAwait(false);
+            return ConnectionInfo!;
+        }
+
+        internal async ValueTask<ConnectionInfo> StartAsync(IMongoConnectionInitializer initializer, ProtocolReader reader, ProtocolWriter writer, IAsyncDisposable? owner, CancellationToken cancellationToken)
         {
             _protocolReader = reader;
             _protocolWriter = writer;
-            _protocolListenerTask = StartProtocolListenerAsync();
-            ConnectionInfo = await DoConnectAsync(cancellationToken).ConfigureAwait(false);
-            _channelListenerTask = StartChannelListerAsync();
-            return ConnectionInfo;
-            async Task<ConnectionInfo> DoConnectAsync(CancellationToken token)
+            if (owner is not null)
             {
-                var initialDocument = InitHelper.CreateInitialCommand(_settings);
-                var saslStart = authenticator.AuthenticateIsMaster(initialDocument);
+                TakeTransportOwnership(owner);
+            }
+            _protocolListenerTask = StartProtocolListenerAsync();
 
-                var isMasterQueryResult = await SendQueryAsync<BsonDocument>(AdminDatabase, initialDocument, token).ConfigureAwait(false);
-                var isMaster = isMasterQueryResult[0];
-                var buildInfoQueryResult = await SendQueryAsync<BsonDocument>(AdminDatabase, BuildInfo, token).ConfigureAwait(false);
-                var buildInfo = buildInfoQueryResult[0];
+            try
+            {
+                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _shutdownCts.Token);
+                ConnectionInfo = await initializer.InitializeAsync(this, linkedCts.Token).ConfigureAwait(false);
+                _channelListenerTask = StartChannelListerAsync();
+                return ConnectionInfo;
+            }
+            catch
+            {
+                try
+                {
+                    await DisposeAsync().ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Error on disposing connection after initialization failure");
+                }
 
-                await authenticator.AuthenticateAsync(this, isMaster, saslStart, token).ConfigureAwait(false);
-
-                return new ConnectionInfo(isMaster, buildInfo);
+                throw;
             }
         }
 
@@ -57,27 +69,21 @@ namespace MongoDB.Client.Connection
 
             var message = new QueryMessage(GetNextRequestNumber(), database, document);
 
-            ManualResetValueTaskSource<IParserResult> taskSource;
-            if (_queue.TryDequeue(out var taskSrc))
+            MongoRequest completion;
+            if (!_queue.TryDequeue(out completion!))
             {
-                taskSource = taskSrc;
-            }
-            else
-            {
-                taskSource = new ManualResetValueTaskSource<IParserResult>();
+                completion = new MongoRequest(new ManualResetValueTaskSource<IParserResult>());
             }
 
-            var completion = new MongoRequest(taskSource)
-            {
-                RequestNumber = message.RequestNumber,
-                ParseAsync = ParseAsync<TResp>
-            };
+            completion.BeginOperation();
+            completion.RequestNumber = message.RequestNumber;
+            completion.ParseAsync = ParseAsync<TResp>;
             _completions.GetOrAdd(completion.RequestNumber, completion);
             try
             {
                 //await _protocolWriter.WriteUnsafeAsync(ProtocolWriters.QueryMessageWriter, message, cancellationToken).ConfigureAwait(false);
                 await _protocolWriter.WriteAsync(ProtocolWriters.QueryMessageWriter, message, cancellationToken).ConfigureAwait(false);
-                var response = await new ValueTask<IParserResult>(completion.CompletionSource, completion.CompletionSource.Version).ConfigureAwait(false);
+                var response = await completion.GetValueTask().ConfigureAwait(false);
 
                 if (response is QueryResult<TResp> queryResult)
                 {
@@ -89,8 +95,8 @@ namespace MongoDB.Client.Connection
             finally
             {
                 _completions.TryRemove(message.RequestNumber, out _);
-                taskSource.Reset();
-                _queue.Enqueue(taskSource);
+                completion.ResetForPool();
+                _queue.Enqueue(completion);
             }
 
             async ValueTask<IParserResult> ParseAsync<T>(ProtocolReader reader, MongoResponseMessage mongoResponse)
