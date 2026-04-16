@@ -56,15 +56,6 @@ namespace MongoDB.Client.Scheduler
         private List<RouterScheduler> _schedulers;
         private List<EndPoint> _badHosts;
         private int _schedulerCounter = 0;
-        internal ShardedScheduler(MongoClientSettings settings, ILoggerFactory loggerFactory)
-            : this(
-                settings,
-                loggerFactory,
-                MongoConnectionInitializerFactory.Create(settings),
-                new NetworkConnectionFactory(loggerFactory).ConnectAsync)
-        {
-        }
-
         internal ShardedScheduler(
             MongoClientSettings settings,
             ILoggerFactory loggerFactory,

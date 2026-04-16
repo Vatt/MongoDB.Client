@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using MongoDB.Client.Authentication;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Experimental;
@@ -61,7 +62,7 @@ namespace MongoDB.Client
             EndPoint? lastFailedEndpoint = null;
             Exception? preferredException = null;
             EndPoint? preferredFailedEndpoint = null;
-            var connectionInitializer = MongoConnectionInitializerFactory.Create(settings);
+            var connectionInitializer = CreateConnectionInitializer(settings);
             foreach (var endpoint in settings.Endpoints)
             {
 
@@ -112,11 +113,11 @@ namespace MongoDB.Client
                 {
                     ThrowHelper.MongoInitExceptions<MongoClient>();
                 }
-                scheduler = new ShardedScheduler(settings, loggerFactory);
+                scheduler = new ShardedScheduler(settings, loggerFactory, connectionInitializer, connectionFactory.ConnectAsync);
             }
             else if (ping.Hosts is not null && ping.SetName is not null && ping.Message is null)  //Replica set
             {
-                scheduler = new ReplicaSetScheduler(settings, loggerFactory);
+                scheduler = new ReplicaSetScheduler(settings, loggerFactory, connectionInitializer, connectionFactory.ConnectAsync);
             }
             else //Standalone
             {
@@ -127,7 +128,7 @@ namespace MongoDB.Client
                     ClientType.Experimental => new ExperimentalMongoConnectionFactory(standaloneEndpoint, loggerFactory),
                     _ => throw new MongoBadClientTypeException()
                 };
-                scheduler = new StandaloneScheduler(settings, factory, loggerFactory);
+                scheduler = new StandaloneScheduler(settings, factory, loggerFactory, connectionInitializer);
             }
 
             if (scheduler is null)
@@ -143,6 +144,15 @@ namespace MongoDB.Client
         {
             return exception is MongoAuthentificationException
                 || exception is MongoCommandException commandException && commandException.Code == 18;
+        }
+
+        internal static IMongoConnectionInitializer CreateConnectionInitializer(MongoClientSettings settings)
+        {
+            var authenticator = new ScramAuthenticator(settings);
+            var scramPlugin = new ScramMongoConnectionInitializerPlugin(authenticator);
+            return MongoConnectionInitializerFactory.Create(
+                settings,
+                scramPlugin);
         }
     }
 }

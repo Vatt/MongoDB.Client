@@ -72,6 +72,25 @@ namespace MongoDB.Client.Tests.Scheduler
             await scheduler.DisposeAsync();
         }
 
+        [Fact]
+        public async Task StandaloneStartAsync_WhenInitializerFails_DisposesConnectionContext()
+        {
+            var context = new TrackingConnectionContext(new IPEndPoint(IPAddress.Loopback, 27017));
+            var factory = new MongoConnectionFactory(
+                context.RemoteEndPoint!,
+                NullLoggerFactory.Instance,
+                (endpoint, cancellationToken) => ValueTask.FromResult<Microsoft.AspNetCore.Connections.ConnectionContext>(context));
+            var scheduler = new StandaloneScheduler(
+                CreateSettings(context.RemoteEndPoint!),
+                factory,
+                NullLoggerFactory.Instance,
+                new ThrowingInitializer());
+
+            await Assert.ThrowsAnyAsync<Exception>(async () => await scheduler.StartAsync(CancellationToken.None));
+
+            Assert.True(context.IsDisposed);
+        }
+
         private static MongoClientSettings CreateSettings(EndPoint endPoint)
         {
             return new MongoClientSettings

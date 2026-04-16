@@ -113,7 +113,7 @@ namespace MongoDB.Client.Tests.Infrastructure
             CancellationToken cancellationToken)
         {
             var connectionFactory = new NetworkConnectionFactory(NullLoggerFactory.Instance);
-            var connectionInitializer = MongoConnectionInitializerFactory.Create(settings);
+            var connectionInitializer = MongoClient.CreateConnectionInitializer(settings);
             var connectionContext = await connectionFactory.ConnectAsync(endpoint, cancellationToken).ConfigureAwait(false);
 
             await using var serviceConnection = new MongoServiceConnection(connectionContext);

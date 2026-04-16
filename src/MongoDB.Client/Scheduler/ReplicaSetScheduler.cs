@@ -35,15 +35,6 @@ namespace MongoDB.Client.Scheduler
 
         public MongoClusterTime ClusterTime => _lastPing?.ClusterTime!;
 
-        public ReplicaSetScheduler(MongoClientSettings settings, ILoggerFactory loggerFactory)
-            : this(
-                settings,
-                loggerFactory,
-                MongoConnectionInitializerFactory.Create(settings),
-                new NetworkConnectionFactory(loggerFactory).ConnectAsync)
-        {
-        }
-
         internal ReplicaSetScheduler(
             MongoClientSettings settings,
             ILoggerFactory loggerFactory,

@@ -1,6 +1,7 @@
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Connection;
+using MongoDB.Client.Exceptions;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Settings;
 using Xunit;
@@ -80,6 +81,43 @@ namespace MongoDB.Client.Tests.Connection
             Assert.Equal("second", secondConnection.Requests[1]["stateConnection"].AsString);
         }
 
+        [Fact]
+        public async Task FactoryCreate_WithoutPlugins_DoesNotInjectAuthenticationBehavior()
+        {
+            var settings = MongoClientSettings.FromConnectionString("mongodb://readonly-user@localhost");
+            var initializer = MongoConnectionInitializerFactory.Create(settings);
+            var connection = new RecordingMongoConnection(
+                new BsonDocument("isWritablePrimary", true),
+                new BsonDocument("version", "8.0.0"));
+
+            var info = await initializer.InitializeAsync(connection, CancellationToken.None);
+
+            Assert.Equal(2, connection.Requests.Count);
+            Assert.True(connection.Requests[0].TryGet("isMaster", out _));
+            Assert.False(connection.Requests[0].TryGet("speculativeAuthenticate", out _));
+            Assert.False(connection.Requests[0].TryGet("saslSupportedMechs", out _));
+            Assert.Same(connection.Responses[0], info.IsMaster);
+            Assert.Same(connection.Responses[1], info.BuildInfo);
+        }
+
+        [Fact]
+        public async Task CreateConnectionInitializer_WithCredentialsWithoutPassword_UsesScramPlugin()
+        {
+            var settings = MongoClientSettings.FromConnectionString("mongodb://readonly-user@localhost");
+            var initializer = MongoClient.CreateConnectionInitializer(settings);
+            var connection = new RecordingMongoConnection(
+                new BsonDocument("isWritablePrimary", true),
+                new BsonDocument("version", "8.0.0"));
+
+            var exception = await Assert.ThrowsAsync<MongoAuthentificationException>(
+                () => initializer.InitializeAsync(connection, CancellationToken.None).AsTask());
+
+            Assert.Equal(
+                "Authentication requires a password when a login is provided. The current SCRAM implementation only supports password-based authentication. code: 0",
+                exception.Message);
+            Assert.Empty(connection.Requests);
+        }
+
         private sealed class RecordingInitializerPlugin : IMongoConnectionInitializerPlugin
         {
             public BsonDocument? HelloResult { get; private set; }
@@ -141,9 +179,11 @@ namespace MongoDB.Client.Tests.Connection
             public RecordingMongoConnection(params BsonDocument[] responses)
             {
                 _responses = new Queue<BsonDocument>(responses);
+                Responses = responses;
             }
 
             public List<BsonDocument> Requests { get; } = new();
+            public IReadOnlyList<BsonDocument> Responses { get; }
 
             public ValueTask DisposeAsync()
             {
