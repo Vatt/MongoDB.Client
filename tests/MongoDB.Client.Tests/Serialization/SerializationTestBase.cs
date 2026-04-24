@@ -1,6 +1,7 @@
 ﻿using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipelines;
+using System.Globalization;
 using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Reader;
@@ -9,6 +10,7 @@ using MongoDB.Client.Bson.Writer;
 using MongoDB.Client.Messages;
 using MongoDB.Client.Protocol.Core;
 using MongoDB.Client.Protocol.Readers;
+using MongoDB.Client.Tests.Infrastructure;
 using MongoDB.Client.Tests.Models;
 
 namespace MongoDB.Client.Tests.Serialization
@@ -60,14 +62,20 @@ namespace MongoDB.Client.Tests.Serialization
     {
         public static async Task<T?> MongoDBRoundTripAsync<T>(T message) where T : IBsonSerializer<T>
         {
-            var host = Environment.GetEnvironmentVariable("MONGODB_HOST") ?? "localhost";
-            host = $"mongodb://{host}/?maxPoolSize=1";
-
-            var client = await MongoClient.CreateClient(host);
+            var client = await MongoClient.CreateClient(IntegrationMongoConnectionStringBuilder.BuildStandalone(1));
             var db = client.GetDatabase("TestDb");
-            var collection = db.GetCollection<T>("TestCollection" + DateTime.Now);
-            await collection.InsertAsync(message);
-            return await collection.Find(BsonDocument.Empty).SingleOrDefaultAsync();
+            var collectionName = CreateRoundTripCollectionName();
+            var collection = db.GetCollection<T>(collectionName);
+
+            try
+            {
+                await collection.InsertAsync(message);
+                return await collection.Find(BsonDocument.Empty).SingleOrDefaultAsync();
+            }
+            finally
+            {
+                await db.DropCollectionAsync(collectionName);
+            }
 
         }
         public static async Task<T> RoundTripAsync<T>(T message) where T : IBsonSerializer<T>
@@ -117,6 +125,12 @@ namespace MongoDB.Client.Tests.Serialization
             await writer.WriteAsync(messageWriter, message).ConfigureAwait(false);
             await output.FlushAsync();
             await output.CompleteAsync();
+        }
+
+        private static string CreateRoundTripCollectionName()
+        {
+            var timestamp = DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmssfff", CultureInfo.InvariantCulture);
+            return $"TestCollection_{timestamp}_{Guid.NewGuid():N}";
         }
     }
 }

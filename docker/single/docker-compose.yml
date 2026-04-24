@@ -1,10 +1,10 @@
-version: '3'
-
 services:
   mongo:
     hostname: mongo
     container_name: mongo
-    image: mongo:focal
+    image: mongo:8.0-noble
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-password}
     ports:
-    - "27017:27017"
-
+      - "27016:27017"

@@ -7,21 +7,24 @@ namespace MongoDB.Client.Connection
 {
     internal static class InitHelper
     {
+
         public static BsonDocument CreateInitialCommand(MongoClientSettings settings)
         {
             var command = CreateCommand();
             AddClientDocumentToCommand(command, settings.ApplicationName ?? string.Empty);
             AddCompressorsToCommand(command, Compressors);
+
             return command;
         }
 
+     
         private static void AddClientDocumentToCommand(BsonDocument command, string appname)
         {
             var clientDocument = CreateClientDocument(appname);
             command.Add("client", clientDocument);
         }
 
-        private static void AddCompressorsToCommand(BsonDocument command, BsonDocument compressors)
+        private static void AddCompressorsToCommand(BsonDocument command, BsonArray compressors)
         {
             command.Add("compression", compressors);
         }

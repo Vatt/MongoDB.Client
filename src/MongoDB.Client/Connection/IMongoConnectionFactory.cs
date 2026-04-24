@@ -6,6 +6,6 @@ namespace MongoDB.Client.Connection
 {
     internal interface IMongoConnectionFactory
     {
-        ValueTask<MongoConnection> CreateAsync(MongoClientSettings settings, ChannelReader<MongoRequest> reader, MongoScheduler requestScheduler, CancellationToken token);
+        ValueTask<MongoConnection> CreateAsync(MongoClientSettings settings, IMongoConnectionInitializer initializer, ChannelReader<MongoRequest> reader, MongoScheduler requestScheduler, CancellationToken token);
     }
 }

@@ -12,9 +12,13 @@ namespace MongoDB.Client.Scheduler
     {
         private readonly MongoScheduler _mongoScheduler;
 
-        public StandaloneScheduler(MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
+        public StandaloneScheduler(
+            MongoClientSettings settings,
+            IMongoConnectionFactory connectionFactory,
+            ILoggerFactory loggerFactory,
+            IMongoConnectionInitializer connectionInitializer)
         {
-            _mongoScheduler = new MongoScheduler(settings, connectionFactory, loggerFactory);
+            _mongoScheduler = new MongoScheduler(settings, connectionFactory, loggerFactory, connectionInitializer);
         }
 
 

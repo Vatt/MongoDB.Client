@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Connections;
+using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Exceptions;
@@ -10,91 +11,79 @@ using MongoDB.Client.Protocol.Readers;
 
 namespace MongoDB.Client.Connection
 {
-    public sealed partial class MongoConnection
+    public sealed partial class MongoConnection : IMongoConnection
     {
         internal ConnectionInfo? ConnectionInfo;
-        internal ValueTask StartAsync(ConnectionContext connection, CancellationToken cancellationToken = default)
+        internal ValueTask<ConnectionInfo> StartAsync(IMongoConnectionInitializer initializer, ConnectionContext connection, CancellationToken cancellationToken = default)
         {
-            return StartAsync(connection.CreateReader(), connection.CreateWriter(), cancellationToken);
+            return StartAsync(initializer, connection.CreateReader(), connection.CreateWriter(), connection, cancellationToken);
         }
-        internal async ValueTask StartAsync(ProtocolReader reader, ProtocolWriter writer, CancellationToken cancellationToken)
+
+
+
+        internal async ValueTask<ConnectionInfo> StartAsync(IMongoConnectionInitializer initializer, ProtocolReader reader, ProtocolWriter writer, CancellationToken cancellationToken)
+        {
+            await StartAsync(initializer, reader, writer, null, cancellationToken).ConfigureAwait(false);
+            return ConnectionInfo!;
+        }
+
+        internal async ValueTask<ConnectionInfo> StartAsync(IMongoConnectionInitializer initializer, ProtocolReader reader, ProtocolWriter writer, IAsyncDisposable? owner, CancellationToken cancellationToken)
         {
             _protocolReader = reader;
             _protocolWriter = writer;
+            if (owner is not null)
+            {
+                TakeTransportOwnership(owner);
+            }
             _protocolListenerTask = StartProtocolListenerAsync();
-            ConnectionInfo = await DoConnectAsync(cancellationToken).ConfigureAwait(false);
-            _channelListenerTask = StartChannelListerAsync();
-            async Task<ConnectionInfo> DoConnectAsync(CancellationToken token)
-            {
-                var _initialDocument = InitHelper.CreateInitialCommand(_settings);
-                var connectRequest = CreateQueryRequest(_initialDocument, GetNextRequestNumber());
-                var configMessage = await SendQueryAsync<BsonDocument>(connectRequest, token).ConfigureAwait(false);
-                var buildInfoRequest = CreateQueryRequest(new BsonDocument("buildInfo", 1), GetNextRequestNumber());
-                var hell = await SendQueryAsync<BsonDocument>(buildInfoRequest, token).ConfigureAwait(false);
-                return new ConnectionInfo(configMessage[0], hell[0]);
-            }
-        }
-        private QueryMessage CreateQueryRequest(string database, BsonDocument document, int number)
-        {
-            return new QueryMessage(number, database, document);
-        }
-        private QueryMessage CreateQueryRequest(BsonDocument document, int number)
-        {
-            var doc = CreateWrapperDocument(document);
-            return CreateQueryRequest("admin.$cmd", doc, number);
-        }
 
-        private static BsonDocument CreateWrapperDocument(BsonDocument document)
-        {
-            BsonDocument? readPreferenceDocument = null;
-            if (readPreferenceDocument is null)
+            try
             {
-                return document;
+                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _shutdownCts.Token);
+                ConnectionInfo = await initializer.InitializeAsync(this, linkedCts.Token).ConfigureAwait(false);
+                _channelListenerTask = StartChannelListerAsync();
+                return ConnectionInfo;
             }
-            var doc = new BsonDocument
+            catch
+            {
+                try
                 {
-                    {"$query", document},
-                    {"$readPreference", readPreferenceDocument}
-                };
+                    await DisposeAsync().ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Error on disposing connection after initialization failure");
+                }
 
-            return doc;
-            //if (doc.Count == 1)
-            //{
-            //    return doc["$query"].AsBsonDocument;
-            //}
-            //else
-            //{
-            //    return doc;
-            //}
+                throw;
+            }
         }
-        public async ValueTask<QueryResult<TResp>> SendQueryAsync<TResp>(QueryMessage message, CancellationToken cancellationToken)
+
+        public async ValueTask<QueryResult<TResp>> SendQueryAsync<TResp>(string database, BsonDocument document, CancellationToken cancellationToken)
             where TResp : IBsonSerializer<TResp>
         {
             if (_protocolWriter is null)
             {
                 ThrowHelper.ThrowNotInitialized();
             }
-            ManualResetValueTaskSource<IParserResult> taskSource;
-            if (_queue.TryDequeue(out var taskSrc))
+
+            var message = new QueryMessage(GetNextRequestNumber(), database, document);
+
+            MongoRequest completion;
+            if (!_queue.TryDequeue(out completion!))
             {
-                taskSource = taskSrc;
-            }
-            else
-            {
-                taskSource = new ManualResetValueTaskSource<IParserResult>();
+                completion = new MongoRequest(new ManualResetValueTaskSource<IParserResult>());
             }
 
-            var completion = new MongoRequest(taskSource)
-            {
-                RequestNumber = message.RequestNumber,
-                ParseAsync = ParseAsync<TResp>
-            };
+            completion.BeginOperation();
+            completion.RequestNumber = message.RequestNumber;
+            completion.ParseAsync = ParseAsync<TResp>;
             _completions.GetOrAdd(completion.RequestNumber, completion);
             try
             {
                 //await _protocolWriter.WriteUnsafeAsync(ProtocolWriters.QueryMessageWriter, message, cancellationToken).ConfigureAwait(false);
                 await _protocolWriter.WriteAsync(ProtocolWriters.QueryMessageWriter, message, cancellationToken).ConfigureAwait(false);
-                var response = await new ValueTask<IParserResult>(completion.CompletionSource, completion.CompletionSource.Version).ConfigureAwait(false);
+                var response = await completion.GetValueTask().ConfigureAwait(false);
 
                 if (response is QueryResult<TResp> queryResult)
                 {
@@ -106,8 +95,8 @@ namespace MongoDB.Client.Connection
             finally
             {
                 _completions.TryRemove(message.RequestNumber, out _);
-                taskSource.Reset();
-                _queue.Enqueue(taskSource);
+                completion.ResetForPool();
+                _queue.Enqueue(completion);
             }
 
             async ValueTask<IParserResult> ParseAsync<T>(ProtocolReader reader, MongoResponseMessage mongoResponse)
@@ -125,7 +114,5 @@ namespace MongoDB.Client.Connection
                 }
             }
         }
-
-
     }
 }

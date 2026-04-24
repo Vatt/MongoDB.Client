@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Net;
+using Microsoft.AspNetCore.Connections;
 using Microsoft.Extensions.Logging;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
@@ -19,8 +20,8 @@ namespace MongoDB.Client.Scheduler
         private MongoPingMessage? _lastPing;
         public MongoPingMessage? LastPing => _lastPing;
         public EndPoint EndPoint { get; }
-        public RouterScheduler(MongoServiceConnection connection, MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
-            : base(settings, connectionFactory, loggerFactory, null)
+        public RouterScheduler(MongoServiceConnection connection, MongoClientSettings settings, IMongoConnectionFactory connectionFactory, ILoggerFactory loggerFactory, IMongoConnectionInitializer connectionInitializer)
+            : base(settings, connectionFactory, loggerFactory, null, connectionInitializer)
         {
             _connection = connection;
             EndPoint = _connection.EndPoint;
@@ -39,18 +40,32 @@ namespace MongoDB.Client.Scheduler
             }
 
         }
+
+        public new async ValueTask DisposeAsync()
+        {
+            await base.DisposeAsync().ConfigureAwait(false);
+            await _connection.DisposeAsync().ConfigureAwait(false);
+        }
     }
     internal class ShardedScheduler : IMongoScheduler
     {
         private readonly MongoClientSettings _settings;
         private readonly ILoggerFactory _loggerFactory;
+        private readonly IMongoConnectionInitializer _connectionInitializer;
+        private readonly Func<EndPoint, CancellationToken, ValueTask<ConnectionContext>> _connectAsync;
         private List<RouterScheduler> _schedulers;
         private List<EndPoint> _badHosts;
         private int _schedulerCounter = 0;
-        internal ShardedScheduler(MongoClientSettings settings, ILoggerFactory loggerFactory)
+        internal ShardedScheduler(
+            MongoClientSettings settings,
+            ILoggerFactory loggerFactory,
+            IMongoConnectionInitializer connectionInitializer,
+            Func<EndPoint, CancellationToken, ValueTask<ConnectionContext>> connectAsync)
         {
             _settings = settings;
             _loggerFactory = loggerFactory;
+            _connectionInitializer = connectionInitializer;
+            _connectAsync = connectAsync;
             _schedulers = new();
             _badHosts = new();
         }
@@ -71,7 +86,11 @@ namespace MongoDB.Client.Scheduler
 
         public ValueTask CreateCollectionAsync(TransactionHandler transaction, CollectionNamespace collectionNamespace, CancellationToken token)
         {
-            throw new NotImplementedException();
+            var scheduler = GetScheduler();
+            var requestNumber = scheduler.GetNextRequestNumber();
+            var createCollectionHeader = new CreateCollectionHeader(collectionNamespace.CollectionName, collectionNamespace.DatabaseName, transaction.SessionId);
+            var request = new CreateCollectionMessage(requestNumber, createCollectionHeader);
+            return scheduler.CreateCollectionAsync(request, token);
         }
 
         public ValueTask<DeleteResult> DeleteAsync(TransactionHandler transaction, BsonDocument filter, int limit, CollectionNamespace collectionNamespace, CancellationToken token)
@@ -141,12 +160,26 @@ namespace MongoDB.Client.Scheduler
         }
         public ValueTask DisposeAsync()
         {
-            throw new NotImplementedException();
+            return DisposeAsyncCore();
+        }
+
+        private async ValueTask DisposeAsyncCore()
+        {
+            for (var i = 0; i < _schedulers.Count; i++)
+            {
+                await _schedulers[i].DisposeAsync().ConfigureAwait(false);
+            }
+
+            _schedulers.Clear();
         }
 
         public ValueTask DropCollectionAsync(TransactionHandler transaction, CollectionNamespace collectionNamespace, CancellationToken token)
         {
-            throw new NotImplementedException();
+            var scheduler = GetScheduler();
+            var requestNumber = scheduler.GetNextRequestNumber();
+            var dropCollectionHeader = new DropCollectionHeader(collectionNamespace.CollectionName, collectionNamespace.DatabaseName, transaction.SessionId);
+            var request = new DropCollectionMessage(requestNumber, dropCollectionHeader);
+            return scheduler.DropCollectionAsync(request, token);
         }
 
         public async ValueTask<FindResult<T>> FindAsync<T>(BsonDocument filter, int limit, CollectionNamespace collectionNamespace, TransactionHandler transaction, CancellationToken token)
@@ -242,7 +275,6 @@ namespace MongoDB.Client.Scheduler
 
         public async ValueTask StartAsync(CancellationToken token)
         {
-            var connectionfactory = new NetworkConnectionFactory(_loggerFactory);
             var endpoints = _settings.Endpoints;
             var maxConnections = _settings.ConnectionPoolMaxSize / endpoints.Length;
             maxConnections = maxConnections == 0 ? 1 : maxConnections;
@@ -250,7 +282,6 @@ namespace MongoDB.Client.Scheduler
             {
                 try
                 {
-
                     var endpoint = _settings.Endpoints[i];
                     IMongoConnectionFactory connectionFactory = _settings.ClientType switch
                     {
@@ -258,21 +289,41 @@ namespace MongoDB.Client.Scheduler
                         ClientType.Experimental => new ExperimentalMongoConnectionFactory(endpoint, _loggerFactory),
                         _ => throw new MongoBadClientTypeException()
                     };
-                    var ctx = await connectionfactory.ConnectAsync(endpoint, token).ConfigureAwait(false);
-                    var serviceConnection = new MongoServiceConnection(ctx);
-                    await serviceConnection.Connect(_settings, token).ConfigureAwait(false);
-                    var scheduler = new RouterScheduler(serviceConnection, _settings with { ConnectionPoolMaxSize = maxConnections }, connectionFactory, _loggerFactory);
-                    await scheduler.MongoPing(token).ConfigureAwait(false);
+                    ConnectionContext? ctx = null;
+                    MongoServiceConnection? serviceConnection = null;
 
-                    if (scheduler.LastPing is null)
+                    try
                     {
-                        _badHosts.Add(endpoint);
-                        continue;
-                    }
-                    else
-                    {
+                        ctx = await _connectAsync(endpoint, token).ConfigureAwait(false);
+                        serviceConnection = new MongoServiceConnection(ctx);
+                        await serviceConnection.Connect(_connectionInitializer, token).ConfigureAwait(false);
+                        var scheduler = new RouterScheduler(serviceConnection, _settings with { ConnectionPoolMaxSize = maxConnections }, connectionFactory, _loggerFactory, _connectionInitializer);
+                        await scheduler.MongoPing(token).ConfigureAwait(false);
+
+                        if (scheduler.LastPing is null)
+                        {
+                            _badHosts.Add(endpoint);
+                            await scheduler.DisposeAsync().ConfigureAwait(false);
+                            serviceConnection = null;
+                            continue;
+                        }
+
                         await scheduler.StartAsync(token).ConfigureAwait(false);
                         _schedulers.Add(scheduler);
+                        serviceConnection = null;
+                    }
+                    catch
+                    {
+                        if (serviceConnection is not null)
+                        {
+                            await serviceConnection.DisposeAsync().ConfigureAwait(false);
+                        }
+                        else if (ctx is not null)
+                        {
+                            await ctx.DisposeAsync().ConfigureAwait(false);
+                        }
+
+                        throw;
                     }
                 }
                 catch (Exception)

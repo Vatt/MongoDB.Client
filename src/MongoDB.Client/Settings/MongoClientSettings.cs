@@ -6,25 +6,41 @@ namespace MongoDB.Client.Settings
 {
     public record MongoClientSettings
     {
-        public MongoClientSettings(IEnumerable<EndPoint> endpoints, string? login, string? password)
+        public MongoClientSettings(IEnumerable<EndPoint> endpoints, string adminDb, string? login, string? password)
         {
             Login = login;
             Password = password;
             Endpoints = endpoints.ToImmutableArray();
+            AdminDB = adminDb;
+        }
+
+        public MongoClientSettings(IEnumerable<EndPoint> endpoints, string login, string password)
+            : this(endpoints, "admin", login, password)
+        {
+        }
+
+        public MongoClientSettings(EndPoint endpoint, string adminDb, string login, string password)
+            : this(new[] { endpoint }, adminDb, login, password)
+        {
+        }
+
+        public MongoClientSettings(EndPoint endpoint, string login, string password)
+            : this(new[] { endpoint }, "admin", login, password)
+        {
         }
 
         public MongoClientSettings(EndPoint[] endpoints)
-        : this(endpoints, string.Empty, string.Empty)
+            : this(endpoints, "admin", null, null)
         {
         }
 
         public MongoClientSettings(EndPoint endpoint)
-            : this(new[] { endpoint }, string.Empty, string.Empty)
+            : this(new[] { endpoint }, "admin", null, null)
         {
         }
 
         public MongoClientSettings()
-            : this(new[] { new IPEndPoint(IPAddress.Loopback, 27017) }, string.Empty, string.Empty)
+            : this(new[] { new IPEndPoint(IPAddress.Loopback, 27017) }, "admin", null, null)
         {
         }
 
@@ -44,8 +60,10 @@ namespace MongoDB.Client.Settings
         }
 
         public string? ApplicationName { get; init; }
+        public string AdminDB { get; init; }
         public string? Login { get; init; }
         public string? Password { get; init; }
+        public string? AuthMechanism { get; init; }
         public string? ReplicaSet { get; init; }
         public ReadPreference ReadPreference { get; init; }
         public ClientType ClientType { get; init; }
@@ -54,11 +72,8 @@ namespace MongoDB.Client.Settings
         public static MongoClientSettings FromConnectionString(string uriString)
         {
             var result = MongoDBUriParser.ParseUri(uriString);
-
             result.Options.TryGetValue("replicaSet", out var replSet);
-
-
-            int connectionPoolMaxSize = 16;
+            int connectionPoolMaxSize = 8;
             if (result.Options.TryGetValue("maxPoolSize", out var maxPoolSize))
             {
                 connectionPoolMaxSize = int.Parse(maxPoolSize);
@@ -81,12 +96,28 @@ namespace MongoDB.Client.Settings
                 appName = appNameVal;
             }
 
+            result.Options.TryGetValue("authSource", out var explicitAuthSource);
+            result.Options.TryGetValue("authMechanism", out var authMechanism);
+
+            var effectiveAuthSource = explicitAuthSource;
+            if (string.IsNullOrEmpty(effectiveAuthSource))
+            {
+                effectiveAuthSource = result.AdminDb;
+            }
+
+            if (string.IsNullOrEmpty(effectiveAuthSource) && !string.IsNullOrEmpty(result.Login))
+            {
+                effectiveAuthSource = "admin";
+            }
+
             var hosts = result.Hosts.ToArray();
             var settings = new MongoClientSettings
             {
                 Endpoints = hosts.ToImmutableArray(),
+                AdminDB = effectiveAuthSource ?? "admin",
                 Login = result.Login,
                 Password = result.Password,
+                AuthMechanism = authMechanism,
                 ReplicaSet = replSet,
                 ConnectionPoolMaxSize = connectionPoolMaxSize,
                 ReadPreference = readPreference,

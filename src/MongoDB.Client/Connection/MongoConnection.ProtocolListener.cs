@@ -15,24 +15,23 @@ namespace MongoDB.Client.Connection
             {
                 ThrowHelper.ThrowNotInitialized();
             }
-            MongoResponseMessage message;
+            MongoResponseMessage message = default!;
             MongoRequest? request;
-            Exception? exception = null;
             while (!_shutdownCts.IsCancellationRequested)
             {
                 try
                 {
-                    var header = await ReadAsyncPrivate(ProtocolReaders.MessageHeaderReader, _shutdownCts.Token).ConfigureAwait(false);
+                    var header = await ReadAsyncPrivate(ProtocolReaders.MessageHeaderReader, _shutdownToken).ConfigureAwait(false);
                     switch (header.Opcode)
                     {
                         case Opcode.Reply:
                             _logger.GotReplyMessage(header.ResponseTo);
-                            var replyResult = await ReadAsyncPrivate(ProtocolReaders.ReplyMessageReader, _shutdownCts.Token).ConfigureAwait(false);
+                            var replyResult = await ReadAsyncPrivate(ProtocolReaders.ReplyMessageReader, _shutdownToken).ConfigureAwait(false);
                             message = new ReplyMessage(header, replyResult);
                             break;
                         case Opcode.OpMsg:
                             _logger.GotMsgMessage(header.ResponseTo);
-                            var msgResult = await ReadAsyncPrivate(ProtocolReaders.MsgMessageReader, _shutdownCts.Token).ConfigureAwait(false);
+                            var msgResult = await ReadAsyncPrivate(ProtocolReaders.MsgMessageReader, _shutdownToken).ConfigureAwait(false);
                             message = new ResponseMsgMessage(header, msgResult);
                             break;
                         case Opcode.Message:
@@ -45,22 +44,27 @@ namespace MongoDB.Client.Connection
                         case Opcode.Compressed:
                         default:
                             _logger.UnknownOpcodeMessage(header);
-                            exception = new MongoException("Received broken data");
-                            _shutdownCts.Cancel();
-                            continue;
+                            HandleListenerFault(new MongoException("Received broken data"));
+                            break;
+                    }
+
+                    if (_shutdownCts.IsCancellationRequested)
+                    {
+                        break;
                     }
 
                     if (_completions.TryRemove(message.Header.ResponseTo, out request))
                     {
+                        var generation = request.CurrentGeneration;
                         try
                         {
                             var result = await request.ParseAsync!(_protocolReader, message).ConfigureAwait(false);
-                            request.CompletionSource.TrySetResult(result);
+                            request.TrySetResult(generation, result);
                         }
                         catch (Exception e)
                         {
                             // read rest of the responce
-                            request.CompletionSource.SetException(e);
+                            request.TrySetException(generation, e);
                         }
                     }
                     else
@@ -68,23 +72,24 @@ namespace MongoDB.Client.Connection
                         _logger.LogError("Message not found");
                     }
                 }
+                catch (OperationCanceledException) when (_shutdownCts.IsCancellationRequested && _suppressConnectionLost)
+                {
+                    break;
+                }
+                catch (ObjectDisposedException) when (_shutdownCts.IsCancellationRequested && _suppressConnectionLost)
+                {
+                    break;
+                }
                 catch (Exception e)
                 {
                     _logger.LogError(e, "");
-                    exception = e;
-                    _shutdownCts.Cancel();
+                    HandleListenerFault(e);
                 }
             }
-            if (exception is not null)
+
+            if (_shutdownCts.IsCancellationRequested)
             {
-                foreach (var key in _completions.Keys)
-                {
-                    if (_completions.TryRemove(key, out request))
-                    {
-                        request.CompletionSource.SetException(exception);
-                    }
-                }
-                _ = _requestScheduler.ConnectionLost(this);
+                FailPendingCompletions(GetTerminalException());
             }
         }
 
@@ -92,9 +97,14 @@ namespace MongoDB.Client.Connection
         {
             var result = await _protocolReader!.ReadAsync(reader, token).ConfigureAwait(false);
             _protocolReader!.Advance();
-            if (result.IsCanceled || result.IsCompleted)
+            if (result.IsCanceled)
             {
-                _logger.LogError("ProtocolReader is Canceled or Completed");
+                throw new OperationCanceledException(token);
+            }
+
+            if (result.IsCompleted)
+            {
+                throw new MongoException("Connection terminated.");
             }
             return result.Message;
         }

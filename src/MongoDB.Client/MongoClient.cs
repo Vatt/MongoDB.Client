@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using MongoDB.Client.Authentication;
 using MongoDB.Client.Connection;
 using MongoDB.Client.Exceptions;
 using MongoDB.Client.Experimental;
@@ -56,6 +57,12 @@ namespace MongoDB.Client
             var connectionFactory = new NetworkConnectionFactory(loggerFactory);
             IMongoScheduler? scheduler = null;
             MongoPingMessage? ping = null;
+            EndPoint? connectedEndpoint = null;
+            Exception? lastException = null;
+            EndPoint? lastFailedEndpoint = null;
+            Exception? preferredException = null;
+            EndPoint? preferredFailedEndpoint = null;
+            var connectionInitializer = CreateConnectionInitializer(settings);
             foreach (var endpoint in settings.Endpoints)
             {
 
@@ -63,18 +70,40 @@ namespace MongoDB.Client
                 {
                     var ctx = await connectionFactory.ConnectAsync(endpoint, token).ConfigureAwait(false);
                     await using var serviceConnection = new MongoServiceConnection(ctx);
-                    await serviceConnection.Connect(settings, token).ConfigureAwait(false);
+                    await serviceConnection.Connect(connectionInitializer, token).ConfigureAwait(false);
                     ping = await serviceConnection.MongoPing(token).ConfigureAwait(false);
+                    connectedEndpoint = endpoint;
                     //await serviceConnection.DisposeAsync().ConfigureAwait(false);
                     break;
                 }
-                catch (Exception)
+                catch (MongoException ex)
                 {
+                    lastException = ex;
+                    lastFailedEndpoint = endpoint;
+                    if (IsAuthenticationFailure(ex))
+                    {
+                        preferredException ??= ex;
+                        preferredFailedEndpoint ??= endpoint;
+                    }
+
+                    continue;
+                }
+                catch (Exception ex)
+                {
+                    lastException = ex;
+                    lastFailedEndpoint = endpoint;
                     continue;
                 }
             }
             if (ping is null)
             {
+                var exceptionToThrow = preferredException ?? lastException;
+                var endpointToThrow = preferredException is not null ? preferredFailedEndpoint : lastFailedEndpoint;
+                if (exceptionToThrow is not null)
+                {
+                    ThrowHelper.MongoInitExceptions<MongoClient>(exceptionToThrow, endpointToThrow);
+                }
+
                 ThrowHelper.MongoInitExceptions<MongoClient>();
             }
             //Sharded cluster
@@ -84,21 +113,22 @@ namespace MongoDB.Client
                 {
                     ThrowHelper.MongoInitExceptions<MongoClient>();
                 }
-                scheduler = new ShardedScheduler(settings, loggerFactory);
+                scheduler = new ShardedScheduler(settings, loggerFactory, connectionInitializer, connectionFactory.ConnectAsync);
             }
             else if (ping.Hosts is not null && ping.SetName is not null && ping.Message is null)  //Replica set
             {
-                scheduler = new ReplicaSetScheduler(settings, loggerFactory);
+                scheduler = new ReplicaSetScheduler(settings, loggerFactory, connectionInitializer, connectionFactory.ConnectAsync);
             }
             else //Standalone
             {
+                var standaloneEndpoint = connectedEndpoint ?? settings.Endpoints[0];
                 IMongoConnectionFactory factory = settings.ClientType switch
                 {
-                    ClientType.Default => new MongoConnectionFactory(settings.Endpoints[0], loggerFactory),
-                    ClientType.Experimental => new ExperimentalMongoConnectionFactory(settings.Endpoints[0], loggerFactory),
+                    ClientType.Default => new MongoConnectionFactory(standaloneEndpoint, loggerFactory),
+                    ClientType.Experimental => new ExperimentalMongoConnectionFactory(standaloneEndpoint, loggerFactory),
                     _ => throw new MongoBadClientTypeException()
                 };
-                scheduler = new StandaloneScheduler(settings, factory, loggerFactory);
+                scheduler = new StandaloneScheduler(settings, factory, loggerFactory, connectionInitializer);
             }
 
             if (scheduler is null)
@@ -108,6 +138,21 @@ namespace MongoDB.Client
             var client = new MongoClient(settings, scheduler);
             await client.InitAsync(token).ConfigureAwait(false);
             return client;
+        }
+
+        private static bool IsAuthenticationFailure(Exception exception)
+        {
+            return exception is MongoAuthentificationException
+                || exception is MongoCommandException commandException && commandException.Code == 18;
+        }
+
+        internal static IMongoConnectionInitializer CreateConnectionInitializer(MongoClientSettings settings)
+        {
+            var authenticator = new ScramAuthenticator(settings);
+            var scramPlugin = new ScramMongoConnectionInitializerPlugin(authenticator);
+            return MongoConnectionInitializerFactory.Create(
+                settings,
+                scramPlugin);
         }
     }
 }

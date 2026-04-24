@@ -39,11 +39,11 @@ namespace MongoDB.Client.ConsoleApp
         {
             //var update = Update<TestModel>.Set(new {SomeId = 22});
             //await TestUpdate();
-            await LoadTest<GeoIp>(1024 * 1024, new[] { 8 });
+            //await LoadTest<GeoIp>(1024 * 1024, new[] { 8 });
             //await ReplicaSetConenctionTest<GeoIp>(1024*4, new[] { 4 }, false);
             //await TestShardedCluster();
             //await TestTransaction();
-            //await TestStandalone();
+            await TestStandalone();
         }
 
 
@@ -172,8 +172,9 @@ namespace MongoDB.Client.ConsoleApp
                     .SetMinimumLevel(LogLevel.Information)
                     .AddConsole();
             });
-
-            var client = await MongoClient.CreateClient(new DnsEndPoint(host, 27017), loggerFactory);
+            //var settings = new MongoClientSettings(new DnsEndPoint(host, 27017), "root", "password");
+            var settings = new MongoClientSettings(new DnsEndPoint(host, 27017));
+            var client = await MongoClient.CreateClient(settings, loggerFactory);
             var db = client.GetDatabase("TestDb");
             try
             {

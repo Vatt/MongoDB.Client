@@ -4,13 +4,13 @@ namespace MongoDB.Client.Connection
 {
     public class ConnectionInfo
     {
-        public BsonDocument MongoConnectionInfo { get; }
-        public BsonDocument Hell { get; }
+        public BsonDocument IsMaster { get; }
+        public BsonDocument BuildInfo { get; }
 
-        public ConnectionInfo(BsonDocument mongoConnectionInfo, BsonDocument hell)
+        public ConnectionInfo(BsonDocument isMaster, BsonDocument buildInfo)
         {
-            MongoConnectionInfo = mongoConnectionInfo;
-            Hell = hell;
+            IsMaster = isMaster;
+            BuildInfo = buildInfo;
         }
     }
 }

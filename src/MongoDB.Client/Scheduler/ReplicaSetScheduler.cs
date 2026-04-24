@@ -1,6 +1,8 @@
-﻿using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
+﻿using Microsoft.AspNetCore.Connections;
 using Microsoft.Extensions.Logging;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using MongoDB.Client.Bson.Document;
 using MongoDB.Client.Bson.Serialization;
 using MongoDB.Client.Connection;
@@ -18,6 +20,8 @@ namespace MongoDB.Client.Scheduler
     {
         private readonly ILoggerFactory _loggerFactory;
         private readonly MongoClientSettings _settings;
+        private readonly IMongoConnectionInitializer _connectionInitializer;
+        private readonly Func<EndPoint, CancellationToken, ValueTask<ConnectionContext>> _connectAsync;
         private readonly ILogger _logger;
         private ImmutableArray<MongoScheduler> _shedulers;
         private ImmutableArray<MongoScheduler> _secondaries;
@@ -31,13 +35,19 @@ namespace MongoDB.Client.Scheduler
 
         public MongoClusterTime ClusterTime => _lastPing?.ClusterTime!;
 
-        public ReplicaSetScheduler(MongoClientSettings settings, ILoggerFactory loggerFactory)
+        internal ReplicaSetScheduler(
+            MongoClientSettings settings,
+            ILoggerFactory loggerFactory,
+            IMongoConnectionInitializer connectionInitializer,
+            Func<EndPoint, CancellationToken, ValueTask<ConnectionContext>> connectAsync)
         {
             _settings = settings;
             _loggerFactory = loggerFactory;
             _logger = loggerFactory.CreateLogger<ReplicaSetScheduler>();
             _shedulers = new();
             _secondaries = new();
+            _connectionInitializer = connectionInitializer;
+            _connectAsync = connectAsync;
         }
 
 
@@ -73,7 +83,7 @@ namespace MongoDB.Client.Scheduler
             {
                 var host = hosts[i];
                 IMongoConnectionFactory connectionFactory = _settings.ClientType == ClientType.Default ? new MongoConnectionFactory(host, _loggerFactory) : new ExperimentalMongoConnectionFactory(host, _loggerFactory);
-                var scheduler = new MongoScheduler(_settings with { ConnectionPoolMaxSize = maxConnections }, connectionFactory, _loggerFactory, clusterTime);
+                var scheduler = new MongoScheduler(_settings with { ConnectionPoolMaxSize = maxConnections }, connectionFactory, _loggerFactory, clusterTime, _connectionInitializer);
                 try
                 {
                     await scheduler.StartAsync(token).ConfigureAwait(false);
@@ -100,18 +110,40 @@ namespace MongoDB.Client.Scheduler
 
         private async Task<MongoServiceConnection> CreateServiceConnection(CancellationToken token)
         {
-            var connectionfactory = new NetworkConnectionFactory(_loggerFactory);
             for (int i = 0; i < _settings.Endpoints.Length; i++)
             {
                 try
                 {
                     var endpoint = _settings.Endpoints[i];
-                    var ctx = await connectionfactory.ConnectAsync(endpoint, token);
-                    var serviceConnection = new MongoServiceConnection(ctx);
-                    await serviceConnection.Connect(_settings, token).ConfigureAwait(false);
-                    return serviceConnection;
+                    ConnectionContext? ctx = null;
+                    MongoServiceConnection? serviceConnection = null;
+
+                    try
+                    {
+                        ctx = await _connectAsync(endpoint, token).ConfigureAwait(false);
+                        serviceConnection = new MongoServiceConnection(ctx);
+                        await serviceConnection.Connect(_connectionInitializer, token).ConfigureAwait(false);
+                        return serviceConnection;
+                    }
+                    catch
+                    {
+                        if (serviceConnection is not null)
+                        {
+                            await serviceConnection.DisposeAsync().ConfigureAwait(false);
+                        }
+                        else if (ctx is not null)
+                        {
+                            await ctx.DisposeAsync().ConfigureAwait(false);
+                        }
+
+                        throw;
+                    }
                 }
-                catch (Exception)
+                catch (MongoAuthentificationException ex)
+                {
+                    ThrowHelper.MongoInitExceptions<MongoServiceConnection>(ex);
+                }
+                catch (Exception ex)
                 {
                     continue;
                 }
@@ -377,6 +409,12 @@ namespace MongoDB.Client.Scheduler
 
         public async ValueTask DisposeAsync()
         {
+            if (_serviceConnection is not null)
+            {
+                await _serviceConnection.DisposeAsync().ConfigureAwait(false);
+                _serviceConnection = null;
+            }
+
             foreach (var scheduler in _shedulers)
             {
                 await scheduler.DisposeAsync();
